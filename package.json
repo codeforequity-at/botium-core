@@ -4,7 +4,7 @@
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "scripts": {
-    "eslint": "./node_modules/.bin/eslint \"./**/*.js\"",
+    "eslint": "./node_modules/.bin/eslint \"./src/**/*.js\"",
     "newpatch": "npm version patch && npm publish"
   },
   "repository": {

@@ -19,4 +19,8 @@ module.exports = class BaseContainer {
   Stop () {
     return Promise.resolve()
   }
+
+  Clean () {
+    return Promise.resolve()
+  }
 }

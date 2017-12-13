@@ -4,7 +4,7 @@ const async = require('async')
 const path = require('path')
 const mkdirp = require('mkdirp')
 const yaml = require('write-yaml')
-const uuid = require('uuid/v4');
+const uuid = require('uuid/v4')
 const mustache = require('mustache')
 const debug = require('debug')('DockerContainer')
 
@@ -17,7 +17,6 @@ module.exports = class DockerContainer extends BaseContainer {
     super(repo, caps)
     this.cleanupTasks = []
     this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.DOCKERTEMP])
-    
   }
 
   Validate () {
@@ -64,7 +63,7 @@ module.exports = class DockerContainer extends BaseContainer {
 
   Build () {
     return new Promise((resolve, reject) => {
-      const dockerConfig = {
+      this.dockerConfig = {
         dockercomposepath: this.caps[Capabilities.DOCKERCOMPOSEPATH],
         composefiles: []
       }
@@ -81,7 +80,7 @@ module.exports = class DockerContainer extends BaseContainer {
               const templateFile = path.resolve(__dirname, '..', 'Dockerfile.botium.template')
               fs.readFile(templateFile, 'utf8', (err, data) => {
                 if (err) return dockerfileCreated(`Reading docker template file ${templateFile} failed: ${err}`)
-                debug(data);
+                debug(data)
                 const viewData = {
                   STARTCMD: this.caps[Capabilities.STARTCMD],
                   DOCKERIMAGE: this.caps[Capabilities.DOCKERIMAGE]
@@ -102,14 +101,14 @@ module.exports = class DockerContainer extends BaseContainer {
 
         (dockercomposeMainUsed) => {
           const dockercomposeMain = path.resolve(__dirname, '..', 'docker-compose.botium.yml')
-          dockerConfig.composefiles.push(dockercomposeMain)
+          this.dockerConfig.composefiles.push(dockercomposeMain)
           dockercomposeMainUsed()
         },
 
         (dockercomposeFacebookUsed) => {
           if (this.caps[Capabilities.FACEBOOK_API]) {
             const dockercomposeFacebook = path.resolve(__dirname, '..', 'mocks', 'facebook', 'docker-compose.fbmock.yml')
-            dockerConfig.composefiles.push(dockercomposeFacebook)
+            this.dockerConfig.composefiles.push(dockercomposeFacebook)
           }
           dockercomposeFacebookUsed()
         },
@@ -137,14 +136,14 @@ module.exports = class DockerContainer extends BaseContainer {
             }
           }
           this.dockercomposeEnvFile = path.resolve(this.tempDirectory, `${uuid()}.yml`)
-          
+
           debug(`Writing docker compose environment to ${this.dockercomposeEnvFile} - ${JSON.stringify(composeEnv)}`)
           yaml(this.dockercomposeEnvFile, composeEnv, (err) => {
             if (err) return dockercomposeEnvUsed(`Writing docker file ${this.dockercomposeEnvFile} failed: ${err}`)
-            dockerConfig.composefiles.push(this.dockercomposeEnvFile)
+            this.dockerConfig.composefiles.push(this.dockercomposeEnvFile)
             this.cleanupTasks.push((cb) => {
               fs.unlink(this.dockercomposeEnvFile, cb)
-            })          
+            })
             dockercomposeEnvUsed()
           })
         },
@@ -154,21 +153,21 @@ module.exports = class DockerContainer extends BaseContainer {
           fs.stat(dockercomposeOverride, (err, stats) => {
             if (!err && stats.isFile()) {
               debug(`Docker-Compose file ${dockercomposeOverride} present, using it.`)
-              dockerConfig.composefiles.push(dockercomposeOverride)
+              this.dockerConfig.composefiles.push(dockercomposeOverride)
             }
             dockercomposeOverrideUsed()
           })
         },
 
         (dockerReady) => {
-          debug(dockerConfig)
-          this.dockerCmd = new DockerCmd(dockerConfig)
+          debug(this.dockerConfig)
+          this.dockerCmd = new DockerCmd(this.dockerConfig)
           this.dockerCmd.setupContainer()
             .then(() => {
               dockerReady()
             })
             .catch((err) => {
-              dockerReady(new Error(`Cannot build docker containers: ${util.inspect(err)}`))
+              dockerReady(`Cannot build docker containers: ${util.inspect(err)}`)
             })
         }
 
@@ -178,12 +177,54 @@ module.exports = class DockerContainer extends BaseContainer {
         }
         resolve()
       })
+    })
+  }
 
-      /*
-      dockerConfig.composefiles.push(path.resolve(this.repo.workingDirectory, 'docker-compose.botium.yml'))
-      dockerConfig.composefiles.push(path.resolve(__dirname, '../mocks/facebook/docker-compose.fbmock.yml'))
-      dockerConfig.composefiles.push(path.resolve(this.repo.workingDirectory, 'docker-compose.botium.override.yml'))
-      */
+  Clean () {
+    return new Promise((resolve, reject) => {
+      async.series([
+
+        (dockerStopped) => {
+          if (this.dockerCmd) {
+            this.dockerCmd.teardownContainer()
+              .then(() => {
+                dockerStopped()
+              })
+              .catch((err) => {
+                debug(`Cannot stop docker containers: ${util.inspect(err)}`)
+                dockerStopped()
+              })
+          } else {
+            dockerStopped()
+          }
+        },
+
+        (cleanupTasksDone) => {
+          if (this.cleanupTasks) {
+            async.series(
+              this.cleanupTasks.map((task) => {
+                return (cb) => {
+                  task((err) => {
+                    if (err) debug(`Cleanup failed: ${util.inspect(err)}`)
+                    cb()
+                  })
+                }
+              }),
+              () => {
+                cleanupTasksDone()
+              }
+            )
+          } else {
+            cleanupTasksDone()
+          }
+        }
+
+      ], (err) => {
+        if (err) {
+          return reject(new Error(`Cleanup failed ${util.inspect(err)}`))
+        }
+        resolve()
+      })
     })
   }
 }

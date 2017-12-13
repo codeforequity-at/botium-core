@@ -14,7 +14,10 @@ console.log(driver)
 driver.Build()
   .then((container) => {
     console.log('built ...')
-    console.log(container)
+    return container.Clean()
+  })
+  .then((container) => {
+    console.log('cleant ...')
   })
   .catch((err) => {
     console.log('failed')
