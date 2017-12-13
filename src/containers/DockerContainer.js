@@ -180,6 +180,62 @@ module.exports = class DockerContainer extends BaseContainer {
     })
   }
 
+  Start () {
+    return new Promise((resolve, reject) => {
+      async.series([
+
+        (dockerStarted) => {
+          if (this.dockerCmd) {
+            this.dockerCmd.startContainer()
+              .then(() => {
+                dockerStarted()
+              })
+              .catch((err) => {
+                debug(`Cannot start docker containers: ${util.inspect(err)}`)
+                dockerStarted()
+              })
+          } else {
+            dockerStarted(`not built`)
+          }
+        }
+
+      ], (err) => {
+        if (err) {
+          return reject(new Error(`Start failed ${util.inspect(err)}`))
+        }
+        resolve(this)
+      })
+    })
+  }
+
+  Stop () {
+    return new Promise((resolve, reject) => {
+      async.series([
+
+        (dockerStopped) => {
+          if (this.dockerCmd) {
+            this.dockerCmd.stopContainer()
+              .then(() => {
+                dockerStopped()
+              })
+              .catch((err) => {
+                debug(`Cannot stop docker containers: ${util.inspect(err)}`)
+                dockerStopped()
+              })
+          } else {
+            dockerStopped(`not built`)
+          }
+        }
+
+      ], (err) => {
+        if (err) {
+          return reject(new Error(`Stop failed ${util.inspect(err)}`))
+        }
+        resolve(this)
+      })
+    })
+  }
+
   Clean () {
     return new Promise((resolve, reject) => {
       async.series([

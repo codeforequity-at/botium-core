@@ -13,7 +13,15 @@ console.log(driver)
 
 driver.Build()
   .then((container) => {
-    console.log('built ...')
+    console.log('starting ...')
+    return container.Start()
+  })
+  .then((container) => {
+    console.log('stopping ...')
+    return container.Stop()
+  })
+  .then((container) => {
+    console.log('cleaning ...')
     return container.Clean()
   })
   .then((container) => {
