@@ -1,4 +1,5 @@
 const fs = require('fs')
+const path = require('path')
 const Source = require('../Source')
 const BaseRepo = require('./BaseRepo')
 
@@ -29,7 +30,7 @@ module.exports = class LocalRepo extends BaseRepo {
 
   Prepare () {
     // No need to prepare anything
-    this.workingDirectory = this.sources[Source.LOCALPATH]
+    this.workingDirectory = path.resolve(this.sources[Source.LOCALPATH])
     return Promise.resolve()
   }
 }
