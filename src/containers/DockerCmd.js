@@ -61,7 +61,7 @@ module.exports = class DockerCmd {
     var cmdOptions = []
     cmdOptions.push('-p')
     cmdOptions.push(require(path.resolve(process.cwd(), 'package.json')).name)
-    if (process.env.DEBUG) {
+    if (process.env.DEBUG && process.env.DEBUG.indexOf('DockerCmdVerbose') >= 0) {
       cmdOptions.push('--verbose')
     }
 
@@ -97,7 +97,7 @@ module.exports = class DockerCmd {
   }
 
   _getChildProcessOptions () {
-    if (process.env.DEBUG && process.env.DEBUG.indexOf('DockerCmd') > 0) {
+    if (process.env.DEBUG && process.env.DEBUG.indexOf('DockerCmd') >= 0) {
       return {stdio: ['ignore', process.stdout, process.stderr]}
     } else {
       return {stdio: ['ignore', 'ignore', 'ignore']}

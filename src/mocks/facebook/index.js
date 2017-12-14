@@ -4,6 +4,7 @@ const https = require('https')
 const http = require('http')
 const bodyParser = require('body-parser')
 const fs = require('fs')
+const path = require('path')
 const url = require('url')
 const tcpPortUsed = require('tcp-port-used')
 const _ = require('lodash')
@@ -125,8 +126,8 @@ appMock.all('*', function (req, res) {
 })
 
 var httpsOptions = {
-  key: fs.readFileSync('./127.0.0.1.key'),
-  cert: fs.readFileSync('./127.0.0.1.cert')
+  key: fs.readFileSync(path.resolve(__dirname, '127.0.0.1.key')),
+  cert: fs.readFileSync(path.resolve(__dirname, '127.0.0.1.cert'))
 }
 
 https.createServer(httpsOptions, appMock).listen(443, '0.0.0.0', function (err) {

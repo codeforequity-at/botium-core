@@ -23,4 +23,10 @@ module.exports = class BaseContainer {
   Clean () {
     return Promise.resolve()
   }
+
+  _AssertCapabilityExists (cap, reject) {
+    if (!this.caps[cap]) {
+      throw new Error(`Capability property ${cap} not set`)
+    }
+  }
 }

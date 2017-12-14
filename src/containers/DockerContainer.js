@@ -6,6 +6,9 @@ const mkdirp = require('mkdirp')
 const yaml = require('write-yaml')
 const uuid = require('uuid/v4')
 const mustache = require('mustache')
+const tcpPortUsed = require('tcp-port-used')
+const request = require('request')
+const io = require('socket.io-client')
 const debug = require('debug')('DockerContainer')
 
 const Capabilities = require('../Capabilities')
@@ -21,25 +24,15 @@ module.exports = class DockerContainer extends BaseContainer {
 
   Validate () {
     return new Promise((resolve, reject) => {
-      if (!this.caps[Capabilities.DOCKERCOMPOSEPATH]) {
-        return reject(new Error(`Capability property ${Capabilities.DOCKERCOMPOSEPATH} not set`))
-      }
-      if (!this.caps[Capabilities.STARTCMD]) {
-        return reject(new Error(`Capability property ${Capabilities.STARTCMD} not set`))
-      }
-      if (!this.caps[Capabilities.DOCKERIMAGE]) {
-        return reject(new Error(`Capability property ${Capabilities.DOCKERIMAGE} not set`))
-      }
-      if (!this.caps[Capabilities.DOCKERTEMP]) {
-        return reject(new Error(`Capability property ${Capabilities.DOCKERTEMP} not set`))
-      }
+      this._AssertCapabilityExists(Capabilities.DOCKERCOMPOSEPATH)
+      this._AssertCapabilityExists(Capabilities.STARTCMD)
+      this._AssertCapabilityExists(Capabilities.DOCKERIMAGE)
+      this._AssertCapabilityExists(Capabilities.DOCKERTEMP)
+
       if (this.caps[Capabilities.FACEBOOK_API]) {
-        if (!this.caps[Capabilities.FACEBOOK_WEBHOOK_PORT]) {
-          return reject(new Error(`Capability property ${Capabilities.FACEBOOK_WEBHOOK_PORT} not set`))
-        }
-        if (!this.caps[Capabilities.FACEBOOK_WEBHOOK_PATH]) {
-          return reject(new Error(`Capability property ${Capabilities.FACEBOOK_WEBHOOK_PATH} not set`))
-        }
+        this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PORT)
+        this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PATH)
+        this._AssertCapabilityExists(Capabilities.FACEBOOK_PUBLISHPORT)
       }
 
       async.series([
@@ -120,7 +113,10 @@ module.exports = class DockerContainer extends BaseContainer {
               botium: {
                 build: {
                   context: this.repo.workingDirectory
-                }
+                },
+                volumes: [
+                  `${this.repo.workingDirectory}:/usr/src/app`
+                ]
               }
             }
           }
@@ -129,9 +125,16 @@ module.exports = class DockerContainer extends BaseContainer {
               build: {
                 context: path.resolve(__dirname, '..', 'mocks', 'facebook')
               },
+              volumes: [
+                `${path.resolve(__dirname, '..', '..')}:/usr/src/app`
+              ],
+              ports: [
+                `${this.caps[Capabilities.FACEBOOK_PUBLISHPORT]}:${this.caps[Capabilities.FACEBOOK_PUBLISHPORT]}`
+              ],
               environment: {
                 BOTIUM_FACEBOOK_WEBHOOKPORT: this.caps[Capabilities.FACEBOOK_WEBHOOK_PORT],
-                BOTIUM_FACEBOOK_WEBHOOKPATH: this.caps[Capabilities.FACEBOOK_WEBHOOK_PATH]
+                BOTIUM_FACEBOOK_WEBHOOKPATH: this.caps[Capabilities.FACEBOOK_WEBHOOK_PATH],
+                BOTIUM_FACEBOOK_PUBLISHPORT: this.caps[Capabilities.FACEBOOK_PUBLISHPORT]
               }
             }
           }
@@ -197,6 +200,90 @@ module.exports = class DockerContainer extends BaseContainer {
           } else {
             dockerStarted(`not built`)
           }
+        },
+
+        (facebookMockupOnline) => {
+          if (this.caps[Capabilities.FACEBOOK_API]) {
+            const portToCheck = this.caps[Capabilities.FACEBOOK_PUBLISHPORT]
+            let online = false
+            async.until(
+              () => online,
+              (callback) => {
+                debug(`Facebook Mock - checking port usage ${portToCheck} before proceed`)
+
+                tcpPortUsed.check(portToCheck, '127.0.0.1')
+                  .then((inUse) => {
+                    debug(`Facebook Mock - port usage (${portToCheck}): ${inUse}`)
+                    if (inUse) {
+                      online = true
+                      callback()
+                    } else {
+                      setTimeout(callback, 2000)
+                    }
+                  }, (err) => {
+                    debug(`Facebook Mock - error on port check: ${err}`)
+                    setTimeout(callback, 2000)
+                  })
+              },
+              facebookMockupOnline
+            )
+          } else {
+            facebookMockupOnline()
+          }
+        },
+
+        (facebookEndpointOnline) => {
+          if (this.caps[Capabilities.FACEBOOK_API]) {
+            this.facebookMockUrl = `http://127.0.0.1:${this.caps[Capabilities.FACEBOOK_PUBLISHPORT]}`
+            let online = false
+            async.until(
+              () => online,
+              (callback) => {
+                var options = {
+                  uri: this.facebookMockUrl,
+                  method: 'GET'
+                }
+                debug(`Facebook Mock - checking endpoint ${this.facebookMockUrl} before proceed`)
+                request(options, (err, response, body) => {
+                  if (err) {
+                    setTimeout(callback, 2000)
+                  } else if (response && response.statusCode === 200) {
+                    debug(`Facebook Mock - endpoint ${this.facebookMockUrl} is online`)
+                    online = true
+                    callback()
+                  } else {
+                    setTimeout(callback, 2000)
+                  }
+                })
+              },
+              facebookEndpointOnline
+            )
+          } else {
+            facebookEndpointOnline()
+          }
+        },
+
+        (facebookSocketStartDone) => {
+          if (this.caps[Capabilities.FACEBOOK_API]) {
+            if (this.socket) {
+              this.socket.disconnect()
+              this.socket = null
+            }
+
+            this.socket = io.connect(this.facebookMockUrl)
+            this.socket.on('botsays', (saysContent) => {
+              debug('Facebook Mock - socket received botsays event ' + JSON.stringify(saysContent))
+            })
+            this.socket.on('error', (err) => {
+              debug('Facebook Mock - socket connection error! ' + err)
+            })
+            this.socket.on('connect', () => {
+              debug('Facebook Mock - socket connected')
+              facebookSocketStartDone()
+            })
+          } else {
+            facebookSocketStartDone()
+          }
         }
 
       ], (err) => {
@@ -211,6 +298,14 @@ module.exports = class DockerContainer extends BaseContainer {
   Stop () {
     return new Promise((resolve, reject) => {
       async.series([
+
+        (socketStopDone) => {
+          if (this.socket) {
+            this.socket.disconnect()
+            this.socket = null
+          }
+          socketStopDone()
+        },
 
         (dockerStopped) => {
           if (this.dockerCmd) {

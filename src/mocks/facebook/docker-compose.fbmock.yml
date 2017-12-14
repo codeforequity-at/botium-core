@@ -7,12 +7,10 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.fbmock
-        ports:
-        - "46199:46199"
         volumes:
         - ../../../:/usr/src/app
         environment:
-            BOTIUM_FACEBOOK_PUBLISHPORT: 46199
+            BOTIUM_FACEBOOK_PUBLISHPORT:
             BOTIUM_FACEBOOK_PAGEID:
             BOTIUM_FACEBOOK_USERPROFILEIDDEFAULT:
             BOTIUM_FACEBOOK_USERPROFILELOCALE: "en_US"
