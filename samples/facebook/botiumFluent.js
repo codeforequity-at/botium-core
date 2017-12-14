@@ -2,6 +2,14 @@ const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
 const Source = require('../../').Source
 
+function assert (expected, actual) {
+  if (actual.indexOf(expected) < 0) {
+    console.log(`ERROR: Expected <${expected}>, got <${text}>`)
+  } else {
+    console.log(`SUCCESS: Got Expected <${expected}>`)
+  }
+}
+
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'Botium Facebook Sample 1')
   .setCapability(Capabilities.FACEBOOK_API, true)
@@ -16,24 +24,10 @@ const driver = new BotDriver()
 driver.BuildFluent()
   .Start()
   .UserSaysText('hallo!')
-  .WaitBotSaysText(5000, (text) => {
-    const expected = 'Text received, echo: hallo!'
-    if (text !== expected) {
-      console.log(`ERROR: Expected <${expected}>, got <${text}>`);
-    } else {
-      console.log(`SUCCESS: Got Expected <${expected}>`);
-    }
-  })
+  .WaitBotSaysText(5000, (text) => assert('Text received, echo: hallo!', text))
   .Restart()
   .UserSaysText('Generic')
-  .WaitBotSays(5000, (botMsg) => {
-    const expected = 'First card'
-    if (JSON.stringify(botMsg.sourceData).indexOf(expected) < 0) {
-      console.log(`ERROR: Expected <${expected}>`);
-    } else {
-      console.log(`SUCCESS: Got Expected <${expected}>`);
-    }
-  })
+  .WaitBotSays(5000, (botMsg) => assert('First card', JSON.stringify(botMsg.sourceData)))
   .Stop()
   .Clean()
   .Exec()
