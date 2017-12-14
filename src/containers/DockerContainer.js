@@ -168,7 +168,7 @@ module.exports = class DockerContainer extends BaseContainer {
         if (err) {
           return reject(new Error(`Cannot build docker containers: ${util.inspect(err)}`))
         }
-        resolve()
+        resolve(this)
       })
     })
   }
@@ -391,7 +391,7 @@ module.exports = class DockerContainer extends BaseContainer {
         if (err) {
           return reject(new Error(`Cleanup failed ${util.inspect(err)}`))
         }
-        resolve()
+        resolve(this)
       })
     })
   }

@@ -13,23 +13,35 @@ const driver = new BotDriver()
   .setEnv('NODE_TLS_REJECT_UNAUTHORIZED', 0)
   .setEnv('NODE_ENV', 'dev')
 
+let container = null
+
 driver.Build()
-  .then((c) => c.Start())
-  .then((c) => c.UserSaysText('hallo!'))
-  .then((c) => c.WaitBotSaysText())
-  .then(({container, text}) => {
-    console.log(text)
-    return container
+  .then((c) => {
+    container = c
   })
-  .then((c) => c.UserSaysText('Generic'))
-  .then((c) => c.WaitBotSays())
-  .then(({container, botMsg}) => {
+  .then(() => container.Start())
+  .then(() => container.UserSaysText('hallo!'))
+  .then(() => container.WaitBotSaysText())
+  .then((text) => {
+    if (text !== 'Text received, echo: hallo!') {
+      throw new Error('Expected echo');
+    }
+  })
+  .then(() => container.Stop())
+  .then(() => container.Start())
+  .then(() => container.UserSaysText('Generic'))
+  .then(() => container.WaitBotSays())
+  .then((botMsg) => {
     console.log(JSON.stringify(botMsg.sourceData, null, 2))
     return container
   })
-  .then((c) => c.Stop())
-  .then((c) => c.Clean())
   .catch((err) => {
-    console.log('failed')
+    console.log('tests failed')
+    console.log(err)
+  })   
+  .then(() => container.Stop())
+  .then(() => container.Clean())
+  .catch((err) => {
+    console.log('cleanup failed')
     console.log(err)
   })   

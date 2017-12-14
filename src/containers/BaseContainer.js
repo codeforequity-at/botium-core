@@ -61,15 +61,15 @@ module.exports = class BaseContainer {
     return Promise.resolve(this)
   }
 
-  WaitBotSays (timeoutMillies = 5000) {
+  WaitBotSays (timeoutMillis = 5000) {
     if (!this.queues.default) {
       this.queues.default = new Queue()
     }
 
     return new Promise((resolve, reject) => {
-      this.queues.default.pop(timeoutMillies)
-        .then((m) => {
-          resolve({ container: this, botMsg: m })
+      this.queues.default.pop(timeoutMillis)
+        .then((botMsg) => {
+          resolve(botMsg)
         })
         .catch((err) => {
           reject(err)
@@ -77,15 +77,24 @@ module.exports = class BaseContainer {
     })
   }
 
-  WaitBotSaysText (timeoutMillies = 5000) {
+  WaitBotSaysText (timeoutMillis = 5000) {
     return new Promise((resolve, reject) => {
-      this.WaitBotSays(timeoutMillies)
-        .then(({ container, botMsg }) => {
-          resolve({ container, botMsg, text: botMsg.messageText })
+      this.WaitBotSays(timeoutMillis)
+        .then((botMsg) => {
+          resolve(botMsg.messageText)
         })
         .catch((err) => {
           reject(err)
         })
+    })
+  }
+
+  Restart () {
+    return new Promise((resolve, reject) => {
+      this.Stop()
+        .then(() => this.Start())
+        .then(() => resolve())
+        .catch((err) => reject(err))
     })
   }
 

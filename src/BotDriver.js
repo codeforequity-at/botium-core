@@ -4,6 +4,7 @@ const debug = require('debug')('BotDriver')
 
 const Capabilities = require('./Capabilities')
 const Source = require('./Source')
+const Fluent = require('./Fluent')
 
 module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, env = {}) {
@@ -56,6 +57,11 @@ module.exports = class BotDriver {
     return this
   }
 
+  BuildFluent () {
+    this.Fluent = new Fluent(this)
+    return this.Fluent
+  }
+
   Build () {
     debug(`Build - Sources : ${util.inspect(this.sources)} Capabilites: ${util.inspect(this.caps)}`)
     return new Promise((resolve, reject) => {
@@ -67,21 +73,21 @@ module.exports = class BotDriver {
         (repoValidated) => {
           repo = this._getRepo()
           debug(`Got Repo: ${util.inspect(repo)}`)
-          repo.Validate().then(repoValidated).catch(repoValidated)
+          repo.Validate().then(() => repoValidated()).catch(repoValidated)
         },
 
         (repoPrepared) => {
-          repo.Prepare().then(repoPrepared).catch(repoPrepared)
+          repo.Prepare().then(() => repoPrepared()).catch(repoPrepared)
         },
 
         (containerValidated) => {
           container = this._getContainer(repo)
           debug(`Got Container: ${util.inspect(container)}`)
-          container.Validate().then(containerValidated).catch(containerValidated)
+          container.Validate().then(() => containerValidated()).catch(containerValidated)
         },
 
         (containerBuilt) => {
-          container.Build().then(containerBuilt).catch(containerBuilt)
+          container.Build().then(() => containerBuilt()).catch(containerBuilt)
         }
 
       ], (err) => {
