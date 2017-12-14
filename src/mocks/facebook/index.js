@@ -156,8 +156,10 @@ appTest.get('/', function (req, res) {
         }
         request(options, function (err, response, body) {
           if (err) {
+            console.log('webhook (' + webhookurl + ') not yet online ' + err)
             res.status(500).send('testendpoint not yet online')
           } else {
+            console.log('webhook (' + webhookurl + ') online')
             res.status(200).send('testendpoint online')
           }
         })

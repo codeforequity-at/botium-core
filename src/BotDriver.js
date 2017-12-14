@@ -14,6 +14,7 @@ module.exports = class BotDriver {
       [Capabilities.CONTAINERMODE]: 'docker',
       [Capabilities.DOCKERCOMPOSEPATH]: 'docker-compose',
       [Capabilities.DOCKERIMAGE]: 'node:boron',
+      [Capabilities.DOCKERSYSLOGPORT]: 47199,
       [Capabilities.FACEBOOK_PUBLISHPORT]: 46199
     }
     const defaultSources = {

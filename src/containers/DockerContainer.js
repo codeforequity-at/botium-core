@@ -7,6 +7,7 @@ const mustache = require('mustache')
 const tcpPortUsed = require('tcp-port-used')
 const request = require('request')
 const io = require('socket.io-client')
+const SyslogServer = require('syslog-server')
 const debug = require('debug')('DockerContainer')
 
 const Capabilities = require('../Capabilities')
@@ -88,6 +89,12 @@ module.exports = class DockerContainer extends BaseContainer {
                 build: {
                   context: this.repo.workingDirectory
                 },
+                logging: {
+                  driver: 'syslog',
+                  options: {
+                    'syslog-address': `udp://127.0.0.1:${this.caps[Capabilities.DOCKERSYSLOGPORT]}`
+                  }
+                },
                 volumes: [
                   `${this.repo.workingDirectory}:/usr/src/app`
                 ]
@@ -101,6 +108,12 @@ module.exports = class DockerContainer extends BaseContainer {
             composeEnv.services['botium-fbmock'] = {
               build: {
                 context: path.resolve(__dirname, '..', 'mocks', 'facebook')
+              },
+              logging: {
+                driver: 'syslog',
+                options: {
+                  'syslog-address': `udp://127.0.0.1:${this.caps[Capabilities.DOCKERSYSLOGPORT]}`
+                }
               },
               volumes: [
                 `${path.resolve(__dirname, '..', '..')}:/usr/src/app`
@@ -161,19 +174,31 @@ module.exports = class DockerContainer extends BaseContainer {
     return new Promise((resolve, reject) => {
       async.series([
 
+        (syslogStarted) => {
+          this.syslogFile = path.resolve(this.tempDirectory, 'docker-containers-log.txt')
+
+          this.syslogServer = new SyslogServer()
+          this.syslogServer.on('message', (value) => {
+            debug(`DOCKER CONTAINER: ${value.message}`)
+            fs.appendFile(this.syslogFile, value.message, () => { })
+          })
+          this.syslogServer.start({ port: this.caps[Capabilities.DOCKERSYSLOGPORT] })
+            .then(syslogStarted)
+            .catch((err) => {
+              syslogStarted(`Cannot start syslog server: ${util.inspect(err)}`)
+            })
+        },
+
         (dockerStarted) => {
-          if (this.dockerCmd) {
-            this.dockerCmd.startContainer()
-              .then(() => {
-                dockerStarted()
-              })
-              .catch((err) => {
-                debug(`Cannot start docker containers: ${util.inspect(err)}`)
-                dockerStarted()
-              })
-          } else {
-            dockerStarted(`not built`)
-          }
+          if (!this.dockerCmd) return dockerStarted('not built')
+
+          this.dockerCmd.startContainer()
+            .then(() => {
+              dockerStarted()
+            })
+            .catch((err) => {
+              dockerStarted(`Cannot start docker containers: ${util.inspect(err)}`)
+            })
         },
 
         (facebookMockupOnline) => {
@@ -282,18 +307,25 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (dockerStopped) => {
-          if (this.dockerCmd) {
-            this.dockerCmd.stopContainer()
-              .then(() => {
-                dockerStopped()
-              })
-              .catch((err) => {
-                debug(`Cannot stop docker containers: ${util.inspect(err)}`)
-                dockerStopped()
-              })
-          } else {
-            dockerStopped(`not built`)
-          }
+          if (!this.dockerCmd) return dockerStopped()
+
+          this.dockerCmd.stopContainer()
+            .then(() => {
+              dockerStopped()
+            })
+            .catch((err) => {
+              dockerStopped(`Cannot stop docker containers: ${util.inspect(err)}`)
+            })
+        },
+
+        (syslogStopped) => {
+          if (!this.syslogServer) return syslogStopped()
+
+          this.syslogServer.stop()
+            .then(syslogStopped)
+            .catch((err) => {
+              syslogStopped(`Cannot stop syslog server: ${util.inspect(err)}`)
+            })
         }
 
       ], (err) => {
@@ -316,7 +348,7 @@ module.exports = class DockerContainer extends BaseContainer {
                 dockerStopped()
               })
               .catch((err) => {
-                debug(`Cannot stop docker containers: ${util.inspect(err)}`)
+                debug(`Cannot teardown docker containers: ${util.inspect(err)}`)
                 dockerStopped()
               })
           } else {
