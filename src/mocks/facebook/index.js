@@ -7,7 +7,9 @@ const fs = require('fs')
 const path = require('path')
 const url = require('url')
 const tcpPortUsed = require('tcp-port-used')
-const _ = require('lodash')
+
+const BotiumMockMessage = require('../BotiumMockMessage')
+const BotiumMockCommand = require('../BotiumMockCommand')
 
 var publishPort = process.env.BOTIUM_FACEBOOK_PUBLISHPORT
 if (publishPort) {
@@ -71,19 +73,16 @@ appMock.all('*/subscribed_apps*', function (req, res) {
 })
 appMock.all('*/me/messages*', function (req, res) {
   if (req.body) {
-    var saysContent = {
-      orig: req.body
-    }
+    const botMsg = new BotiumMockMessage({
+      sourceData: req.body
+    })
     if (req.body.message && req.body.message.text && !req.body.message.quick_replies) {
-      saysContent.messageText = req.body.message.text
-    }
-    if (req.body.message) {
-      saysContent.message = req.body.message
+      botMsg.messageText = req.body.message.text
     }
     if (req.body.sender_action) {
-      saysContent.messageText = req.body.sender_action
+      botMsg.sourceAction = req.body.sender_action
     }
-    broadcastBotSays(saysContent)
+    receivedFromBot(botMsg)
   }
 
   var ts = getTs()
@@ -100,14 +99,17 @@ appMock.all('*/me/messages*', function (req, res) {
   res.json(response)
 
   if (senddelivery) {
-    hears({
-      delivery: {
-        mids: [
-          response.message_id
-        ],
-        watermark: ts
-      }
-    }, response.recipient_id)
+    sendToBot(new BotiumMockMessage({
+      sourceData: {
+        delivery: {
+          mids: [
+            response.message_id
+          ],
+          watermark: ts
+        }
+      },
+      sender: response.recipient_id
+    }))
   }
 })
 
@@ -173,7 +175,7 @@ appTest.get('/', function (req, res) {
     })
 })
 
-function hears (msg, from, channel) {
+function sendToBot (mockMsg) {
   var ts = getTs()
 
   var msgContainer = {
@@ -187,21 +189,22 @@ function hears (msg, from, channel) {
     ]
   }
 
-  if (_.isString(msg)) {
+  if (mockMsg.messageText) {
     msgContainer.entry[0].messaging.push({
       message: {
-        text: msg
+        text: mockMsg.messageText
       }
     })
-  } else if (_.isPlainObject(msg)) {
-    msgContainer.entry[0].messaging.push(msg)
-  } else if (_.isArray(msg)) {
-    msgContainer.entry[0].messaging = msg
+  } else if (mockMsg.sourceData) {
+    msgContainer.entry[0].messaging.push(mockMsg.sourceData)
+  } else {
+    console.log('No messageText or sourceData given. Ignored.', mockMsg)
+    return
   }
 
   msgContainer.entry[0].messaging.forEach(function (msg) {
     if (!msg.sender) msg.sender = {}
-    if (!msg.sender.id) msg.sender.id = from
+    if (!msg.sender.id) msg.sender.id = mockMsg.sender
 
     if (!msg.recipient) msg.recipient = {}
     if (!msg.recipient.id) msg.recipient.id = pageid
@@ -235,14 +238,16 @@ var serverTest = http.createServer(appTest).listen(publishPort, '0.0.0.0', funct
 
 var io = require('socket.io')(serverTest)
 io.on('connection', function (socket) {
-  socket.on('bothears', function (msg, from, channel) {
-    console.log('received message from', from, 'msg', JSON.stringify(msg), 'channel', channel)
-    hears(msg, from, channel)
+  console.log('socket connection estabilished')
+  socket.on(BotiumMockCommand.MOCKCMD_SENDTOBOT, function (mockMsg) {
+    console.log('MOCKCMD_SENDTOBOT ', mockMsg)
+    sendToBot(mockMsg)
   })
 })
 
-function broadcastBotSays (saysContent) {
-  io.sockets.emit('botsays', saysContent)
+function receivedFromBot (botMsg) {
+  console.log('receivedFromBot: ', botMsg)
+  io.sockets.emit(BotiumMockCommand.MOCKCMD_RECEIVEDFROMBOT, botMsg)
 }
 
 function getTs () {

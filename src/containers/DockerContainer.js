@@ -9,10 +9,13 @@ const request = require('request')
 const io = require('socket.io-client')
 const SyslogServer = require('syslog-server')
 const debug = require('debug')('DockerContainer')
+const debugContainerOutput = require('debug')('DockerContainerOutput')
 
 const Capabilities = require('../Capabilities')
 const BaseContainer = require('./BaseContainer')
 const DockerCmd = require('./DockerCmd')
+const BotiumMockMessage = require('../mocks/BotiumMockMessage')
+const BotiumMockCommand = require('../mocks/BotiumMockCommand')
 
 module.exports = class DockerContainer extends BaseContainer {
   Validate () {
@@ -179,7 +182,7 @@ module.exports = class DockerContainer extends BaseContainer {
 
           this.syslogServer = new SyslogServer()
           this.syslogServer.on('message', (value) => {
-            debug(`DOCKER CONTAINER: ${value.message}`)
+            debugContainerOutput(value.message)
             fs.appendFile(this.syslogFile, value.message, () => { })
           })
           this.syslogServer.start({ port: this.caps[Capabilities.DOCKERSYSLOGPORT] })
@@ -270,14 +273,15 @@ module.exports = class DockerContainer extends BaseContainer {
             }
 
             this.socket = io.connect(this.facebookMockUrl)
-            this.socket.on('botsays', (saysContent) => {
-              debug('Facebook Mock - socket received botsays event ' + JSON.stringify(saysContent))
+            this.socket.on(BotiumMockCommand.MOCKCMD_RECEIVEDFROMBOT, (botMsg) => {
+              debug(`Facebook Mock - socket received from bot ${botMsg}`)
+              this._QueueBotSays(new BotiumMockMessage(botMsg))
             })
             this.socket.on('error', (err) => {
-              debug('Facebook Mock - socket connection error! ' + err)
+              debug(`Facebook Mock - socket connection error! ${err}`)
             })
             this.socket.on('connect', () => {
-              debug('Facebook Mock - socket connected')
+              debug(`Facebook Mock - socket connected ${this.facebookMockUrl}`)
               facebookSocketStartDone()
             })
           } else {
@@ -294,6 +298,28 @@ module.exports = class DockerContainer extends BaseContainer {
     })
   }
 
+  UserSaysText (text) {
+    return new Promise((resolve, reject) => {
+      if (this.socket) {
+        this.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, new BotiumMockMessage({ sender: 'me', messageText: text }))
+        resolve(this)
+      } else {
+        reject(new Error('Socket not online'))
+      }
+    })
+  }
+
+  UserSays (mockMsg) {
+    return new Promise((resolve, reject) => {
+      if (this.socket) {
+        this.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
+        resolve(this)
+      } else {
+        reject(new Error('Socket not online'))
+      }
+    })
+  }
+
   Stop () {
     return new Promise((resolve, reject) => {
       async.series([
@@ -302,6 +328,7 @@ module.exports = class DockerContainer extends BaseContainer {
           if (this.socket) {
             this.socket.disconnect()
             this.socket = null
+            debug('Facebook Mock - socket disconnected')
           }
           socketStopDone()
         },

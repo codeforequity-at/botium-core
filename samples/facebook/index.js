@@ -85,7 +85,9 @@ function sendTextMessage(sender, text) {
 			console.log('Error sending messages: ', error)
 		} else if (response.body.error) {
 			console.log('Error: ', response.body.error)
-		}
+		} else {
+			console.log('Bot Sent Message: ', messageData)
+    }
 	})
 }
 
@@ -134,7 +136,9 @@ function sendGenericMessage(sender) {
 			console.log('Error sending messages: ', error)
 		} else if (response.body.error) {
 			console.log('Error: ', response.body.error)
-		}
+		} else {
+			console.log('Bot Sent Message: ', messageData)
+    }
 	})
 }
 

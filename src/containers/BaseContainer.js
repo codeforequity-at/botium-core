@@ -9,6 +9,7 @@ const rimraf = require('rimraf')
 const debug = require('debug')('BaseContainer')
 
 const Capabilities = require('../Capabilities')
+const Queue = require('../helpers/Queue')
 
 module.exports = class BaseContainer {
   constructor (repo, caps, envs) {
@@ -17,6 +18,7 @@ module.exports = class BaseContainer {
     this.envs = Object.assign({}, envs)
     this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slug(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
     this.cleanupTasks = []
+    this.queues = {}
   }
 
   Validate () {
@@ -38,21 +40,57 @@ module.exports = class BaseContainer {
         if (err) {
           return reject(err)
         }
-        resolve()
+        resolve(this)
       })
     })
   }
 
   Build () {
-    return Promise.resolve()
+    return Promise.resolve(this)
   }
 
   Start () {
-    return Promise.resolve()
+    return Promise.resolve(this)
+  }
+
+  UserSaysText (msg) {
+    return Promise.resolve(this)
+  }
+
+  UserSays (msg) {
+    return Promise.resolve(this)
+  }
+
+  WaitBotSays (timeoutMillies = 5000) {
+    if (!this.queues.default) {
+      this.queues.default = new Queue()
+    }
+
+    return new Promise((resolve, reject) => {
+      this.queues.default.pop(timeoutMillies)
+        .then((m) => {
+          resolve({ container: this, botMsg: m })
+        })
+        .catch((err) => {
+          reject(err)
+        })
+    })
+  }
+
+  WaitBotSaysText (timeoutMillies = 5000) {
+    return new Promise((resolve, reject) => {
+      this.WaitBotSays(timeoutMillies)
+        .then(({ container, botMsg }) => {
+          resolve({ container, botMsg, text: botMsg.messageText })
+        })
+        .catch((err) => {
+          reject(err)
+        })
+    })
   }
 
   Stop () {
-    return Promise.resolve()
+    return Promise.resolve(this)
   }
 
   Clean () {
@@ -103,5 +141,13 @@ module.exports = class BaseContainer {
     if (!this.caps[cap]) {
       throw new Error(`Capability property ${cap} not set`)
     }
+  }
+
+  _QueueBotSays (botMsg) {
+    if (!this.queues.default) {
+      this.queues.default = new Queue()
+    }
+
+    this.queues.default.push(botMsg)
   }
 }
