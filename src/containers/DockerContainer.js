@@ -2,9 +2,7 @@ const fs = require('fs')
 const util = require('util')
 const async = require('async')
 const path = require('path')
-const mkdirp = require('mkdirp')
 const yaml = require('write-yaml')
-const uuid = require('uuid/v4')
 const mustache = require('mustache')
 const tcpPortUsed = require('tcp-port-used')
 const request = require('request')
@@ -16,41 +14,17 @@ const BaseContainer = require('./BaseContainer')
 const DockerCmd = require('./DockerCmd')
 
 module.exports = class DockerContainer extends BaseContainer {
-  constructor (repo, caps) {
-    super(repo, caps)
-    this.cleanupTasks = []
-    this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.DOCKERTEMP])
-  }
-
   Validate () {
-    return new Promise((resolve, reject) => {
+    return super.Validate().then(() => {
       this._AssertCapabilityExists(Capabilities.DOCKERCOMPOSEPATH)
       this._AssertCapabilityExists(Capabilities.STARTCMD)
       this._AssertCapabilityExists(Capabilities.DOCKERIMAGE)
-      this._AssertCapabilityExists(Capabilities.DOCKERTEMP)
 
       if (this.caps[Capabilities.FACEBOOK_API]) {
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PORT)
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PATH)
         this._AssertCapabilityExists(Capabilities.FACEBOOK_PUBLISHPORT)
       }
-
-      async.series([
-        (tempdirCreated) => {
-          mkdirp(this.tempDirectory, (err) => {
-            if (err) {
-              return tempdirCreated(new Error(`Unable to create temp directory ${this.tempDirectory}: ${err}`))
-            }
-            tempdirCreated()
-          })
-        }
-
-      ], (err) => {
-        if (err) {
-          return reject(err)
-        }
-        resolve()
-      })
     })
   }
 
@@ -138,15 +112,12 @@ module.exports = class DockerContainer extends BaseContainer {
               }
             }
           }
-          this.dockercomposeEnvFile = path.resolve(this.tempDirectory, `${uuid()}.yml`)
+          this.dockercomposeEnvFile = path.resolve(this.tempDirectory, `docker-env.yml`)
 
           debug(`Writing docker compose environment to ${this.dockercomposeEnvFile} - ${JSON.stringify(composeEnv)}`)
           yaml(this.dockercomposeEnvFile, composeEnv, (err) => {
             if (err) return dockercomposeEnvUsed(`Writing docker file ${this.dockercomposeEnvFile} failed: ${err}`)
             this.dockerConfig.composefiles.push(this.dockercomposeEnvFile)
-            this.cleanupTasks.push((cb) => {
-              fs.unlink(this.dockercomposeEnvFile, cb)
-            })
             dockercomposeEnvUsed()
           })
         },
@@ -351,23 +322,7 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (cleanupTasksDone) => {
-          if (this.cleanupTasks) {
-            async.series(
-              this.cleanupTasks.map((task) => {
-                return (cb) => {
-                  task((err) => {
-                    if (err) debug(`Cleanup failed: ${util.inspect(err)}`)
-                    cb()
-                  })
-                }
-              }),
-              () => {
-                cleanupTasksDone()
-              }
-            )
-          } else {
-            cleanupTasksDone()
-          }
+          super.Clean().then(cleanupTasksDone).catch(() => cleanupTasksDone())
         }
 
       ], (err) => {

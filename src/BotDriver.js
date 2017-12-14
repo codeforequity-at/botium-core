@@ -6,18 +6,19 @@ const Capabilities = require('./Capabilities')
 const Source = require('./Source')
 
 module.exports = class BotDriver {
-  constructor (caps, sources) {
+  constructor (caps = {}, sources = {}) {
     const defaultCaps = {
+      [Capabilities.PROJECTNAME]: 'defaultproject',
+      [Capabilities.TEMPDIR]: 'botiumwork',
+      [Capabilities.CLEANUPTEMPDIR]: true,
       [Capabilities.CONTAINERMODE]: 'docker',
       [Capabilities.DOCKERCOMPOSEPATH]: 'docker-compose',
       [Capabilities.DOCKERIMAGE]: 'node:boron',
-      [Capabilities.DOCKERTEMP]: './temp',
       [Capabilities.FACEBOOK_PUBLISHPORT]: 46199
     }
     const defaultSources = {
       [Source.LOCALPATH]: '.',
-      [Source.GITPATH]: 'git',
-      [Source.GITTEMPPATH]: './botium-temp'
+      [Source.GITPATH]: 'git'
     }
     this.caps = Object.assign(defaultCaps, caps)
     this.sources = Object.assign(defaultSources, sources)
