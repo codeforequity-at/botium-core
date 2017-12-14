@@ -94,6 +94,9 @@ module.exports = class DockerContainer extends BaseContainer {
               }
             }
           }
+          if (this.envs) {
+            composeEnv.services.botium.environment = this.envs
+          }
           if (this.caps[Capabilities.FACEBOOK_API]) {
             composeEnv.services['botium-fbmock'] = {
               build: {

@@ -10,6 +10,8 @@ const driver = new BotDriver()
   .setCapability(Capabilities.CLEANUPTEMPDIR, false)
   .setSource(Source.LOCALPATH, '.')
   .setCapability(Capabilities.STARTCMD, 'npm install && node index.js')
+  .setEnv('NODE_TLS_REJECT_UNAUTHORIZED', 0)
+  .setEnv('NODE_ENV', 'dev')
   
 console.log(driver)
 

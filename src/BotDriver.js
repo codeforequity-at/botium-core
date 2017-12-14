@@ -6,7 +6,7 @@ const Capabilities = require('./Capabilities')
 const Source = require('./Source')
 
 module.exports = class BotDriver {
-  constructor (caps = {}, sources = {}) {
+  constructor (caps = {}, sources = {}, env = {}) {
     const defaultCaps = {
       [Capabilities.PROJECTNAME]: 'defaultproject',
       [Capabilities.TEMPDIR]: 'botiumwork',
@@ -22,6 +22,7 @@ module.exports = class BotDriver {
     }
     this.caps = Object.assign(defaultCaps, caps)
     this.sources = Object.assign(defaultSources, sources)
+    this.envs = {}
   }
 
   setCapabilities (caps) {
@@ -41,6 +42,16 @@ module.exports = class BotDriver {
 
   setSource (source, value) {
     this.sources[source] = value
+    return this
+  }
+
+  setEnvs (envs) {
+    this.envs = Object.assign(this.envs, envs)
+    return this
+  }
+
+  setEnv (name, value) {
+    this.envs[name] = value
     return this
   }
 
@@ -98,7 +109,7 @@ module.exports = class BotDriver {
   _getContainer (repo) {
     if (this.caps[Capabilities.CONTAINERMODE] === 'docker') {
       const DockerContainer = require('./containers/DockerContainer')
-      return new DockerContainer(repo, this.caps)
+      return new DockerContainer(repo, this.caps, this.envs)
     }
     throw new Error(`No Container provider found for Caps ${util.inspect(this.caps)}`)
   }

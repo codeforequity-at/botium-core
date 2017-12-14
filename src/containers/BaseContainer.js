@@ -11,9 +11,10 @@ const debug = require('debug')('BaseContainer')
 const Capabilities = require('../Capabilities')
 
 module.exports = class BaseContainer {
-  constructor (repo, caps) {
+  constructor (repo, caps, envs) {
     this.repo = repo
     this.caps = Object.assign({}, caps)
+    this.envs = Object.assign({}, envs)
     this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slug(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
     this.cleanupTasks = []
   }
