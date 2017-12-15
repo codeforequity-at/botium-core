@@ -4,7 +4,6 @@ const async = require('async')
 const path = require('path')
 const yaml = require('write-yaml')
 const mustache = require('mustache')
-const tcpPortUsed = require('tcp-port-used')
 const request = require('request')
 const io = require('socket.io-client')
 const SyslogServer = require('syslog-server')
@@ -16,6 +15,7 @@ const BaseContainer = require('./BaseContainer')
 const DockerCmd = require('./DockerCmd')
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const BotiumMockCommand = require('../mocks/BotiumMockCommand')
+const TcpPortUtils = require('../helpers/TcpPortUtils')
 
 module.exports = class DockerContainer extends BaseContainer {
   Validate () {
@@ -27,7 +27,7 @@ module.exports = class DockerContainer extends BaseContainer {
       if (this.caps[Capabilities.FACEBOOK_API]) {
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PORT)
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PATH)
-        this._AssertCapabilityExists(Capabilities.FACEBOOK_PUBLISHPORT)
+        this._AssertCapabilityExists(Capabilities.FACEBOOK_PUBLISHPORT_RANGE)
       }
     })
   }
@@ -85,6 +85,28 @@ module.exports = class DockerContainer extends BaseContainer {
           dockercomposeFacebookUsed()
         },
 
+        (syslogPortSelected) => {
+          TcpPortUtils.GetFreePortInRange('127.0.0.1', this.caps[Capabilities.DOCKERSYSLOGPORT_RANGE])
+            .then((syslogPort) => {
+              this.syslogPort = syslogPort
+              syslogPortSelected()
+            })
+            .catch(syslogPortSelected)
+        },
+
+        (facebookPortSelected) => {
+          if (this.caps[Capabilities.FACEBOOK_API]) {
+            TcpPortUtils.GetFreePortInRange('127.0.0.1', this.caps[Capabilities.FACEBOOK_PUBLISHPORT_RANGE])
+              .then((fbPort) => {
+                this.facebookPublishPort = fbPort
+                facebookPortSelected()
+              })
+              .catch(facebookPortSelected)
+          } else {
+            facebookPortSelected()
+          }
+        },
+
         (dockercomposeEnvUsed) => {
           const composeEnv = {
             version: '2',
@@ -96,7 +118,7 @@ module.exports = class DockerContainer extends BaseContainer {
                 logging: {
                   driver: 'syslog',
                   options: {
-                    'syslog-address': `udp://127.0.0.1:${this.caps[Capabilities.DOCKERSYSLOGPORT]}`
+                    'syslog-address': `udp://127.0.0.1:${this.syslogPort}`
                   }
                 },
                 volumes: [
@@ -116,19 +138,19 @@ module.exports = class DockerContainer extends BaseContainer {
               logging: {
                 driver: 'syslog',
                 options: {
-                  'syslog-address': `udp://127.0.0.1:${this.caps[Capabilities.DOCKERSYSLOGPORT]}`
+                  'syslog-address': `udp://127.0.0.1:${this.syslogPort}`
                 }
               },
               volumes: [
                 `${path.resolve(__dirname, '..', '..')}:/usr/src/app`
               ],
               ports: [
-                `${this.caps[Capabilities.FACEBOOK_PUBLISHPORT]}:${this.caps[Capabilities.FACEBOOK_PUBLISHPORT]}`
+                `${this.facebookPublishPort}:${this.facebookPublishPort}`
               ],
               environment: {
                 BOTIUM_FACEBOOK_WEBHOOKPORT: this.caps[Capabilities.FACEBOOK_WEBHOOK_PORT],
                 BOTIUM_FACEBOOK_WEBHOOKPATH: this.caps[Capabilities.FACEBOOK_WEBHOOK_PATH],
-                BOTIUM_FACEBOOK_PUBLISHPORT: this.caps[Capabilities.FACEBOOK_PUBLISHPORT]
+                BOTIUM_FACEBOOK_PUBLISHPORT: this.facebookPublishPort
               }
             }
           }
@@ -186,8 +208,11 @@ module.exports = class DockerContainer extends BaseContainer {
             debugContainerOutput(value.message)
             fs.appendFile(this.syslogFile, value.message, () => { })
           })
-          this.syslogServer.start({ port: this.caps[Capabilities.DOCKERSYSLOGPORT] })
-            .then(syslogStarted)
+          this.syslogServer.on('error', (err) => {
+            debug(`Error from syslog server: ${util.inspect(err)}`)
+          })
+          this.syslogServer.start({ port: this.syslogPort })
+            .then(() => syslogStarted())
             .catch((err) => {
               syslogStarted(`Cannot start syslog server: ${util.inspect(err)}`)
             })
@@ -197,9 +222,7 @@ module.exports = class DockerContainer extends BaseContainer {
           if (!this.dockerCmd) return dockerStarted('not built')
 
           this.dockerCmd.startContainer()
-            .then(() => {
-              dockerStarted()
-            })
+            .then(() => dockerStarted())
             .catch((err) => {
               dockerStarted(`Cannot start docker containers: ${util.inspect(err)}`)
             })
@@ -207,29 +230,9 @@ module.exports = class DockerContainer extends BaseContainer {
 
         (facebookMockupOnline) => {
           if (this.caps[Capabilities.FACEBOOK_API]) {
-            const portToCheck = this.caps[Capabilities.FACEBOOK_PUBLISHPORT]
-            let online = false
-            async.until(
-              () => online,
-              (callback) => {
-                debug(`Facebook Mock - checking port usage ${portToCheck} before proceed`)
-
-                tcpPortUsed.check(portToCheck, '127.0.0.1')
-                  .then((inUse) => {
-                    debug(`Facebook Mock - port usage (${portToCheck}): ${inUse}`)
-                    if (inUse) {
-                      online = true
-                      callback()
-                    } else {
-                      setTimeout(callback, 2000)
-                    }
-                  }, (err) => {
-                    debug(`Facebook Mock - error on port check: ${err}`)
-                    setTimeout(callback, 2000)
-                  })
-              },
-              facebookMockupOnline
-            )
+            TcpPortUtils.WaitForPort('127.0.0.1', this.facebookPublishPort)
+              .then(() => facebookMockupOnline())
+              .catch(facebookMockupOnline)
           } else {
             facebookMockupOnline()
           }
@@ -237,7 +240,7 @@ module.exports = class DockerContainer extends BaseContainer {
 
         (facebookEndpointOnline) => {
           if (this.caps[Capabilities.FACEBOOK_API]) {
-            this.facebookMockUrl = `http://127.0.0.1:${this.caps[Capabilities.FACEBOOK_PUBLISHPORT]}`
+            this.facebookMockUrl = `http://127.0.0.1:${this.facebookPublishPort}`
             let online = false
             async.until(
               () => online,
