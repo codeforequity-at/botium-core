@@ -4,7 +4,7 @@ const Source = require('../../').Source
 
 function assert (expected, actual) {
   if (actual.indexOf(expected) < 0) {
-    console.log(`ERROR: Expected <${expected}>, got <${text}>`)
+    console.log(`ERROR: Expected <${expected}>, got <${actual}>`)
   } else {
     console.log(`SUCCESS: Got Expected <${expected}>`)
   }

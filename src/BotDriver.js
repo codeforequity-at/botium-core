@@ -25,7 +25,9 @@ module.exports = class BotDriver {
     }
     const defaultSources = {
       [Source.LOCALPATH]: '.',
-      [Source.GITPATH]: 'git'
+      [Source.GITPATH]: 'git',
+      [Source.GITBRANCH]: 'master',
+      [Source.GITDIR]: '.'
     }
     this.caps = Object.assign(defaultCaps, caps)
     this.sources = Object.assign(defaultSources, sources)

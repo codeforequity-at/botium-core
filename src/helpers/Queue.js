@@ -32,16 +32,20 @@ module.exports = class Queue {
       return Promise.resolve(this.queue.shift())
     }
     return new Promise((resolve, reject) => {
+      let listener = null
       const timeoutRequest = async.timeout((timeoutCallback) => {
-        this.listeners.push((msg) => {
+        listener = (msg) => {
           timeoutCallback(null, msg)
-        })
+        }
+        this.listeners.push(listener)
       }, timeoutMillis)
 
       timeoutRequest((err, msg) => {
         if (err && err.code === 'ETIMEDOUT') {
+          this.listeners.splice(this.listeners.indexOf(listener), 1)
           reject(new QueueTimeoutError(timeoutMillis))
         } else if (err) {
+          this.listeners.splice(this.listeners.indexOf(listener), 1)
           reject(new Error(`Queue pop error ${util.inspect(err)}`))
         } else {
           resolve(msg)

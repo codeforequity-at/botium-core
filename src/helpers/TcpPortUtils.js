@@ -36,7 +36,6 @@ module.exports = {
     return new Promise((resolve, reject) => {
       const rangeExpression = /^([0-9]+)-([0-9]+)$/
       const rangeMatch = portRange.match(rangeExpression)
-      console.log(rangeMatch)
       if (!rangeMatch || rangeMatch.length !== 3) {
         return reject(new Error(`GetFreePortInRange Not a port range expression "${portRange}", expected portFrom-portTo`))
       }

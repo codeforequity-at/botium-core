@@ -12,4 +12,10 @@ module.exports = class BaseRepo {
   Prepare () {
     return Promise.resolve()
   }
+
+  _AssertSourceExists (source) {
+    if (!this.sources[source]) {
+      throw new Error(`Source property ${source} not set`)
+    }
+  }
 }

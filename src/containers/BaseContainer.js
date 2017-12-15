@@ -47,7 +47,8 @@ module.exports = class BaseContainer {
           resolve(botMsg)
         })
         .catch((err) => {
-          reject(err)
+          debug(`WaitBotSays error ${util.inspect(err)}`)
+          resolve()
         })
     })
   }
@@ -56,10 +57,15 @@ module.exports = class BaseContainer {
     return new Promise((resolve, reject) => {
       this.WaitBotSays(timeoutMillis)
         .then((botMsg) => {
-          resolve(botMsg.messageText)
+          if (botMsg) {
+            resolve(botMsg.messageText)
+          } else {
+            resolve()
+          }
         })
         .catch((err) => {
-          reject(err)
+          debug(`WaitBotSaysText error ${util.inspect(err)}`)
+          resolve()
         })
     })
   }
@@ -121,7 +127,7 @@ module.exports = class BaseContainer {
     })
   }
 
-  _AssertCapabilityExists (cap, reject) {
+  _AssertCapabilityExists (cap) {
     if (!this.caps[cap]) {
       throw new Error(`Capability property ${cap} not set`)
     }

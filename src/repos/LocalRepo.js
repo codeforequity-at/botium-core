@@ -6,9 +6,8 @@ const BaseRepo = require('./BaseRepo')
 module.exports = class LocalRepo extends BaseRepo {
   Validate () {
     return super.Validate().then(() => {
-      if (!this.sources[Source.LOCALPATH]) {
-        throw new Error(`Source property ${Source.LOCALPATH} not set`)
-      }
+      this._AssertSourceExists(Source.LOCALPATH)
+
       const checkPath = this.sources[Source.LOCALPATH]
       fs.stat(checkPath, (err, stats) => {
         if (err) {

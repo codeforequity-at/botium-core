@@ -278,11 +278,11 @@ module.exports = class DockerContainer extends BaseContainer {
 
             this.socket = io.connect(this.facebookMockUrl)
             this.socket.on(BotiumMockCommand.MOCKCMD_RECEIVEDFROMBOT, (botMsg) => {
-              debug(`Facebook Mock - socket received from bot ${botMsg}`)
+              debug(`Facebook Mock - socket received from bot ${util.inspect(botMsg)}`)
               this._QueueBotSays(new BotiumMockMessage(botMsg))
             })
             this.socket.on('error', (err) => {
-              debug(`Facebook Mock - socket connection error! ${err}`)
+              debug(`Facebook Mock - socket connection error! ${util.inspect(err)}`)
             })
             this.socket.on('connect', () => {
               debug(`Facebook Mock - socket connected ${this.facebookMockUrl}`)
