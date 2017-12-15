@@ -1,5 +1,10 @@
 const util = require('util')
+const path = require('path')
 const async = require('async')
+const mkdirp = require('mkdirp')
+const slug = require('slug')
+const moment = require('moment')
+const randomize = require('randomatic')
 const debug = require('debug')('BotDriver')
 
 const Capabilities = require('./Capabilities')
@@ -70,6 +75,12 @@ module.exports = class BotDriver {
 
       async.series([
 
+        (driverValidated) => {
+          this._validate()
+            .then(() => driverValidated())
+            .catch(driverValidated)
+        },
+
         (repoValidated) => {
           repo = this._getRepo()
           debug(`Got Repo: ${util.inspect(repo)}`)
@@ -101,14 +112,44 @@ module.exports = class BotDriver {
 
   /* Private Functions */
 
+  _validate () {
+    return new Promise((resolve, reject) => {
+      if (!this.caps[Capabilities.PROJECTNAME]) {
+        throw new Error(`Capability property ${Capabilities.PROJECTNAME} not set`)
+      }
+      if (!this.caps[Capabilities.TEMPDIR]) {
+        throw new Error(`Capability property ${Capabilities.TEMPDIR} not set`)
+      }
+
+      async.series([
+        (tempdirCreated) => {
+          this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slug(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
+
+          mkdirp(this.tempDirectory, (err) => {
+            if (err) {
+              return tempdirCreated(new Error(`Unable to create temp directory ${this.tempDirectory}: ${err}`))
+            }
+            tempdirCreated()
+          })
+        }
+
+      ], (err) => {
+        if (err) {
+          return reject(err)
+        }
+        resolve(this)
+      })
+    })
+  }
+
   _getRepo () {
     if (this.sources[Source.GITURL]) {
       const GitRepo = require('./repos/GitRepo')
-      return new GitRepo(this.sources)
+      return new GitRepo(this.tempDirectory, this.sources)
     }
     if (this.sources[Source.LOCALPATH]) {
       const LocalRepo = require('./repos/LocalRepo')
-      return new LocalRepo(this.sources)
+      return new LocalRepo(this.tempDirectory, this.sources)
     }
     throw new Error(`No Repo provider found for Sources ${util.inspect(this.sources)}`)
   }
@@ -116,7 +157,7 @@ module.exports = class BotDriver {
   _getContainer (repo) {
     if (this.caps[Capabilities.CONTAINERMODE] === 'docker') {
       const DockerContainer = require('./containers/DockerContainer')
-      return new DockerContainer(repo, this.caps, this.envs)
+      return new DockerContainer(this.tempDirectory, repo, this.caps, this.envs)
     }
     throw new Error(`No Container provider found for Caps ${util.inspect(this.caps)}`)
   }

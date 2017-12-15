@@ -1,10 +1,5 @@
 const util = require('util')
 const async = require('async')
-const path = require('path')
-const mkdirp = require('mkdirp')
-const slug = require('slug')
-const moment = require('moment')
-const randomize = require('randomatic')
 const rimraf = require('rimraf')
 const debug = require('debug')('BaseContainer')
 
@@ -12,37 +7,17 @@ const Capabilities = require('../Capabilities')
 const Queue = require('../helpers/Queue')
 
 module.exports = class BaseContainer {
-  constructor (repo, caps, envs) {
+  constructor (tempDirectory, repo, caps, envs) {
     this.repo = repo
     this.caps = Object.assign({}, caps)
     this.envs = Object.assign({}, envs)
-    this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slug(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
+    this.tempDirectory = tempDirectory
     this.cleanupTasks = []
     this.queues = {}
   }
 
   Validate () {
-    return new Promise((resolve, reject) => {
-      this._AssertCapabilityExists(Capabilities.PROJECTNAME)
-      this._AssertCapabilityExists(Capabilities.TEMPDIR)
-
-      async.series([
-        (tempdirCreated) => {
-          mkdirp(this.tempDirectory, (err) => {
-            if (err) {
-              return tempdirCreated(new Error(`Unable to create temp directory ${this.tempDirectory}: ${err}`))
-            }
-            tempdirCreated()
-          })
-        }
-
-      ], (err) => {
-        if (err) {
-          return reject(err)
-        }
-        resolve(this)
-      })
-    })
+    return Promise.resolve()
   }
 
   Build () {

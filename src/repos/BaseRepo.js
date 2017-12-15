@@ -1,5 +1,6 @@
 module.exports = class BaseRepo {
-  constructor (sources) {
+  constructor (tempDirectory, sources) {
+    this.tempDirectory = tempDirectory
     this.sources = Object.assign({}, sources)
     this.workingDirectory = null
   }
