@@ -3,4 +3,4 @@ FROM node:boron
 VOLUME /usr/src/app
 WORKDIR /usr/src/app
 
-CMD node src/mocks/facebook/index.js
+CMD npm install && node index.js

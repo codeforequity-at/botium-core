@@ -25,6 +25,7 @@ module.exports = class BaseContainer {
   }
 
   Start () {
+    this.queues = {}
     return Promise.resolve(this)
   }
 

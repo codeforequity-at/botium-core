@@ -42,6 +42,10 @@ module.exports = class DockerContainer extends BaseContainer {
 
       async.series([
 
+        (baseComplete) => {
+          super.Build().then(() => baseComplete()).catch(baseComplete)
+        },
+
         (dockerfileCreated) => {
           const dockerfileBotium = path.resolve(this.repo.workingDirectory, 'Dockerfile.botium')
           fs.stat(dockerfileBotium, (err, stats) => {
@@ -142,7 +146,7 @@ module.exports = class DockerContainer extends BaseContainer {
                 }
               },
               volumes: [
-                `${path.resolve(__dirname, '..', '..')}:/usr/src/app`
+                `${path.resolve(__dirname, '..', 'mocks', 'facebook')}:/usr/src/app`
               ],
               ports: [
                 `${this.facebookPublishPort}:${this.facebookPublishPort}`
@@ -199,6 +203,10 @@ module.exports = class DockerContainer extends BaseContainer {
   Start () {
     return new Promise((resolve, reject) => {
       async.series([
+
+        (baseComplete) => {
+          super.Start().then(() => baseComplete()).catch(baseComplete)
+        },
 
         (syslogStarted) => {
           this.syslogFile = path.resolve(this.tempDirectory, 'docker-containers-log.txt')
@@ -328,6 +336,10 @@ module.exports = class DockerContainer extends BaseContainer {
     return new Promise((resolve, reject) => {
       async.series([
 
+        (baseComplete) => {
+          super.Stop().then(() => baseComplete()).catch(baseComplete)
+        },
+
         (socketStopDone) => {
           if (this.socket) {
             this.socket.disconnect()
@@ -371,6 +383,10 @@ module.exports = class DockerContainer extends BaseContainer {
   Clean () {
     return new Promise((resolve, reject) => {
       async.series([
+
+        (baseComplete) => {
+          super.Clean().then(() => baseComplete()).catch(baseComplete)
+        },
 
         (dockerStopped) => {
           if (this.dockerCmd) {

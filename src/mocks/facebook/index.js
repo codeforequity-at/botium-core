@@ -8,9 +8,6 @@ const path = require('path')
 const url = require('url')
 const tcpPortUsed = require('tcp-port-used')
 
-const BotiumMockMessage = require('../BotiumMockMessage')
-const BotiumMockCommand = require('../BotiumMockCommand')
-
 var publishPort = process.env.BOTIUM_FACEBOOK_PUBLISHPORT
 if (publishPort) {
   publishPort = parseInt(publishPort)
@@ -73,9 +70,9 @@ appMock.all('*/subscribed_apps*', function (req, res) {
 })
 appMock.all('*/me/messages*', function (req, res) {
   if (req.body) {
-    const botMsg = new BotiumMockMessage({
+    const botMsg = {
       sourceData: req.body
-    })
+    }
     if (req.body.message && req.body.message.text && !req.body.message.quick_replies) {
       botMsg.messageText = req.body.message.text
     }
@@ -99,7 +96,7 @@ appMock.all('*/me/messages*', function (req, res) {
   res.json(response)
 
   if (senddelivery) {
-    sendToBot(new BotiumMockMessage({
+    sendToBot({
       sourceData: {
         delivery: {
           mids: [
@@ -109,7 +106,7 @@ appMock.all('*/me/messages*', function (req, res) {
         }
       },
       sender: response.recipient_id
-    }))
+    })
   }
 })
 
@@ -154,7 +151,11 @@ appTest.get('/', function (req, res) {
         var options = {
           uri: webhookurl,
           method: 'POST',
-          json: { entry: [] }
+          json: {
+            entry: [
+              { messaging: [] }
+            ]
+          }
         }
         request(options, function (err, response, body) {
           if (err) {
@@ -239,7 +240,7 @@ var serverTest = http.createServer(appTest).listen(publishPort, '0.0.0.0', funct
 var io = require('socket.io')(serverTest)
 io.on('connection', function (socket) {
   console.log('socket connection estabilished')
-  socket.on(BotiumMockCommand.MOCKCMD_SENDTOBOT, function (mockMsg) {
+  socket.on('MOCKCMD_SENDTOBOT', function (mockMsg) {
     console.log('MOCKCMD_SENDTOBOT ', mockMsg)
     sendToBot(mockMsg)
   })
@@ -247,7 +248,7 @@ io.on('connection', function (socket) {
 
 function receivedFromBot (botMsg) {
   console.log('receivedFromBot: ', botMsg)
-  io.sockets.emit(BotiumMockCommand.MOCKCMD_RECEIVEDFROMBOT, botMsg)
+  io.sockets.emit('MOCKCMD_RECEIVEDFROMBOT', botMsg)
 }
 
 function getTs () {

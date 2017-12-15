@@ -8,7 +8,7 @@ services:
             context: .
             dockerfile: Dockerfile.fbmock
         volumes:
-        - ../../../:/usr/src/app
+        - .:/usr/src/app
         environment:
             BOTIUM_FACEBOOK_PUBLISHPORT:
             BOTIUM_FACEBOOK_PAGEID:
