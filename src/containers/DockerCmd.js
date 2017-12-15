@@ -1,12 +1,16 @@
-const path = require('path')
 const async = require('async')
+const randomize = require('randomatic')
+const slug = require('slug')
 const childProcess = require('child_process')
 const _ = require('lodash')
 const debug = require('debug')('DockerCmd')
 
 module.exports = class DockerCmd {
-  constructor (config) {
-    this.config = config
+  constructor ({ projectname, dockercomposepath, composefiles }) {
+    this.projectname = projectname
+    this.dockercomposepath = dockercomposepath
+    this.composefiles = composefiles
+    this.containername = slug(`${this.projectname} ${randomize('Aa0', 5)}`)
   }
 
   setupContainer () {
@@ -23,7 +27,7 @@ module.exports = class DockerCmd {
           let cmdOptions = _this._dockerComposeCmdOptions()
           cmdOptions.push('build')
 
-          _this._dockerComposeRun(cmdOptions, false).then(buildContainerDone).catch(buildContainerDone)
+          _this._dockerComposeRun(cmdOptions, false).then(() => buildContainerDone()).catch(buildContainerDone)
         }
       ],
       (err) => {
@@ -60,12 +64,12 @@ module.exports = class DockerCmd {
   _dockerComposeCmdOptions () {
     var cmdOptions = []
     cmdOptions.push('-p')
-    cmdOptions.push(require(path.resolve(process.cwd(), 'package.json')).name)
+    cmdOptions.push(this.containername)
     if (process.env.DEBUG && process.env.DEBUG.indexOf('DockerCmdVerbose') >= 0) {
       cmdOptions.push('--verbose')
     }
 
-    _.forEach(this.config.composefiles, (composefile) => {
+    _.forEach(this.composefiles, (composefile) => {
       cmdOptions.push('-f')
       cmdOptions.push(composefile)
     })
@@ -74,9 +78,9 @@ module.exports = class DockerCmd {
 
   _dockerComposeRun (cmdOptions, ignoreErrors) {
     return new Promise((resolve, reject) => {
-      debug('Running Docker Command: ' + this.config.dockercomposepath + ' ' + _.join(cmdOptions, ' '))
+      debug('Running Docker Command: ' + this.dockercomposepath + ' ' + _.join(cmdOptions, ' '))
 
-      var dockerProcess = childProcess.spawn(this.config.dockercomposepath, cmdOptions, this._getChildProcessOptions())
+      var dockerProcess = childProcess.spawn(this.dockercomposepath, cmdOptions, this._getChildProcessOptions())
       dockerProcess.on('close', (code) => {
         debug('docker-compose exited with code ' + code)
 
