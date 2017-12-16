@@ -11,6 +11,7 @@ const debug = require('debug')('DockerContainer')
 const debugContainerOutput = require('debug')('DockerContainerOutput')
 
 const Capabilities = require('../Capabilities')
+const Events = require('../Events')
 const BaseContainer = require('./BaseContainer')
 const DockerCmd = require('./DockerCmd')
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
@@ -201,6 +202,8 @@ module.exports = class DockerContainer extends BaseContainer {
   }
 
   Start () {
+    this.eventEmitter.emit(Events.CONTAINER_STARTING, this)
+
     return new Promise((resolve, reject) => {
       async.series([
 
@@ -288,12 +291,14 @@ module.exports = class DockerContainer extends BaseContainer {
             this.socket.on(BotiumMockCommand.MOCKCMD_RECEIVEDFROMBOT, (botMsg) => {
               debug(`Facebook Mock - socket received from bot ${util.inspect(botMsg)}`)
               this._QueueBotSays(new BotiumMockMessage(botMsg))
+              this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
             })
             this.socket.on('error', (err) => {
               debug(`Facebook Mock - socket connection error! ${util.inspect(err)}`)
             })
             this.socket.on('connect', () => {
               debug(`Facebook Mock - socket connected ${this.facebookMockUrl}`)
+              this.eventEmitter.emit(Events.BOT_CONNECTED, this, this.socket)
               facebookSocketStartDone()
             })
           } else {
@@ -303,8 +308,10 @@ module.exports = class DockerContainer extends BaseContainer {
 
       ], (err) => {
         if (err) {
+          this.eventEmitter.emit(Events.CONTAINER_START_ERROR, this, err)
           return reject(new Error(`Start failed ${util.inspect(err)}`))
         }
+        this.eventEmitter.emit(Events.CONTAINER_STARTED, this)
         resolve(this)
       })
     })
@@ -313,7 +320,9 @@ module.exports = class DockerContainer extends BaseContainer {
   UserSaysText (text) {
     return new Promise((resolve, reject) => {
       if (this.socket) {
-        this.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, new BotiumMockMessage({ sender: 'me', messageText: text }))
+        const mockMsg = new BotiumMockMessage({ sender: 'me', messageText: text })
+        this.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
+        this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
         resolve(this)
       } else {
         reject(new Error('Socket not online'))
@@ -325,6 +334,7 @@ module.exports = class DockerContainer extends BaseContainer {
     return new Promise((resolve, reject) => {
       if (this.socket) {
         this.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
+        this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
         resolve(this)
       } else {
         reject(new Error('Socket not online'))
@@ -333,6 +343,8 @@ module.exports = class DockerContainer extends BaseContainer {
   }
 
   Stop () {
+    this.eventEmitter.emit(Events.CONTAINER_STOPPING, this)
+
     return new Promise((resolve, reject) => {
       async.series([
 
@@ -373,14 +385,18 @@ module.exports = class DockerContainer extends BaseContainer {
 
       ], (err) => {
         if (err) {
+          this.eventEmitter.emit(Events.CONTAINER_STOP_ERROR, this, err)
           return reject(new Error(`Stop failed ${util.inspect(err)}`))
         }
+        this.eventEmitter.emit(Events.CONTAINER_STOPPED, this)
         resolve(this)
       })
     })
   }
 
   Clean () {
+    this.eventEmitter.emit(Events.CONTAINER_CLEANING, this)
+
     return new Promise((resolve, reject) => {
       async.series([
 
@@ -409,8 +425,10 @@ module.exports = class DockerContainer extends BaseContainer {
 
       ], (err) => {
         if (err) {
+          this.eventEmitter.emit(Events.CONTAINER_CLEAN_ERROR, this, err)
           return reject(new Error(`Cleanup failed ${util.inspect(err)}`))
         }
+        this.eventEmitter.emit(Events.CONTAINER_CLEANED, this)
         resolve(this)
       })
     })

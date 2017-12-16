@@ -7,7 +7,8 @@ const Capabilities = require('../Capabilities')
 const Queue = require('../helpers/Queue')
 
 module.exports = class BaseContainer {
-  constructor (tempDirectory, repo, caps, envs) {
+  constructor (eventEmitter, tempDirectory, repo, caps, envs) {
+    this.eventEmitter = eventEmitter
     this.repo = repo
     this.caps = Object.assign({}, caps)
     this.envs = Object.assign({}, envs)

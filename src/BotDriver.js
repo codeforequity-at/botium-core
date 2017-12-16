@@ -5,11 +5,13 @@ const mkdirp = require('mkdirp')
 const slug = require('slug')
 const moment = require('moment')
 const randomize = require('randomatic')
+const EventEmitter = require('events')
 const debug = require('debug')('BotDriver')
 
 const Capabilities = require('./Capabilities')
 const Source = require('./Source')
 const Fluent = require('./Fluent')
+const Events = require('./Events')
 
 module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, env = {}) {
@@ -32,6 +34,12 @@ module.exports = class BotDriver {
     this.caps = Object.assign(defaultCaps, caps)
     this.sources = Object.assign(defaultSources, sources)
     this.envs = {}
+    this.eventEmitter = new EventEmitter()
+  }
+
+  on (event, listener) {
+    this.eventEmitter.on(event, listener)
+    return this
   }
 
   setCapabilities (caps) {
@@ -71,6 +79,8 @@ module.exports = class BotDriver {
 
   Build () {
     debug(`Build - Sources : ${util.inspect(this.sources)} Capabilites: ${util.inspect(this.caps)}`)
+    this.eventEmitter.emit(Events.CONTAINER_BUILDING)
+
     return new Promise((resolve, reject) => {
       let repo = null
       let container = null
@@ -105,8 +115,10 @@ module.exports = class BotDriver {
 
       ], (err) => {
         if (err) {
+          this.eventEmitter.emit(Events.CONTAINER_BUILD_ERROR, err)
           return reject(err)
         }
+        this.eventEmitter.emit(Events.CONTAINER_BUILT, container)
         resolve(container)
       })
     })
@@ -159,7 +171,7 @@ module.exports = class BotDriver {
   _getContainer (repo) {
     if (this.caps[Capabilities.CONTAINERMODE] === 'docker') {
       const DockerContainer = require('./containers/DockerContainer')
-      return new DockerContainer(this.tempDirectory, repo, this.caps, this.envs)
+      return new DockerContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
     throw new Error(`No Container provider found for Caps ${util.inspect(this.caps)}`)
   }
