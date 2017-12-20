@@ -213,21 +213,29 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (syslogStarted) => {
-          this.syslogFile = path.resolve(this.tempDirectory, 'docker-containers-log.txt')
+          let waitFor = Promise.resolve()
+          if (this.syslogServer) {
+            waitFor = this.syslogServer.stop()
+          }
+          waitFor.then(() => {
+            this.syslogFile = path.resolve(this.tempDirectory, 'docker-containers-log.txt')
 
-          this.syslogServer = new SyslogServer()
-          this.syslogServer.on('message', (value) => {
-            debugContainerOutput(value.message)
-            fs.appendFile(this.syslogFile, value.message, () => { })
-          })
-          this.syslogServer.on('error', (err) => {
-            debug(`Error from syslog server: ${util.inspect(err)}`)
-          })
-          this.syslogServer.start({ port: this.syslogPort })
-            .then(() => syslogStarted())
-            .catch((err) => {
-              syslogStarted(`Cannot start syslog server: ${util.inspect(err)}`)
+            this.syslogServer = new SyslogServer()
+            this.syslogServer.on('message', (value) => {
+              debugContainerOutput(value.message)
+              fs.appendFile(this.syslogFile, value.message, () => { })
             })
+            this.syslogServer.on('error', (err) => {
+              debug(`Error from syslog server: ${util.inspect(err)}`)
+            })
+            this.syslogServer.start({ port: this.syslogPort })
+              .then(() => syslogStarted())
+              .catch((err) => {
+                syslogStarted(`Cannot start syslog server: ${util.inspect(err)}`)
+              })
+          }).catch((err) => {
+            syslogStarted(`Cannot stop running syslog server: ${util.inspect(err)}`)
+          })
         },
 
         (dockerStarted) => {
@@ -378,7 +386,10 @@ module.exports = class DockerContainer extends BaseContainer {
           if (!this.syslogServer) return syslogStopped()
 
           this.syslogServer.stop()
-            .then(syslogStopped)
+            .then(() => {
+              this.syslogServer = null;
+              syslogStopped();
+            })
             .catch((err) => {
               syslogStopped(`Cannot stop syslog server: ${util.inspect(err)}`)
             })
