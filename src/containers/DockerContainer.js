@@ -38,6 +38,7 @@ module.exports = class DockerContainer extends BaseContainer {
       this.dockerConfig = {
         projectname: this.caps[Capabilities.PROJECTNAME],
         dockercomposepath: this.caps[Capabilities.DOCKERCOMPOSEPATH],
+        uniquecontainernames: this.caps[Capabilities.DOCKERUNIQUECONTAINERNAMES],
         composefiles: []
       }
 

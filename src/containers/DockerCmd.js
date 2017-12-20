@@ -6,11 +6,15 @@ const _ = require('lodash')
 const debug = require('debug')('DockerCmd')
 
 module.exports = class DockerCmd {
-  constructor ({ projectname, dockercomposepath, composefiles }) {
+  constructor ({ projectname, dockercomposepath, uniquecontainernames, composefiles }) {
     this.projectname = projectname
     this.dockercomposepath = dockercomposepath
     this.composefiles = composefiles
-    this.containername = slug(`${this.projectname} ${randomize('Aa0', 5)}`)
+    if (uniquecontainernames) {
+      this.containername = slug(`${this.projectname} ${randomize('Aa0', 5)}`)
+    } else {
+      this.containername = slug(`${this.projectname}`)
+    }
   }
 
   setupContainer () {
