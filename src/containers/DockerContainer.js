@@ -387,8 +387,8 @@ module.exports = class DockerContainer extends BaseContainer {
 
           this.syslogServer.stop()
             .then(() => {
-              this.syslogServer = null;
-              syslogStopped();
+              this.syslogServer = null
+              syslogStopped()
             })
             .catch((err) => {
               syslogStopped(`Cannot stop syslog server: ${util.inspect(err)}`)

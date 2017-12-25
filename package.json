@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "eslint": "./node_modules/.bin/eslint \"./src/**/*.js\"",
-    "newpatch": "npm version patch && npm publish"
+    "newpatch": "npm version patch && npm publish",
+	"agent": "API_TOKEN= && PORT= && node ./src/grid/agent/agent.js"
   },
   "repository": {
     "type": "git",
