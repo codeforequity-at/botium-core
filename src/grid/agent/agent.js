@@ -1,14 +1,19 @@
 const path = require('path')
 const debug = require('debug')('botium-agent')
+const express = require('express')
+const http = require('http')
+const ioSocket = require('socket.io')
+const ioAuth = require('socketio-auth')
 
 const port = process.env.PORT || 46100
-// const apiToken = process.env.API_TOKEN || ''
+const apiToken = process.env.API_TOKEN || ''
+if (!apiToken) {
+  console.log('WARNING: API_TOKEN not set, all clients will be accepted')
+}
 
-const app = require('express')()
-const http = require('http').Server(app)
-const io = require('socket.io', {
-  serveClient: true
-})(http)
+const app = express()
+const server = http.Server(app)
+const io = ioSocket(server)
 
 app.get('/', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'views', 'index.html'))
@@ -22,6 +27,21 @@ app.get('/api/status', (req, res) => {
   res.json(status)
 })
 
+ioAuth(io, {
+  authenticate: (socket, data, callback) => {
+    debug(`agent client authenticate ${socket.id} - ${JSON.stringify(data)} ...`)
+    var clientApiToken = data.apiToken
+
+    if (!apiToken || apiToken === clientApiToken) {
+      debug(`agent client authenticated ${socket.id}`)
+      return callback(null, true)
+    } else {
+      debug(`agent client not authenticated ${socket.id}`)
+      return callback(new Error('apiToken invalid'))
+    }
+  }
+})
+
 io.on('connection', (socket) => {
   debug(`agent client connected ${socket.id}`)
 
@@ -32,6 +52,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', disconnect)
 })
 
-http.listen(port, () => {
+server.listen(port, () => {
   console.log(`listening on *:${port}`)
 })
