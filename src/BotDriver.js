@@ -6,8 +6,9 @@ const slug = require('slug')
 const moment = require('moment')
 const randomize = require('randomatic')
 const EventEmitter = require('events')
-const debug = require('debug')('BotDriver')
+const debug = require('debug')('botium-BotDriver')
 
+const Defaults = require('./Defaults')
 const Capabilities = require('./Capabilities')
 const Source = require('./Source')
 const Fluent = require('./Fluent')
@@ -15,26 +16,9 @@ const Events = require('./Events')
 
 module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, env = {}) {
-    const defaultCaps = {
-      [Capabilities.PROJECTNAME]: 'defaultproject',
-      [Capabilities.TEMPDIR]: 'botiumwork',
-      [Capabilities.CLEANUPTEMPDIR]: true,
-      [Capabilities.CONTAINERMODE]: 'docker',
-      [Capabilities.DOCKERCOMPOSEPATH]: 'docker-compose',
-      [Capabilities.DOCKERIMAGE]: 'node:boron',
-      [Capabilities.DOCKERUNIQUECONTAINERNAMES]: false,
-      [Capabilities.DOCKERSYSLOGPORT_RANGE]: '47199-47499',
-      [Capabilities.FACEBOOK_PUBLISHPORT_RANGE]: '46199-46499'
-    }
-    const defaultSources = {
-      [Source.LOCALPATH]: '.',
-      [Source.GITPATH]: 'git',
-      [Source.GITBRANCH]: 'master',
-      [Source.GITDIR]: '.'
-    }
-    this.caps = Object.assign(defaultCaps, caps)
-    this.sources = Object.assign(defaultSources, sources)
-    this.envs = {}
+    this.caps = Object.assign(Defaults.Capabilities, caps)
+    this.sources = Object.assign(Defaults.Sources, sources)
+    this.envs = Object.assign({}, env)
     this.eventEmitter = new EventEmitter()
   }
 
@@ -116,6 +100,7 @@ module.exports = class BotDriver {
 
       ], (err) => {
         if (err) {
+          debug(`BotDriver Build error: ${err}`)
           this.eventEmitter.emit(Events.CONTAINER_BUILD_ERROR, err)
           return reject(err)
         }

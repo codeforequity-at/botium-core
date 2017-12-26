@@ -3,7 +3,7 @@ const randomize = require('randomatic')
 const slug = require('slug')
 const childProcess = require('child_process')
 const _ = require('lodash')
-const debug = require('debug')('DockerCmd')
+const debug = require('debug')('botium-DockerCmd')
 
 module.exports = class DockerCmd {
   constructor ({ projectname, dockercomposepath, uniquecontainernames, composefiles }) {

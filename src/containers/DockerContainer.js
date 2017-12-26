@@ -7,8 +7,8 @@ const mustache = require('mustache')
 const request = require('request')
 const io = require('socket.io-client')
 const SyslogServer = require('syslog-server')
-const debug = require('debug')('DockerContainer')
-const debugContainerOutput = require('debug')('DockerContainerOutput')
+const debug = require('debug')('botium-DockerContainer')
+const debugContainerOutput = require('debug')('botium-DockerContainerOutput')
 
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
@@ -334,6 +334,7 @@ module.exports = class DockerContainer extends BaseContainer {
         this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
         resolve(this)
       } else {
+        this.eventEmitter.emit(Events.MESSAGE_SENDTOBOT_ERROR, this, 'Socket not online')
         reject(new Error('Socket not online'))
       }
     })
@@ -346,6 +347,7 @@ module.exports = class DockerContainer extends BaseContainer {
         this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
         resolve(this)
       } else {
+        this.eventEmitter.emit(Events.MESSAGE_SENDTOBOT_ERROR, this, 'Socket not online')
         reject(new Error('Socket not online'))
       }
     })
@@ -412,10 +414,6 @@ module.exports = class DockerContainer extends BaseContainer {
     return new Promise((resolve, reject) => {
       async.series([
 
-        (baseComplete) => {
-          super.Clean().then(() => baseComplete()).catch(baseComplete)
-        },
-
         (dockerStopped) => {
           if (this.dockerCmd) {
             this.dockerCmd.teardownContainer()
@@ -431,8 +429,8 @@ module.exports = class DockerContainer extends BaseContainer {
           }
         },
 
-        (cleanupTasksDone) => {
-          super.Clean().then(cleanupTasksDone).catch(() => cleanupTasksDone())
+        (baseComplete) => {
+          super.Clean().then(() => baseComplete()).catch(baseComplete)
         }
 
       ], (err) => {

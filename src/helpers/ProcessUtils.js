@@ -1,7 +1,7 @@
 const util = require('util')
 const childProcess = require('child_process')
 const _ = require('lodash')
-const debug = require('debug')('ProcessUtils')
+const debug = require('debug')('botium-ProcessUtils')
 
 module.exports = {
   childCommandLineRun: (cmd, ignoreErrors = false, processOptions = {}) => {

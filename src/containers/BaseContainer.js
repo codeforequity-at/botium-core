@@ -1,7 +1,7 @@
 const util = require('util')
 const async = require('async')
 const rimraf = require('rimraf')
-const debug = require('debug')('BaseContainer')
+const debug = require('debug')('botium-BaseContainer')
 
 const Capabilities = require('../Capabilities')
 const Queue = require('../helpers/Queue')

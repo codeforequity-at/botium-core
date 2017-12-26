@@ -1,7 +1,7 @@
 const path = require('path')
 const async = require('async')
 const mkdirp = require('mkdirp')
-const debug = require('debug')('GitRepo')
+const debug = require('debug')('botium-GitRepo')
 
 const Source = require('../Source')
 const BaseRepo = require('./BaseRepo')
