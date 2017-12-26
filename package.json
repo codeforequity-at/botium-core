@@ -35,7 +35,6 @@
     "socket.io": "^2.0.4",
     "socket.io-client": "^2.0.4",
     "socketio-auth": "^0.1.0",
-    "syslog-server": "^1.0.1",
     "tcp-port-used": "^0.1.2",
     "uuid": "^3.1.0",
     "write-yaml": "^1.0.0"

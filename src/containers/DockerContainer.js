@@ -6,7 +6,6 @@ const yaml = require('write-yaml')
 const mustache = require('mustache')
 const request = require('request')
 const io = require('socket.io-client')
-const SyslogServer = require('syslog-server')
 const debug = require('debug')('botium-DockerContainer')
 const debugContainerOutput = require('debug')('botium-DockerContainerOutput')
 
@@ -17,6 +16,7 @@ const DockerCmd = require('./DockerCmd')
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const BotiumMockCommand = require('../mocks/BotiumMockCommand')
 const TcpPortUtils = require('../helpers/TcpPortUtils')
+const SyslogServer = require('../helpers/SyslogServer')
 
 module.exports = class DockerContainer extends BaseContainer {
   Validate () {
@@ -24,11 +24,12 @@ module.exports = class DockerContainer extends BaseContainer {
       this._AssertCapabilityExists(Capabilities.DOCKERCOMPOSEPATH)
       this._AssertCapabilityExists(Capabilities.STARTCMD)
       this._AssertCapabilityExists(Capabilities.DOCKERIMAGE)
+      this._AssertOneCapabilityExists(Capabilities.DOCKERSYSLOGPORT, Capabilities.DOCKERSYSLOGPORT_RANGE)
 
       if (this.caps[Capabilities.FACEBOOK_API]) {
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PORT)
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PATH)
-        this._AssertCapabilityExists(Capabilities.FACEBOOK_PUBLISHPORT_RANGE)
+        this._AssertOneCapabilityExists(Capabilities.FACEBOOK_PUBLISHPORT, Capabilities.FACEBOOK_PUBLISHPORT_RANGE)
       }
     })
   }
@@ -92,22 +93,32 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (syslogPortSelected) => {
-          TcpPortUtils.GetFreePortInRange('127.0.0.1', this.caps[Capabilities.DOCKERSYSLOGPORT_RANGE])
-            .then((syslogPort) => {
-              this.syslogPort = syslogPort
-              syslogPortSelected()
-            })
-            .catch(syslogPortSelected)
+          if (this.caps[Capabilities.DOCKERSYSLOGPORT]) {
+            this.syslogPort = this.caps[Capabilities.DOCKERSYSLOGPORT]
+            syslogPortSelected()
+          } else {
+            TcpPortUtils.GetFreePortInRange('127.0.0.1', this.caps[Capabilities.DOCKERSYSLOGPORT_RANGE])
+              .then((syslogPort) => {
+                this.syslogPort = syslogPort
+                syslogPortSelected()
+              })
+              .catch(syslogPortSelected)
+          }
         },
 
         (facebookPortSelected) => {
           if (this.caps[Capabilities.FACEBOOK_API]) {
-            TcpPortUtils.GetFreePortInRange('127.0.0.1', this.caps[Capabilities.FACEBOOK_PUBLISHPORT_RANGE])
-              .then((fbPort) => {
-                this.facebookPublishPort = fbPort
-                facebookPortSelected()
-              })
-              .catch(facebookPortSelected)
+            if (this.caps[Capabilities.FACEBOOK_PUBLISHPORT]) {
+              this.facebookPublishPort = this.caps[Capabilities.FACEBOOK_PUBLISHPORT]
+              facebookPortSelected()
+            } else {
+              TcpPortUtils.GetFreePortInRange('127.0.0.1', this.caps[Capabilities.FACEBOOK_PUBLISHPORT_RANGE])
+                .then((fbPort) => {
+                  this.facebookPublishPort = fbPort
+                  facebookPortSelected()
+                })
+                .catch(facebookPortSelected)
+            }
           } else {
             facebookPortSelected()
           }
@@ -221,6 +232,7 @@ module.exports = class DockerContainer extends BaseContainer {
             this.syslogFile = path.resolve(this.tempDirectory, 'docker-containers-log.txt')
 
             this.syslogServer = new SyslogServer()
+
             this.syslogServer.on('message', (value) => {
               debugContainerOutput(value.message)
               fs.appendFile(this.syslogFile, value.message, () => { })

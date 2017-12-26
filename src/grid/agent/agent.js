@@ -1,3 +1,4 @@
+const util = require('util')
 const path = require('path')
 const debug = require('debug')('botium-agent')
 const express = require('express')
@@ -25,9 +26,7 @@ const capsDefault = {
   [Capabilities.TEMPDIR]: process.env.BOTIUM_TEMPDIR || Defaults.Capabilities[Capabilities.TEMPDIR],
   [Capabilities.CLEANUPTEMPDIR]: true,
   [Capabilities.DOCKERCOMPOSEPATH]: process.env.BOTIUM_DOCKERCOMPOSEPATH || Defaults.Capabilities[Capabilities.DOCKERCOMPOSEPATH],
-  [Capabilities.DOCKERUNIQUECONTAINERNAMES]: true,
-  [Capabilities.DOCKERSYSLOGPORT_RANGE]: Defaults.Capabilities[Capabilities.DOCKERSYSLOGPORT_RANGE],
-  [Capabilities.FACEBOOK_PUBLISHPORT_RANGE]: Defaults.Capabilities[Capabilities.FACEBOOK_PUBLISHPORT_RANGE]
+  [Capabilities.DOCKERUNIQUECONTAINERNAMES]: true
 }
 
 app.get('/', (req, res) => {
@@ -60,14 +59,20 @@ ioAuth(io, {
 
 io.on('connection', (socket) => {
   debug(`agent client connected ${socket.id}`)
-  const worker = new AgentWorker(capsDefault, socket)
+
+  const workerCaps = Object.assign({}, capsDefault)
+  const offset = Object.keys(agentWorkers).length
+  workerCaps[Capabilities.DOCKERSYSLOGPORT] = 47199 + offset
+  workerCaps[Capabilities.FACEBOOK_PUBLISHPORT] = 46199 + offset
+
+  const worker = new AgentWorker(workerCaps, socket)
   agentWorkers[socket.id] = worker
   socket.on('disconnect', () => {
     debug(`agent client disconnected ${socket.id}`)
     delete agentWorkers[socket.id]
   })
   socket.on('error', (err) => {
-    debug(`agent client error ${socket.id}: ${JSON.stringify(err)}`)
+    debug(`agent client error ${socket.id}: ${util.inspect(err)}`)
     delete agentWorkers[socket.id]
   })
 })

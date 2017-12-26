@@ -135,6 +135,14 @@ module.exports = class BaseContainer {
     }
   }
 
+  _AssertOneCapabilityExists () {
+    const checkCaps = [...arguments]
+    const found = checkCaps.find((cap) => this.caps[cap])
+    if (!found) {
+      throw new Error(`Capability property of ${checkCaps.join()} not set`)
+    }
+  }
+
   _QueueBotSays (botMsg) {
     if (!this.queues.default) {
       this.queues.default = new Queue()
