@@ -1,6 +1,6 @@
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
-const Source = require('../../').Source
+const BotDriver = require('../../index').BotDriver
+const Capabilities = require('../../index').Capabilities
+const Source = require('../../index').Source
 
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'Botium Facebook Sample 1')

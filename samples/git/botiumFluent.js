@@ -1,6 +1,6 @@
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
-const Source = require('../../').Source
+const BotDriver = require('../../index').BotDriver
+const Capabilities = require('../../index').Capabilities
+const Source = require('../../index').Source
 
 function assert (expected, actual) {
   if (!actual || actual.indexOf(expected) < 0) {
@@ -15,7 +15,7 @@ const driver = new BotDriver()
   .setCapability(Capabilities.FACEBOOK_API, true)
   .setCapability(Capabilities.FACEBOOK_WEBHOOK_PORT, 3000)
   .setCapability(Capabilities.FACEBOOK_WEBHOOK_PATH, 'facebook/receive')
-  .setCapability(Capabilities.CLEANUPTEMPDIR, true)
+  .setCapability(Capabilities.CLEANUPTEMPDIR, false)
   .setSource(Source.GITURL, 'https://github.com/codeforequity-at/testmybot-sample-calculator.git')
   .setSource(Source.GITPREPARECMD, 'npm install')
   .setCapability(Capabilities.STARTCMD, 'node index.js')

@@ -2,10 +2,12 @@
   "name": "botium-core",
   "version": "0.0.2",
   "description": "The Selenium for Chatbots",
-  "main": "index.js",
+  "main": "dist/botium-cjs.js",
+  "module": "dist/botium-es.js",
   "scripts": {
-    "eslint": "./node_modules/.bin/eslint \"./src/**/*.js\" \"./test/**/*.js\"",
-    "newpatch": "npm version patch && npm publish",
+    "build": "npm run eslint && rollup -c",
+    "eslint": "eslint \"./src/**/*.js\" \"./test/**/*.js\"",
+    "newpatch": "npm version patch",
     "agent": "node ./src/grid/agent/agent.js"
   },
   "repository": {
@@ -23,6 +25,7 @@
     "body-parser": "^1.18.2",
     "debug": "^3.1.0",
     "express": "^4.16.2",
+    "find-root": "^1.1.0",
     "is-json": "^2.0.1",
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",
@@ -46,6 +49,11 @@
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.6.0",
-    "eslint-plugin-standard": "^3.0.1"
+    "eslint-plugin-standard": "^3.0.1",
+    "rollup": "^0.53.0",
+    "rollup-plugin-buble": "^0.18.0",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-json": "^2.3.0",
+    "rollup-plugin-node-resolve": "^3.0.0"
   }
 }

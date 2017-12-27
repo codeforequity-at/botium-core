@@ -5,6 +5,7 @@ const path = require('path')
 const yaml = require('write-yaml')
 const mustache = require('mustache')
 const request = require('request')
+const findRoot = require('find-root')
 const io = require('socket.io-client')
 const debug = require('debug')('botium-DockerContainer')
 const debugContainerOutput = require('debug')('botium-DockerContainerOutput')
@@ -17,6 +18,8 @@ const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const BotiumMockCommand = require('../mocks/BotiumMockCommand')
 const TcpPortUtils = require('../helpers/TcpPortUtils')
 const SyslogServer = require('../helpers/SyslogServer')
+
+const botiumPackageRootDir = findRoot()
 
 module.exports = class DockerContainer extends BaseContainer {
   Validate () {
@@ -56,7 +59,7 @@ module.exports = class DockerContainer extends BaseContainer {
               debug(`Dockerfile ${dockerfileBotium} already present, using it.`)
               dockerfileCreated()
             } else {
-              const templateFile = path.resolve(__dirname, '..', 'Dockerfile.botium.template')
+              const templateFile = path.resolve(botiumPackageRootDir, 'src/Dockerfile.botium.template')
               fs.readFile(templateFile, 'utf8', (err, data) => {
                 if (err) return dockerfileCreated(`Reading docker template file ${templateFile} failed: ${err}`)
                 debug(data)
@@ -79,14 +82,14 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (dockercomposeMainUsed) => {
-          const dockercomposeMain = path.resolve(__dirname, '..', 'docker-compose.botium.yml')
+          const dockercomposeMain = path.resolve(botiumPackageRootDir, 'src/docker-compose.botium.yml')
           this.dockerConfig.composefiles.push(dockercomposeMain)
           dockercomposeMainUsed()
         },
 
         (dockercomposeFacebookUsed) => {
           if (this.caps[Capabilities.FACEBOOK_API]) {
-            const dockercomposeFacebook = path.resolve(__dirname, '..', 'mocks', 'facebook', 'docker-compose.fbmock.yml')
+            const dockercomposeFacebook = path.resolve(botiumPackageRootDir, 'src/mocks/facebook/docker-compose.fbmock.yml')
             this.dockerConfig.composefiles.push(dockercomposeFacebook)
           }
           dockercomposeFacebookUsed()
@@ -148,9 +151,10 @@ module.exports = class DockerContainer extends BaseContainer {
             composeEnv.services.botium.environment = this.envs
           }
           if (this.caps[Capabilities.FACEBOOK_API]) {
+            composeEnv.services['botium'].depends_on = [ 'botium-fbmock' ]
             composeEnv.services['botium-fbmock'] = {
               build: {
-                context: path.resolve(__dirname, '..', 'mocks', 'facebook')
+                context: path.resolve(botiumPackageRootDir, 'src/mocks/facebook')
               },
               logging: {
                 driver: 'syslog',
@@ -159,7 +163,7 @@ module.exports = class DockerContainer extends BaseContainer {
                 }
               },
               volumes: [
-                `${path.resolve(__dirname, '..', 'mocks', 'facebook')}:/usr/src/app`
+                `${path.resolve(botiumPackageRootDir, 'src/mocks/facebook')}:/usr/src/app`
               ],
               ports: [
                 `${this.facebookPublishPort}:${this.facebookPublishPort}`
