@@ -51,6 +51,10 @@ socket.on('unauthorized', (err) => {
   console.log(`unauthorized ${JSON.stringify(err)}`)
   process.exit(1)
 })
+socket.on('TOOMUCHWORKERS_ERROR', (err) => {
+  console.log(`TOOMUCHWORKERS_ERROR ${JSON.stringify(err)}`)
+  process.exit(1)
+})
 socket.on('CONTAINER_BUILD_ERROR', (err) => {
   console.log(`CONTAINER_BUILD_ERROR ${JSON.stringify(err)}`)
   process.exit(1)

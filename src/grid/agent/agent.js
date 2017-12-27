@@ -1,26 +1,27 @@
 const util = require('util')
 const path = require('path')
-const debug = require('debug')('botium-agent')
 const express = require('express')
 const http = require('http')
 const ioSocket = require('socket.io')
 const ioAuth = require('socketio-auth')
+const debug = require('debug')('botium-agent')
 
 const AgentWorker = require('./AgentWorker')
 const Defaults = require('../../Defaults')
 const Capabilities = require('../../Capabilities')
+const Events = require('../../Events')
 
 const port = process.env.PORT || 46100
-const apiToken = process.env.API_TOKEN || ''
+const apiToken = process.env.BOTIUM_API_TOKEN || ''
 if (!apiToken) {
-  console.log('WARNING: API_TOKEN not set, all clients will be accepted')
+  console.log('WARNING: BOTIUM_API_TOKEN not set, all clients will be accepted')
 }
 
 const app = express()
 const server = http.Server(app)
 const io = ioSocket(server)
 
-const agentWorkers = {}
+const agentWorkers = new Array(process.env.BOTIUM_WORKER_COUNT ? parseInt(process.env.BOTIUM_WORKER_COUNT) : 10)
 
 const capsDefault = {
   [Capabilities.TEMPDIR]: process.env.BOTIUM_TEMPDIR || Defaults.Capabilities[Capabilities.TEMPDIR],
@@ -37,7 +38,8 @@ app.get('/api/status', (req, res) => {
   const status = {
     software: 'Botium Agent',
     version: require(path.resolve(__dirname, '..', '..', '..', 'package.json')).version,
-    workers: Object.keys(agentWorkers).length
+    maxWorkers: agentWorkers.length,
+    currentWorkers: agentWorkers.filter((wp) => wp).length
   }
   res.json(status)
 })
@@ -58,22 +60,28 @@ ioAuth(io, {
 })
 
 io.on('connection', (socket) => {
-  debug(`agent client connected ${socket.id}`)
+  const workerSlot = agentWorkers.findIndex((wp) => !wp)
+  debug(`agent client connected ${socket.id}, worker slot ${workerSlot}`)
+
+  if (workerSlot < 0) {
+    socket.emit(Events.TOOMUCHWORKERS_ERROR, `Maximum worker count exceeded`)
+    socket.disconnect(true)
+    return
+  }
 
   const workerCaps = Object.assign({}, capsDefault)
-  const offset = Object.keys(agentWorkers).length
-  workerCaps[Capabilities.DOCKERSYSLOGPORT] = 47199 + offset
-  workerCaps[Capabilities.FACEBOOK_PUBLISHPORT] = 46199 + offset
+  workerCaps[Capabilities.DOCKERSYSLOGPORT] = 47199 + workerSlot
+  workerCaps[Capabilities.FACEBOOK_PUBLISHPORT] = 46199 + workerSlot
 
   const worker = new AgentWorker(workerCaps, socket)
-  agentWorkers[socket.id] = worker
+  agentWorkers[workerSlot] = worker
   socket.on('disconnect', () => {
     debug(`agent client disconnected ${socket.id}`)
-    delete agentWorkers[socket.id]
+    agentWorkers[workerSlot] = null
   })
   socket.on('error', (err) => {
     debug(`agent client error ${socket.id}: ${util.inspect(err)}`)
-    delete agentWorkers[socket.id]
+    agentWorkers[workerSlot] = null
   })
 })
 
