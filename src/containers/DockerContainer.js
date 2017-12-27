@@ -6,6 +6,7 @@ const yaml = require('write-yaml')
 const mustache = require('mustache')
 const request = require('request')
 const findRoot = require('find-root')
+const copydir = require('copy-dir')
 const io = require('socket.io-client')
 const debug = require('debug')('botium-DockerContainer')
 const debugContainerOutput = require('debug')('botium-DockerContainerOutput')
@@ -18,6 +19,7 @@ const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const BotiumMockCommand = require('../mocks/BotiumMockCommand')
 const TcpPortUtils = require('../helpers/TcpPortUtils')
 const SyslogServer = require('../helpers/SyslogServer')
+const ProcessUtils = require('../helpers/ProcessUtils')
 
 const botiumPackageRootDir = findRoot()
 
@@ -62,7 +64,6 @@ module.exports = class DockerContainer extends BaseContainer {
               const templateFile = path.resolve(botiumPackageRootDir, 'src/Dockerfile.botium.template')
               fs.readFile(templateFile, 'utf8', (err, data) => {
                 if (err) return dockerfileCreated(`Reading docker template file ${templateFile} failed: ${err}`)
-                debug(data)
                 const viewData = {
                   STARTCMD: this.caps[Capabilities.STARTCMD],
                   DOCKERIMAGE: this.caps[Capabilities.DOCKERIMAGE]
@@ -85,14 +86,6 @@ module.exports = class DockerContainer extends BaseContainer {
           const dockercomposeMain = path.resolve(botiumPackageRootDir, 'src/docker-compose.botium.yml')
           this.dockerConfig.composefiles.push(dockercomposeMain)
           dockercomposeMainUsed()
-        },
-
-        (dockercomposeFacebookUsed) => {
-          if (this.caps[Capabilities.FACEBOOK_API]) {
-            const dockercomposeFacebook = path.resolve(botiumPackageRootDir, 'src/mocks/facebook/docker-compose.fbmock.yml')
-            this.dockerConfig.composefiles.push(dockercomposeFacebook)
-          }
-          dockercomposeFacebookUsed()
         },
 
         (syslogPortSelected) => {
@@ -127,6 +120,28 @@ module.exports = class DockerContainer extends BaseContainer {
           }
         },
 
+        (facebookMockPrepared) => {
+          if (this.caps[Capabilities.FACEBOOK_API]) {
+            this.fbMockDir = path.resolve(this.tempDirectory, 'fbmock')
+            copydir(path.resolve(botiumPackageRootDir, 'src/mocks/facebook'), this.fbMockDir, (err) => {
+              if (err) return facebookMockPrepared(`Error copying fbmock to ${this.fbMockDir}: ${err}`)
+              ProcessUtils.childCommandLineRun('npm install', false, { cwd: this.fbMockDir })
+                .then(() => facebookMockPrepared())
+                .catch(facebookMockPrepared)
+            })
+          } else {
+            facebookMockPrepared()
+          }
+        },
+
+        (dockercomposeFacebookUsed) => {
+          if (this.caps[Capabilities.FACEBOOK_API]) {
+            const dockercomposeFacebook = path.resolve(this.fbMockDir, 'docker-compose.fbmock.yml')
+            this.dockerConfig.composefiles.push(dockercomposeFacebook)
+          }
+          dockercomposeFacebookUsed()
+        },
+
         (dockercomposeEnvUsed) => {
           const composeEnv = {
             version: '2',
@@ -151,10 +166,9 @@ module.exports = class DockerContainer extends BaseContainer {
             composeEnv.services.botium.environment = this.envs
           }
           if (this.caps[Capabilities.FACEBOOK_API]) {
-            composeEnv.services['botium'].depends_on = [ 'botium-fbmock' ]
             composeEnv.services['botium-fbmock'] = {
               build: {
-                context: path.resolve(botiumPackageRootDir, 'src/mocks/facebook')
+                context: this.fbMockDir
               },
               logging: {
                 driver: 'syslog',
@@ -163,7 +177,7 @@ module.exports = class DockerContainer extends BaseContainer {
                 }
               },
               volumes: [
-                `${path.resolve(botiumPackageRootDir, 'src/mocks/facebook')}:/usr/src/app`
+                `${this.fbMockDir}:/usr/src/app`
               ],
               ports: [
                 `${this.facebookPublishPort}:${this.facebookPublishPort}`
