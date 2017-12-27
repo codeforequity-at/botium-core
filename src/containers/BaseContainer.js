@@ -5,6 +5,7 @@ const debug = require('debug')('botium-BaseContainer')
 
 const Capabilities = require('../Capabilities')
 const Queue = require('../helpers/Queue')
+const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 
 module.exports = class BaseContainer {
   constructor (eventEmitter, tempDirectory, repo, caps, envs) {
@@ -30,11 +31,12 @@ module.exports = class BaseContainer {
     return Promise.resolve(this)
   }
 
-  UserSaysText (msg) {
-    return Promise.resolve(this)
+  UserSaysText (text) {
+    const mockMsg = new BotiumMockMessage({ sender: 'me', messageText: text })
+    return this.UserSays(mockMsg)
   }
 
-  UserSays (msg) {
+  UserSays (msgMock) {
     return Promise.resolve(this)
   }
 

@@ -143,6 +143,10 @@ module.exports = class BotDriver {
   }
 
   _getRepo () {
+    if (this.caps[Capabilities.BOTIUMGRIDURL]) {
+      const NoRepo = require('./repos/NoRepo')
+      return new NoRepo(this.tempDirectory, this.sources)
+    }
     if (this.sources[Source.GITURL]) {
       const GitRepo = require('./repos/GitRepo')
       return new GitRepo(this.tempDirectory, this.sources)
@@ -155,6 +159,10 @@ module.exports = class BotDriver {
   }
 
   _getContainer (repo) {
+    if (this.caps[Capabilities.BOTIUMGRIDURL]) {
+      const GridContainer = require('./containers/GridContainer')
+      return new GridContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
+    }
     if (this.caps[Capabilities.CONTAINERMODE] === 'docker') {
       const DockerContainer = require('./containers/DockerContainer')
       return new DockerContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)

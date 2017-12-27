@@ -27,7 +27,8 @@ const capsDefault = {
   [Capabilities.TEMPDIR]: process.env.BOTIUM_TEMPDIR || Defaults.Capabilities[Capabilities.TEMPDIR],
   [Capabilities.CLEANUPTEMPDIR]: true,
   [Capabilities.DOCKERCOMPOSEPATH]: process.env.BOTIUM_DOCKERCOMPOSEPATH || Defaults.Capabilities[Capabilities.DOCKERCOMPOSEPATH],
-  [Capabilities.DOCKERUNIQUECONTAINERNAMES]: true
+  [Capabilities.DOCKERUNIQUECONTAINERNAMES]: true,
+  [Capabilities.BOTIUMGRIDURL]: ''
 }
 
 app.get('/', (req, res) => {

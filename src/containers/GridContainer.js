@@ -1,0 +1,177 @@
+const util = require('util')
+const async = require('async')
+const io = require('socket.io-client')
+const debug = require('debug')('botium-GridContainer')
+
+const Commands = require('../Commands')
+const Events = require('../Events')
+const Capabilities = require('../Capabilities')
+const BaseContainer = require('./BaseContainer')
+const BotiumMockMessage = require('../mocks/BotiumMockMessage')
+
+module.exports = class GridContainer extends BaseContainer {
+  Validate () {
+    return super.Validate().then(() => {
+      this._AssertCapabilityExists(Capabilities.BOTIUMGRIDURL)
+    })
+  }
+
+  Build () {
+    this.buildPromise = this._defer()
+
+    async.series([
+      (baseComplete) => {
+        super.Build().then(() => baseComplete()).catch(baseComplete)
+      },
+
+      (socketComplete) => {
+        this.socket = io(this.caps[Capabilities.BOTIUMGRIDURL])
+
+        this.socket.on('connect', () => {
+          debug('connected')
+          this.socket.emit('authentication', { apiToken: this.caps[Capabilities.BOTIUMAPITOKEN] })
+        })
+        this.socket.on('authenticated', () => {
+          debug('authenticated')
+          this.socket.emit(Commands.BUILD_CONTAINER, this.caps, this.repo.sources, this.envs)
+        })
+        this.socket.on('unauthorized', (err) => {
+          debug(`unauthorized ${JSON.stringify(err)}`)
+          socketComplete(`Grid Access not authorized: ${util.inspect(err)}`)
+        })
+        this.socket.on(Events.TOOMUCHWORKERS_ERROR, (err) => {
+          debug(`TOOMUCHWORKERS_ERROR ${JSON.stringify(err)}`)
+          socketComplete(`Grid Access not possible: ${util.inspect(err)}`)
+        })
+        this.socket.on(Events.CONTAINER_BUILT, () => {
+          debug(Events.CONTAINER_BUILT)
+          socketComplete()
+        })
+        this.socket.on(Events.CONTAINER_BUILD_ERROR, (err) => {
+          debug(`CONTAINER_BUILD_ERROR ${JSON.stringify(err)}`)
+          socketComplete(`Grid Build failed: ${util.inspect(err)}`)
+        })
+
+        this.socket.on(Events.CONTAINER_STARTED, () => {
+          debug(Events.CONTAINER_STARTED)
+          if (this.startPromise) {
+            this.startPromise.resolve()
+            this.startPromise = null
+          }
+        })
+        this.socket.on(Events.CONTAINER_START_ERROR, (err) => {
+          debug(`CONTAINER_START_ERROR ${JSON.stringify(err)}`)
+          if (this.startPromise) {
+            this.startPromise.reject(`Grid Start failed: ${util.inspect(err)}`)
+            this.startPromise = null
+          }
+        })
+
+        this.socket.on(Events.MESSAGE_RECEIVEDFROMBOT, (botMsg) => {
+          debug(`MESSAGE_RECEIVEDFROMBOT ${util.inspect(botMsg)}`)
+          this._QueueBotSays(new BotiumMockMessage(botMsg))
+          this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
+        })
+
+        this.socket.on(Events.CONTAINER_STOPPED, () => {
+          debug(Events.CONTAINER_STOPPED)
+          if (this.stopPromise) {
+            this.stopPromise.resolve()
+            this.stopPromise = null
+          }
+        })
+        this.socket.on(Events.CONTAINER_STOP_ERROR, (err) => {
+          debug(`CONTAINER_STOP_ERROR ${JSON.stringify(err)}`)
+          if (this.stopPromise) {
+            this.stopPromise.reject(`Grid Stop failed: ${util.inspect(err)}`)
+            this.stopPromise = null
+          }
+        })
+
+        this.socket.on(Events.CONTAINER_CLEANED, () => {
+          debug(Events.CONTAINER_CLEANED)
+          if (this.cleanPromise) {
+            this.cleanPromise.resolve()
+            this.cleanPromise = null
+          }
+          this.socket.disconnect()
+          this.socket = null
+        })
+        this.socket.on(Events.CONTAINER_CLEAN_ERROR, (err) => {
+          debug(`CONTAINER_CLEAN_ERROR ${JSON.stringify(err)}`)
+          if (this.cleanPromise) {
+            this.cleanPromise.reject(`Grid Clean failed: ${util.inspect(err)}`)
+            this.cleanPromise = null
+          }
+          this.socket.disconnect()
+          this.socket = null
+        })
+      }
+    ], (err) => {
+      if (err) {
+        this.buildPromise.reject(new Error(`Cannot build docker containers: ${util.inspect(err)}`))
+      } else {
+        this.buildPromise.resolve(this)
+      }
+      this.buildPromise = null
+    })
+    return this.buildPromise.promise
+  }
+
+  Start () {
+    return super.Start().then(() => {
+      if (this.startPromise) return Promise.reject(new Error('already starting'))
+      if (!this.socket) return Promise.reject(new Error('not built'))
+
+      this.startPromise = this._defer()
+      this.socket.emit(Commands.START_CONTAINER)
+
+      return this.startPromise.promise
+    })
+  }
+
+  UserSays (mockMsg) {
+    if (!this.socket) return Promise.reject(new Error('not built'))
+
+    this.socket.emit(Commands.SENDTOBOT, mockMsg)
+    this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
+    return Promise.resolve(this)
+  }
+
+  Stop () {
+    return super.Stop().then(() => {
+      if (this.stopPromise) return Promise.reject(new Error('already stopping'))
+      if (!this.socket) return Promise.reject(new Error('not built'))
+
+      this.stopPromise = this._defer()
+      this.socket.emit(Commands.STOP_CONTAINER)
+
+      return this.stopPromise.promise
+    })
+  }
+
+  Clean () {
+    return super.Clean().then(() => {
+      if (this.cleanPromise) return Promise.reject(new Error('already cleaning'))
+      if (!this.socket) return Promise.reject(new Error('not built'))
+
+      this.cleanPromise = this._defer()
+      this.socket.emit(Commands.CLEAN_CONTAINER)
+
+      return this.cleanPromise.promise
+    })
+  }
+
+  _defer () {
+    const deferred = {
+      promise: null,
+      resolve: null,
+      reject: null
+    }
+    deferred.promise = new Promise((resolve, reject) => {
+      deferred.resolve = resolve
+      deferred.reject = reject
+    })
+    return deferred
+  }
+}

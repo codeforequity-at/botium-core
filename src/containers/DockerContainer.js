@@ -73,7 +73,13 @@ module.exports = class DockerContainer extends BaseContainer {
                   if (err) return dockerfileCreated(`Writing dockerfile ${dockerfileBotium} failed: ${err}`)
 
                   this.cleanupTasks.push((cb) => {
-                    fs.unlink(dockerfileBotium, cb)
+                    fs.stat(dockerfileBotium, (err, stats) => {
+                      if (!err && stats.isFile()) {
+                        fs.unlink(dockerfileBotium, cb)
+                      } else {
+                        cb()
+                      }
+                    })
                   })
                   dockerfileCreated()
                 })
@@ -353,20 +359,6 @@ module.exports = class DockerContainer extends BaseContainer {
         this.eventEmitter.emit(Events.CONTAINER_STARTED, this)
         resolve(this)
       })
-    })
-  }
-
-  UserSaysText (text) {
-    return new Promise((resolve, reject) => {
-      if (this.socket) {
-        const mockMsg = new BotiumMockMessage({ sender: 'me', messageText: text })
-        this.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
-        this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
-        resolve(this)
-      } else {
-        this.eventEmitter.emit(Events.MESSAGE_SENDTOBOT_ERROR, this, 'Socket not online')
-        reject(new Error('Socket not online'))
-      }
     })
   }
 

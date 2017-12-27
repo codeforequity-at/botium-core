@@ -3,7 +3,7 @@ const debug = require('debug')('botium-AgentWorker')
 
 const BotDriver = require('../../BotDriver')
 const Events = require('../../Events')
-const Commands = require('./Commands')
+const Commands = require('../../Commands')
 
 module.exports = class AgentWorker {
   constructor (capsDefault, socket) {
