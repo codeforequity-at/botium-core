@@ -19,6 +19,10 @@ module.exports = {
   FACEBOOK_PUBLISHPORT_RANGE: 'FACEBOOK_PUBLISHPORT_RANGE',
   // Slack Mocker Settings
   SLACK_API: 'SLACK_API',
+  // Facebook Direct API Settings
+  FB_PAGEID: 'FB_PAGEID',
+  FB_USER: 'FB_USER',
+  FB_PASSWORD: 'FB_PASSWORD',
   // Bot Framework Mocker Settings
   BOTFRAMEWORK_API: 'BOTFRAMEWORK_API'
 }

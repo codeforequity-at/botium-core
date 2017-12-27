@@ -119,6 +119,8 @@ module.exports = class GridContainer extends BaseContainer {
   }
 
   Start () {
+    this.eventEmitter.emit(Events.CONTAINER_STARTING, this)
+
     return super.Start().then(() => {
       if (this.startPromise) return Promise.reject(new Error('already starting'))
       if (!this.socket) return Promise.reject(new Error('not built'))
@@ -139,6 +141,8 @@ module.exports = class GridContainer extends BaseContainer {
   }
 
   Stop () {
+    this.eventEmitter.emit(Events.CONTAINER_STOPPING, this)
+
     return super.Stop().then(() => {
       if (this.stopPromise) return Promise.reject(new Error('already stopping'))
       if (!this.socket) return Promise.reject(new Error('not built'))
@@ -151,6 +155,8 @@ module.exports = class GridContainer extends BaseContainer {
   }
 
   Clean () {
+    this.eventEmitter.emit(Events.CONTAINER_CLEANING, this)
+
     return super.Clean().then(() => {
       if (this.cleanPromise) return Promise.reject(new Error('already cleaning'))
       if (!this.socket) return Promise.reject(new Error('not built'))

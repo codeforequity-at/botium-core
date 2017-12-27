@@ -167,6 +167,10 @@ module.exports = class BotDriver {
       const DockerContainer = require('./containers/DockerContainer')
       return new DockerContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
+    if (this.caps[Capabilities.CONTAINERMODE] === 'fbdirect') {
+      const FbContainer = require('./containers/FbContainer')
+      return new FbContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
+    }
     throw new Error(`No Container provider found for Caps ${util.inspect(this.caps)}`)
   }
 }
