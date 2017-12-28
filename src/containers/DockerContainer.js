@@ -4,10 +4,7 @@ const async = require('async')
 const path = require('path')
 const yaml = require('write-yaml')
 const mustache = require('mustache')
-const request = require('request')
 const findRoot = require('find-root')
-const copydir = require('copy-dir')
-const io = require('socket.io-client')
 const debug = require('debug')('botium-DockerContainer')
 const debugContainerOutput = require('debug')('botium-DockerContainerOutput')
 
@@ -15,11 +12,10 @@ const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const BaseContainer = require('./BaseContainer')
 const DockerCmd = require('./DockerCmd')
-const BotiumMockMessage = require('../mocks/BotiumMockMessage')
+const DockerMocks = require('./DockerMocks')
 const BotiumMockCommand = require('../mocks/BotiumMockCommand')
 const TcpPortUtils = require('../helpers/TcpPortUtils')
 const SyslogServer = require('../helpers/SyslogServer')
-const ProcessUtils = require('../helpers/ProcessUtils')
 
 const botiumPackageRootDir = findRoot()
 
@@ -36,10 +32,23 @@ module.exports = class DockerContainer extends BaseContainer {
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PATH)
         this._AssertOneCapabilityExists(Capabilities.FACEBOOK_PUBLISHPORT, Capabilities.FACEBOOK_PUBLISHPORT_RANGE)
       }
+      if (this.caps[Capabilities.SLACK_API]) {
+        this._AssertCapabilityExists(Capabilities.SLACK_WEBHOOK_PORT)
+        this._AssertCapabilityExists(Capabilities.SLACK_WEBHOOK_EVENTPATH)
+        this._AssertCapabilityExists(Capabilities.SLACK_WEBHOOK_OAUTHPATH)
+        this._AssertOneCapabilityExists(Capabilities.SLACK_PUBLISHPORT, Capabilities.SLACK_PUBLISHPORT_RANGE)
+      }
     })
   }
 
   Build () {
+    if (this.caps[Capabilities.FACEBOOK_API]) {
+      this.fbMock = new DockerMocks.Facebook()
+    }
+    if (this.caps[Capabilities.SLACK_API]) {
+      this.slackMock = new DockerMocks.Slack()
+    }
+
     return new Promise((resolve, reject) => {
       this.dockerConfig = {
         projectname: this.caps[Capabilities.PROJECTNAME],
@@ -109,43 +118,45 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (facebookPortSelected) => {
-          if (this.caps[Capabilities.FACEBOOK_API]) {
-            if (this.caps[Capabilities.FACEBOOK_PUBLISHPORT]) {
-              this.facebookPublishPort = this.caps[Capabilities.FACEBOOK_PUBLISHPORT]
-              facebookPortSelected()
-            } else {
-              TcpPortUtils.GetFreePortInRange('127.0.0.1', this.caps[Capabilities.FACEBOOK_PUBLISHPORT_RANGE])
-                .then((fbPort) => {
-                  this.facebookPublishPort = fbPort
-                  facebookPortSelected()
-                })
-                .catch(facebookPortSelected)
-            }
+          if (this.fbMock) {
+            this.fbMock.SelectPublishPort(this.caps).then(() => facebookPortSelected()).catch(facebookPortSelected)
           } else {
             facebookPortSelected()
           }
         },
 
+        (slackPortSelected) => {
+          if (this.slackMock) {
+            this.slackMock.SelectPublishPort(this.caps).then(() => slackPortSelected()).catch(slackPortSelected)
+          } else {
+            slackPortSelected()
+          }
+        },
+
         (facebookMockPrepared) => {
-          if (this.caps[Capabilities.FACEBOOK_API]) {
-            this.fbMockDir = path.resolve(this.tempDirectory, 'fbmock')
-            copydir(path.resolve(botiumPackageRootDir, 'src/mocks/facebook'), this.fbMockDir, (err) => {
-              if (err) return facebookMockPrepared(`Error copying fbmock to ${this.fbMockDir}: ${err}`)
-              ProcessUtils.childCommandLineRun('npm install', false, { cwd: this.fbMockDir })
-                .then(() => facebookMockPrepared())
-                .catch(facebookMockPrepared)
-            })
+          if (this.fbMock) {
+            this.fbMock.PrepareDocker(path.resolve(this.tempDirectory, 'fbmock')).then(() => facebookMockPrepared()).catch(facebookMockPrepared)
           } else {
             facebookMockPrepared()
           }
         },
 
-        (dockercomposeFacebookUsed) => {
-          if (this.caps[Capabilities.FACEBOOK_API]) {
-            const dockercomposeFacebook = path.resolve(this.fbMockDir, 'docker-compose.fbmock.yml')
-            this.dockerConfig.composefiles.push(dockercomposeFacebook)
+        (slackMockPrepared) => {
+          if (this.slackMock) {
+            this.slackMock.PrepareDocker(path.resolve(this.tempDirectory, 'fbmock')).then(() => slackMockPrepared()).catch(slackMockPrepared)
+          } else {
+            slackMockPrepared()
           }
-          dockercomposeFacebookUsed()
+        },
+
+        (dockercomposeUsed) => {
+          if (this.fbMock) {
+            this.dockerConfig.composefiles.push(this.fbMock.GetDockerCompose())
+          }
+          if (this.slackMock) {
+            this.dockerConfig.composefiles.push(this.slackMock.GetDockerCompose())
+          }
+          dockercomposeUsed()
         },
 
         (dockercomposeEnvUsed) => {
@@ -171,30 +182,19 @@ module.exports = class DockerContainer extends BaseContainer {
           if (this.envs) {
             composeEnv.services.botium.environment = this.envs
           }
-          if (this.caps[Capabilities.FACEBOOK_API]) {
-            composeEnv.services['botium-fbmock'] = {
-              build: {
-                context: this.fbMockDir
-              },
-              logging: {
-                driver: 'syslog',
-                options: {
-                  'syslog-address': `udp://127.0.0.1:${this.syslogPort}`
-                }
-              },
-              volumes: [
-                `${this.fbMockDir}:/usr/src/app`
-              ],
-              ports: [
-                `${this.facebookPublishPort}:${this.facebookPublishPort}`
-              ],
-              environment: {
-                BOTIUM_FACEBOOK_WEBHOOKPORT: this.caps[Capabilities.FACEBOOK_WEBHOOK_PORT],
-                BOTIUM_FACEBOOK_WEBHOOKPATH: this.caps[Capabilities.FACEBOOK_WEBHOOK_PATH],
-                BOTIUM_FACEBOOK_PUBLISHPORT: this.facebookPublishPort
-              }
+          const mockLog = {
+            driver: 'syslog',
+            options: {
+              'syslog-address': `udp://127.0.0.1:${this.syslogPort}`
             }
           }
+          if (this.fbMock) {
+            this.fbMock.FillDockerEnv(composeEnv, this.caps, mockLog)
+          }
+          if (this.slackMock) {
+            this.slackMock.FillDockerEnv(composeEnv, this.caps, mockLog)
+          }
+
           this.dockercomposeEnvFile = path.resolve(this.tempDirectory, `docker-env.yml`)
 
           debug(`Writing docker compose environment to ${this.dockercomposeEnvFile} - ${JSON.stringify(composeEnv)}`)
@@ -285,69 +285,18 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (facebookMockupOnline) => {
-          if (this.caps[Capabilities.FACEBOOK_API]) {
-            TcpPortUtils.WaitForPort('127.0.0.1', this.facebookPublishPort)
-              .then(() => facebookMockupOnline())
-              .catch(facebookMockupOnline)
+          if (this.fbMock) {
+            this.fbMock.Start(this).then(() => facebookMockupOnline()).catch(facebookMockupOnline)
           } else {
             facebookMockupOnline()
           }
         },
 
-        (facebookEndpointOnline) => {
-          if (this.caps[Capabilities.FACEBOOK_API]) {
-            this.facebookMockUrl = `http://127.0.0.1:${this.facebookPublishPort}`
-            let online = false
-            async.until(
-              () => online,
-              (callback) => {
-                var options = {
-                  uri: this.facebookMockUrl,
-                  method: 'GET'
-                }
-                debug(`Facebook Mock - checking endpoint ${this.facebookMockUrl} before proceed`)
-                request(options, (err, response, body) => {
-                  if (err) {
-                    setTimeout(callback, 2000)
-                  } else if (response && response.statusCode === 200) {
-                    debug(`Facebook Mock - endpoint ${this.facebookMockUrl} is online`)
-                    online = true
-                    callback()
-                  } else {
-                    setTimeout(callback, 2000)
-                  }
-                })
-              },
-              facebookEndpointOnline
-            )
+        (slackMockupOnline) => {
+          if (this.slackMock) {
+            this.slackMock.Start(this).then(() => slackMockupOnline()).catch(slackMockupOnline)
           } else {
-            facebookEndpointOnline()
-          }
-        },
-
-        (facebookSocketStartDone) => {
-          if (this.caps[Capabilities.FACEBOOK_API]) {
-            if (this.socket) {
-              this.socket.disconnect()
-              this.socket = null
-            }
-
-            this.socket = io.connect(this.facebookMockUrl)
-            this.socket.on(BotiumMockCommand.MOCKCMD_RECEIVEDFROMBOT, (botMsg) => {
-              debug(`Facebook Mock - socket received from bot ${util.inspect(botMsg)}`)
-              this._QueueBotSays(new BotiumMockMessage(botMsg))
-              this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
-            })
-            this.socket.on('error', (err) => {
-              debug(`Facebook Mock - socket connection error! ${util.inspect(err)}`)
-            })
-            this.socket.on('connect', () => {
-              debug(`Facebook Mock - socket connected ${this.facebookMockUrl}`)
-              this.eventEmitter.emit(Events.BOT_CONNECTED, this, this.socket)
-              facebookSocketStartDone()
-            })
-          } else {
-            facebookSocketStartDone()
+            slackMockupOnline()
           }
         }
 
@@ -364,13 +313,17 @@ module.exports = class DockerContainer extends BaseContainer {
 
   UserSays (mockMsg) {
     return new Promise((resolve, reject) => {
-      if (this.socket) {
-        this.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
+      if (this.fbMock && this.fbMock.socket) {
+        this.fbMock.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
+        this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
+        resolve(this)
+      } else if (this.slackMock && this.slackMock.socket) {
+        this.slackMock.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
         this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
         resolve(this)
       } else {
-        this.eventEmitter.emit(Events.MESSAGE_SENDTOBOT_ERROR, this, 'Socket not online')
-        reject(new Error('Socket not online'))
+        this.eventEmitter.emit(Events.MESSAGE_SENDTOBOT_ERROR, this, 'No Mock online')
+        reject(new Error('No Mock online'))
       }
     })
   }
@@ -385,13 +338,20 @@ module.exports = class DockerContainer extends BaseContainer {
           super.Stop().then(() => baseComplete()).catch(baseComplete)
         },
 
-        (socketStopDone) => {
-          if (this.socket) {
-            this.socket.disconnect()
-            this.socket = null
-            debug('Socket disconnected')
+        (facebookStopDone) => {
+          if (this.fbMock) {
+            this.fbMock.Stop().then(() => facebookStopDone()).catch(facebookStopDone)
+          } else {
+            facebookStopDone()
           }
-          socketStopDone()
+        },
+
+        (slackStopDone) => {
+          if (this.slackMock) {
+            this.slackMock.Stop().then(() => slackStopDone()).catch(slackStopDone)
+          } else {
+            slackStopDone()
+          }
         },
 
         (dockerStopped) => {

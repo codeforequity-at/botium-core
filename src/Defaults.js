@@ -10,8 +10,9 @@ module.exports = {
     [Capabilities.DOCKERCOMPOSEPATH]: 'docker-compose',
     [Capabilities.DOCKERIMAGE]: 'node:boron',
     [Capabilities.DOCKERUNIQUECONTAINERNAMES]: false,
-    [Capabilities.DOCKERSYSLOGPORT_RANGE]: '47199-47499',
-    [Capabilities.FACEBOOK_PUBLISHPORT_RANGE]: '46199-46499'
+    [Capabilities.DOCKERSYSLOGPORT_RANGE]: '47100-47299',
+    [Capabilities.SLACK_PUBLISHPORT_RANGE]: '46100-46299',
+    [Capabilities.FACEBOOK_PUBLISHPORT_RANGE]: '46300-46499'
   },
   Sources: {
     [Source.LOCALPATH]: '.',
