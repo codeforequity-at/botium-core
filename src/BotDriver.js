@@ -80,7 +80,6 @@ module.exports = class BotDriver {
 
         (repoValidated) => {
           repo = this._getRepo()
-          debug(`Got Repo: ${util.inspect(repo)}`)
           repo.Validate().then(() => repoValidated()).catch(repoValidated)
         },
 
@@ -90,7 +89,6 @@ module.exports = class BotDriver {
 
         (containerValidated) => {
           container = this._getContainer(repo)
-          debug(`Got Container: ${util.inspect(container)}`)
           container.Validate().then(() => containerValidated()).catch(containerValidated)
         },
 

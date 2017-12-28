@@ -1,0 +1,30 @@
+version: "2"
+services:
+    botium:
+        links:
+        - botium-slackmock:slack.com
+    botium-slackmock:
+        build:
+            context: .
+            dockerfile: Dockerfile.slackmock
+        volumes:
+        - .:/usr/src/app
+        environment:
+            BOTIUM_SLACK_PUBLISHPORT:
+            BOTIUM_SLACK_USERNAME:
+            BOTIUM_SLACK_BOTNAME:
+            BOTIUM_SLACK_TEAMNAME:
+            BOTIUM_SLACK_CHANNELNAME:
+            BOTIUM_AUTH_TOKEN:
+            BOTIUM_APPID:
+            BOTIUM_AUTH_TOKEN:
+            BOTIUM_SLACK_EVENTURL:
+            BOTIUM_SLACK_EVENTPORT:
+            BOTIUM_SLACK_EVENTPATH:
+            BOTIUM_SLACK_EVENTHOST: "botium"
+            BOTIUM_SLACK_EVENTPROTOCOL: "http"
+            BOTIUM_SLACK_OAUTHURL:
+            BOTIUM_SLACK_OAUTHPORT:
+            BOTIUM_SLACK_OAUTHPATH:
+            BOTIUM_SLACK_OAUTHHOST: "botium"
+            BOTIUM_SLACK_OAUTHPROTOCOL: "http"

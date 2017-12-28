@@ -194,9 +194,10 @@ module.exports = {
           `${this.publishPort}:${this.publishPort}`
         ],
         environment: {
-          BOTIUM_SLACK_WEBHOOKPORT: caps[Capabilities.SLACK_WEBHOOK_PORT],
-          BOTIUM_SLACK_WEBHOOKEVENTPATH: caps[Capabilities.SLACK_WEBHOOK_EVENTPATH],
-          BOTIUM_SLACK_WEBHOOKOAUTHPATH: caps[Capabilities.SLACK_WEBHOOK_OAUTHPATH],
+          BOTIUM_SLACK_EVENTPORT: caps[Capabilities.SLACK_EVENT_PORT],
+          BOTIUM_SLACK_EVENTPATH: caps[Capabilities.SLACK_EVENT_PATH],
+          BOTIUM_SLACK_OAUTHPORT: caps[Capabilities.SLACK_OAUTH_PORT],
+          BOTIUM_SLACK_OAUTHPATH: caps[Capabilities.SLACK_OAUTH_PATH],
           BOTIUM_SLACK_PUBLISHPORT: this.publishPort
         }
       }

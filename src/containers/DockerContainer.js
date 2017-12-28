@@ -32,10 +32,12 @@ module.exports = class DockerContainer extends BaseContainer {
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PATH)
         this._AssertOneCapabilityExists(Capabilities.FACEBOOK_PUBLISHPORT, Capabilities.FACEBOOK_PUBLISHPORT_RANGE)
       }
+
       if (this.caps[Capabilities.SLACK_API]) {
-        this._AssertCapabilityExists(Capabilities.SLACK_WEBHOOK_PORT)
-        this._AssertCapabilityExists(Capabilities.SLACK_WEBHOOK_EVENTPATH)
-        this._AssertCapabilityExists(Capabilities.SLACK_WEBHOOK_OAUTHPATH)
+        this._AssertCapabilityExists(Capabilities.SLACK_EVENT_PORT)
+        this._AssertCapabilityExists(Capabilities.SLACK_EVENT_PATH)
+        this._AssertCapabilityExists(Capabilities.SLACK_OAUTH_PORT)
+        this._AssertCapabilityExists(Capabilities.SLACK_OAUTH_PATH)
         this._AssertOneCapabilityExists(Capabilities.SLACK_PUBLISHPORT, Capabilities.SLACK_PUBLISHPORT_RANGE)
       }
     })
@@ -43,9 +45,11 @@ module.exports = class DockerContainer extends BaseContainer {
 
   Build () {
     if (this.caps[Capabilities.FACEBOOK_API]) {
+      debug('Adding Facebook Mock to Docker compose')
       this.fbMock = new DockerMocks.Facebook()
     }
     if (this.caps[Capabilities.SLACK_API]) {
+      debug('Adding Slack Mock to Docker compose')
       this.slackMock = new DockerMocks.Slack()
     }
 
@@ -143,7 +147,7 @@ module.exports = class DockerContainer extends BaseContainer {
 
         (slackMockPrepared) => {
           if (this.slackMock) {
-            this.slackMock.PrepareDocker(path.resolve(this.tempDirectory, 'fbmock')).then(() => slackMockPrepared()).catch(slackMockPrepared)
+            this.slackMock.PrepareDocker(path.resolve(this.tempDirectory, 'slackmock')).then(() => slackMockPrepared()).catch(slackMockPrepared)
           } else {
             slackMockPrepared()
           }
