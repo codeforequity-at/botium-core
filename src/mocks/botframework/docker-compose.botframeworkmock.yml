@@ -1,0 +1,21 @@
+version: "2"
+services:
+    botium:
+        links:
+        - botium-botframeworkmock:login.microsoftonline.com
+        - botium-botframeworkmock:login.botframework.com
+        - botium-botframeworkmock:api.botframework.com
+        - botium-botframeworkmock:state.botframework.com
+    botium-botframeworkmock:
+        build:
+            context: .
+            dockerfile: Dockerfile.botframeworkmock
+        volumes:
+        - .:/usr/src/app
+        environment:
+            BOTIUM_BOTFRAMEWORK_PUBLISHPORT:
+            BOTIUM_BOTFRAMEWORK_WEBHOOKURL:
+            BOTIUM_BOTFRAMEWORK_WEBHOOKPORT: 
+            BOTIUM_BOTFRAMEWORK_WEBHOOKPATH: 
+            BOTIUM_BOTFRAMEWORK_WEBHOOKHOST: "botium"
+            BOTIUM_BOTFRAMEWORK_WEBHOOKPROTOCOL: "http"

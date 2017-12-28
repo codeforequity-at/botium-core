@@ -40,6 +40,14 @@ module.exports = class DockerContainer extends BaseContainer {
         this._AssertCapabilityExists(Capabilities.SLACK_OAUTH_PATH)
         this._AssertOneCapabilityExists(Capabilities.SLACK_PUBLISHPORT, Capabilities.SLACK_PUBLISHPORT_RANGE)
       }
+
+      if (this.caps[Capabilities.BOTFRAMEWORK_API]) {
+        this._AssertCapabilityExists(Capabilities.BOTFRAMEWORK_APP_ID)
+        this._AssertCapabilityExists(Capabilities.BOTFRAMEWORK_CHANNEL_ID)
+        this._AssertCapabilityExists(Capabilities.BOTFRAMEWORK_WEBHOOK_PORT)
+        this._AssertCapabilityExists(Capabilities.BOTFRAMEWORK_WEBHOOK_PATH)
+        this._AssertOneCapabilityExists(Capabilities.BOTFRAMEWORK_PUBLISHPORT, Capabilities.BOTFRAMEWORK_PUBLISHPORT_RANGE)
+      }
     })
   }
 
@@ -51,6 +59,10 @@ module.exports = class DockerContainer extends BaseContainer {
     if (this.caps[Capabilities.SLACK_API]) {
       debug('Adding Slack Mock to Docker compose')
       this.slackMock = new DockerMocks.Slack()
+    }
+    if (this.caps[Capabilities.BOTFRAMEWORK_API]) {
+      debug('Adding BotFramework Mock to Docker compose')
+      this.botframeworkMock = new DockerMocks.BotFramework()
     }
 
     return new Promise((resolve, reject) => {
@@ -137,6 +149,14 @@ module.exports = class DockerContainer extends BaseContainer {
           }
         },
 
+        (botframeworkPortSelected) => {
+          if (this.botframeworkMock) {
+            this.botframeworkMock.SelectPublishPort(this.caps).then(() => botframeworkPortSelected()).catch(botframeworkPortSelected)
+          } else {
+            botframeworkPortSelected()
+          }
+        },
+
         (facebookMockPrepared) => {
           if (this.fbMock) {
             this.fbMock.PrepareDocker(path.resolve(this.tempDirectory, 'fbmock')).then(() => facebookMockPrepared()).catch(facebookMockPrepared)
@@ -153,12 +173,23 @@ module.exports = class DockerContainer extends BaseContainer {
           }
         },
 
+        (botframeworkMockPrepared) => {
+          if (this.botframeworkMock) {
+            this.botframeworkMock.PrepareDocker(path.resolve(this.tempDirectory, 'botframeworkmock')).then(() => botframeworkMockPrepared()).catch(botframeworkMockPrepared)
+          } else {
+            botframeworkMockPrepared()
+          }
+        },
+
         (dockercomposeUsed) => {
           if (this.fbMock) {
             this.dockerConfig.composefiles.push(this.fbMock.GetDockerCompose())
           }
           if (this.slackMock) {
             this.dockerConfig.composefiles.push(this.slackMock.GetDockerCompose())
+          }
+          if (this.botframeworkMock) {
+            this.dockerConfig.composefiles.push(this.botframeworkMock.GetDockerCompose())
           }
           dockercomposeUsed()
         },
@@ -197,6 +228,9 @@ module.exports = class DockerContainer extends BaseContainer {
           }
           if (this.slackMock) {
             this.slackMock.FillDockerEnv(composeEnv, this.caps, mockLog)
+          }
+          if (this.botframeworkMock) {
+            this.botframeworkMock.FillDockerEnv(composeEnv, this.caps, mockLog)
           }
 
           this.dockercomposeEnvFile = path.resolve(this.tempDirectory, `docker-env.yml`)
@@ -302,6 +336,14 @@ module.exports = class DockerContainer extends BaseContainer {
           } else {
             slackMockupOnline()
           }
+        },
+
+        (botframeworkMockupOnline) => {
+          if (this.botframeworkMock) {
+            this.botframeworkMock.Start(this).then(() => botframeworkMockupOnline()).catch(botframeworkMockupOnline)
+          } else {
+            botframeworkMockupOnline()
+          }
         }
 
       ], (err) => {
@@ -323,6 +365,10 @@ module.exports = class DockerContainer extends BaseContainer {
         resolve(this)
       } else if (this.slackMock && this.slackMock.socket) {
         this.slackMock.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
+        this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
+        resolve(this)
+      } else if (this.botframeworkMock && this.botframeworkMock.socket) {
+        this.botframeworkMock.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
         this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
         resolve(this)
       } else {
@@ -355,6 +401,14 @@ module.exports = class DockerContainer extends BaseContainer {
             this.slackMock.Stop().then(() => slackStopDone()).catch(slackStopDone)
           } else {
             slackStopDone()
+          }
+        },
+
+        (botframeworkStopDone) => {
+          if (this.botframeworkMock) {
+            this.botframeworkMock.Stop(this).then(() => botframeworkStopDone()).catch(botframeworkStopDone)
+          } else {
+            botframeworkStopDone()
           }
         },
 

@@ -12,7 +12,11 @@ module.exports = {
     [Capabilities.DOCKERUNIQUECONTAINERNAMES]: false,
     [Capabilities.DOCKERSYSLOGPORT_RANGE]: '47100-47299',
     [Capabilities.SLACK_PUBLISHPORT_RANGE]: '46100-46299',
-    [Capabilities.FACEBOOK_PUBLISHPORT_RANGE]: '46300-46499'
+    [Capabilities.FACEBOOK_PUBLISHPORT_RANGE]: '46300-46499',
+    [Capabilities.BOTFRAMEWORK_PUBLISHPORT_RANGE]: '46500-46699',
+    [Capabilities.BOTFRAMEWORK_WEBHOOK_PORT]: 3978,
+    [Capabilities.BOTFRAMEWORK_WEBHOOK_PATH]: 'api/messages',
+    [Capabilities.BOTFRAMEWORK_CHANNEL_ID]: 'facebook'
   },
   Sources: {
     [Source.LOCALPATH]: '.',

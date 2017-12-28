@@ -202,5 +202,38 @@ module.exports = {
         }
       }
     }
+  },
+  BotFramework: class BotFrameworkMock extends BaseMock {
+    constructor () {
+      super()
+      this.capNamePublishPort = Capabilities.BOTFRAMEWORK_PUBLISHPORT
+      this.capNamePublishPortRange = Capabilities.BOTFRAMEWORK_PUBLISHPORT_RANGE
+      this.packageDir = 'src/mocks/botframework'
+      this.initCommand = 'npm install'
+      this.dockerComposeFile = 'docker-compose.botframeworkmock.yml'
+      this.debug = require('debug')('botium-BotFrameworkMock')
+    }
+
+    FillDockerEnv (composeEnv, caps, logging) {
+      composeEnv.services['botium-botframeworkmock'] = {
+        build: {
+          context: this.mockDir
+        },
+        logging: logging,
+        volumes: [
+          `${this.mockDir}:/usr/src/app`
+        ],
+        ports: [
+          `${this.publishPort}:${this.publishPort}`
+        ],
+        environment: {
+          BOTIUM_BOTFRAMEWORK_WEBHOOKPORT: caps[Capabilities.BOTFRAMEWORK_WEBHOOK_PORT],
+          BOTIUM_BOTFRAMEWORK_WEBHOOKPATH: caps[Capabilities.BOTFRAMEWORK_WEBHOOK_PATH],
+          BOTIUM_BOTFRAMEWORK_APP_ID: caps[Capabilities.BOTFRAMEWORK_APP_ID],
+          BOTIUM_BOTFRAMEWORK_CHANNEL_ID: caps[Capabilities.BOTFRAMEWORK_CHANNEL_ID],
+          BOTIUM_BOTFRAMEWORK_PUBLISHPORT: this.publishPort
+        }
+      }
+    }
   }
 }
