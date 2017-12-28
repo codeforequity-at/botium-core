@@ -389,7 +389,7 @@ module.exports = class DockerContainer extends BaseContainer {
           if (this.socket) {
             this.socket.disconnect()
             this.socket = null
-            debug('Facebook Mock - socket disconnected')
+            debug('Socket disconnected')
           }
           socketStopDone()
         },
