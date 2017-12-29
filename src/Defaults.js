@@ -16,7 +16,9 @@ module.exports = {
     [Capabilities.BOTFRAMEWORK_PUBLISHPORT_RANGE]: '46500-46699',
     [Capabilities.BOTFRAMEWORK_WEBHOOK_PORT]: 3978,
     [Capabilities.BOTFRAMEWORK_WEBHOOK_PATH]: 'api/messages',
-    [Capabilities.BOTFRAMEWORK_CHANNEL_ID]: 'facebook'
+    [Capabilities.BOTFRAMEWORK_CHANNEL_ID]: 'facebook',
+    [Capabilities.WATSONCONVERSATION_URL]: 'https://gateway.watsonplatform.net/conversation/api',
+    [Capabilities.WATSONCONVERSATION_VERSION_DATE]: '2017-05-26'
   },
   Sources: {
     [Source.LOCALPATH]: '.',
