@@ -40,13 +40,16 @@ module.exports = class BaseContainer {
     return Promise.resolve(this)
   }
 
-  WaitBotSays (timeoutMillis = 5000) {
-    if (!this.queues.default) {
-      this.queues.default = new Queue()
+  WaitBotSays (channel = null, timeoutMillis = null) {
+    if (!channel) channel = 'default'
+    if (!timeoutMillis) timeoutMillis = this.caps[Capabilities.WAITFORBOTTIMEOUT]
+
+    if (!this.queues[channel]) {
+      this.queues[channel] = new Queue()
     }
 
     return new Promise((resolve, reject) => {
-      this.queues.default.pop(timeoutMillis)
+      this.queues[channel].pop(timeoutMillis)
         .then((botMsg) => {
           resolve(botMsg)
         })
@@ -57,9 +60,9 @@ module.exports = class BaseContainer {
     })
   }
 
-  WaitBotSaysText (timeoutMillis = 5000) {
+  WaitBotSaysText (channel = null, timeoutMillis = null) {
     return new Promise((resolve, reject) => {
-      this.WaitBotSays(timeoutMillis)
+      this.WaitBotSays(channel, timeoutMillis)
         .then((botMsg) => {
           if (botMsg) {
             resolve(botMsg.messageText)
@@ -146,10 +149,12 @@ module.exports = class BaseContainer {
   }
 
   _QueueBotSays (botMsg) {
-    if (!this.queues.default) {
-      this.queues.default = new Queue()
+    if (!botMsg.channel) botMsg.channel = 'default'
+
+    if (!this.queues[botMsg.channel]) {
+      this.queues[botMsg.channel] = new Queue()
     }
 
-    this.queues.default.push(botMsg)
+    this.queues[botMsg.channel].push(botMsg)
   }
 }
