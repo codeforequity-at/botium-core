@@ -165,7 +165,8 @@ module.exports = {
         environment: {
           BOTIUM_FACEBOOK_WEBHOOKPORT: caps[Capabilities.FACEBOOK_WEBHOOK_PORT],
           BOTIUM_FACEBOOK_WEBHOOKPATH: caps[Capabilities.FACEBOOK_WEBHOOK_PATH],
-          BOTIUM_FACEBOOK_PUBLISHPORT: this.publishPort
+          BOTIUM_FACEBOOK_PUBLISHPORT: this.publishPort,
+          BOTIUM_FACEBOOK_SENDDELIVERY: `${caps[Capabilities.FACEBOOK_SEND_DELIVERY_CONFIRMATION]}`
         }
       }
     }

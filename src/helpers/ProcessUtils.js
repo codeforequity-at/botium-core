@@ -16,7 +16,7 @@ module.exports = {
       debug('Running Command: ' + cmd + ' ' + _.join(cmdOptions, ' '))
 
       let childProcessOptions = {stdio: ['ignore', 'ignore', 'ignore']}
-      if (process.env.DEBUG && process.env.DEBUG.indexOf('ProcessUtils') >= 0) {
+      if (debug.enabled) {
         childProcessOptions = {stdio: ['ignore', process.stdout, process.stderr]}
       }
       childProcessOptions = Object.assign(childProcessOptions, processOptions)

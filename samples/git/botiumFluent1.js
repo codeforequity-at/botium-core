@@ -17,7 +17,7 @@ const driver = new BotDriver()
 driver.BuildFluent()
   .Start()
   .UserSaysText('start')
-  .WaitBotSaysText(5000, (text) => console.log(text))
+  .WaitBotSaysText((text) => console.log(text))
   .UserSays({ 
     sourceData: { 
       message: {
@@ -33,7 +33,7 @@ driver.BuildFluent()
       }
     }
   })
-  .WaitBotSays(5000, (msg) => console.log(JSON.stringify(msg)))
+  .WaitBotSays((msg) => console.log(JSON.stringify(msg)))
   .Stop()
   .Clean()
   .Exec()

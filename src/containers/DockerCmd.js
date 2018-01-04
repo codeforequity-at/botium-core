@@ -105,7 +105,7 @@ module.exports = class DockerCmd {
   }
 
   _getChildProcessOptions () {
-    if (process.env.DEBUG && process.env.DEBUG.indexOf('DockerCmd') >= 0) {
+    if (debug.enabled) {
       return {stdio: ['ignore', process.stdout, process.stderr]}
     } else {
       return {stdio: ['ignore', 'ignore', 'ignore']}

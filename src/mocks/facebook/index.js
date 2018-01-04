@@ -30,9 +30,9 @@ if (!outputSeq) {
   outputSeq = 1000
 }
 
-var senddelivery = process.env.BOTIUM_FACEBOOK_SENDDELIVERY
-if (senddelivery === undefined) {
-  senddelivery = true
+var senddelivery = true
+if (process.env.BOTIUM_FACEBOOK_SENDDELIVERY === 'false') {
+  senddelivery = false
 }
 
 var webhookurl = process.env.BOTIUM_FACEBOOK_WEBHOOKURL

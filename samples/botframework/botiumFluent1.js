@@ -2,14 +2,6 @@ const BotDriver = require('../../index').BotDriver
 const Capabilities = require('../../index').Capabilities
 const Source = require('../../index').Source
 
-function assert (expected, actual) {
-  if (!actual || actual.indexOf(expected) < 0) {
-    console.log(`ERROR: Expected <${expected}>, got <${actual}>`)
-  } else {
-    console.log(`SUCCESS: Got Expected <${expected}>`)
-  }
-}
-
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'core-CreateNewConversation')
   .setCapability(Capabilities.BOTFRAMEWORK_API, true)
@@ -28,7 +20,7 @@ const driver = new BotDriver()
 driver.BuildFluent()
   .Start()
   .UserSaysText('hi bot')
-  .WaitBotSays(5000, (msg) => console.log(JSON.stringify(msg)))
+  .WaitBotSays((msg) => console.log(JSON.stringify(msg)))
   .Stop()
   .Clean()
   .Exec()
