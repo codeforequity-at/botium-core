@@ -16,6 +16,7 @@ const driver = new BotDriver()
   .setCapability(Capabilities.WATSONCONVERSATION_USER, '0274cb6f-3680-4cf7-bd6b-71c7f447542d')
   .setCapability(Capabilities.WATSONCONVERSATION_PASSWORD, 'ZWDE5xo02sby')
   .setCapability(Capabilities.WATSONCONVERSATION_WORKSPACE_ID, '97513bc0-c581-4bec-ac9f-ea6a8ec308a9')
+  .setCapability(Capabilities.WATSONCONVERSATION_COPY_WORKSPACE, true)
 
 driver.BuildFluent()
   .Start()
