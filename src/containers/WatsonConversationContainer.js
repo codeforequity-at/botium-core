@@ -37,15 +37,56 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
           conversationReady()
         },
 
-        (workspaceAvailable) => {
-          this.conversation.getWorkspace({ workspace_id: this.caps[Capabilities.WATSONCONVERSATION_WORKSPACE_ID] }, (err, workspace) => {
-            if (err) {
-              workspaceAvailable(`Watson workspace connection failed: ${util.inspect(err)}`)
-            } else {
-              debug(`Watson workspace connected: ${util.inspect(workspace)}`)
-              workspaceAvailable()
-            }
-          })
+        (workspaceCopied) => {
+          if (this.caps[Capabilities.WATSONCONVERSATION_COPY_WORKSPACE]) {
+            this.conversation.getWorkspace({ workspace_id: this.caps[Capabilities.WATSONCONVERSATION_WORKSPACE_ID], export: true }, (err, workspace) => {
+              if (err) {
+                workspaceCopied(`Watson workspace connection failed: ${util.inspect(err)}`)
+              } else {
+                this.conversation.createWorkspace(workspace, (err, workspaceCopy) => {
+                  if (err) {
+                    workspaceCopied(`Watson workspace copy failed: ${util.inspect(err)}`)
+                  } else {
+                    debug(`Watson workspace copied: ${util.inspect(workspaceCopy)}`)
+                    this.useWorkspaceId = workspaceCopy.workspace_id
+                    workspaceCopied()
+                  }
+                })
+              }
+            })
+          } else {
+            this.useWorkspaceId = this.caps[Capabilities.WATSONCONVERSATION_WORKSPACE_ID]
+            workspaceCopied()
+          }
+        },
+
+        (workspaceAvailableReady) => {
+          let workspaceAvailable = false
+
+          async.until(
+            () => workspaceAvailable,
+            (workspaceChecked) => {
+              debug(`Watson checking workspace status ${this.useWorkspaceId} before proceed`)
+
+              this.conversation.getWorkspace({ workspace_id: this.useWorkspaceId }, (err, workspace) => {
+                if (err) {
+                  workspaceChecked(`Watson workspace connection failed: ${util.inspect(err)}`)
+                } else {
+                  debug(`Watson workspace connected, checking for status 'Available': ${util.inspect(workspace)}`)
+                  if (workspace.status === 'Available') {
+                    workspaceAvailable = true
+                    workspaceChecked()
+                  } else {
+                    debug(`Watson workspace waiting for status 'Available'`)
+                    setTimeout(workspaceChecked, 10000)
+                  }
+                }
+              })
+            },
+            (err) => {
+              if (err) return workspaceAvailableReady(err)
+              workspaceAvailableReady()
+            })
         }
 
       ], (err) => {
@@ -58,6 +99,8 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
   }
 
   Start () {
+    if (!this.conversation) return Promise.reject(new Error('not built'))
+
     this.eventEmitter.emit(Events.CONTAINER_STARTING, this)
 
     return super.Start().then(() => {
@@ -68,9 +111,11 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
   }
 
   UserSays (mockMsg) {
+    if (!this.conversation) return Promise.reject(new Error('not built'))
+
     return new Promise((resolve, reject) => {
       const payload = {
-        workspace_id: this.caps[Capabilities.WATSONCONVERSATION_WORKSPACE_ID],
+        workspace_id: this.useWorkspaceId,
         context: this.conversationContext || {},
         input: { text: mockMsg.messageText }
       }
@@ -97,6 +142,8 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
   }
 
   Stop () {
+    if (!this.conversation) return Promise.reject(new Error('not built'))
+
     this.eventEmitter.emit(Events.CONTAINER_STOPPING, this)
 
     return super.Stop().then(() => {
@@ -106,14 +153,46 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
   }
 
   Clean () {
+    if (!this.conversation) return Promise.reject(new Error('not built'))
+
     this.eventEmitter.emit(Events.CONTAINER_CLEANING, this)
 
-    this.conversation = null
-    this.conversationContext = null
+    return new Promise((resolve, reject) => {
+      async.series([
 
-    return super.Clean().then(() => {
-      this.eventEmitter.emit(Events.CONTAINER_CLEANED, this)
-      return this
+        (workspaceDeleteReady) => {
+          if (this.caps[Capabilities.WATSONCONVERSATION_COPY_WORKSPACE]) {
+            this.conversation.deleteWorkspace({ workspace_id: this.useWorkspaceId }, (err) => {
+              if (err) {
+                debug(`Watson workspace delete copy failed: ${util.inspect(err)}`)
+              } else {
+                debug(`Watson workspace deleted: ${this.useWorkspaceId}`)
+              }
+              workspaceDeleteReady()
+            })
+          } else {
+            workspaceDeleteReady()
+          }
+        },
+
+        (conversationReset) => {
+          this.conversation = null
+          this.conversationContext = null
+          conversationReset()
+        },
+
+        (baseComplete) => {
+          super.Clean().then(() => baseComplete()).catch(baseComplete)
+        }
+
+      ], (err) => {
+        if (err) {
+          this.eventEmitter.emit(Events.CONTAINER_CLEAN_ERROR, this, err)
+          return reject(new Error(`Cleanup failed ${util.inspect(err)}`))
+        }
+        this.eventEmitter.emit(Events.CONTAINER_CLEANED, this)
+        resolve(this)
+      })
     })
   }
 }
