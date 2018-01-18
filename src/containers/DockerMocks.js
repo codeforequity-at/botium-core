@@ -47,9 +47,13 @@ class BaseMock {
     return new Promise((resolve, reject) => {
       copydir(path.resolve(botiumPackageRootDir, this.packageDir), this.mockDir, (err) => {
         if (err) return reject(new Error(`Error copying mock to ${this.mockDir}: ${util.inspect(err)}`))
-        ProcessUtils.childCommandLineRun(this.initCommand, false, { cwd: this.mockDir })
-          .then(() => resolve())
-          .catch(reject)
+        if (this.initCommand) {
+          ProcessUtils.childCommandLineRun(this.initCommand, false, { cwd: this.mockDir })
+            .then(() => resolve())
+            .catch(reject)
+        } else {
+          resolve()
+        }
       })
     })
   }
@@ -145,7 +149,6 @@ module.exports = {
       this.capNamePublishPort = Capabilities.FACEBOOK_PUBLISHPORT
       this.capNamePublishPortRange = Capabilities.FACEBOOK_PUBLISHPORT_RANGE
       this.packageDir = 'src/mocks/facebook'
-      this.initCommand = 'npm install'
       this.dockerComposeFile = 'docker-compose.fbmock.yml'
       this.debug = require('debug')('botium-FacebookMock')
     }
@@ -177,7 +180,6 @@ module.exports = {
       this.capNamePublishPort = Capabilities.SLACK_PUBLISHPORT
       this.capNamePublishPortRange = Capabilities.SLACK_PUBLISHPORT_RANGE
       this.packageDir = 'src/mocks/slack'
-      this.initCommand = 'npm install'
       this.dockerComposeFile = 'docker-compose.slackmock.yml'
       this.debug = require('debug')('botium-SlackMock')
     }
@@ -210,7 +212,6 @@ module.exports = {
       this.capNamePublishPort = Capabilities.BOTFRAMEWORK_PUBLISHPORT
       this.capNamePublishPortRange = Capabilities.BOTFRAMEWORK_PUBLISHPORT_RANGE
       this.packageDir = 'src/mocks/botframework'
-      this.initCommand = 'npm install'
       this.dockerComposeFile = 'docker-compose.botframeworkmock.yml'
       this.debug = require('debug')('botium-BotFrameworkMock')
     }
