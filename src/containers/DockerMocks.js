@@ -18,6 +18,7 @@ const botiumPackageRootDir = findRoot()
 class BaseMock {
   constructor () {
     this.publishPort = null
+    this.publishIp = null
     this.capNamePublishPort = null
     this.capNamePublishPortRange = null
     this.mockDir = null
@@ -26,13 +27,14 @@ class BaseMock {
     this.dockerComposeFile = null
   }
 
-  SelectPublishPort (caps) {
+  SelectPublishPort (publishIp, caps) {
+    this.publishIp = publishIp
     if (caps[this.capNamePublishPort]) {
       this.publishPort = caps[this.capNamePublishPort]
       return Promise.resolve()
     } else {
       return new Promise((resolve, reject) => {
-        TcpPortUtils.GetFreePortInRange('127.0.0.1', caps[this.capNamePublishPortRange])
+        TcpPortUtils.GetFreePortInRange(this.publishIp, caps[this.capNamePublishPortRange])
           .then((port) => {
             this.publishPort = port
             resolve()
@@ -67,13 +69,13 @@ class BaseMock {
       async.series([
 
         (mockupOnline) => {
-          TcpPortUtils.WaitForPort('127.0.0.1', this.publishPort)
+          TcpPortUtils.WaitForPort(this.publishIp, this.publishPort)
             .then(() => mockupOnline())
             .catch(mockupOnline)
         },
 
         (endpointOnline) => {
-          this.mockUrl = `http://127.0.0.1:${this.publishPort}`
+          this.mockUrl = `http://${this.publishIp}:${this.publishPort}`
           let online = false
           async.until(
             () => online,

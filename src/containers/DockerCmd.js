@@ -1,9 +1,9 @@
 const async = require('async')
 const randomize = require('randomatic')
 const slug = require('slug')
-const childProcess = require('child_process')
 const _ = require('lodash')
-const debug = require('debug')('botium-DockerCmd')
+
+const ProcessUtils = require('../helpers/ProcessUtils')
 
 module.exports = class DockerCmd {
   constructor ({ projectname, dockercomposepath, uniquecontainernames, composefiles }) {
@@ -81,34 +81,6 @@ module.exports = class DockerCmd {
   }
 
   _dockerComposeRun (cmdOptions, ignoreErrors) {
-    return new Promise((resolve, reject) => {
-      debug('Running Docker Command: ' + this.dockercomposepath + ' ' + _.join(cmdOptions, ' '))
-
-      var dockerProcess = childProcess.spawn(this.dockercomposepath, cmdOptions, this._getChildProcessOptions())
-      dockerProcess.on('close', (code) => {
-        debug('docker-compose exited with code ' + code)
-
-        if (code === 0 || ignoreErrors) {
-          resolve()
-        } else {
-          reject(new Error('docker-compose returned error code ' + code))
-        }
-      })
-      dockerProcess.on('error', (err) => {
-        if (ignoreErrors) {
-          resolve()
-        } else {
-          reject(new Error('docker-compose error ' + err))
-        }
-      })
-    })
-  }
-
-  _getChildProcessOptions () {
-    if (debug.enabled) {
-      return {stdio: ['ignore', process.stdout, process.stderr]}
-    } else {
-      return {stdio: ['ignore', 'ignore', 'ignore']}
-    }
+    return ProcessUtils.childProcessRun(this.dockercomposepath, cmdOptions, ignoreErrors)
   }
 }

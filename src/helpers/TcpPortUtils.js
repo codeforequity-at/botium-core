@@ -9,11 +9,11 @@ module.exports = {
       async.until(
         () => online,
         (callback) => {
-          debug(`WaitForPort checking port usage ${portToCheck} before proceed`)
+          debug(`WaitForPort checking port usage ${hostname}:${portToCheck} before proceed`)
 
           tcpPortUsed.check(portToCheck, hostname)
             .then((inUse) => {
-              debug(`WaitForPort port usage (${portToCheck}): ${inUse}`)
+              debug(`WaitForPort port usage (${hostname}:${portToCheck}): ${inUse}`)
               if (inUse) {
                 online = true
                 callback()
@@ -21,7 +21,7 @@ module.exports = {
                 setTimeout(callback, 2000)
               }
             }, (err) => {
-              debug(`WaitForPort error on port check: ${err}`)
+              debug(`WaitForPort error on port check ${hostname}:${portToCheck}: ${err}`)
               setTimeout(callback, 2000)
             })
         },
@@ -45,11 +45,11 @@ module.exports = {
       async.until(
         () => found || portToCheck > portToCheckMax,
         (callback) => {
-          debug(`GetFreePortInRange checking port usage ${portToCheck} before proceed`)
+          debug(`GetFreePortInRange checking port usage ${hostname}:${portToCheck} before proceed`)
 
           tcpPortUsed.check(portToCheck, hostname)
             .then((inUse) => {
-              debug(`GetFreePortInRange port usage (${portToCheck}): ${inUse}`)
+              debug(`GetFreePortInRange port usage (${hostname}:${portToCheck}): ${inUse}`)
               if (inUse) {
                 portToCheck++
                 callback()
@@ -58,7 +58,7 @@ module.exports = {
                 callback()
               }
             }, (err) => {
-              debug(`GetFreePortInRange error on port check: ${err}`)
+              debug(`GetFreePortInRange error on port check ${hostname}:${portToCheck}: ${err}`)
               portToCheck++
               callback()
             })

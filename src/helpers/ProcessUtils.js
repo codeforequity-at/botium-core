@@ -15,26 +15,36 @@ module.exports = {
     return new Promise((resolve, reject) => {
       debug('Running Command: ' + cmd + ' ' + _.join(cmdOptions, ' '))
 
-      let childProcessOptions = {stdio: ['ignore', 'ignore', 'ignore']}
-      if (debug.enabled) {
-        childProcessOptions = {stdio: ['ignore', process.stdout, process.stderr]}
-      }
-      childProcessOptions = Object.assign(childProcessOptions, processOptions)
+      var runningProcess = childProcess.spawn(cmd, cmdOptions, processOptions)
 
-      var runningProcess = childProcess.spawn(cmd, cmdOptions, childProcessOptions)
+      var stdout = []
+      var stderr = []
+
+      runningProcess.stdout.on('data', (data) => {
+        if (data) {
+          debug(`${cmd} STDOUT: ${data}`)
+          stdout.push(data)
+        }
+      })
+      runningProcess.stderr.on('data', (data) => {
+        if (data) {
+          debug(`${cmd} STDERR: ${data}`)
+          stderr.push(data)
+        }
+      })
       runningProcess.on('close', (code) => {
-        debug('childProcessRun exited with code ' + code)
+        debug(cmd + ' exited with code ' + code)
         if (code === 0 || ignoreErrors) {
-          resolve()
+          resolve({ stdout, stderr })
         } else {
-          reject(new Error(`childProcessRun returned error code ${code}`))
+          reject(new Error(`${cmd} returned error code ${code}`))
         }
       })
       runningProcess.on('error', (err) => {
         if (ignoreErrors) {
           resolve()
         } else {
-          reject(new Error(`childProcessRun failed: ${util.inspect(err)}`))
+          reject(new Error(`${cmd} failed: ${util.inspect(err)}`))
         }
       })
     })

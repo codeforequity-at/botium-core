@@ -5,6 +5,7 @@ const path = require('path')
 const yaml = require('write-yaml')
 const mustache = require('mustache')
 const findRoot = require('find-root')
+const _ = require('lodash')
 const debug = require('debug')('botium-DockerContainer')
 const debugContainerOutput = require('debug')('botium-DockerContainerOutput')
 
@@ -16,6 +17,7 @@ const DockerMocks = require('./DockerMocks')
 const BotiumMockCommand = require('../mocks/BotiumMockCommand')
 const TcpPortUtils = require('../helpers/TcpPortUtils')
 const SyslogServer = require('../helpers/SyslogServer')
+const ProcessUtils = require('../helpers/ProcessUtils')
 
 const botiumPackageRootDir = findRoot()
 
@@ -26,7 +28,9 @@ module.exports = class DockerContainer extends BaseContainer {
       this._AssertCapabilityExists(Capabilities.STARTCMD)
       this._AssertCapabilityExists(Capabilities.DOCKERIMAGE)
       this._AssertOneCapabilityExists(Capabilities.DOCKERSYSLOGPORT, Capabilities.DOCKERSYSLOGPORT_RANGE)
-
+      if (this.caps[Capabilities.DOCKERMACHINE]) {
+        this._AssertCapabilityExists(Capabilities.DOCKERMACHINEPATH)
+      }
       if (this.caps[Capabilities.FACEBOOK_API]) {
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PORT)
         this._AssertCapabilityExists(Capabilities.FACEBOOK_WEBHOOK_PATH)
@@ -79,6 +83,25 @@ module.exports = class DockerContainer extends BaseContainer {
           super.Build().then(() => baseComplete()).catch(baseComplete)
         },
 
+        (dockerIpFound) => {
+          if (this.caps[Capabilities.DOCKERMACHINE]) {
+            ProcessUtils.childProcessRun(this.caps[Capabilities.DOCKERMACHINEPATH], [ 'ip' ], false)
+              .then((output) => {
+                if (output.stdout && output.stdout.length > 0) {
+                  this.dockerIp = `${output.stdout[0]}`.trim()
+                  if (this.dockerIp) {
+                    debug(`Found docker-machine ip ${this.dockerIp}.`)
+                    return dockerIpFound()
+                  }
+                }
+                dockerIpFound(`No docker-machine ip found in command output ${output}`)
+              }).catch(dockerIpFound)
+          } else {
+            this.dockerIp = '127.0.0.1'
+            dockerIpFound()
+          }
+        },
+
         (dockerfileCreated) => {
           const dockerfileBotium = path.resolve(this.repo.workingDirectory, 'Dockerfile.botium')
           fs.stat(dockerfileBotium, (err, stats) => {
@@ -114,9 +137,16 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (dockercomposeMainUsed) => {
+          const dockercomposeBotium = path.resolve(this.tempDirectory, 'docker-compose.botium.yml')
           const dockercomposeMain = path.resolve(botiumPackageRootDir, 'src/docker-compose.botium.yml')
-          this.dockerConfig.composefiles.push(dockercomposeMain)
-          dockercomposeMainUsed()
+          fs.readFile(dockercomposeMain, 'utf8', (err, data) => {
+            if (err) return dockercomposeMainUsed(`Reading docker compose template file ${dockercomposeMain} failed: ${err}`)
+            fs.writeFile(dockercomposeBotium, data, (err) => {
+              if (err) return dockercomposeMainUsed(`Writing docker compose file ${dockercomposeBotium} failed: ${err}`)
+              this.dockerConfig.composefiles.push(dockercomposeBotium)
+              dockercomposeMainUsed()
+            })
+          })
         },
 
         (syslogPortSelected) => {
@@ -135,7 +165,7 @@ module.exports = class DockerContainer extends BaseContainer {
 
         (facebookPortSelected) => {
           if (this.fbMock) {
-            this.fbMock.SelectPublishPort(this.caps).then(() => facebookPortSelected()).catch(facebookPortSelected)
+            this.fbMock.SelectPublishPort(this.dockerIp, this.caps).then(() => facebookPortSelected()).catch(facebookPortSelected)
           } else {
             facebookPortSelected()
           }
@@ -143,7 +173,7 @@ module.exports = class DockerContainer extends BaseContainer {
 
         (slackPortSelected) => {
           if (this.slackMock) {
-            this.slackMock.SelectPublishPort(this.caps).then(() => slackPortSelected()).catch(slackPortSelected)
+            this.slackMock.SelectPublishPort(this.dockerIp, this.caps).then(() => slackPortSelected()).catch(slackPortSelected)
           } else {
             slackPortSelected()
           }
@@ -151,7 +181,7 @@ module.exports = class DockerContainer extends BaseContainer {
 
         (botframeworkPortSelected) => {
           if (this.botframeworkMock) {
-            this.botframeworkMock.SelectPublishPort(this.caps).then(() => botframeworkPortSelected()).catch(botframeworkPortSelected)
+            this.botframeworkMock.SelectPublishPort(this.dockerIp, this.caps).then(() => botframeworkPortSelected()).catch(botframeworkPortSelected)
           } else {
             botframeworkPortSelected()
           }
@@ -195,6 +225,13 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (dockercomposeEnvUsed) => {
+          const sysLog = {
+            driver: 'syslog',
+            options: {
+              'syslog-address': `udp://127.0.0.1:${this.syslogPort}`
+            }
+          }
+
           const composeEnv = {
             version: '2',
             services: {
@@ -202,12 +239,7 @@ module.exports = class DockerContainer extends BaseContainer {
                 build: {
                   context: this.repo.workingDirectory
                 },
-                logging: {
-                  driver: 'syslog',
-                  options: {
-                    'syslog-address': `udp://127.0.0.1:${this.syslogPort}`
-                  }
-                },
+                logging: sysLog,
                 volumes: [
                   `${this.repo.workingDirectory}:/usr/src/app`
                 ]
@@ -217,20 +249,14 @@ module.exports = class DockerContainer extends BaseContainer {
           if (this.envs) {
             composeEnv.services.botium.environment = this.envs
           }
-          const mockLog = {
-            driver: 'syslog',
-            options: {
-              'syslog-address': `udp://127.0.0.1:${this.syslogPort}`
-            }
-          }
           if (this.fbMock) {
-            this.fbMock.FillDockerEnv(composeEnv, this.caps, mockLog)
+            this.fbMock.FillDockerEnv(composeEnv, this.caps, sysLog)
           }
           if (this.slackMock) {
-            this.slackMock.FillDockerEnv(composeEnv, this.caps, mockLog)
+            this.slackMock.FillDockerEnv(composeEnv, this.caps, sysLog)
           }
           if (this.botframeworkMock) {
-            this.botframeworkMock.FillDockerEnv(composeEnv, this.caps, mockLog)
+            this.botframeworkMock.FillDockerEnv(composeEnv, this.caps, sysLog)
           }
 
           this.dockercomposeEnvFile = path.resolve(this.tempDirectory, `docker-env.yml`)
@@ -254,7 +280,19 @@ module.exports = class DockerContainer extends BaseContainer {
           })
         },
 
+        (dockercomposeLocalOverrideUsed) => {
+          const dockercomposeOverride = path.resolve(process.cwd(), 'docker-compose.botium.override.yml')
+          fs.stat(dockercomposeOverride, (err, stats) => {
+            if (!err && stats.isFile()) {
+              debug(`Docker-Compose file ${dockercomposeOverride} present, using it.`)
+              this.dockerConfig.composefiles.push(dockercomposeOverride)
+            }
+            dockercomposeLocalOverrideUsed()
+          })
+        },
+
         (dockerReady) => {
+          this.dockerConfig.composefiles = _.uniq(this.dockerConfig.composefiles)
           debug(this.dockerConfig)
           this.dockerCmd = new DockerCmd(this.dockerConfig)
           this.dockerCmd.setupContainer()
