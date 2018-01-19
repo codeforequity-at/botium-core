@@ -1,10 +1,11 @@
-const fs = require('fs-extra')
+const fs = require('fs')
 const util = require('util')
 const path = require('path')
 const findRoot = require('find-root')
 const async = require('async')
 const request = require('request')
 const io = require('socket.io-client')
+const copydir = require('copy-dir')
 const _ = require('lodash')
 const debug = require('debug')('botium-DockerMocks')
 
@@ -12,6 +13,7 @@ const TcpPortUtils = require('../helpers/TcpPortUtils')
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const ProcessUtils = require('../helpers/ProcessUtils')
+const SafeFileCopy = require('../helpers/SafeFileCopy')
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const BotiumMockCommand = require('../mocks/BotiumMockCommand')
 
@@ -52,7 +54,7 @@ class BaseMock {
     return new Promise((resolve, reject) => {
       async.series([
         (packageCopied) => {
-          fs.copy(path.resolve(botiumPackageRootDir, this.packageDir), this.mockDir, (err) => {
+          copydir(path.resolve(botiumPackageRootDir, this.packageDir), this.mockDir, (err) => {
             if (err) return packageCopied(`Error copying mock to ${this.mockDir}: ${util.inspect(err)}`)
             if (this.initCommand) {
               ProcessUtils.childCommandLineRun(this.initCommand, false, { cwd: this.mockDir })
@@ -69,10 +71,10 @@ class BaseMock {
           fs.stat(dockermockOverride, (err, stats) => {
             if (!err && stats.isFile()) {
               debug(`Docker file ${dockermockOverride} present, using it.`)
-              fs.copy(dockermockOverride, path.resolve(this.mockDir, this.dockerFile), (err) => {
-                if (err) return dockerfileCopied(`Copying Docker file ${dockermockOverride} failed ${util.inspect(err)}`)
-                dockerfileCopied()
-              })
+
+              SafeFileCopy(dockermockOverride, path.resolve(this.mockDir, this.dockerFile))
+                .then(() => dockerfileCopied())
+                .catch((err) => dockerfileCopied(`Copying Docker file ${dockermockOverride} failed ${util.inspect(err)}`))
             } else {
               dockerfileCopied()
             }
