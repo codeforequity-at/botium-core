@@ -1,4 +1,4 @@
-const fs = require('fs-extra')
+const fs = require('fs')
 const util = require('util')
 const async = require('async')
 const path = require('path')
@@ -18,6 +18,7 @@ const BotiumMockCommand = require('../mocks/BotiumMockCommand')
 const TcpPortUtils = require('../helpers/TcpPortUtils')
 const SyslogServer = require('../helpers/SyslogServer')
 const ProcessUtils = require('../helpers/ProcessUtils')
+const SafeFileCopy = require('../helpers/SafeFileCopy')
 
 const botiumPackageRootDir = findRoot()
 
@@ -109,7 +110,7 @@ module.exports = class DockerContainer extends BaseContainer {
               debug(`Dockerfile ${dockerfileBotium} already present, using it.`)
               dockerfileCreated()
             } else {
-              const templateFile = path.resolve(botiumPackageRootDir, 'src/Dockerfile.botium.template')
+              const templateFile = path.resolve(botiumPackageRootDir, 'src', 'Dockerfile.botium.template')
               fs.readFile(templateFile, 'utf8', (err, data) => {
                 if (err) return dockerfileCreated(`Reading docker template file ${templateFile} failed: ${err}`)
                 const viewData = {
@@ -137,13 +138,15 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (dockercomposeMainUsed) => {
+          const dockercomposeMain = path.resolve(botiumPackageRootDir, 'src', 'docker-compose.botium.yml')
           const dockercomposeBotium = path.resolve(this.tempDirectory, 'docker-compose.botium.yml')
-          const dockercomposeMain = path.resolve(botiumPackageRootDir, 'src/docker-compose.botium.yml')
-          fs.copy(dockercomposeMain, dockercomposeBotium, (err) => {
-            if (err) return dockercomposeMainUsed(`Copying docker compose template file ${dockercomposeMain} failed: ${err}`)
-            this.dockerConfig.composefiles.push(dockercomposeBotium)
-            dockercomposeMainUsed()
-          })
+
+          SafeFileCopy(dockercomposeMain, dockercomposeBotium)
+            .then(() => {
+              this.dockerConfig.composefiles.push(dockercomposeBotium)
+              dockercomposeMainUsed()
+            })
+            .catch((err) => dockercomposeMainUsed(`Copying docker compose template file ${dockercomposeMain} failed: ${err}`))
         },
 
         (syslogPortSelected) => {
