@@ -1,0 +1,15 @@
+{
+  "name": "botium-facebook-samplebot",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=4.0"
+  },
+  "main": "index.js",
+  "author": "Florian Treml",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "express": "^4.13.4",
+    "request": "^2.71.0"
+  }
+}

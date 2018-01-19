@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs-extra')
 const util = require('util')
 const async = require('async')
 const path = require('path')
@@ -139,13 +139,10 @@ module.exports = class DockerContainer extends BaseContainer {
         (dockercomposeMainUsed) => {
           const dockercomposeBotium = path.resolve(this.tempDirectory, 'docker-compose.botium.yml')
           const dockercomposeMain = path.resolve(botiumPackageRootDir, 'src/docker-compose.botium.yml')
-          fs.readFile(dockercomposeMain, 'utf8', (err, data) => {
-            if (err) return dockercomposeMainUsed(`Reading docker compose template file ${dockercomposeMain} failed: ${err}`)
-            fs.writeFile(dockercomposeBotium, data, (err) => {
-              if (err) return dockercomposeMainUsed(`Writing docker compose file ${dockercomposeBotium} failed: ${err}`)
-              this.dockerConfig.composefiles.push(dockercomposeBotium)
-              dockercomposeMainUsed()
-            })
+          fs.copy(dockercomposeMain, dockercomposeBotium, (err) => {
+            if (err) return dockercomposeMainUsed(`Copying docker compose template file ${dockercomposeMain} failed: ${err}`)
+            this.dockerConfig.composefiles.push(dockercomposeBotium)
+            dockercomposeMainUsed()
           })
         },
 
@@ -212,16 +209,23 @@ module.exports = class DockerContainer extends BaseContainer {
         },
 
         (dockercomposeUsed) => {
+          const promises = []
           if (this.fbMock) {
-            this.dockerConfig.composefiles.push(this.fbMock.GetDockerCompose())
+            promises.push(this.fbMock.GetDockerCompose().then((f) => {
+              this.dockerConfig.composefiles.push(f)
+            }))
           }
           if (this.slackMock) {
-            this.dockerConfig.composefiles.push(this.slackMock.GetDockerCompose())
+            promises.push(this.slackMock.GetDockerCompose().then((f) => {
+              this.dockerConfig.composefiles.push(f)
+            }))
           }
           if (this.botframeworkMock) {
-            this.dockerConfig.composefiles.push(this.botframeworkMock.GetDockerCompose())
+            promises.push(this.botframeworkMock.GetDockerCompose().then((f) => {
+              this.dockerConfig.composefiles.push(f)
+            }))
           }
-          dockercomposeUsed()
+          Promise.all(promises).then(() => dockercomposeUsed())
         },
 
         (dockercomposeEnvUsed) => {
@@ -239,7 +243,7 @@ module.exports = class DockerContainer extends BaseContainer {
                 build: {
                   context: this.repo.workingDirectory
                 },
-                logging: sysLog,
+                logging: _.cloneDeep(sysLog),
                 volumes: [
                   `${this.repo.workingDirectory}:/usr/src/app`
                 ]

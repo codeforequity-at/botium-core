@@ -1,0 +1,10 @@
+version: '2'
+services:
+  botium:
+    logging:
+      options:
+        syslog-address: 'udp://10.0.2.2:50000'
+  botium-fbmock:
+    logging:
+      options:
+        syslog-address: 'udp://10.0.2.2:50000'
