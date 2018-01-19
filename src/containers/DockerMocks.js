@@ -50,7 +50,6 @@ class BaseMock {
   PrepareDocker (mockDir) {
     this.mockDir = mockDir
     return new Promise((resolve, reject) => {
-      
       async.series([
         (packageCopied) => {
           fs.copy(path.resolve(botiumPackageRootDir, this.packageDir), this.mockDir, (err) => {
@@ -78,13 +77,13 @@ class BaseMock {
               dockerfileCopied()
             }
           })
-        }        
+        }
       ], (err) => {
         if (err) {
           return reject(new Error(`PrepareDocker failed ${util.inspect(err)}`))
         }
         resolve()
-      }) 
+      })
     })
   }
 
