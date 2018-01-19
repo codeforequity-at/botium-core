@@ -1,10 +1,12 @@
+const fs = require('fs-extra')
 const util = require('util')
 const path = require('path')
 const findRoot = require('find-root')
-const copydir = require('copy-dir')
 const async = require('async')
 const request = require('request')
 const io = require('socket.io-client')
+const _ = require('lodash')
+const debug = require('debug')('botium-DockerMocks')
 
 const TcpPortUtils = require('../helpers/TcpPortUtils')
 const Capabilities = require('../Capabilities')
@@ -18,21 +20,24 @@ const botiumPackageRootDir = findRoot()
 class BaseMock {
   constructor () {
     this.publishPort = null
+    this.publishIp = null
     this.capNamePublishPort = null
     this.capNamePublishPortRange = null
     this.mockDir = null
     this.packageDir = null
     this.initCommand = null
+    this.dockerFile = null
     this.dockerComposeFile = null
   }
 
-  SelectPublishPort (caps) {
+  SelectPublishPort (publishIp, caps) {
+    this.publishIp = publishIp
     if (caps[this.capNamePublishPort]) {
       this.publishPort = caps[this.capNamePublishPort]
       return Promise.resolve()
     } else {
       return new Promise((resolve, reject) => {
-        TcpPortUtils.GetFreePortInRange('127.0.0.1', caps[this.capNamePublishPortRange])
+        TcpPortUtils.GetFreePortInRange(this.publishIp, caps[this.capNamePublishPortRange])
           .then((port) => {
             this.publishPort = port
             resolve()
@@ -45,21 +50,55 @@ class BaseMock {
   PrepareDocker (mockDir) {
     this.mockDir = mockDir
     return new Promise((resolve, reject) => {
-      copydir(path.resolve(botiumPackageRootDir, this.packageDir), this.mockDir, (err) => {
-        if (err) return reject(new Error(`Error copying mock to ${this.mockDir}: ${util.inspect(err)}`))
-        if (this.initCommand) {
-          ProcessUtils.childCommandLineRun(this.initCommand, false, { cwd: this.mockDir })
-            .then(() => resolve())
-            .catch(reject)
-        } else {
-          resolve()
+      async.series([
+        (packageCopied) => {
+          fs.copy(path.resolve(botiumPackageRootDir, this.packageDir), this.mockDir, (err) => {
+            if (err) return packageCopied(`Error copying mock to ${this.mockDir}: ${util.inspect(err)}`)
+            if (this.initCommand) {
+              ProcessUtils.childCommandLineRun(this.initCommand, false, { cwd: this.mockDir })
+                .then(() => packageCopied())
+                .catch(packageCopied)
+            } else {
+              packageCopied()
+            }
+          })
+        },
+
+        (dockerfileCopied) => {
+          const dockermockOverride = path.resolve(process.cwd(), this.dockerFile)
+          fs.stat(dockermockOverride, (err, stats) => {
+            if (!err && stats.isFile()) {
+              debug(`Docker file ${dockermockOverride} present, using it.`)
+              fs.copy(dockermockOverride, path.resolve(this.mockDir, this.dockerFile), (err) => {
+                if (err) return dockerfileCopied(`Copying Docker file ${dockermockOverride} failed ${util.inspect(err)}`)
+                dockerfileCopied()
+              })
+            } else {
+              dockerfileCopied()
+            }
+          })
         }
+      ], (err) => {
+        if (err) {
+          return reject(new Error(`PrepareDocker failed ${util.inspect(err)}`))
+        }
+        resolve()
       })
     })
   }
 
   GetDockerCompose () {
-    return path.resolve(this.mockDir, this.dockerComposeFile)
+    return new Promise((resolve) => {
+      const dockermockOverride = path.resolve(process.cwd(), this.dockerComposeFile)
+      fs.stat(dockermockOverride, (err, stats) => {
+        if (!err && stats.isFile()) {
+          debug(`Docker file ${dockermockOverride} present, using it.`)
+          resolve(dockermockOverride)
+        } else {
+          resolve(path.resolve(this.mockDir, this.dockerComposeFile))
+        }
+      })
+    })
   }
 
   Start (container) {
@@ -67,13 +106,13 @@ class BaseMock {
       async.series([
 
         (mockupOnline) => {
-          TcpPortUtils.WaitForPort('127.0.0.1', this.publishPort)
+          TcpPortUtils.WaitForPort(this.publishIp, this.publishPort)
             .then(() => mockupOnline())
             .catch(mockupOnline)
         },
 
         (endpointOnline) => {
-          this.mockUrl = `http://127.0.0.1:${this.publishPort}`
+          this.mockUrl = `http://${this.publishIp}:${this.publishPort}`
           let online = false
           async.until(
             () => online,
@@ -149,6 +188,7 @@ module.exports = {
       this.capNamePublishPort = Capabilities.FACEBOOK_PUBLISHPORT
       this.capNamePublishPortRange = Capabilities.FACEBOOK_PUBLISHPORT_RANGE
       this.packageDir = 'src/mocks/facebook'
+      this.dockerFile = 'Dockerfile.fbmock'
       this.dockerComposeFile = 'docker-compose.fbmock.yml'
       this.debug = require('debug')('botium-FacebookMock')
     }
@@ -158,7 +198,7 @@ module.exports = {
         build: {
           context: this.mockDir
         },
-        logging: logging,
+        logging: _.cloneDeep(logging),
         volumes: [
           `${this.mockDir}:/usr/src/app`
         ],
@@ -180,6 +220,7 @@ module.exports = {
       this.capNamePublishPort = Capabilities.SLACK_PUBLISHPORT
       this.capNamePublishPortRange = Capabilities.SLACK_PUBLISHPORT_RANGE
       this.packageDir = 'src/mocks/slack'
+      this.dockerFile = 'Dockerfile.slackmock'
       this.dockerComposeFile = 'docker-compose.slackmock.yml'
       this.debug = require('debug')('botium-SlackMock')
     }
@@ -189,7 +230,7 @@ module.exports = {
         build: {
           context: this.mockDir
         },
-        logging: logging,
+        logging: _.cloneDeep(logging),
         volumes: [
           `${this.mockDir}:/usr/src/app`
         ],
@@ -212,6 +253,7 @@ module.exports = {
       this.capNamePublishPort = Capabilities.BOTFRAMEWORK_PUBLISHPORT
       this.capNamePublishPortRange = Capabilities.BOTFRAMEWORK_PUBLISHPORT_RANGE
       this.packageDir = 'src/mocks/botframework'
+      this.dockerFile = 'Dockerfile.botframeworkmock'
       this.dockerComposeFile = 'docker-compose.botframeworkmock.yml'
       this.debug = require('debug')('botium-BotFrameworkMock')
     }
@@ -221,7 +263,7 @@ module.exports = {
         build: {
           context: this.mockDir
         },
-        logging: logging,
+        logging: _.cloneDeep(logging),
         volumes: [
           `${this.mockDir}:/usr/src/app`
         ],

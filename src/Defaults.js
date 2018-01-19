@@ -9,6 +9,8 @@ module.exports = {
     [Capabilities.WAITFORBOTTIMEOUT]: 10000,
     [Capabilities.CONTAINERMODE]: 'docker',
     [Capabilities.DOCKERCOMPOSEPATH]: 'docker-compose',
+    [Capabilities.DOCKERMACHINEPATH]: 'docker-machine',
+    [Capabilities.DOCKERMACHINE]: false,
     [Capabilities.DOCKERIMAGE]: 'node:boron',
     [Capabilities.DOCKERUNIQUECONTAINERNAMES]: false,
     [Capabilities.DOCKERSYSLOGPORT_RANGE]: '47100-47299',
