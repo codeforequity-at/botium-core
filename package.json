@@ -1,6 +1,6 @@
 {
   "name": "botium-core",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "The Selenium for Chatbots",
   "main": "dist/botium-cjs.js",
   "module": "dist/botium-es.js",
@@ -29,6 +29,7 @@
     "facebook-chat-api": "^1.4.0",
     "find-root": "^1.1.0",
     "is-json": "^2.0.1",
+    "jsonpath": "^1.0.0",
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",
     "moment": "^2.19.4",

@@ -23,7 +23,8 @@ module.exports = {
     [Capabilities.BOTFRAMEWORK_CHANNEL_ID]: 'facebook',
     [Capabilities.WATSONCONVERSATION_URL]: 'https://gateway.watsonplatform.net/conversation/api',
     [Capabilities.WATSONCONVERSATION_VERSION_DATE]: '2017-05-26',
-    [Capabilities.WATSONCONVERSATION_COPY_WORKSPACE]: false
+    [Capabilities.WATSONCONVERSATION_COPY_WORKSPACE]: false,
+    [Capabilities.SIMPLEREST_METHOD]: 'GET'
   },
   Sources: {
     [Source.LOCALPATH]: '.',
