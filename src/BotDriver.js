@@ -79,7 +79,11 @@ module.exports = class BotDriver {
         },
 
         (repoValidated) => {
-          repo = this._getRepo()
+          try {
+            repo = this._getRepo()
+          } catch (err) {
+            return repoValidated(err)
+          }
           repo.Validate().then(() => repoValidated()).catch(repoValidated)
         },
 
@@ -88,7 +92,11 @@ module.exports = class BotDriver {
         },
 
         (containerValidated) => {
-          container = this._getContainer(repo)
+          try {
+            container = this._getContainer(repo)
+          } catch (err) {
+            return containerValidated(err)
+          }
           container.Validate().then(() => containerValidated()).catch(containerValidated)
         },
 
@@ -172,6 +180,10 @@ module.exports = class BotDriver {
     if (this.caps[Capabilities.CONTAINERMODE] === 'watsonconversation') {
       const WatsonConversationContainer = require('./containers/WatsonConversationContainer')
       return new WatsonConversationContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
+    }
+    if (this.caps[Capabilities.CONTAINERMODE] === 'simplereset') {
+      const SimpleRestContainer = require('./containers/SimpleRestContainer')
+      return new SimpleRestContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
     throw new Error(`No Container provider found for Caps ${util.inspect(this.caps)}`)
   }
