@@ -48,6 +48,29 @@ module.exports = class Fluent {
     return this
   }
 
+  CompileTxt (script) {
+    this.tasks.push(() => {
+      return new Promise((resolve, reject) => {
+        this.driver.CompileTxt(script)
+          .then((convoScript) => {
+            this.convoScript = convoScript
+            resolve()
+          })
+          .catch((err) => {
+            reject(err)
+          })
+      })
+    })
+    return this
+  }
+
+  RunScript (assertCb, failCb) {
+    this.tasks.push(() => {
+      return this.convoScript.Run(this.container, assertCb, failCb)
+    })
+    return this
+  }
+  
   UserSaysText (msg) {
     this.tasks.push(() => {
       if (this.currentChannel) {

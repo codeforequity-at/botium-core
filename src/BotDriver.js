@@ -13,6 +13,7 @@ const Capabilities = require('./Capabilities')
 const Source = require('./Source')
 const Fluent = require('./Fluent')
 const Events = require('./Events')
+const CompilerTxt = require('./scripting/CompilerTxt')
 
 module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, env = {}) {
@@ -112,6 +113,30 @@ module.exports = class BotDriver {
         }
         this.eventEmitter.emit(Events.CONTAINER_BUILT, container)
         resolve(container)
+      })
+    })
+  }
+
+  CompileTxtHeader (script) {
+    const compiler = new CompilerTxt()
+
+    return new Promise((resolve, reject) => {
+      compiler.GetHeader(script).then((convoHeader) => {
+        resolve(convoHeader)
+      }).catch((err) => {
+        reject(new Error(`script compilation faild: ${util.inspect(err)}`))
+      })
+    })
+  }
+
+  CompileTxt (script) {
+    const compiler = new CompilerTxt()
+
+    return new Promise((resolve, reject) => {
+      compiler.Compile(script).then((convoScript) => {
+        resolve(convoScript)
+      }).catch((err) => {
+        reject(new Error(`script compilation faild: ${util.inspect(err)}`))
       })
     })
   }
