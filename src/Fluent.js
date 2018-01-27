@@ -70,7 +70,7 @@ module.exports = class Fluent {
     })
     return this
   }
-  
+
   UserSaysText (msg) {
     this.tasks.push(() => {
       if (this.currentChannel) {
