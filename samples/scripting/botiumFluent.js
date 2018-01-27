@@ -27,6 +27,8 @@ const driver = new BotDriver()
 
 const script = fs.readFileSync('./restaurant.convo.txt').toString()
 
+driver.CompileTxt(script).then((convo) => driver.DecompileTxt(convo)).then((s) => console.log(s))
+
 driver.BuildFluent()
   .CompileTxt(script)
   .RunScript(assert, fail)

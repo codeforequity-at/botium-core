@@ -132,13 +132,13 @@ module.exports = class BotDriver {
   CompileTxt (script) {
     const compiler = new CompilerTxt()
 
-    return new Promise((resolve, reject) => {
-      compiler.Compile(script).then((convoScript) => {
-        resolve(convoScript)
-      }).catch((err) => {
-        reject(new Error(`script compilation faild: ${util.inspect(err)}`))
-      })
-    })
+    return compiler.Compile(script)
+  }
+
+  DecompileTxt (convo) {
+    const compiler = new CompilerTxt()
+
+    return compiler.Decompile(convo)
   }
 
   /* Private Functions */
