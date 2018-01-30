@@ -13,7 +13,6 @@ const Capabilities = require('./Capabilities')
 const Source = require('./Source')
 const Fluent = require('./Fluent')
 const Events = require('./Events')
-const CompilerTxt = require('./scripting/CompilerTxt')
 
 module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, env = {}) {
@@ -129,10 +128,12 @@ module.exports = class BotDriver {
     })
   }
 
-  CompileTxt (script) {
-    const compiler = new CompilerTxt()
-
-    return compiler.Compile(script)
+  Compile (script) {
+    const CompilerXlsx = require('./scripting/CompilerXlsx')
+    
+    const compiler = new CompilerXlsx(this.caps)
+    
+    return compiler.Validate().then(() => compiler.Compile(script))
   }
 
   DecompileTxt (convo) {
