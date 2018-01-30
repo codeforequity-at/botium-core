@@ -116,30 +116,16 @@ module.exports = class BotDriver {
     })
   }
 
-  CompileTxtHeader (script) {
-    const compiler = new CompilerTxt()
-
-    return new Promise((resolve, reject) => {
-      compiler.GetHeader(script).then((convoHeader) => {
-        resolve(convoHeader)
-      }).catch((err) => {
-        reject(new Error(`script compilation faild: ${util.inspect(err)}`))
-      })
-    })
-  }
-
-  Compile (script) {
-    const CompilerXlsx = require('./scripting/CompilerXlsx')
-    
-    const compiler = new CompilerXlsx(this.caps)
-    
-    return compiler.Validate().then(() => compiler.Compile(script))
-  }
-
-  DecompileTxt (convo) {
-    const compiler = new CompilerTxt()
-
-    return compiler.Decompile(convo)
+  BuildCompiler () {
+    if (this.caps[Capabilities.SCRIPTING_FORMAT] === 'xlsx') {
+      const CompilerXlsx = require('./scripting/CompilerXlsx')
+      return new CompilerXlsx(this.caps)
+    }
+    if (this.caps[Capabilities.SCRIPTING_FORMAT] === 'txt') {
+      const CompilerTxt = require('./scripting/CompilerTxt')
+      return new CompilerTxt(this.caps)
+    }
+    throw new Error(`No compiler found for caps ${util.inspect(this.caps)}`)
   }
 
   /* Private Functions */

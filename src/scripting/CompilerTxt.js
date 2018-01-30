@@ -1,14 +1,26 @@
 const isJSON = require('is-json')
 const _ = require('lodash')
 
+const Capabilities = require('../Capabilities')
+const CompilerBase = require('./CompilerBase')
 const { ConvoHeader, Convo } = require('./Convo')
 
-const EOL = '\n'
+module.exports = class CompilerTxt extends CompilerBase {
+  constructor (caps = {}) {
+    super(caps)
 
-module.exports = class CompilerTxt {
-  GetHeader (script) {
+    this.eol = caps[Capabilities.SCRIPTING_TXT_EOL]
+  }
+
+  Validate () {
+    return super.Validate().then(() => {
+      this._AssertCapabilityExists(Capabilities.SCRIPTING_TXT_EOL)
+    })
+  }
+
+  GetHeaders (scriptData) {
     return new Promise((resolve) => {
-      let lines = script.split(EOL)
+      let lines = scriptData.split(this.eol)
 
       let header = {
       }
@@ -20,8 +32,8 @@ module.exports = class CompilerTxt {
     })
   }
 
-  Compile (script) {
-    let lines = script.split(EOL)
+  Compile (scriptData) {
+    let lines = scriptData.split(this.eol)
 
     let convo = {
       header: {},
@@ -39,7 +51,7 @@ module.exports = class CompilerTxt {
       if (isJSON(content)) {
         return JSON.parse(content)
       } else {
-        return lines.join(EOL)
+        return lines.join(this.eol)
       }
     }
 
@@ -59,7 +71,7 @@ module.exports = class CompilerTxt {
       } else if (!currentSender && currentLines) {
         convo.header.name = currentLines[0]
         if (currentLines.length > 1) {
-          convo.header.description = currentLines.slice(1).join(EOL)
+          convo.header.description = currentLines.slice(1).join(this.eol)
         }
       }
     }
@@ -83,34 +95,40 @@ module.exports = class CompilerTxt {
     })
     pushPrev()
 
-    return Promise.resolve(new Convo(convo))
+    return Promise.resolve([ new Convo(convo) ])
   }
 
-  Decompile (convo) {
+  Decompile (convos) {
+    if (convos.length > 1) {
+      return Promise.reject(new Error('only one convo per script'))
+    }
+
+    const convo = convos[0]
+
     let script = ''
 
     if (convo.header.name) {
-      script += convo.header.name + EOL
+      script += convo.header.name + this.eol
     }
     if (convo.header.description) {
-      script += convo.header.description + EOL
+      script += convo.header.description + this.eol
     }
 
     convo.conversation.forEach((set) => {
       if (!set.messageText && !set.sourceData) return
 
-      script += EOL
+      script += this.eol
 
       script += '#' + set.sender
       if (set.channel) {
         script += ' ' + set.channel
       }
-      script += EOL
+      script += this.eol
 
       if (set.messageText) {
-        script += set.messageText + EOL
+        script += set.messageText + this.eol
       } else if (set.sourceData) {
-        script += JSON.stringify(set.sourceData, null, 2) + EOL
+        script += JSON.stringify(set.sourceData, null, 2) + this.eol
       }
     })
     return Promise.resolve(script)

@@ -24,14 +24,18 @@ const driver = new BotDriver()
   .setCapability(Capabilities.WATSONCONVERSATION_PASSWORD, 'ZWDE5xo02sby')
   .setCapability(Capabilities.WATSONCONVERSATION_WORKSPACE_ID, '97513bc0-c581-4bec-ac9f-ea6a8ec308a9')
   .setCapability(Capabilities.WATSONCONVERSATION_COPY_WORKSPACE, false)
+  .setCapability(Capabilities.SCRIPTING_FORMAT, 'txt')
+  .setCapability(Capabilities.SCRIPTING_INPUT_TYPE, 'string')
 
 const script = fs.readFileSync('./restaurant.convo.txt').toString()
 
-driver.CompileTxt(script).then((convo) => driver.DecompileTxt(convo)).then((s) => console.log(s))
+const compiler = driver.BuildCompiler()
+
+compiler.Compile(script).then((convos) => compiler.Decompile(convos)).then((s) => console.log(s))
 
 driver.BuildFluent()
-  .CompileTxt(script)
-  .RunScript(assert, fail)
+  .Compile(script)
+  .RunScripts(assert, fail)
   .Exec()
   .then(() => {
     console.log('READY')

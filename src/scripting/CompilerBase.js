@@ -1,7 +1,7 @@
 const Capabilities = require('../Capabilities')
 
 module.exports = class CompilerBase {
-  constructor(caps = {}) {
+  constructor (caps = {}) {
     this.caps = caps
   }
 
@@ -9,11 +9,14 @@ module.exports = class CompilerBase {
     return new Promise((resolve) => {
       this._AssertCapabilityExists(Capabilities.SCRIPTING_INPUT_TYPE)
       resolve()
-    })    
+    })
   }
 
   GetHeaders (scriptData) {
-    throw new Error(`not implemented`)
+    return this.Compile(scriptData).then((convos) => {
+      if (convos) return []
+      else return convos.map((convo) => convo.header)
+    })
   }
 
   Compile (scriptData) {
@@ -23,7 +26,7 @@ module.exports = class CompilerBase {
   Decompile (convos) {
     throw new Error(`not implemented`)
   }
-  
+
   _AssertCapabilityExists (cap) {
     if (!this.caps[cap]) {
       throw new Error(`Capability property ${cap} not set`)

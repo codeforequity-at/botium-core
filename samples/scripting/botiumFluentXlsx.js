@@ -11,6 +11,7 @@ const driver = new BotDriver()
   .setCapability(Capabilities.WATSONCONVERSATION_PASSWORD, 'ZWDE5xo02sby')
   .setCapability(Capabilities.WATSONCONVERSATION_WORKSPACE_ID, '97513bc0-c581-4bec-ac9f-ea6a8ec308a9')
   .setCapability(Capabilities.WATSONCONVERSATION_COPY_WORKSPACE, false)
+  .setCapability(Capabilities.SCRIPTING_FORMAT, 'xlsx')
   .setCapability(Capabilities.SCRIPTING_INPUT_TYPE, 'buffer')
   .setCapability(Capabilities.SCRIPTING_XLSX_SHEETNAMES, '2-Schritt-Dialoge |    3-Schritt-Dialoge')
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTROW, 2)
@@ -19,7 +20,7 @@ const driver = new BotDriver()
   
 const script = fs.readFileSync('./Book1.xlsx')
 
-driver.Compile(script).then((convos) => {
+driver.BuildCompiler().Compile(script).then((convos) => {
   console.log(JSON.stringify(convos, null, 2))
 })
 

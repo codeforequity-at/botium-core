@@ -39,7 +39,10 @@ class Convo {
             debug(`${this.header.name}: user says ${util.inspect(convoStep)}`)
             container.UserSays(new BotiumMockMessage(convoStep))
               .then(() => convoStepDone(null, false))
-              .catch(convoStepDone)
+              .catch((err) => {
+                debug(`${this.header.name}: error sending to bot ${util.inspect(err)}`)
+                convoStepDone(null, true)
+              })
           } else if (convoStep.sender === 'bot') {
             debug(`${this.header.name}: wait for bot ${util.inspect(convoStep.channel)}`)
             container.WaitBotSays(convoStep.channel).then((saysmsg) => {
@@ -56,7 +59,8 @@ class Convo {
                 convoStepDone(null, true)
               }
             }).catch((err) => {
-              convoStepDone(err)
+              debug(`${this.header.name}: error waiting for bot ${util.inspect(err)}`)
+              convoStepDone(null, true)
             })
           } else {
             debug(`${this.header.name}: invalid sender ${util.inspect(convoStep.sender)}`)

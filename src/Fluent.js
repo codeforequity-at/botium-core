@@ -48,12 +48,12 @@ module.exports = class Fluent {
     return this
   }
 
-  CompileTxt (script) {
+  Compile (script) {
     this.tasks.push(() => {
       return new Promise((resolve, reject) => {
-        this.driver.CompileTxt(script)
-          .then((convoScript) => {
-            this.convoScript = convoScript
+        this.driver.BuildCompiler().Compile(script)
+          .then((convos) => {
+            this.convos = convos
             resolve()
           })
           .catch((err) => {
@@ -64,9 +64,17 @@ module.exports = class Fluent {
     return this
   }
 
-  RunScript (assertCb, failCb) {
+  RunScripts (assertCb, failCb) {
     this.tasks.push(() => {
-      return this.convoScript.Run(this.container, assertCb, failCb)
+      return new Promise((resolve, reject) => {
+        async.eachSeries(this.convos, (convo, convoDone) => {
+          convo.Run(this.container, assertCb, failCb).then(() => convoDone()).catch(convoDone)
+        },
+        (err) => {
+          if (err) return reject(err)
+          else resolve()
+        })
+      })
     })
     return this
   }
