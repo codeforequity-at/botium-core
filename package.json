@@ -34,6 +34,7 @@
     "mkdirp": "^0.5.1",
     "moment": "^2.19.4",
     "mustache": "^2.3.0",
+    "opn": "^5.2.0",
     "randomatic": "^2.0.0",
     "request": "^2.83.0",
     "rimraf": "^2.6.2",

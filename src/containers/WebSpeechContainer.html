@@ -1,0 +1,109 @@
+<html>
+
+<script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+
+window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+var socket = null;
+
+function connect() {
+    socket = io();
+	socket.on('close', function(msg) {
+      window.close();
+    });
+	
+	socket.on('disconnect', function(msg) {
+      window.close();
+    });
+	
+	socket.on('speak', function(msg) {
+		log('speak ' + msg.messageText);
+		speak(msg.messageText);
+    });
+	
+	socket.on('listen', function() {
+		log('listening');
+		listen(function(msg) {
+			log('listened: ' + msg);
+			socket.emit('listened', msg);
+		});
+    });
+}
+
+function log(msg) {
+	console.log(msg);
+	if (socket) {
+		socket.emit('log', msg);
+	}
+}
+
+function listen(done) {
+	var recognizer = new window.SpeechRecognition();
+	recognizer.continuous = true;
+	recognizer.interimResults = false;
+	
+	recognizer.onresult = function(event) {
+		for (var i = event.resultIndex; i < event.results.length; i++) {
+			if (event.results[i].isFinal) {
+				log('listen isFinal: ' + event.results[i][0].transcript + ' (Confidence: ' + event.results[i][0].confidence + ')');
+				
+				recognizer.stop();
+				done(event.results[i][0].transcript);
+				
+			} else {
+				log('listen transcript: ' + event.results[i][0].transcript);
+			}
+		}
+	};
+	recognizer.onerror = function(event) {
+		log('Recognition error: ' + JSON.stringify(event));
+	};	
+	try {
+		recognizer.start();
+		log('Recognition started');
+    } catch(ex) {
+		log('Recognition error: ' + JSON.stringify(ex));
+    }	
+}
+
+function speak(text, done) {
+  // Create a new instance of SpeechSynthesisUtterance.
+	var msg = new SpeechSynthesisUtterance();
+  
+  // Set the text.
+	msg.text = text;
+  
+  // Set the attributes.
+	//msg.volume = parseFloat(volumeInput.value);
+	//msg.rate = parseFloat(rateInput.value);
+	//msg.pitch = parseFloat(pitchInput.value);
+  
+  // If a voice has been selected, find the voice and set the
+  // utterance instance's voice attribute.
+	//if (voiceSelect.value) {
+	//	msg.voice = speechSynthesis.getVoices().filter(function(voice) { return voice.name == voiceSelect.value; })[0];
+	//}
+  
+	msg.onstart = function() { 
+		log('onstart speak: ' + text); 
+	};
+	msg.onend = function() { 
+		log('onend speak: ' + text); 
+		if (done) done();
+	};
+  
+  // Queue this utterance.
+	window.speechSynthesis.speak(msg);
+	
+}
+
+$(connect);
+
+</script>
+
+<body>
+	<div id="log"></div>
+</body>
+</html>

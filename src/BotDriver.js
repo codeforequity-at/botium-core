@@ -210,6 +210,10 @@ module.exports = class BotDriver {
       const SimpleRestContainer = require('./containers/SimpleRestContainer')
       return new SimpleRestContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
+    if (this.caps[Capabilities.CONTAINERMODE] === 'webspeech') {
+      const WebSpeechContainer = require('./containers/WebSpeechContainer')
+      return new WebSpeechContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
+    }
     throw new Error(`No Container provider found for Caps ${util.inspect(this.caps)}`)
   }
 }

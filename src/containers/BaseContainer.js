@@ -150,6 +150,7 @@ module.exports = class BaseContainer {
 
   _QueueBotSays (botMsg) {
     if (!botMsg.channel) botMsg.channel = 'default'
+    if (!botMsg.sender) botMsg.sender = 'bot'
 
     if (!this.queues[botMsg.channel]) {
       this.queues[botMsg.channel] = new Queue()
