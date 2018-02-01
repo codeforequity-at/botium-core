@@ -20,7 +20,5 @@ const driver = new BotDriver()
   
 const script = fs.readFileSync('./Book1.xlsx')
 
-driver.BuildCompiler().Compile(script).then((convos) => {
-  console.log(JSON.stringify(convos, null, 2))
-})
-
+const convos = driver.BuildCompiler().Compile(script)
+console.log(JSON.stringify(convos, null, 2))

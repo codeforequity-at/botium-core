@@ -51,14 +51,12 @@ module.exports = class Fluent {
   Compile (script) {
     this.tasks.push(() => {
       return new Promise((resolve, reject) => {
-        this.driver.BuildCompiler().Compile(script)
-          .then((convos) => {
-            this.convos = convos
-            resolve()
-          })
-          .catch((err) => {
-            reject(err)
-          })
+        try {
+          this.convos = this.driver.BuildCompiler().Compile(script)
+          resolve()
+        } catch (err) {
+          reject(err)
+        }
       })
     })
     return this

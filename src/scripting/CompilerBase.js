@@ -6,17 +6,16 @@ module.exports = class CompilerBase {
   }
 
   Validate () {
-    return new Promise((resolve) => {
-      this._AssertCapabilityExists(Capabilities.SCRIPTING_INPUT_TYPE)
-      resolve()
-    })
+    this._AssertCapabilityExists(Capabilities.SCRIPTING_INPUT_TYPE)
   }
 
   GetHeaders (scriptData) {
-    return this.Compile(scriptData).then((convos) => {
-      if (convos) return []
-      else return convos.map((convo) => convo.header)
-    })
+    const convos = this.Compile(scriptData)
+    if (convos) {
+      return convos.map((convo) => convo.header)
+    } else {
+      return []
+    }
   }
 
   Compile (scriptData) {

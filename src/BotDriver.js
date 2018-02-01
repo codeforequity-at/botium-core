@@ -193,7 +193,7 @@ module.exports = class BotDriver {
       const WatsonConversationContainer = require('./containers/WatsonConversationContainer')
       return new WatsonConversationContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'simplereset') {
+    if (this.caps[Capabilities.CONTAINERMODE] === 'simplerest') {
       const SimpleRestContainer = require('./containers/SimpleRestContainer')
       return new SimpleRestContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }

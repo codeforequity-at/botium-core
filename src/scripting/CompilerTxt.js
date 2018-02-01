@@ -13,26 +13,29 @@ module.exports = class CompilerTxt extends CompilerBase {
   }
 
   Validate () {
-    return super.Validate().then(() => {
-      this._AssertCapabilityExists(Capabilities.SCRIPTING_TXT_EOL)
-    })
+    super.Validate()
+    this._AssertCapabilityExists(Capabilities.SCRIPTING_TXT_EOL)
+    if (this.caps[Capabilities.SCRIPTING_INPUT_TYPE] !== 'buffer' && this.caps[Capabilities.SCRIPTING_INPUT_TYPE] !== 'string') {
+      throw new Error(`SCRIPTING_INPUT_TYPE(${this.caps[Capabilities.SCRIPTING_INPUT_TYPE]}) only buffer and string type supported`)
+    }
   }
 
   GetHeaders (scriptData) {
-    return new Promise((resolve) => {
-      let lines = scriptData.split(this.eol)
+    let lines = scriptData.split(this.eol)
 
-      let header = {
-      }
+    let header = { }
 
-      if (lines && !lines[0].startsWith('#')) {
-        header.name = lines[0]
-      }
-      resolve(new ConvoHeader(header))
-    })
+    if (lines && !lines[0].startsWith('#')) {
+      header.name = lines[0]
+    }
+    return new ConvoHeader(header)
   }
 
   Compile (scriptData) {
+    if (this.caps[Capabilities.SCRIPTING_INPUT_TYPE] === 'buffer') {
+      scriptData = scriptData.toString()
+    }
+
     let lines = scriptData.split(this.eol)
 
     let convo = {
@@ -95,12 +98,12 @@ module.exports = class CompilerTxt extends CompilerBase {
     })
     pushPrev()
 
-    return Promise.resolve([ new Convo(convo) ])
+    return [ new Convo(convo) ]
   }
 
   Decompile (convos) {
     if (convos.length > 1) {
-      return Promise.reject(new Error('only one convo per script'))
+      throw new Error('only one convo per script')
     }
 
     const convo = convos[0]
@@ -131,6 +134,6 @@ module.exports = class CompilerTxt extends CompilerBase {
         script += JSON.stringify(set.sourceData, null, 2) + this.eol
       }
     })
-    return Promise.resolve(script)
+    return script
   }
 }
