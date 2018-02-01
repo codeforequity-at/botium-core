@@ -13,7 +13,6 @@ const Capabilities = require('./Capabilities')
 const Source = require('./Source')
 const Fluent = require('./Fluent')
 const Events = require('./Events')
-const CompilerTxt = require('./scripting/CompilerTxt')
 
 module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, env = {}) {
@@ -117,28 +116,16 @@ module.exports = class BotDriver {
     })
   }
 
-  CompileTxtHeader (script) {
-    const compiler = new CompilerTxt()
-
-    return new Promise((resolve, reject) => {
-      compiler.GetHeader(script).then((convoHeader) => {
-        resolve(convoHeader)
-      }).catch((err) => {
-        reject(new Error(`script compilation faild: ${util.inspect(err)}`))
-      })
-    })
-  }
-
-  CompileTxt (script) {
-    const compiler = new CompilerTxt()
-
-    return compiler.Compile(script)
-  }
-
-  DecompileTxt (convo) {
-    const compiler = new CompilerTxt()
-
-    return compiler.Decompile(convo)
+  BuildCompiler () {
+    if (this.caps[Capabilities.SCRIPTING_FORMAT] === 'xlsx') {
+      const CompilerXlsx = require('./scripting/CompilerXlsx')
+      return new CompilerXlsx(this.caps)
+    }
+    if (this.caps[Capabilities.SCRIPTING_FORMAT] === 'txt') {
+      const CompilerTxt = require('./scripting/CompilerTxt')
+      return new CompilerTxt(this.caps)
+    }
+    throw new Error(`No compiler found for caps ${util.inspect(this.caps)}`)
   }
 
   /* Private Functions */
@@ -206,7 +193,7 @@ module.exports = class BotDriver {
       const WatsonConversationContainer = require('./containers/WatsonConversationContainer')
       return new WatsonConversationContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'simplereset') {
+    if (this.caps[Capabilities.CONTAINERMODE] === 'simplerest') {
       const SimpleRestContainer = require('./containers/SimpleRestContainer')
       return new SimpleRestContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }

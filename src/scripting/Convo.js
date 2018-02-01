@@ -39,7 +39,10 @@ class Convo {
             debug(`${this.header.name}: user says ${util.inspect(convoStep)}`)
             container.UserSays(new BotiumMockMessage(convoStep))
               .then(() => convoStepDone(null, false))
-              .catch(convoStepDone)
+              .catch((err) => {
+                debug(`${this.header.name}: error sending to bot ${util.inspect(err)}`)
+                convoStepDone(err, true)
+              })
           } else if (convoStep.sender === 'bot') {
             debug(`${this.header.name}: wait for bot ${util.inspect(convoStep.channel)}`)
             container.WaitBotSays(convoStep.channel).then((saysmsg) => {
@@ -47,16 +50,19 @@ class Convo {
               if (saysmsg && saysmsg.messageText) {
                 var response = saysmsg.messageText.split(/\r?\n/).map((line) => line.trim()).join(' ').trim()
                 var tomatch = convoStep.messageText.split(/\r?\n/).map((line) => line.trim()).join(' ').trim()
-                convoStepDone(null, !assertCb(response, tomatch))
+                assertCb(response, tomatch)
+                convoStepDone(null, false)
               } else if (saysmsg && saysmsg.sourceData) {
-                convoStepDone(null, !this._compareObject(assertCb, failCb, saysmsg.sourceData, convoStep.sourceData))
+                this._compareObject(assertCb, failCb, saysmsg.sourceData, convoStep.sourceData)
+                convoStepDone(null, false)
               } else {
                 debug(`${this.header.name}: bot says nothing`)
                 failCb('bot says nothing')
                 convoStepDone(null, true)
               }
             }).catch((err) => {
-              convoStepDone(err)
+              debug(`${this.header.name}: error waiting for bot ${util.inspect(err)}`)
+              convoStepDone(null, true)
             })
           } else {
             debug(`${this.header.name}: invalid sender ${util.inspect(convoStep.sender)}`)

@@ -132,7 +132,7 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
           messageTexts.forEach((messageText) => {
             if (!messageText) return
 
-            const botMsg = { sourceData: data.output, messageText }
+            const botMsg = { sender: 'bot', sourceData: data.output, messageText }
             this._QueueBotSays(new BotiumMockMessage(botMsg))
             this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
           })
