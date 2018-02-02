@@ -57,11 +57,11 @@ module.exports = class CompilerXlsx extends CompilerBase {
         const botCell = this.colnames[colindex + 1] + rowindex
 
         if (sheet[meCell] && sheet[meCell].v) {
-          currentConvo.push({ sender: 'me', messageText: sheet[meCell].v })
+          currentConvo.push({ sender: 'me', messageText: sheet[meCell].v, stepTag: 'Cell ' + meCell })
           if (!startcell) startcell = meCell
           emptylines = 0
         } else if (sheet[botCell] && sheet[botCell].v) {
-          currentConvo.push({ sender: 'bot', messageText: sheet[botCell].v })
+          currentConvo.push({ sender: 'bot', messageText: sheet[botCell].v, stepTag: 'Cell ' + meCell })
           if (!startcell) startcell = meCell
           emptylines = 0
         } else {

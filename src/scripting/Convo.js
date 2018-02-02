@@ -4,6 +4,7 @@ const _ = require('lodash')
 const debug = require('debug')('botium-Convo')
 
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
+const Capabilities = require('../Capabilities')
 
 class ConvoHeader {
   constructor (fromJson = {}) {
@@ -18,6 +19,7 @@ class ConvoStep {
     this.channel = fromJson.channel
     this.messageText = fromJson.messageText
     this.sourceData = fromJson.sourceData
+    this.stepTag = fromJson.stepTag
   }
 }
 
@@ -36,6 +38,7 @@ class Convo {
       async.someSeries(this.conversation,
         (convoStep, convoStepDone) => {
           if (convoStep.sender === 'me') {
+            convoStep.messageText = this._checkNormalizeText(container, convoStep.messageText)
             debug(`${this.header.name}: user says ${util.inspect(convoStep)}`)
             container.UserSays(new BotiumMockMessage(convoStep))
               .then(() => convoStepDone(null, false))
@@ -48,12 +51,12 @@ class Convo {
             container.WaitBotSays(convoStep.channel).then((saysmsg) => {
               debug(`${this.header.name}: bot says ${util.inspect(saysmsg)}`)
               if (saysmsg && saysmsg.messageText) {
-                var response = saysmsg.messageText.split(/\r?\n/).map((line) => line.trim()).join(' ').trim()
-                var tomatch = convoStep.messageText.split(/\r?\n/).map((line) => line.trim()).join(' ').trim()
+                var response = this._checkNormalizeText(container, saysmsg.messageText)
+                var tomatch = this._checkNormalizeText(container, convoStep.messageText)
                 assertCb(response, tomatch)
                 convoStepDone(null, false)
               } else if (saysmsg && saysmsg.sourceData) {
-                this._compareObject(assertCb, failCb, saysmsg.sourceData, convoStep.sourceData)
+                this._compareObject(container, assertCb, failCb, saysmsg.sourceData, convoStep.sourceData)
                 convoStepDone(null, false)
               } else {
                 debug(`${this.header.name}: bot says nothing`)
@@ -81,21 +84,48 @@ class Convo {
     })
   }
 
-  _compareObject (assertCb, failCb, result, expected) {
+  _compareObject (container, assertCb, failCb, result, expected) {
     if (expected === null || expected === undefined) return true
 
     if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
         if (result.hasOwnProperty(key)) {
-          return this._compareObject(assertCb, failCb, result[key], expected[key])
+          return this._compareObject(container, assertCb, failCb, result[key], expected[key])
         } else {
           failCb(`missing expected property: ${key}`)
           return false
         }
       })
     } else {
-      return assertCb(result, expected)
+      return assertCb(
+        this._checkNormalizeText(container, result),
+        this._checkNormalizeText(container, expected))
     }
+  }
+
+  _checkNormalizeText (container, str) {
+    if (str && _.isString(str) && container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]) {
+      // remove html tags
+      str = str.replace(/<p[^>]*>/g, ' ')
+      str = str.replace(/<br[^>]*>/g, ' ')
+      str = str.replace(/<[^>]*>/g, '')
+      /* eslint-disable no-control-regex */
+      // remove not printable characters
+      str = str.replace(/[\x00-\x1F\x7F]/g, ' ')
+      /* eslint-enable no-control-regex */
+      // replace html entities
+      str = str
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
+      // replace two spaces with one
+      str = str.replace(/\s+/g, ' ')
+
+      str = str.trim()
+    }
+    return str
   }
 }
 

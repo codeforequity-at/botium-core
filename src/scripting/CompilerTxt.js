@@ -43,6 +43,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       conversation: []
     }
 
+    let currentLineIndex = 0
     let currentLines = []
     let currentSender = null
     let currentChannel = null
@@ -62,7 +63,8 @@ module.exports = class CompilerTxt extends CompilerBase {
       if (currentSender && currentLines) {
         const convoStep = {
           sender: currentSender,
-          channel: currentChannel
+          channel: currentChannel,
+          stepTag: 'Line ' + currentLineIndex
         }
         let msg = parseMsg(currentLines)
         if (_.isString(msg)) {
@@ -80,6 +82,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     }
 
     lines.forEach((line) => {
+      currentLineIndex++
       line = line.trim()
       if (!line) {
       } else if (line.startsWith('#')) {
