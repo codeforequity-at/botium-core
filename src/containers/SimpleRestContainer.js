@@ -163,10 +163,6 @@ module.exports = class SimpleRestContainer extends BaseContainer {
                 messageTexts.forEach((messageText) => {
                   if (!messageText) return
 
-                  if (this.caps[Capabilities.SIMPLEREST_STRIP_HTML]) {
-                    messageText = messageText.replace(/<[^>]+>/g, '')
-                  }
-
                   const botMsg = { sourceData: body, messageText }
                   this._QueueBotSays(new BotiumMockMessage(botMsg))
                   this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
