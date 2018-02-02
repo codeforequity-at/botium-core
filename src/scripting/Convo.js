@@ -35,50 +35,64 @@ class Convo {
 
   Run (container, assertCb = () => true, failCb = () => true) {
     return new Promise((resolve, reject) => {
-      async.someSeries(this.conversation,
+      async.eachSeries(this.conversation,
         (convoStep, convoStepDone) => {
           if (convoStep.sender === 'me') {
             convoStep.messageText = this._checkNormalizeText(container, convoStep.messageText)
-            debug(`${this.header.name}: user says ${util.inspect(convoStep)}`)
+            debug(`${this.header.name}/${convoStep.stepTag}: user says ${util.inspect(convoStep)}`)
             container.UserSays(new BotiumMockMessage(convoStep))
-              .then(() => convoStepDone(null, false))
+              .then(() => convoStepDone())
               .catch((err) => {
-                debug(`${this.header.name}: error sending to bot ${util.inspect(err)}`)
-                convoStepDone(err, true)
+                convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: error sending to bot ${util.inspect(err)}`))
               })
           } else if (convoStep.sender === 'bot') {
-            debug(`${this.header.name}: wait for bot ${util.inspect(convoStep.channel)}`)
+            debug(`${this.header.name} wait for bot ${util.inspect(convoStep.channel)}`)
             container.WaitBotSays(convoStep.channel).then((saysmsg) => {
               debug(`${this.header.name}: bot says ${util.inspect(saysmsg)}`)
               if (saysmsg && saysmsg.messageText) {
-                var response = this._checkNormalizeText(container, saysmsg.messageText)
-                var tomatch = this._checkNormalizeText(container, convoStep.messageText)
-                assertCb(response, tomatch)
-                convoStepDone(null, false)
+                const response = this._checkNormalizeText(container, saysmsg.messageText)
+                const tomatch = this._checkNormalizeText(container, convoStep.messageText)
+                try {
+                  assertCb(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
+                  convoStepDone()
+                } catch (err) {
+                  convoStepDone(err)
+                }
               } else if (saysmsg && saysmsg.sourceData) {
-                this._compareObject(container, assertCb, failCb, saysmsg.sourceData, convoStep.sourceData)
-                convoStepDone(null, false)
+                try {
+                  this._compareObject(container, convoStep, assertCb, failCb, saysmsg.sourceData, convoStep.sourceData)
+                  convoStepDone()
+                } catch (err) {
+                  convoStepDone(err)
+                }
               } else {
-                debug(`${this.header.name}: bot says nothing`)
-                failCb('bot says nothing')
-                convoStepDone(null, true)
+                try {
+                  if (failCb) failCb(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
+                  convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: bot says nothing`))
+                } catch (err) {
+                  convoStepDone(err)
+                }
               }
             }).catch((err) => {
-              debug(`${this.header.name}: error waiting for bot ${util.inspect(err)}`)
-              failCb(`${this.header.name}: error waiting for bot ${util.inspect(err)}`)
-              convoStepDone(null, true)
+              try {
+                if (failCb) failCb(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`)
+                convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`))
+              } catch (err) {
+                convoStepDone(err)
+              }
             })
           } else {
-            debug(`${this.header.name}: invalid sender ${util.inspect(convoStep.sender)}`)
-            failCb(`${this.header.name}: invalid sender ${util.inspect(convoStep.sender)}`)
-            convoStepDone(null, true)
+            try {
+              if (failCb) failCb(`${this.header.name}/${convoStep.stepTag}: invalid sender ${util.inspect(convoStep.sender)}`)
+              convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: invalid sender ${util.inspect(convoStep.sender)}`))
+            } catch (err) {
+              convoStepDone(err)
+            }
           }
         },
-        (err, failed) => {
+        (err) => {
           if (err) {
-            reject(new Error(`${this.header.name}: failed: ${util.inspect(err)}`))
-          } else if (failed) {
-            reject(new Error(`${this.header.name}: failed`))
+            reject(err)
           } else {
             resolve()
           }
@@ -86,22 +100,21 @@ class Convo {
     })
   }
 
-  _compareObject (container, assertCb, failCb, result, expected) {
-    if (expected === null || expected === undefined) return true
+  _compareObject (container, convoStep, assertCb, failCb, result, expected) {
+    if (expected === null || expected === undefined) return
 
     if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
         if (result.hasOwnProperty(key)) {
-          return this._compareObject(container, assertCb, failCb, result[key], expected[key])
+          this._compareObject(container, convoStep, assertCb, failCb, result[key], expected[key])
         } else {
-          failCb(`missing expected property: ${key}`)
-          return false
+          throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
         }
       })
     } else {
-      return assertCb(
-        this._checkNormalizeText(container, result),
-        this._checkNormalizeText(container, expected))
+      const response = this._checkNormalizeText(container, result)
+      const tomatch = this._checkNormalizeText(container, expected)
+      assertCb(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
     }
   }
 
