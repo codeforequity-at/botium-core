@@ -65,10 +65,12 @@ class Convo {
               }
             }).catch((err) => {
               debug(`${this.header.name}: error waiting for bot ${util.inspect(err)}`)
+              failCb(`${this.header.name}: error waiting for bot ${util.inspect(err)}`)
               convoStepDone(null, true)
             })
           } else {
             debug(`${this.header.name}: invalid sender ${util.inspect(convoStep.sender)}`)
+            failCb(`${this.header.name}: invalid sender ${util.inspect(convoStep.sender)}`)
             convoStepDone(null, true)
           }
         },
