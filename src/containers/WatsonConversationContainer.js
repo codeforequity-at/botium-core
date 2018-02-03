@@ -122,20 +122,29 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
       this.conversation.message(payload, (err, data) => {
         if (err) return reject(new Error(`Cannot send message to watson container: ${util.inspect(err)}`))
 
+        debug(`Watson response: ${util.inspect(data)}`)
         this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
         resolve(this)
 
         this.conversationContext = data.context
-        if (data.output && data.output.text) {
-          const messageTexts = (_.isArray(data.output.text) ? data.output.text : [ data.output.text ])
-
-          messageTexts.forEach((messageText) => {
-            if (!messageText) return
-
-            const botMsg = { sourceData: data.output, messageText }
+        if (this.caps[Capabilities.WATSONCONVERSATION_USE_INTENT]) {
+          if (data.intents && data.intents.length > 0) {
+            const botMsg = { sender: 'bot', sourceData: data, messageText: data.intents[0].intent }
             this._QueueBotSays(new BotiumMockMessage(botMsg))
             this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
-          })
+          }
+        } else {
+          if (data.output && data.output.text) {
+            const messageTexts = (_.isArray(data.output.text) ? data.output.text : [ data.output.text ])
+
+            messageTexts.forEach((messageText) => {
+              if (!messageText) return
+
+              const botMsg = { sender: 'bot', sourceData: data, messageText }
+              this._QueueBotSays(new BotiumMockMessage(botMsg))
+              this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
+            })
+          }
         }
       })
     })

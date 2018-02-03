@@ -63,7 +63,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
         (initComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_INIT_TEXT]) {
             this.view.msg = { messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }
-            this._doRequest().then(() => initComplete()).catch(initComplete)
+            this._doRequest(false).then(() => initComplete()).catch(initComplete)
           } else {
             initComplete()
           }
@@ -81,7 +81,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
 
   UserSays (mockMsg) {
     this.view.msg = mockMsg
-    return this._doRequest()
+    return this._doRequest(true)
   }
 
   Stop () {
@@ -123,7 +123,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
     })
   }
 
-  _doRequest () {
+  _doRequest (evalResponseBody) {
     const requestOptions = this._buildRequest()
     debug(`constructed requestOptions ${util.inspect(requestOptions)}`)
 
@@ -131,44 +131,58 @@ module.exports = class SimpleRestContainer extends BaseContainer {
       request(requestOptions, (err, response, body) => {
         if (err) {
           reject(new Error(`rest request failed: ${util.inspect(err)}`))
-        } else if (body) {
+        } else {
           this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, this.view.msg)
-          debug(`got response body: ${util.inspect(body)}`)
 
-          if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
-            const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
-            if (_.isArray(contextNodes) && contextNodes.length > 0) {
-              this.view.context = contextNodes[0]
-              debug(`found context: ${util.inspect(this.view.context)}`)
+          if (response.statusCode >= 400) {
+            debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
+            return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))
+          }
+
+          if (body) {
+            debug(`got response body: ${util.inspect(body)}`)
+
+            if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
+              const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
+              if (_.isArray(contextNodes) && contextNodes.length > 0) {
+                this.view.context = contextNodes[0]
+                debug(`found context: ${util.inspect(this.view.context)}`)
+              } else {
+                this.view.context = {}
+              }
             } else {
-              this.view.context = {}
+              this.view.context = body
             }
-          } else {
-            this.view.context = body
+
+            if (evalResponseBody) {
+              if (this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) {
+                const responseTexts = jp.query(body, this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH])
+                debug(`found response texts: ${util.inspect(responseTexts)}`)
+
+                const messageTexts = (_.isArray(responseTexts) ? responseTexts : [ responseTexts ])
+                messageTexts.forEach((messageText) => {
+                  if (!messageText) return
+
+                  const botMsg = { sourceData: body, messageText }
+                  this._QueueBotSays(new BotiumMockMessage(botMsg))
+                  this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
+                })
+              }
+            }
           }
+
           resolve(this)
-
-          if (this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) {
-            const responseTexts = jp.query(body, this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH])
-            debug(`found response texts: ${util.inspect(responseTexts)}`)
-
-            const messageTexts = (_.isArray(responseTexts) ? responseTexts : [ responseTexts ])
-            messageTexts.forEach((messageText) => {
-              if (!messageText) return
-
-              const botMsg = { sourceData: body, messageText }
-              this._QueueBotSays(new BotiumMockMessage(botMsg))
-              this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
-            })
-          }
         }
       })
     })
   }
 
   _buildRequest () {
+    this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
+    const uri = Mustache.render(this.caps[Capabilities.SIMPLEREST_URL], this.view)
+
     const requestOptions = {
-      uri: Mustache.render(this.caps[Capabilities.SIMPLEREST_URL], this.view),
+      uri,
       method: this.caps[Capabilities.SIMPLEREST_METHOD],
       json: true
     }

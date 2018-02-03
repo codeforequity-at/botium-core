@@ -24,7 +24,12 @@ module.exports = {
     [Capabilities.WATSONCONVERSATION_URL]: 'https://gateway.watsonplatform.net/conversation/api',
     [Capabilities.WATSONCONVERSATION_VERSION_DATE]: '2017-05-26',
     [Capabilities.WATSONCONVERSATION_COPY_WORKSPACE]: false,
-    [Capabilities.SIMPLEREST_METHOD]: 'GET'
+    [Capabilities.WATSONCONVERSATION_USE_INTENT]: false,
+    [Capabilities.SIMPLEREST_METHOD]: 'GET',
+    [Capabilities.SCRIPTING_TXT_EOL]: '\n',
+    [Capabilities.SCRIPTING_XLSX_STARTROW]: 1,
+    [Capabilities.SCRIPTING_XLSX_STARTCOL]: 'A',
+    [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true
   },
   Sources: {
     [Source.LOCALPATH]: '.',
