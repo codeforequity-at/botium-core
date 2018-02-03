@@ -1,0 +1,147 @@
+<html>
+
+<script src="/jquery-3.3.1.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+
+window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+var socket = null;
+var voices = null;
+
+function connect() {
+    socket = io();
+
+	socket.on('close', function(msg) {
+      window.close();
+    });
+	
+	socket.on('usersays', function(config, msg) {
+		log('got usersays command: ' + JSON.stringify(config) + ' / ' + msg.messageText);
+		usersays(config, msg.messageText, function() {
+			socket.emit('usersaid', msg);
+		});
+    });
+	
+	socket.on('waitbotsays', function(config) {
+		log('got waitbotsays command: ' + JSON.stringify(config));
+		waitbotsays(config, function(msg) {
+			log('botsays: ' + msg);
+			socket.emit('botsays', msg);
+		});
+    });
+}
+
+function log(msg) {
+	console.log(msg);
+	$('#log').append(msg).append('<br/>');
+	if (socket) {
+		socket.emit('log', msg);
+	}
+}
+
+function waitbotsays(config, done) {
+	if (!window.SpeechRecognition) return;
+
+	var recognizer = new window.SpeechRecognition();
+	recognizer.continuous = true;
+	recognizer.interimResults = false;
+	recognizer.maxAlternatives = 1;
+	if ('WEBSPEECH_LANGUAGE' in config) {
+		recognizer.lang = config['WEBSPEECH_LANGUAGE'];
+	}
+	
+	recognizer.onresult = function(event) {
+		for (var i = event.resultIndex; i < event.results.length; i++) {
+			if (event.results[i].isFinal) {
+				log('waitbotsays isFinal: ' + event.results[i][0].transcript + ' (Confidence: ' + event.results[i][0].confidence + ')');
+				
+				recognizer.stop();
+				done(event.results[i][0].transcript);
+				
+			} else {
+				log('waitbotsays transcript: ' + event.results[i][0].transcript);
+			}
+		}
+	};
+	recognizer.onerror = function(event) {
+		log('waitbotsays error: ' + JSON.stringify(event));
+	};	
+	try {
+		recognizer.start();
+		log('waitbotsays started');
+    } catch(ex) {
+		log('waitbotsays error: ' + JSON.stringify(ex));
+    }	
+}
+
+function usersays(config, text, done) {
+	var msg = new SpeechSynthesisUtterance();
+	msg.text = text;
+
+	if ('WEBSPEECH_LANGUAGE' in config) {
+		msg.lang = config['WEBSPEECH_LANGUAGE'];
+	}
+	if ('WEBSPEECH_PITCH' in config) {
+		msg.pitch = config['WEBSPEECH_PITCH'];
+	}
+	if ('WEBSPEECH_RATE' in config) {
+		msg.rate = config['WEBSPEECH_RATE'];
+	}
+	if ('WEBSPEECH_VOLUME' in config) {
+		msg.volume = config['WEBSPEECH_VOLUME'];
+	}
+  
+	msg.onstart = function() { 
+		log('onstart usersays: ' + text); 
+	};
+	msg.onerror  = function(event) {
+		log('usersays error: ' + JSON.stringify(event)); 
+	};
+	msg.onend = function() { 
+		log('onend usersays: ' + text); 
+		if (done) done();
+	};
+	
+	var populateVoiceAndSpeak = function() {
+		if (voices) {
+			msg.voice = voices.filter(function(voice) { return voice.name == config['WEBSPEECH_VOICE']; })[0];
+		}
+		if (msg.voice) {
+			log('usersays selected voice ' + JSON.stringify(msg.voice.name));
+		} else {
+			log('usersays voice ' + config['WEBSPEECH_VOICE'] + ' not available. default voice is used');
+		}
+		speechSynthesis.speak(msg);
+	}
+	
+	if ('WEBSPEECH_VOICE' in config) {
+		if (voices) {
+			populateVoiceAndSpeak();
+		} else {
+			if (speechSynthesis.onvoiceschanged !== undefined) {
+				speechSynthesis.onvoiceschanged = function() {
+					if (!voices) {
+						voices = speechSynthesis.getVoices();
+						populateVoiceAndSpeak();
+					}
+				};
+				speechSynthesis.getVoices();
+			} else {
+				voices = speechSynthesis.getVoices();
+				populateVoiceAndSpeak();
+			}
+		}
+	} else {
+		speechSynthesis.speak(msg);
+	}
+}
+
+$(connect);
+
+</script>
+
+<body>
+	<div id="log"></div>
+</body>
+</html>
