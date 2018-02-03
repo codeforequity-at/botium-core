@@ -1,6 +1,6 @@
 {
   "name": "botium-core",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "The Selenium for Chatbots",
   "main": "dist/botium-cjs.js",
   "module": "dist/botium-es.js",
@@ -34,6 +34,7 @@
     "mkdirp": "^0.5.1",
     "moment": "^2.19.4",
     "mustache": "^2.3.0",
+    "opn": "^5.2.0",
     "randomatic": "^2.0.0",
     "request": "^2.83.0",
     "rimraf": "^2.6.2",
@@ -42,6 +43,7 @@
     "socket.io-client": "^2.0.4",
     "socketio-auth": "^0.1.0",
     "tcp-port-used": "^0.1.2",
+    "tiny-server": "^1.0.2",
     "uuid": "^3.1.0",
     "watson-developer-cloud": "^3.0.3",
     "write-yaml": "^1.0.0",
