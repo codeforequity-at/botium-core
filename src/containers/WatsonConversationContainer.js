@@ -123,10 +123,10 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
         if (err) return reject(new Error(`Cannot send message to watson container: ${util.inspect(err)}`))
 
         debug(`Watson response: ${util.inspect(data)}`)
+        this.conversationContext = data.context
         this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
         resolve(this)
 
-        this.conversationContext = data.context
         if (this.caps[Capabilities.WATSONCONVERSATION_USE_INTENT]) {
           if (data.intents && data.intents.length > 0) {
             const botMsg = { sender: 'bot', sourceData: data, messageText: data.intents[0].intent }
