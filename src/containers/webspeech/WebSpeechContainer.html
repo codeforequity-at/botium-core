@@ -23,9 +23,9 @@ function connect() {
 		});
     });
 	
-	socket.on('waitbotsays', function(config) {
-		log('got waitbotsays command: ' + JSON.stringify(config));
-		waitbotsays(config, function(msg) {
+	socket.on('startrecognize', function(config) {
+		log('got startrecognize command: ' + JSON.stringify(config));
+		startrecognize(config, function(msg) {
 			log('botsays: ' + msg);
 			socket.emit('botsays', msg);
 		});
@@ -40,7 +40,7 @@ function log(msg) {
 	}
 }
 
-function waitbotsays(config, done) {
+function startrecognize(config, recognized) {
 	if (!window.SpeechRecognition) return;
 
 	var recognizer = new window.SpeechRecognition();
@@ -54,24 +54,25 @@ function waitbotsays(config, done) {
 	recognizer.onresult = function(event) {
 		for (var i = event.resultIndex; i < event.results.length; i++) {
 			if (event.results[i].isFinal) {
-				log('waitbotsays isFinal: ' + event.results[i][0].transcript + ' (Confidence: ' + event.results[i][0].confidence + ')');
+				log('startrecognize isFinal: ' + event.results[i][0].transcript + ' (Confidence: ' + event.results[i][0].confidence + ')');
 				
-				recognizer.stop();
-				done(event.results[i][0].transcript);
-				
+				var transcript = event.results[i][0].transcript;
+				if (transcript && transcript.trim()) {
+					recognized(transcript.trim());
+				}
 			} else {
-				log('waitbotsays transcript: ' + event.results[i][0].transcript);
+				log('startrecognize transcript: ' + event.results[i][0].transcript);
 			}
 		}
 	};
 	recognizer.onerror = function(event) {
-		log('waitbotsays error: ' + JSON.stringify(event));
+		log('startrecognize error: ' + JSON.stringify(event));
 	};	
 	try {
 		recognizer.start();
-		log('waitbotsays started');
+		log('startrecognize started');
     } catch(ex) {
-		log('waitbotsays error: ' + JSON.stringify(ex));
+		log('startrecognize error: ' + JSON.stringify(ex));
     }	
 }
 
