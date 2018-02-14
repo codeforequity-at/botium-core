@@ -9,6 +9,12 @@ window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogn
 var socket = null;
 var voices = null;
 
+var recognizerConfig = null;
+var recognizerCallback = null;
+var recognizer = null;
+
+
+
 function connect() {
     socket = io();
 
@@ -18,17 +24,21 @@ function connect() {
 	
 	socket.on('usersays', function(config, msg) {
 		log('got usersays command: ' + JSON.stringify(config) + ' / ' + msg.messageText);
+		stoprecognize();
 		usersays(config, msg.messageText, function() {
 			socket.emit('usersaid', msg);
+			startrecognize();
 		});
     });
 	
 	socket.on('startrecognize', function(config) {
 		log('got startrecognize command: ' + JSON.stringify(config));
-		startrecognize(config, function(msg) {
+		recognizerConfig = config;
+		recognizerCallback = function(msg) {
 			log('botsays: ' + msg);
 			socket.emit('botsays', msg);
-		});
+		};
+		startrecognize();
     });
 }
 
@@ -40,15 +50,29 @@ function log(msg) {
 	}
 }
 
-function startrecognize(config, recognized) {
-	if (!window.SpeechRecognition) return;
+function stoprecognize() {
+	if (recognizer) {
+		try {
+			recognizer.stop();
+			log('stoprecognize stopped');
+		} catch(ex) {
+			log('stoprecognize error: ' + JSON.stringify(ex));
+		}
+		recognizer = null;
+	}
+}
 
-	var recognizer = new window.SpeechRecognition();
+function startrecognize() {
+	if (!window.SpeechRecognition) return;
+	
+	stoprecognize();
+	
+	recognizer = new window.SpeechRecognition();
 	recognizer.continuous = true;
 	recognizer.interimResults = false;
 	recognizer.maxAlternatives = 1;
-	if ('WEBSPEECH_LANGUAGE' in config) {
-		recognizer.lang = config['WEBSPEECH_LANGUAGE'];
+	if ('WEBSPEECH_LANGUAGE' in recognizerConfig) {
+		recognizer.lang = recognizerConfig['WEBSPEECH_LANGUAGE'];
 	}
 	
 	recognizer.onresult = function(event) {
@@ -58,7 +82,7 @@ function startrecognize(config, recognized) {
 				
 				var transcript = event.results[i][0].transcript;
 				if (transcript && transcript.trim()) {
-					recognized(transcript.trim());
+					recognizerCallback(transcript.trim());
 				}
 			} else {
 				log('startrecognize transcript: ' + event.results[i][0].transcript);
@@ -66,7 +90,7 @@ function startrecognize(config, recognized) {
 		}
 	};
 	recognizer.onerror = function(event) {
-		log('startrecognize error: ' + JSON.stringify(event));
+		log('startrecognize error: ' + event.error);
 	};	
 	try {
 		recognizer.start();
