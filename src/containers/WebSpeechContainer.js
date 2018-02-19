@@ -53,7 +53,9 @@ module.exports = class WebSpeechContainer extends BaseContainer {
             this.clientSocket.on('botsays', (msg) => {
               debug(`browser botsays: ${msg}`)
               if (msg) {
-                this._QueueBotSays(new BotiumMockMessage({ messageText: msg }))
+                const botMsg = { sender: 'bot', messageText: msg }
+                this._QueueBotSays(new BotiumMockMessage(botMsg))
+                this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
               }
             })
             this.clientSocket.on('usersaid', (msg) => {
@@ -62,6 +64,7 @@ module.exports = class WebSpeechContainer extends BaseContainer {
                 this.usersaidResolve = null
               }
             })
+            this.clientSocket.emit('startrecognize', this.browserConfig)
 
             if (this.connectResolve) {
               this.connectResolve()
@@ -141,15 +144,6 @@ module.exports = class WebSpeechContainer extends BaseContainer {
         reject(new Error('browser connection not online'))
       }
     })
-  }
-
-  WaitBotSays (channel = null, timeoutMillis = null) {
-    if (this.clientSocket) {
-      this.clientSocket.emit('waitbotsays', this.browserConfig)
-      return super.WaitBotSays(channel, timeoutMillis)
-    } else {
-      return Promise.reject(new Error('browser connection not online'))
-    }
   }
 
   Stop () {

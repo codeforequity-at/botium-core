@@ -9,6 +9,12 @@ window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogn
 var socket = null;
 var voices = null;
 
+var recognizerConfig = null;
+var recognizerCallback = null;
+var recognizer = null;
+
+
+
 function connect() {
     socket = io();
 
@@ -18,17 +24,21 @@ function connect() {
 	
 	socket.on('usersays', function(config, msg) {
 		log('got usersays command: ' + JSON.stringify(config) + ' / ' + msg.messageText);
+		stoprecognize();
 		usersays(config, msg.messageText, function() {
 			socket.emit('usersaid', msg);
+			startrecognize();
 		});
     });
 	
-	socket.on('waitbotsays', function(config) {
-		log('got waitbotsays command: ' + JSON.stringify(config));
-		waitbotsays(config, function(msg) {
+	socket.on('startrecognize', function(config) {
+		log('got startrecognize command: ' + JSON.stringify(config));
+		recognizerConfig = config;
+		recognizerCallback = function(msg) {
 			log('botsays: ' + msg);
 			socket.emit('botsays', msg);
-		});
+		};
+		startrecognize();
     });
 }
 
@@ -40,38 +50,53 @@ function log(msg) {
 	}
 }
 
-function waitbotsays(config, done) {
-	if (!window.SpeechRecognition) return;
+function stoprecognize() {
+	if (recognizer) {
+		try {
+			recognizer.stop();
+			log('stoprecognize stopped');
+		} catch(ex) {
+			log('stoprecognize error: ' + JSON.stringify(ex));
+		}
+		recognizer = null;
+	}
+}
 
-	var recognizer = new window.SpeechRecognition();
+function startrecognize() {
+	if (!window.SpeechRecognition) return;
+	
+	stoprecognize();
+	
+	recognizer = new window.SpeechRecognition();
 	recognizer.continuous = true;
 	recognizer.interimResults = false;
 	recognizer.maxAlternatives = 1;
-	if ('WEBSPEECH_LANGUAGE' in config) {
-		recognizer.lang = config['WEBSPEECH_LANGUAGE'];
+	if ('WEBSPEECH_LANGUAGE' in recognizerConfig) {
+		recognizer.lang = recognizerConfig['WEBSPEECH_LANGUAGE'];
 	}
 	
 	recognizer.onresult = function(event) {
 		for (var i = event.resultIndex; i < event.results.length; i++) {
 			if (event.results[i].isFinal) {
-				log('waitbotsays isFinal: ' + event.results[i][0].transcript + ' (Confidence: ' + event.results[i][0].confidence + ')');
+				log('startrecognize isFinal: ' + event.results[i][0].transcript + ' (Confidence: ' + event.results[i][0].confidence + ')');
 				
-				recognizer.stop();
-				done(event.results[i][0].transcript);
-				
+				var transcript = event.results[i][0].transcript;
+				if (transcript && transcript.trim()) {
+					recognizerCallback(transcript.trim());
+				}
 			} else {
-				log('waitbotsays transcript: ' + event.results[i][0].transcript);
+				log('startrecognize transcript: ' + event.results[i][0].transcript);
 			}
 		}
 	};
 	recognizer.onerror = function(event) {
-		log('waitbotsays error: ' + JSON.stringify(event));
+		log('startrecognize error: ' + event.error);
 	};	
 	try {
 		recognizer.start();
-		log('waitbotsays started');
+		log('startrecognize started');
     } catch(ex) {
-		log('waitbotsays error: ' + JSON.stringify(ex));
+		log('startrecognize error: ' + JSON.stringify(ex));
     }	
 }
 
