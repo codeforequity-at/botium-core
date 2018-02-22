@@ -155,8 +155,12 @@ module.exports = class SimpleRestContainer extends BaseContainer {
             }
 
             if (evalResponseBody) {
-              if (this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) {
-                const responseTexts = jp.query(body, this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH])
+              const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_RESPONSE_JSONPATH));
+              _(jsonPathCaps).keys().sort().each((key) => {
+                const jsonPath = this.caps[key]
+                debug(`eval json path ${jsonPath}`)
+                
+                const responseTexts = jp.query(body, jsonPath)
                 debug(`found response texts: ${util.inspect(responseTexts)}`)
 
                 const messageTexts = (_.isArray(responseTexts) ? responseTexts : [ responseTexts ])
@@ -167,7 +171,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
                   this._QueueBotSays(new BotiumMockMessage(botMsg))
                   this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
                 })
-              }
+              })
             }
           }
 
