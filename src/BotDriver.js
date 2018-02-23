@@ -205,6 +205,10 @@ module.exports = class BotDriver {
       const WebSpeechContainer = require('./containers/WebSpeechContainer')
       return new WebSpeechContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
-    throw new Error(`No Container provider found for Caps ${util.inspect(this.caps)}`)
+    if (this.caps[Capabilities.CONTAINERMODE] === 'inprocess') {
+      const InProcessContainer = require('./containers/InProcessContainer')
+      return new InProcessContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
+    }
+    throw new Error(`No Container provider1 found for Caps ${util.inspect(this.caps)}`)
   }
 }
