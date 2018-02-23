@@ -122,6 +122,7 @@ class Convo {
     if (str && _.isString(str) && container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]) {
       // remove html tags
       str = str.replace(/<p[^>]*>/g, ' ')
+      str = str.replace(/<\/p>/g, ' ')
       str = str.replace(/<br[^>]*>/g, ' ')
       str = str.replace(/<[^>]*>/g, '')
       /* eslint-disable no-control-regex */

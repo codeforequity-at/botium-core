@@ -3,7 +3,7 @@ module.exports = {
   TEMPDIR: 'TEMPDIR',
   CLEANUPTEMPDIR: 'CLEANUPTEMPDIR',
   WAITFORBOTTIMEOUT: 'WAITFORBOTTIMEOUT',
-  // "docker" "fbdirect" "watsonconversation", "simplerest", "webspeech", "dialogflow"
+  // "docker" "fbdirect" "watsonconversation", "simplerest", "webspeech", "dialogflow", "inprocess"
   CONTAINERMODE: 'CONTAINERMODE',
   STARTCMD: 'STARTCMD',
   DOCKERCOMPOSEPATH: 'DOCKERCOMPOSEPATH',
