@@ -2,12 +2,13 @@ const isJSON = require('is-json')
 const _ = require('lodash')
 
 const Capabilities = require('../Capabilities')
+const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
 const { ConvoHeader, Convo } = require('./Convo')
 
 module.exports = class CompilerTxt extends CompilerBase {
-  constructor (caps = {}) {
-    super(caps)
+  constructor (provider, caps = {}) {
+    super(provider, caps)
 
     this.eol = caps[Capabilities.SCRIPTING_TXT_EOL]
   }
@@ -15,12 +16,12 @@ module.exports = class CompilerTxt extends CompilerBase {
   Validate () {
     super.Validate()
     this._AssertCapabilityExists(Capabilities.SCRIPTING_TXT_EOL)
-    if (this.caps[Capabilities.SCRIPTING_INPUT_TYPE] !== 'buffer' && this.caps[Capabilities.SCRIPTING_INPUT_TYPE] !== 'string') {
-      throw new Error(`SCRIPTING_INPUT_TYPE(${this.caps[Capabilities.SCRIPTING_INPUT_TYPE]}) only buffer and string type supported`)
-    }
   }
 
-  GetHeaders (scriptData) {
+  GetHeaders (scriptBuffer) {
+    let scriptData = scriptBuffer
+    if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
+
     let lines = scriptData.split(this.eol)
 
     let header = { }
@@ -31,10 +32,9 @@ module.exports = class CompilerTxt extends CompilerBase {
     return new ConvoHeader(header)
   }
 
-  Compile (scriptData) {
-    if (this.caps[Capabilities.SCRIPTING_INPUT_TYPE] === 'buffer') {
-      scriptData = scriptData.toString()
-    }
+  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
+    let scriptData = scriptBuffer
+    if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
     let lines = scriptData.split(this.eol)
 
@@ -101,7 +101,9 @@ module.exports = class CompilerTxt extends CompilerBase {
     })
     pushPrev()
 
-    return [ new Convo(convo) ]
+    let result = [ new Convo(convo) ]
+    this.provider.AddConvos(result)
+    return result
   }
 
   Decompile (convos) {
