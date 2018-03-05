@@ -24,7 +24,8 @@ class ConvoStep {
 }
 
 class Convo {
-  constructor (fromJson = {}) {
+  constructor (provider, fromJson = {}) {
+    this.provider = provider
     this.header = new ConvoHeader(fromJson.header)
     if (fromJson.conversation && _.isArray(fromJson.conversation)) {
       this.conversation = _.map(fromJson.conversation, (step) => new ConvoStep(step))
@@ -33,7 +34,7 @@ class Convo {
     }
   }
 
-  Run (container, assertCb = () => true, failCb = () => true) {
+  Run (container) {
     return new Promise((resolve, reject) => {
       async.eachSeries(this.conversation,
         (convoStep, convoStepDone) => {
@@ -53,38 +54,35 @@ class Convo {
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
                 const tomatch = this._checkNormalizeText(container, convoStep.messageText)
                 try {
-                  assertCb(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
+                  this.provider.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
                   convoStepDone()
                 } catch (err) {
                   convoStepDone(err)
                 }
               } else if (saysmsg && saysmsg.sourceData) {
                 try {
-                  this._compareObject(container, convoStep, assertCb, failCb, saysmsg.sourceData, convoStep.sourceData)
+                  this._compareObject(container, convoStep, saysmsg.sourceData, convoStep.sourceData)
                   convoStepDone()
                 } catch (err) {
                   convoStepDone(err)
                 }
               } else {
                 try {
-                  if (failCb) failCb(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
-                  convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: bot says nothing`))
+                  this.provider.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
                 } catch (err) {
                   convoStepDone(err)
                 }
               }
             }).catch((err) => {
               try {
-                if (failCb) failCb(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`)
-                convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`))
+                this.provider.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`)
               } catch (err) {
                 convoStepDone(err)
               }
             })
           } else {
             try {
-              if (failCb) failCb(`${this.header.name}/${convoStep.stepTag}: invalid sender ${util.inspect(convoStep.sender)}`)
-              convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: invalid sender ${util.inspect(convoStep.sender)}`))
+              this.provider.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: invalid sender ${util.inspect(convoStep.sender)}`)
             } catch (err) {
               convoStepDone(err)
             }
@@ -100,13 +98,13 @@ class Convo {
     })
   }
 
-  _compareObject (container, convoStep, assertCb, failCb, result, expected) {
+  _compareObject (container, convoStep, result, expected) {
     if (expected === null || expected === undefined) return
 
     if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
         if (result.hasOwnProperty(key)) {
-          this._compareObject(container, convoStep, assertCb, failCb, result[key], expected[key])
+          this._compareObject(container, convoStep, result[key], expected[key])
         } else {
           throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
         }
@@ -114,7 +112,7 @@ class Convo {
     } else {
       const response = this._checkNormalizeText(container, result)
       const tomatch = this._checkNormalizeText(container, expected)
-      assertCb(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
+      this.provider.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
     }
   }
 

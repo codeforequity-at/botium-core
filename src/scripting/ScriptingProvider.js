@@ -8,6 +8,27 @@ module.exports = class ScriptingProvider {
     this.compilers = {}
     this.convos = []
     this.utterances = { }
+
+    this.scriptingEvents = {
+      assertBotResponse: (botresponse, tomatch, stepTag) => {
+        if (!_.isArray(tomatch)) tomatch = [ tomatch ]
+
+        const found = _.find(tomatch, (utt) => botresponse.match(utt))
+        if (!found) {
+          throw new Error(`${stepTag}: Expected bot response "${botresponse}" to match one of "${tomatch}"`)
+        }
+      },
+      assertBotNotResponse: (botresponse, nottomatch, stepTag) => {
+        try {
+          this.scriptingEvents.assertBotResponse(botresponse, nottomatch)
+          throw new Error(`${stepTag}: Expected bot response "${botresponse}" NOT to match one of "${nottomatch}"`)
+        } catch (err) {
+        }
+      },
+      fail: (err) => {
+        throw err
+      }
+    }
   }
 
   Build () {

@@ -39,8 +39,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       } else {
         sheetnames = workbook.SheetNames || []
       }
-    }
-    if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
+    } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
         sheetnames = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES].split(/\s*[;,\s|]\s*/) || []
       } else {
@@ -80,7 +79,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
             emptylines = 0
           } else {
             if (currentConvo.length > 0) {
-              scriptResults.push(new Convo({
+              scriptResults.push(new Convo(this.provider, {
                 header: {
                   name: `${sheetname}-${startcell}`
                 },
@@ -122,12 +121,12 @@ module.exports = class CompilerXlsx extends CompilerBase {
       }
     })
 
-    if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-      this.provider.AddConvos(scriptResults)
+    if (scriptResults && scriptResults.length > 0) {
+      if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
+        this.provider.AddConvos(scriptResults)
+      } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
+        this.provider.AddUtterances(scriptResults)
+      }
     }
-    if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
-      this.provider.AddUtterances(scriptResults)
-    }
-    return scriptResults
   }
 }

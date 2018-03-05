@@ -101,9 +101,8 @@ module.exports = class CompilerTxt extends CompilerBase {
     })
     pushPrev()
 
-    let result = [ new Convo(convo) ]
+    let result = [ new Convo(this.provider, convo) ]
     this.provider.AddConvos(result)
-    return result
   }
 
   Decompile (convos) {

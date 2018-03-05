@@ -28,8 +28,8 @@ const driver = new BotDriver()
 const script = fs.readFileSync('./restaurant.convo.txt')
 
 const compiler = driver.BuildCompiler()
-const convos = compiler.Compile(script, 'SCRIPTING_FORMAT_TXT')
-const decompiledscript = compiler.GetCompiler('SCRIPTING_FORMAT_TXT').Decompile(convos)
+compiler.Compile(script, 'SCRIPTING_FORMAT_TXT')
+const decompiledscript = compiler.GetCompiler('SCRIPTING_FORMAT_TXT').Decompile(compiler.convos)
 console.log(decompiledscript)
 
 return
