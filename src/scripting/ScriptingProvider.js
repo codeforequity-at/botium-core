@@ -19,7 +19,7 @@ module.exports = class ScriptingProvider {
           }
         }
 
-        const found = _.find(tomatch, (utt) => botresponse.match(utt))
+        const found = _.find(tomatch, (utt) => botresponse.match(new RegExp(utt, 'i')))
         if (!found) {
           throw new Error(`${stepTag}: Expected bot response "${botresponse}" to match one of "${tomatch}"`)
         }

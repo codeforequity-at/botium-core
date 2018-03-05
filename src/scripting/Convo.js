@@ -117,7 +117,11 @@ class Convo {
   }
 
   _checkNormalizeText (container, str) {
-    if (str && _.isString(str) && container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]) {
+    if (str && !_.isString(str)) {
+      if (str.toString) str = str.toString()
+      else str = `${str}`
+    }
+    if (str && container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]) {
       // remove html tags
       str = str.replace(/<p[^>]*>/g, ' ')
       str = str.replace(/<\/p>/g, ' ')

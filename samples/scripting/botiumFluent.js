@@ -4,17 +4,12 @@ const BotDriver = require('../../index').BotDriver
 const Capabilities = require('../../index').Capabilities
 const Source = require('../../index').Source
 
-function assert (actual, expected) {
-  if (!actual || actual.indexOf(expected) < 0) {
-    console.log(`ERROR: Expected <${expected}>, got <${actual}>`)
-    return false
-  } else {
-    console.log(`SUCCESS: Got Expected <${expected}>`)
-    return true
-  }
+function assert (botresponse, tomatch, stepTag) {
+  console.log(`{stepTag}: BOTRESPONSE "${botresponse}", EXPECTED "${tomatch}"`)
 }
 function fail(err) {
     console.log(`ERROR: <${err}>`)
+    throw err
 }
 
 const driver = new BotDriver()
@@ -25,17 +20,19 @@ const driver = new BotDriver()
   .setCapability(Capabilities.WATSONCONVERSATION_WORKSPACE_ID, '97513bc0-c581-4bec-ac9f-ea6a8ec308a9')
   .setCapability(Capabilities.WATSONCONVERSATION_COPY_WORKSPACE, false)
 
-const script = fs.readFileSync('./restaurant.convo.txt')
+const scriptBuffer = fs.readFileSync(__dirname + '/restaurant.convo.txt')
 
+/*
 const compiler = driver.BuildCompiler()
 compiler.Compile(script, 'SCRIPTING_FORMAT_TXT')
 const decompiledscript = compiler.GetCompiler('SCRIPTING_FORMAT_TXT').Decompile(compiler.convos)
 console.log(decompiledscript)
 
 return
+*/
 
 driver.BuildFluent()
-  .Compile(script)
+  .Compile(scriptBuffer, 'SCRIPTING_FORMAT_TXT')
   .RunScripts(assert, fail)
   .Exec()
   .then(() => {

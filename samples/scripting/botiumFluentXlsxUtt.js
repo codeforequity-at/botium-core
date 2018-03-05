@@ -17,9 +17,16 @@ const driver = new BotDriver()
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTCOL, 1)
 
 
-const script = fs.readFileSync('./Book2.xlsx')
-const compiler = driver.BuildCompiler()
-//compiler.Compile(script, 'SCRIPTING_FORMAT_XSLX', 'SCRIPTING_TYPE_CONVO')
-//console.log(JSON.stringify(compiler.convos, null, 2))
-compiler.Compile(script, 'SCRIPTING_FORMAT_XSLX', 'SCRIPTING_TYPE_UTTERANCES')
-console.log(JSON.stringify(compiler.utterances, null, 2))
+const scriptBuffer = fs.readFileSync(__dirname + '/Book2.xlsx')
+
+driver.BuildFluent()
+  .Compile(scriptBuffer, 'SCRIPTING_FORMAT_XSLX', 'SCRIPTING_TYPE_CONVO')
+  .Compile(scriptBuffer, 'SCRIPTING_FORMAT_XSLX', 'SCRIPTING_TYPE_UTTERANCES')
+  .RunScripts()
+  .Exec()
+  .then(() => {
+    console.log('READY')
+  })
+  .catch((err) => {
+    console.log('ERROR: ', err)
+  })
