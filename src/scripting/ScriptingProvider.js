@@ -11,7 +11,13 @@ module.exports = class ScriptingProvider {
 
     this.scriptingEvents = {
       assertBotResponse: (botresponse, tomatch, stepTag) => {
-        if (!_.isArray(tomatch)) tomatch = [ tomatch ]
+        if (!_.isArray(tomatch)) {
+          if (this.utterances[tomatch]) {
+            tomatch = this.utterances[tomatch].utterances
+          } else {
+            tomatch = [ tomatch ]
+          }
+        }
 
         const found = _.find(tomatch, (utt) => botresponse.match(utt))
         if (!found) {
@@ -25,8 +31,8 @@ module.exports = class ScriptingProvider {
         } catch (err) {
         }
       },
-      fail: (err) => {
-        throw err
+      fail: (msg) => {
+        throw new Error(msg)
       }
     }
   }
