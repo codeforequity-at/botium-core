@@ -1,6 +1,12 @@
+const fs = require('fs')
+const path = require('path')
+const glob = require('glob')
 const _ = require('lodash')
+const debug = require('debug')('botium-ScriptingProvider')
 
 const Constants = require('./Constants')
+
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx)'
 
 module.exports = class ScriptingProvider {
   constructor (caps = {}) {
@@ -44,7 +50,6 @@ module.exports = class ScriptingProvider {
     const CompilerTxt = require('./CompilerTxt')
     this.compilers[Constants.SCRIPTING_FORMAT_TXT] = new CompilerTxt(this, this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_TXT].Validate()
-    return this
   }
 
   Compile (scriptBuffer, scriptFormat, scriptType) {
@@ -52,23 +57,45 @@ module.exports = class ScriptingProvider {
     return compiler.Compile(scriptBuffer, scriptType)
   }
 
-  GetCompilerForFile (fileName) {
-    if (fileName.endsWith('.xslx')) {
-      return this.GetCompiler(this.caps, Constants.SCRIPTING_FORMAT_XSLX)
-    }
-    if (fileName.endsWith('.txt')) {
-      return this.GetCompiler(this.caps, Constants.SCRIPTING_FORMAT_TXT)
-    }
-    if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
-      return this.GetCompiler(this.caps, Constants.SCRIPTING_FORMAT_YAML)
-    }
-    throw new Error(`No compiler found for fileName ${fileName}`)
+  Decompile (convos, scriptFormat) {
+    let compiler = this.GetCompiler(scriptFormat)
+    return compiler.Decompile(convos)
   }
 
   GetCompiler (scriptFormat) {
     const result = this.compilers[scriptFormat]
     if (result) return result
     throw new Error(`No compiler found for scriptFormat ${scriptFormat}`)
+  }
+
+  ReadScriptsFromDirectory (convoDir) {
+    const filelist = glob.sync(globPattern, { cwd: convoDir })
+    debug(`ReadConvosFromDirectory(${convoDir}) found filenames: ${filelist}`)
+
+    filelist.forEach((filename) => {
+      let fileConvos = []
+
+      const scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
+
+      if (filename.endsWith('.xlsx')) {
+        this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
+      } else if (filename.endsWith('.convo.txt')) {
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
+      } else if (filename.endsWith('.utterances.txt')) {
+        this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
+      }
+      if (fileConvos) {
+        fileConvos.forEach((fileConvo) => {
+          fileConvo.filename = filename
+          if (!fileConvo.header.name) {
+            fileConvo.header.name = filename
+          }
+        })
+      }
+    })
+    debug(`ReadConvosFromDirectory(${convoDir}) found convos:\n ${this.convos ? this.convos.join('\n') : 'none'}`)
+    debug(`ReadConvosFromDirectory(${convoDir}) found utterances:\n ${this.utterances ? _.map(this.utterances, (u) => u).join('\n') : 'none'}`)
   }
 
   AddConvos (convos) {
@@ -80,7 +107,10 @@ module.exports = class ScriptingProvider {
   }
 
   AddUtterances (utterances) {
-    if (utterances && _.isArray(utterances)) {
+    if (utterances && !_.isArray(utterances)) {
+      utterances = [ utterances ]
+    }
+    if (utterances) {
       _.forEach(utterances, (utt) => {
         let eu = this.utterances[utt.name]
         if (eu) {

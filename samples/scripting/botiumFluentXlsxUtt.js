@@ -16,12 +16,8 @@ const driver = new BotDriver()
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTROW, 2)
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTCOL, 1)
 
-
-const scriptBuffer = fs.readFileSync(__dirname + '/Book2.xlsx')
-
 driver.BuildFluent()
-  .Compile(scriptBuffer, 'SCRIPTING_FORMAT_XSLX', 'SCRIPTING_TYPE_CONVO')
-  .Compile(scriptBuffer, 'SCRIPTING_FORMAT_XSLX', 'SCRIPTING_TYPE_UTTERANCES')
+  .ReadScripts('convos')
   .RunScripts()
   .Exec()
   .then(() => {

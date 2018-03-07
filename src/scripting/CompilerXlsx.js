@@ -127,6 +127,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
         this.provider.AddUtterances(scriptResults)
       }
+      return scriptResults
     }
   }
 }

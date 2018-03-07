@@ -120,7 +120,9 @@ module.exports = class BotDriver {
   BuildCompiler () {
     debug(`BuildCompiler: Capabilites: ${util.inspect(this.caps)}`)
     try {
-      return (new ScriptingProvider(this.caps)).Build()
+      let compiler = new ScriptingProvider(this.caps)
+      compiler.Build()
+      return compiler
     } catch (err) {
       debug(`BotDriver BuildCompiler error: ${err}`)
       throw err

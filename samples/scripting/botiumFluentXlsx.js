@@ -15,8 +15,7 @@ const driver = new BotDriver()
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTROW, 2)
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTCOL, 1)
 
-
-const script = fs.readFileSync('./Book1.xlsx')
+const script = fs.readFileSync(__dirname + '/Book1.xlsx')
 
 const convos = driver.BuildCompiler().Compile(script, 'SCRIPTING_FORMAT_XSLX')
-console.log(JSON.stringify(convos, null, 2))
+console.log(`${convos}`)

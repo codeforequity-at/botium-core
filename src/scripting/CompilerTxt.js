@@ -4,6 +4,7 @@ const _ = require('lodash')
 const Capabilities = require('../Capabilities')
 const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
+const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
 
 module.exports = class CompilerTxt extends CompilerBase {
@@ -36,8 +37,16 @@ module.exports = class CompilerTxt extends CompilerBase {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
-    let lines = scriptData.split(this.eol)
+    let lines = _.map(scriptData.split(this.eol), (line) => line.trim())
 
+    if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
+      return this._compileConvo(lines)
+    } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
+      return this._compileUtterances(lines)
+    }
+  }
+
+  _compileConvo (lines) {
     let convo = {
       header: {},
       conversation: []
@@ -103,6 +112,15 @@ module.exports = class CompilerTxt extends CompilerBase {
 
     let result = [ new Convo(this.provider, convo) ]
     this.provider.AddConvos(result)
+    return result
+  }
+
+  _compileUtterances (lines) {
+    if (lines && lines.length > 1) {
+      let result = [ new Utterance({ name: lines[0], utterances: lines.slice(1) }) ]
+      this.provider.AddUtterances(result)
+      return result
+    }
   }
 
   Decompile (convos) {

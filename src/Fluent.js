@@ -49,6 +49,27 @@ module.exports = class Fluent {
     return this
   }
 
+  ReadScripts (scriptDir) {
+    this.tasks.push(() => {
+      return new Promise((resolve, reject) => {
+        if (this.compiler == null) {
+          try {
+            this.compiler = this.driver.BuildCompiler()
+          } catch (err) {
+            return reject(err)
+          }
+        }
+        try {
+          this.compiler.ReadScriptsFromDirectory(scriptDir)
+          resolve()
+        } catch (err) {
+          reject(err)
+        }
+      })
+    })
+    return this
+  }
+
   Compile (scriptBuffer, scriptFormat, scriptType) {
     this.tasks.push(() => {
       return new Promise((resolve, reject) => {

@@ -10,4 +10,6 @@ module.exports = class Utterance {
       this.utterances.push(fromJson.utterances)
     }
   }
+
+  toString () { return this.name + ': ' + this.utterances.join('|') }
 }

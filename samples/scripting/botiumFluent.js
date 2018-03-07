@@ -20,16 +20,12 @@ const driver = new BotDriver()
   .setCapability(Capabilities.WATSONCONVERSATION_WORKSPACE_ID, '97513bc0-c581-4bec-ac9f-ea6a8ec308a9')
   .setCapability(Capabilities.WATSONCONVERSATION_COPY_WORKSPACE, false)
 
-const scriptBuffer = fs.readFileSync(__dirname + '/restaurant.convo.txt')
+const scriptBuffer = fs.readFileSync(__dirname + '/convos/txt/restaurant.convo.txt')
 
-/*
 const compiler = driver.BuildCompiler()
-compiler.Compile(script, 'SCRIPTING_FORMAT_TXT')
-const decompiledscript = compiler.GetCompiler('SCRIPTING_FORMAT_TXT').Decompile(compiler.convos)
+const convos = compiler.Compile(scriptBuffer, 'SCRIPTING_FORMAT_TXT')
+const decompiledscript = compiler.Decompile(convos, 'SCRIPTING_FORMAT_TXT')
 console.log(decompiledscript)
-
-return
-*/
 
 driver.BuildFluent()
   .Compile(scriptBuffer, 'SCRIPTING_FORMAT_TXT')

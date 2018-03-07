@@ -11,6 +11,8 @@ class ConvoHeader {
     this.name = fromJson.name
     this.description = fromJson.description
   }
+
+  toString () { return this.name + (this.description ? ` (${this.description})` : '') }
 }
 
 class ConvoStep {
@@ -21,6 +23,8 @@ class ConvoStep {
     this.sourceData = fromJson.sourceData
     this.stepTag = fromJson.stepTag
   }
+
+  toString () { return this.stepTag + ': ' + this.sender + ' - ' + this.messageText }
 }
 
 class Convo {
@@ -33,6 +37,8 @@ class Convo {
       this.conversation = []
     }
   }
+
+  toString () { return this.header + ': ' + this.conversation.join('\n') }
 
   Run (container) {
     return new Promise((resolve, reject) => {
