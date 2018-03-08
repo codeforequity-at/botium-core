@@ -4,14 +4,6 @@ const BotDriver = require('../../index').BotDriver
 const Capabilities = require('../../index').Capabilities
 const Source = require('../../index').Source
 
-function assert (botresponse, tomatch, stepTag) {
-  console.log(`{stepTag}: BOTRESPONSE "${botresponse}", EXPECTED "${tomatch}"`)
-}
-function fail(err) {
-    console.log(`ERROR: <${err}>`)
-    throw err
-}
-
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'IBM Watson Conversation Sample')
   .setCapability(Capabilities.CONTAINERMODE, 'watsonconversation')
@@ -19,17 +11,14 @@ const driver = new BotDriver()
   .setCapability(Capabilities.WATSONCONVERSATION_PASSWORD, 'ZWDE5xo02sby')
   .setCapability(Capabilities.WATSONCONVERSATION_WORKSPACE_ID, '97513bc0-c581-4bec-ac9f-ea6a8ec308a9')
   .setCapability(Capabilities.WATSONCONVERSATION_COPY_WORKSPACE, false)
-
-const scriptBuffer = fs.readFileSync(__dirname + '/convos/txt/restaurant.convo.txt')
-
-const compiler = driver.BuildCompiler()
-const convos = compiler.Compile(scriptBuffer, 'SCRIPTING_FORMAT_TXT')
-const decompiledscript = compiler.Decompile(convos, 'SCRIPTING_FORMAT_TXT')
-console.log(decompiledscript)
+  .setCapability(Capabilities.SCRIPTING_XLSX_SHEETNAMES, 'Dialogs')
+  .setCapability(Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES, 'Utterances')
+  .setCapability(Capabilities.SCRIPTING_XLSX_STARTROW, 2)
+  .setCapability(Capabilities.SCRIPTING_XLSX_STARTCOL, 1)
 
 driver.BuildFluent()
-  .Compile(scriptBuffer, 'SCRIPTING_FORMAT_TXT')
-  .RunScripts(assert, fail)
+  .ReadScripts('convos')
+  .RunScripts()
   .Exec()
   .then(() => {
     console.log('READY')

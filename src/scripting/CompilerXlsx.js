@@ -5,11 +5,13 @@ const debug = require('debug')('botium-CompilerXlsx')
 
 const Capabilities = require('../Capabilities')
 const CompilerBase = require('./CompilerBase')
+const Constants = require('./Constants')
+const Utterance = require('./Utterance')
 const { Convo } = require('./Convo')
 
 module.exports = class CompilerXlsx extends CompilerBase {
-  constructor (caps = {}) {
-    super(caps)
+  constructor (provider, caps = {}) {
+    super(provider, caps)
 
     this.colnames = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' ]
   }
@@ -26,18 +28,28 @@ module.exports = class CompilerXlsx extends CompilerBase {
     }
   }
 
-  Compile (scriptData) {
-    const workbook = XLSX.read(scriptData, { type: this.caps[Capabilities.SCRIPTING_INPUT_TYPE] })
-
+  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
+    const workbook = XLSX.read(scriptBuffer, { type: 'buffer' })
     if (!workbook) throw new Error(`Workbook not readable`)
 
-    let sheetnames = workbook.SheetNames
-    if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
-      sheetnames = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES].split(/\s*[;,\s|]\s*/)
+    let sheetnames = []
+    if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
+      if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
+        sheetnames = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES].split(/\s*[;,\s|]\s*/) || []
+      } else {
+        sheetnames = workbook.SheetNames || []
+      }
+    } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
+      if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
+        sheetnames = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES].split(/\s*[;,\s|]\s*/) || []
+      } else {
+        sheetnames = workbook.SheetNames || []
+      }
     }
-    debug(`sheet names: ${util.inspect(sheetnames)}`)
+    debug(`sheet names for ${scriptType}: ${util.inspect(sheetnames)}`)
 
-    const convos = []
+    const scriptResults = []
+
     sheetnames.forEach((sheetname) => {
       const sheet = workbook.Sheets[sheetname]
       if (!sheet) return
@@ -47,41 +59,75 @@ module.exports = class CompilerXlsx extends CompilerBase {
       if (_.isString(this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL])) {
         colindex = this.colnames.findIndex((c) => c === this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL])
       }
-      debug(`evaluating sheet name: ${util.inspect(sheetname)}, rowindex ${rowindex}, colindex ${colindex}`)
+      debug(`evaluating sheet name for ${scriptType}: ${util.inspect(sheetname)}, rowindex ${rowindex}, colindex ${colindex}`)
 
-      let currentConvo = []
-      let emptylines = 0
-      let startcell = null
-      while (true) {
-        const meCell = this.colnames[colindex] + rowindex
-        const botCell = this.colnames[colindex + 1] + rowindex
+      if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
+        let currentConvo = []
+        let emptylines = 0
+        let startcell = null
+        while (true) {
+          const meCell = this.colnames[colindex] + rowindex
+          const botCell = this.colnames[colindex + 1] + rowindex
 
-        if (sheet[meCell] && sheet[meCell].v) {
-          currentConvo.push({ sender: 'me', messageText: sheet[meCell].v, stepTag: 'Cell ' + meCell })
-          if (!startcell) startcell = meCell
-          emptylines = 0
-        } else if (sheet[botCell] && sheet[botCell].v) {
-          currentConvo.push({ sender: 'bot', messageText: sheet[botCell].v, stepTag: 'Cell ' + botCell })
-          if (!startcell) startcell = botCell
-          emptylines = 0
-        } else {
-          if (currentConvo.length > 0) {
-            convos.push(new Convo({
-              header: {
-                name: `${sheetname}-${startcell}`
-              },
-              conversation: currentConvo
-            }))
+          if (sheet[meCell] && sheet[meCell].v) {
+            currentConvo.push({ sender: 'me', messageText: sheet[meCell].v, stepTag: 'Cell ' + meCell })
+            if (!startcell) startcell = meCell
+            emptylines = 0
+          } else if (sheet[botCell] && sheet[botCell].v) {
+            currentConvo.push({ sender: 'bot', messageText: sheet[botCell].v, stepTag: 'Cell ' + botCell })
+            if (!startcell) startcell = botCell
+            emptylines = 0
+          } else {
+            if (currentConvo.length > 0) {
+              scriptResults.push(new Convo(this.provider, {
+                header: {
+                  name: `${sheetname}-${startcell}`
+                },
+                conversation: currentConvo
+              }))
+            }
+            currentConvo = []
+            startcell = null
+            emptylines++
           }
-          currentConvo = []
-          startcell = null
-          emptylines++
-        }
-        rowindex++
+          rowindex++
 
-        if (emptylines > 1) break
+          if (emptylines > 1) break
+        }
+      }
+
+      if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
+        let currentUtterance = null
+        let emptylines = 0
+        while (true) {
+          const nameCell = this.colnames[colindex] + rowindex
+          const uttCell = this.colnames[colindex + 1] + rowindex
+
+          if (sheet[nameCell] && sheet[nameCell].v && sheet[uttCell] && sheet[uttCell].v) {
+            currentUtterance = new Utterance({ name: sheet[nameCell].v, utterances: [ sheet[uttCell].v ] })
+            scriptResults.push(currentUtterance)
+            emptylines = 0
+          } else if (sheet[uttCell] && sheet[uttCell].v) {
+            if (currentUtterance) currentUtterance.utterances.push(sheet[uttCell].v)
+            emptylines = 0
+          } else {
+            currentUtterance = null
+            emptylines++
+          }
+          rowindex++
+
+          if (emptylines > 1) break
+        }
       }
     })
-    return convos
+
+    if (scriptResults && scriptResults.length > 0) {
+      if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
+        this.provider.AddConvos(scriptResults)
+      } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
+        this.provider.AddUtterances(scriptResults)
+      }
+      return scriptResults
+    }
   }
 }

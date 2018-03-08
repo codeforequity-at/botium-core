@@ -1,16 +1,14 @@
-const Capabilities = require('../Capabilities')
-
 module.exports = class CompilerBase {
-  constructor (caps = {}) {
+  constructor (provider, caps = {}) {
+    this.provider = provider
     this.caps = caps
   }
 
   Validate () {
-    this._AssertCapabilityExists(Capabilities.SCRIPTING_INPUT_TYPE)
   }
 
-  GetHeaders (scriptData) {
-    const convos = this.Compile(scriptData)
+  GetHeaders (scriptBuffer) {
+    const convos = this.Compile(scriptBuffer)
     if (convos) {
       return convos.map((convo) => convo.header)
     } else {
@@ -18,7 +16,7 @@ module.exports = class CompilerBase {
     }
   }
 
-  Compile (scriptData) {
+  Compile (scriptBuffer, scriptType) {
     throw new Error(`not implemented`)
   }
 

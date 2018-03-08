@@ -4,7 +4,7 @@ restaurant
 hi
 
 #bot
-Hi. It looks like a nice drive today. What would you like me to do?  
+HELLO
 
 #me
 where is the next restauran
@@ -37,5 +37,4 @@ What day/time did you want to go to the restaurant?
 10th of january
 
 #bot
-Ok, let's go to the restaurant on
-
+OK

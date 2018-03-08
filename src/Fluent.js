@@ -4,6 +4,7 @@ const _ = require('lodash')
 module.exports = class Fluent {
   constructor (driver) {
     this.driver = driver
+    this.compiler = null
     this.container = null
     this.currentChannel = null
     this.tasks = []
@@ -48,11 +49,39 @@ module.exports = class Fluent {
     return this
   }
 
-  Compile (script) {
+  ReadScripts (scriptDir) {
     this.tasks.push(() => {
       return new Promise((resolve, reject) => {
+        if (this.compiler == null) {
+          try {
+            this.compiler = this.driver.BuildCompiler()
+          } catch (err) {
+            return reject(err)
+          }
+        }
         try {
-          this.convos = this.driver.BuildCompiler().Compile(script)
+          this.compiler.ReadScriptsFromDirectory(scriptDir)
+          resolve()
+        } catch (err) {
+          reject(err)
+        }
+      })
+    })
+    return this
+  }
+
+  Compile (scriptBuffer, scriptFormat, scriptType) {
+    this.tasks.push(() => {
+      return new Promise((resolve, reject) => {
+        if (this.compiler == null) {
+          try {
+            this.compiler = this.driver.BuildCompiler()
+          } catch (err) {
+            return reject(err)
+          }
+        }
+        try {
+          this.compiler.Compile(scriptBuffer, scriptFormat, scriptType)
           resolve()
         } catch (err) {
           reject(err)
@@ -65,8 +94,15 @@ module.exports = class Fluent {
   RunScripts (assertCb, failCb) {
     this.tasks.push(() => {
       return new Promise((resolve, reject) => {
-        async.eachSeries(this.convos, (convo, convoDone) => {
-          convo.Run(this.container, assertCb, failCb).then(() => convoDone()).catch(convoDone)
+        if (assertCb) {
+          this.compiler.scriptingEvents.assertBotResponse = assertCb
+        }
+        if (failCb) {
+          this.compiler.scriptingEvents.fail = failCb
+        }
+
+        async.eachSeries(this.compiler.convos, (convo, convoDone) => {
+          convo.Run(this.container).then(() => convoDone()).catch(convoDone)
         },
         (err) => {
           if (err) return reject(err)

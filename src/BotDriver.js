@@ -13,6 +13,7 @@ const Capabilities = require('./Capabilities')
 const Source = require('./Source')
 const Fluent = require('./Fluent')
 const Events = require('./Events')
+const ScriptingProvider = require('./scripting/ScriptingProvider')
 
 module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, env = {}) {
@@ -117,15 +118,15 @@ module.exports = class BotDriver {
   }
 
   BuildCompiler () {
-    if (this.caps[Capabilities.SCRIPTING_FORMAT] === 'xlsx') {
-      const CompilerXlsx = require('./scripting/CompilerXlsx')
-      return new CompilerXlsx(this.caps)
+    debug(`BuildCompiler: Capabilites: ${util.inspect(this.caps)}`)
+    try {
+      let compiler = new ScriptingProvider(this.caps)
+      compiler.Build()
+      return compiler
+    } catch (err) {
+      debug(`BotDriver BuildCompiler error: ${err}`)
+      throw err
     }
-    if (this.caps[Capabilities.SCRIPTING_FORMAT] === 'txt') {
-      const CompilerTxt = require('./scripting/CompilerTxt')
-      return new CompilerTxt(this.caps)
-    }
-    throw new Error(`No compiler found for caps ${util.inspect(this.caps)}`)
   }
 
   /* Private Functions */
