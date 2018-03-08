@@ -34,7 +34,8 @@ module.exports = {
     [Capabilities.SCRIPTING_TXT_EOL]: '\n',
     [Capabilities.SCRIPTING_XLSX_STARTROW]: 1,
     [Capabilities.SCRIPTING_XLSX_STARTCOL]: 'A',
-    [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true
+    [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true,
+    [Capabilities.SCRIPTING_MATCHING_MODE]: 'include'
   },
   Sources: {
     [Source.LOCALPATH]: '.',
