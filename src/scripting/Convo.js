@@ -56,7 +56,13 @@ class Convo {
             debug(`${this.header.name} wait for bot ${util.inspect(convoStep.channel)}`)
             container.WaitBotSays(convoStep.channel).then((saysmsg) => {
               debug(`${this.header.name}: bot says ${util.inspect(saysmsg)}`)
-              if (saysmsg && saysmsg.messageText) {
+              if (!saysmsg || (!saysmsg.messageText && !saysmsg.sourceData)) {
+                try {
+                  this.provider.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
+                } catch (err) {
+                  convoStepDone(err)
+                }
+              } else if (convoStep.messageText) {
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
                 const tomatch = this._checkNormalizeText(container, convoStep.messageText)
                 try {
@@ -65,7 +71,7 @@ class Convo {
                 } catch (err) {
                   convoStepDone(err)
                 }
-              } else if (saysmsg && saysmsg.sourceData) {
+              } else if (convoStep.sourceData) {
                 try {
                   this._compareObject(container, convoStep, saysmsg.sourceData, convoStep.sourceData)
                   convoStepDone()
@@ -73,11 +79,7 @@ class Convo {
                   convoStepDone(err)
                 }
               } else {
-                try {
-                  this.provider.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
-                } catch (err) {
-                  convoStepDone(err)
-                }
+                convoStepDone()
               }
             }).catch((err) => {
               try {
@@ -107,7 +109,17 @@ class Convo {
   _compareObject (container, convoStep, result, expected) {
     if (expected === null || expected === undefined) return
 
-    if (_.isObject(expected)) {
+    if (_.isArray(expected)) {
+      if (!_.isArray(result)) {
+        throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response expected array, got "${result}"`)
+      }
+      if (expected.length !== result.length) {
+        throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
+      }
+      for (var i = 0; i < expected.length; i++) {
+        this._compareObject(container, convoStep, result[i], expected[i])
+      }
+    } else if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
         if (result.hasOwnProperty(key)) {
           this._compareObject(container, convoStep, result[key], expected[key])

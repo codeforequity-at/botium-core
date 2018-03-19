@@ -26,7 +26,13 @@ module.exports = class ScriptingProvider {
             tomatch = [ tomatch ]
           }
         }
-        const found = _.find(tomatch, (utt) => this.match(botresponse, utt))
+        const found = _.find(tomatch, (utt) => {
+          if (_.isString(botresponse)) {
+            return this.match(botresponse, utt)
+          } else {
+            return botresponse === utt
+          }
+        })
         if (!found) {
           throw new Error(`${stepTag}: Expected bot response "${botresponse}" to match one of "${tomatch}"`)
         }
@@ -57,6 +63,8 @@ module.exports = class ScriptingProvider {
       this.match = (botresponse, utterance) => (new RegExp(utterance, 'i')).test(botresponse)
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include') {
       this.match = (botresponse, utterance) => botresponse.indexOf(utterance) >= 0
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
+      this.match = (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
     } else {
       this.match = (botresponse, utterance) => botresponse === utterance
     }
