@@ -16,6 +16,14 @@ const driver = new BotDriver()
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTROW, 2)
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTCOL, 1)
 
+/*
+const compiler = driver.BuildCompiler()
+compiler.ReadScriptsFromDirectory('convos/xlsx')
+
+console.log(compiler.convos)
+compiler.ExpandConvos()
+*/
+
 driver.BuildFluent()
   .ReadScripts('convos')
   .RunScripts()

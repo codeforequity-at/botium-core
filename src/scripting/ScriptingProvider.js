@@ -1,3 +1,4 @@
+const util = require('util')
 const fs = require('fs')
 const path = require('path')
 const glob = require('glob')
@@ -6,6 +7,7 @@ const debug = require('debug')('botium-ScriptingProvider')
 
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
+const { Convo } = require('./Convo')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx)'
 
@@ -117,6 +119,50 @@ module.exports = class ScriptingProvider {
           fileConvo.header.name = filename
         }
       })
+    }
+  }
+
+  ExpandConvos () {
+    const expandedConvos = []
+    this.convos.forEach((convo) => {
+      this._expandConvo(expandedConvos, convo)
+    })
+    this.convos = expandedConvos
+  }
+
+  _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
+    if (convoStepIndex < currentConvo.conversation.length) {
+      const currentStep = currentConvo.conversation[convoStepIndex]
+      if (currentStep.sender === 'bot') {
+        const currentStepsStack = convoStepsStack.slice()
+        currentStepsStack.push(Object.assign({}, currentStep))
+        this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+      } else if (currentStep.sender === 'me') {
+        if (currentStep.messageText) {
+          const parts = currentStep.messageText.split(' ')
+          const uttName = parts[0]
+          const uttArgs = parts.slice(1)
+          if (this.utterances[uttName]) {
+            this.utterances[uttName].utterances.forEach((utt) => {
+              const currentStepsStack = convoStepsStack.slice()
+              if (uttArgs) {
+                utt = util.format(utt, ...uttArgs)
+              }
+              currentStepsStack.push(Object.assign({}, currentStep, { messageText: utt }))
+              this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+            })
+            return
+          }
+        }
+        const currentStepsStack = convoStepsStack.slice()
+        currentStepsStack.push(Object.assign({}, currentStep))
+        this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+      }
+    } else {
+      expandedConvos.push(new Convo(this, {
+        header: currentConvo.header,
+        conversation: convoStepsStack
+      }))
     }
   }
 

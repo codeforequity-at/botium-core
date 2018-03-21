@@ -39,7 +39,7 @@ module.exports = class DialogflowContainer extends BaseContainer {
 
       ], (err) => {
         if (err) {
-          return reject(new Error(`Cannot build watson container: ${util.inspect(err)}`))
+          return reject(new Error(`Cannot build dialogflow container: ${util.inspect(err)}`))
         }
         resolve(this)
       })

@@ -22,9 +22,10 @@ class ConvoStep {
     this.messageText = fromJson.messageText
     this.sourceData = fromJson.sourceData
     this.stepTag = fromJson.stepTag
+    this.not = fromJson.not
   }
 
-  toString () { return this.stepTag + ': ' + this.sender + ' - ' + this.messageText }
+  toString () { return this.stepTag + ': #' + this.sender + ' - ' + (this.not ? '!' : '') + this.messageText }
 }
 
 class Convo {
@@ -38,7 +39,7 @@ class Convo {
     }
   }
 
-  toString () { return this.header + ': ' + this.conversation.join('\n') }
+  toString () { return this.header.toString() + ': ' + this.conversation.map((c) => c.toString()).join(' | ') }
 
   Run (container) {
     return new Promise((resolve, reject) => {
@@ -65,11 +66,20 @@ class Convo {
               } else if (convoStep.messageText) {
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
                 const tomatch = this._checkNormalizeText(container, convoStep.messageText)
-                try {
-                  this.provider.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
-                  convoStepDone()
-                } catch (err) {
-                  convoStepDone(err)
+                if (convoStep.not) {
+                  try {
+                    this.provider.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
+                    convoStepDone()
+                  } catch (err) {
+                    convoStepDone(err)
+                  }
+                } else {
+                  try {
+                    this.provider.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
+                    convoStepDone()
+                  } catch (err) {
+                    convoStepDone(err)
+                  }
                 }
               } else if (convoStep.sourceData) {
                 try {
