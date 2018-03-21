@@ -57,14 +57,19 @@ module.exports = class CompilerTxt extends CompilerBase {
     let currentSender = null
     let currentChannel = null
 
-    let parseMsg = (lines) => {
+    const parseMsg = (lines) => {
       if (!lines) return null
 
+      let not = false
+      if (lines[0].startsWith('!')) {
+        not = true
+        lines[0] = lines[0].substr(1)
+      }
       let content = lines.join(' ')
       if (isJSON(content)) {
-        return JSON.parse(content)
+        return { not, sourceData: JSON.parse(content) }
       } else {
-        return lines.join(this.eol)
+        return { not, messageText: lines.join(this.eol) }
       }
     }
 
@@ -75,12 +80,10 @@ module.exports = class CompilerTxt extends CompilerBase {
           channel: currentChannel,
           stepTag: 'Line ' + currentLineIndex
         }
-        let msg = parseMsg(currentLines)
-        if (_.isString(msg)) {
-          convoStep.messageText = msg
-        } else {
-          convoStep.sourceData = msg
-        }
+        let { not, messageText, sourceData } = parseMsg(currentLines)
+        convoStep.not = not
+        convoStep.messageText = messageText
+        convoStep.sourceData = sourceData
         convo.conversation.push(convoStep)
       } else if (!currentSender && currentLines) {
         convo.header.name = currentLines[0]
@@ -151,8 +154,14 @@ module.exports = class CompilerTxt extends CompilerBase {
       script += this.eol
 
       if (set.messageText) {
+        if (set.not) {
+          script += '!'
+        }
         script += set.messageText + this.eol
       } else if (set.sourceData) {
+        if (set.not) {
+          script += '!'
+        }
         script += JSON.stringify(set.sourceData, null, 2) + this.eol
       }
     })

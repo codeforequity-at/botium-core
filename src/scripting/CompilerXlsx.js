@@ -1,4 +1,5 @@
 const util = require('util')
+const isJSON = require('is-json')
 const XLSX = require('xlsx')
 const _ = require('lodash')
 const debug = require('debug')('botium-CompilerXlsx')
@@ -62,6 +63,23 @@ module.exports = class CompilerXlsx extends CompilerBase {
       debug(`evaluating sheet name for ${scriptType}: ${util.inspect(sheetname)}, rowindex ${rowindex}, colindex ${colindex}`)
 
       if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
+        const parseCell = (content) => {
+          if (!content) return {}
+
+          if (!_.isString(content)) content = '' + content
+
+          let not = false
+          if (content.startsWith('!')) {
+            not = true
+            content = content.substr(1)
+          }
+          if (isJSON(content)) {
+            return { not, sourceData: JSON.parse(content) }
+          } else {
+            return { not, messageText: content }
+          }
+        }
+
         let currentConvo = []
         let emptylines = 0
         let startcell = null
@@ -70,11 +88,17 @@ module.exports = class CompilerXlsx extends CompilerBase {
           const botCell = this.colnames[colindex + 1] + rowindex
 
           if (sheet[meCell] && sheet[meCell].v) {
-            currentConvo.push({ sender: 'me', messageText: sheet[meCell].v, stepTag: 'Cell ' + meCell })
+            currentConvo.push(Object.assign(
+              { sender: 'me', stepTag: 'Cell ' + meCell },
+              parseCell(sheet[meCell].v)
+            ))
             if (!startcell) startcell = meCell
             emptylines = 0
           } else if (sheet[botCell] && sheet[botCell].v) {
-            currentConvo.push({ sender: 'bot', messageText: sheet[botCell].v, stepTag: 'Cell ' + botCell })
+            currentConvo.push(Object.assign(
+              { sender: 'bot', stepTag: 'Cell ' + botCell },
+              parseCell(sheet[botCell].v)
+            ))
             if (!startcell) startcell = botCell
             emptylines = 0
           } else {

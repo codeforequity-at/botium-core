@@ -95,11 +95,13 @@ module.exports = class Fluent {
     this.tasks.push(() => {
       return new Promise((resolve, reject) => {
         if (assertCb) {
-          this.compiler.scriptingEvents.assertBotResponse = assertCb
+          this.compiler.scriptingEvents.assertBotResponse = assertCb.bind(this.compiler)
         }
         if (failCb) {
-          this.compiler.scriptingEvents.fail = failCb
+          this.compiler.scriptingEvents.fail = failCb.bind(this.compiler)
         }
+
+        this.compiler.ExpandConvos()
 
         async.eachSeries(this.compiler.convos, (convo, convoDone) => {
           convo.Run(this.container).then(() => convoDone()).catch(convoDone)
