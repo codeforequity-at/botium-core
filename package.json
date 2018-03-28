@@ -27,7 +27,7 @@
     "debug": "^3.1.0",
     "dialogflow": "^0.1.0",
     "express": "^4.16.2",
-    "facebook-chat-api": "^1.4.0",
+    "facebook-chat-api": "^1.5.0",
     "find-root": "^1.1.0",
     "glob": "^7.1.2",
     "is-json": "^2.0.1",
