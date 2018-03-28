@@ -114,7 +114,7 @@ module.exports = class ScriptingProvider {
     }
     if (fileConvos) {
       fileConvos.forEach((fileConvo) => {
-        fileConvo.filename = filename
+        fileConvo.sourceTag = filename
         if (!fileConvo.header.name) {
           fileConvo.header.name = filename
         }
@@ -128,6 +128,7 @@ module.exports = class ScriptingProvider {
       this._expandConvo(expandedConvos, convo)
     })
     this.convos = expandedConvos
+    this._sortConvos()
   }
 
   _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
@@ -159,11 +160,14 @@ module.exports = class ScriptingProvider {
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       }
     } else {
-      expandedConvos.push(new Convo(this, {
-        header: currentConvo.header,
-        conversation: convoStepsStack
-      }))
+      expandedConvos.push(new Convo(this, Object.assign({}, currentConvo, { conversation: convoStepsStack })))
     }
+  }
+
+  _sortConvos () {
+    this.convos = _.sortBy(this.convos, [(convo) => convo.header.name])
+    let i = 0
+    this.convos.forEach((convo) => { convo.header.order = ++i })
   }
 
   AddConvos (convos) {
@@ -172,6 +176,7 @@ module.exports = class ScriptingProvider {
     } else if (convos) {
       this.convos.push(convos)
     }
+    this._sortConvos()
   }
 
   AddUtterances (utterances) {

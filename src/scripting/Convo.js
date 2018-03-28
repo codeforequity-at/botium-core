@@ -9,10 +9,11 @@ const Capabilities = require('../Capabilities')
 class ConvoHeader {
   constructor (fromJson = {}) {
     this.name = fromJson.name
+    this.order = fromJson.order
     this.description = fromJson.description
   }
 
-  toString () { return this.name + (this.description ? ` (${this.description})` : '') }
+  toString () { return this.order + ' ' + this.name + (this.description ? ` (${this.description})` : '') }
 }
 
 class ConvoStep {
@@ -37,9 +38,10 @@ class Convo {
     } else {
       this.conversation = []
     }
+    this.sourceTag = fromJson.sourceTag
   }
 
-  toString () { return this.header.toString() + ': ' + this.conversation.map((c) => c.toString()).join(' | ') }
+  toString () { return this.header.toString() + (this.sourceTag ? ` (${this.sourceTag})` : '') + ': ' + this.conversation.map((c) => c.toString()).join(' | ') }
 
   Run (container) {
     return new Promise((resolve, reject) => {

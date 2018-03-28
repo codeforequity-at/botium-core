@@ -18,10 +18,11 @@ const driver = new BotDriver()
 
 /*
 const compiler = driver.BuildCompiler()
-compiler.ReadScriptsFromDirectory('convos/xlsx')
+compiler.ReadScriptsFromDirectory('convos')
 
 console.log(compiler.convos)
 compiler.ExpandConvos()
+compiler.convos.forEach((convo) => console.log(convo.toString()))
 */
 
 driver.BuildFluent()
