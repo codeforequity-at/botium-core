@@ -62,8 +62,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
 
         (initComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_INIT_TEXT]) {
-            this.view.msg = { messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }
-            this._doRequest(false).then(() => initComplete()).catch(initComplete)
+            this._doRequest({ messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }, false).then(() => initComplete()).catch(initComplete)
           } else {
             initComplete()
           }
@@ -80,8 +79,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
   }
 
   UserSays (mockMsg) {
-    this.view.msg = mockMsg
-    return this._doRequest(true)
+    return this._doRequest(mockMsg, true)
   }
 
   Stop () {
@@ -123,8 +121,8 @@ module.exports = class SimpleRestContainer extends BaseContainer {
     })
   }
 
-  _doRequest (evalResponseBody) {
-    const requestOptions = this._buildRequest()
+  _doRequest (msg, evalResponseBody) {
+    const requestOptions = this._buildRequest(msg)
     debug(`constructed requestOptions ${util.inspect(requestOptions)}`)
 
     return new Promise((resolve, reject) => {
@@ -132,7 +130,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
         if (err) {
           reject(new Error(`rest request failed: ${util.inspect(err)}`))
         } else {
-          this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, this.view.msg)
+          this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, msg)
 
           if (response.statusCode >= 400) {
             debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
@@ -181,8 +179,11 @@ module.exports = class SimpleRestContainer extends BaseContainer {
     })
   }
 
-  _buildRequest () {
-    this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
+  _buildRequest (msg) {
+    this.view.msg = Object.assign({}, msg)
+    if (this.view.msg.messageText) {
+      this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
+    }
     const uri = Mustache.render(this.caps[Capabilities.SIMPLEREST_URL], this.view)
 
     const requestOptions = {
