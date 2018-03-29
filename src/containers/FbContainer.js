@@ -2,6 +2,7 @@ const util = require('util')
 const async = require('async')
 const fblogin = require('facebook-chat-api')
 const debug = require('debug')('botium-FbContainer')
+const debugApi = require('debug')('botium-FbContainer-Api')
 
 const Events = require('../Events')
 const Capabilities = require('../Capabilities')
@@ -27,7 +28,7 @@ module.exports = class FbContainer extends BaseContainer {
         (fbLoginReady) => {
           this.fbapi = null
           debug(`logging into facebook page ${this.caps[Capabilities.FB_PAGEID]} with user ${this.caps[Capabilities.FB_USER]}`)
-          fblogin({ email: this.caps[Capabilities.FB_USER], password: this.caps[Capabilities.FB_PASSWORD] }, { logLevel: 'warn' }, (err, api) => {
+          fblogin({ email: this.caps[Capabilities.FB_USER], password: this.caps[Capabilities.FB_PASSWORD] }, { logLevel: debugApi.enabled ? 'verbose' : 'warn' }, (err, api) => {
             if (err) {
               fbLoginReady(`Facebook login failed: ${util.inspect(err)}`)
             } else {
