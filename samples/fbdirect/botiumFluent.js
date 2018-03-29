@@ -13,7 +13,7 @@ function assert (expected, actual) {
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'Testmybot Sample Calculator')
   .setCapability(Capabilities.CONTAINERMODE, 'fbdirect')
-  .setCapability(Capabilities.FB_PAGEID, '')
+  .setCapability(Capabilities.FB_PAGEID, '1271293572983985')
   .setCapability(Capabilities.FB_USER, '')
   .setCapability(Capabilities.FB_PASSWORD, '')
 
