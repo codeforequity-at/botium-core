@@ -181,7 +181,9 @@ module.exports = class SimpleRestContainer extends BaseContainer {
 
   _buildRequest (msg) {
     this.view.msg = Object.assign({}, msg)
+
     if (this.view.msg.messageText) {
+      let nonEncodedMessage = this.view.msg.messageText
       this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
     }
     const uri = Mustache.render(this.caps[Capabilities.SIMPLEREST_URL], this.view)
@@ -190,6 +192,9 @@ module.exports = class SimpleRestContainer extends BaseContainer {
       uri,
       method: this.caps[Capabilities.SIMPLEREST_METHOD],
       json: true
+    }
+    if (this.view.msg.messageText){
+      this.view.msg.messageText = nonEncodedMessage;
     }
     if (this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) {
       requestOptions.headers = JSON.parse(Mustache.render(this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE], this.view))
