@@ -181,7 +181,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
 
   _buildRequest (msg) {
     this.view.msg = Object.assign({}, msg)
-    let nonEncodedMessage = this.view.msg.messageText
+    var nonEncodedMessage = this.view.msg.messageText
 
     if (this.view.msg.messageText) {
       this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
