@@ -55,7 +55,11 @@ module.exports = class SimpleRestContainer extends BaseContainer {
             msg: { }
           }
           if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
-            this.view.context = JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
+            try {
+              this.view.context = JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
+            } catch (err) {
+              contextInitComplete(`parsing SIMPLEREST_INIT_CONTEXT failed, no JSON detected (${util.inspect(err)})`)
+            }
           }
           contextInitComplete()
         },
@@ -122,10 +126,10 @@ module.exports = class SimpleRestContainer extends BaseContainer {
   }
 
   _doRequest (msg, evalResponseBody) {
-    const requestOptions = this._buildRequest(msg)
-    debug(`constructed requestOptions ${util.inspect(requestOptions)}`)
-
     return new Promise((resolve, reject) => {
+      const requestOptions = this._buildRequest(msg)
+      debug(`constructed requestOptions ${util.inspect(requestOptions)}`)
+
       request(requestOptions, (err, response, body) => {
         if (err) {
           reject(new Error(`rest request failed: ${util.inspect(err)}`))
@@ -192,10 +196,21 @@ module.exports = class SimpleRestContainer extends BaseContainer {
       json: true
     }
     if (this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) {
-      requestOptions.headers = JSON.parse(Mustache.render(this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE], this.view))
+      try {
+        requestOptions.headers = JSON.parse(Mustache.render(this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE], this.view))
+      } catch (err) {
+        throw new Error(`composing headers from SIMPLEREST_HEADERS_TEMPLATE failed (${util.inspect(err)})`)
+      }
     }
     if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
-      requestOptions.body = JSON.parse(Mustache.render(this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE], this.view))
+      try {
+        requestOptions.body = Mustache.render(this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE], this.view)
+      } catch (err) {
+        throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${util.inspect(err)})`)
+      }
+      if (!this.caps[Capabilities.SIMPLEREST_BODY_RAW]) {
+        requestOptions.body = JSON.parse(requestOptions.body)
+      }
     }
     return requestOptions
   }
