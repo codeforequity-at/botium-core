@@ -185,6 +185,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
 
   _buildRequest (msg) {
     this.view.msg = Object.assign({}, msg)
+    var nonEncodedMessage = this.view.msg.messageText
     if (this.view.msg.messageText) {
       this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
     }
@@ -194,6 +195,9 @@ module.exports = class SimpleRestContainer extends BaseContainer {
       uri,
       method: this.caps[Capabilities.SIMPLEREST_METHOD],
       json: true
+    }
+    if (this.view.msg.messageText) {
+      this.view.msg.messageText = nonEncodedMessage
     }
     if (this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) {
       try {
