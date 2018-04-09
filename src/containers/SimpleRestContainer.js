@@ -196,8 +196,8 @@ module.exports = class SimpleRestContainer extends BaseContainer {
       method: this.caps[Capabilities.SIMPLEREST_METHOD],
       json: true
     }
-    if (this.view.msg.messageText){
-      this.view.msg.messageText = nonEncodedMessage;
+    if (this.view.msg.messageText) {
+      this.view.msg.messageText = nonEncodedMessage
     }
     if (this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) {
       try {
