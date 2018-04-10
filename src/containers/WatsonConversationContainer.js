@@ -119,12 +119,21 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
         context: this.conversationContext || {},
         input: { text: mockMsg.messageText }
       }
+      if (this.caps[Capabilities.WATSONCONVERSATION_USE_INTENT]) {
+        payload.alternate_intents = true
+      }
       this.conversation.message(payload, (err, data) => {
         if (err) return reject(new Error(`Cannot send message to watson container: ${util.inspect(err)}`))
 
         debug(`Watson response: ${util.inspect(data)}`)
         this.conversationContext = data.context
         this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
+
+        if (this.caps[Capabilities.WATSONCONVERSATION_USE_INTENT]) {
+          if (data.intents.length > 1 && data.intents[0].confidence === data.intents[1].confidence) {
+            return reject(new Error(`Got duplicate intent confidence ${util.inspect(data.intents[0])} vs ${util.inspect(data.intents[1])}`))
+          }
+        }
         resolve(this)
 
         if (this.caps[Capabilities.WATSONCONVERSATION_USE_INTENT]) {
