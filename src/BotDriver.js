@@ -33,6 +33,7 @@ module.exports = class BotDriver {
     var capsToTest = Object.keys(this.caps)
     Object.keys(process.env).forEach(function(element,key,_array) {
       if (capsToTest.includes(element)) {
+        console.log("AHHHHH")
         this.caps[element] = process.env[element]
         debug('changed : ' + element + ' to : ' + process.env[element]);
       }
