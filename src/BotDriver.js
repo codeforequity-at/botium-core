@@ -30,6 +30,13 @@ module.exports = class BotDriver {
 
   setCapabilities (caps) {
     this.caps = Object.assign(this.caps, caps)
+    var capsToTest = Object.keys(this.caps)
+    Object.keys(process.env).forEach(function(element,key,_array) {
+      if (capsToTest.includes(element)) {
+        this.caps[element] = process.env[element]
+        debug('changed : ' + element + ' to : ' + process.env[element]);
+      }
+    })
     return this
   }
 
@@ -40,6 +47,13 @@ module.exports = class BotDriver {
 
   setSources (sources) {
     this.sources = Object.assign(this.sources, sources)
+    var sourcesToTest = Object.keys(this.sources)
+    Object.keys(process.env).forEach(function(element,key,_array) {
+      if (sourcesToTest.includes(element)) {
+        this.sources[element] = process.env[element]
+        debug('changed : ' + element + ' to : ' + process.env[element]);
+      }
+    })
     return this
   }
 
