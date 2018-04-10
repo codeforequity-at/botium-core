@@ -35,10 +35,8 @@ module.exports = class BotDriver {
     var capsToTest = Object.keys(this.caps)
     Object.keys(process.env).forEach(function(element,key,_array) {
       if (capsToTest.includes(element)) {
-        console.log("AHHHHHdd")
-        console.log(this)
         self.caps[element] = process.env[element]
-        debug('changed : ' + element + ' to : ' + process.env[element]);
+        debug('Changed : ' + element + ' to : ' + process.env[element] + ' using environment variables.')
       }
     });
     return self
@@ -56,7 +54,7 @@ module.exports = class BotDriver {
     Object.keys(process.env).forEach(function(element,key,_array) {
       if (sourcesToTest.includes(element)) {
         self.sources[element] = process.env[element]
-        debug('changed : ' + element + ' to : ' + process.env[element]);
+        debug('changed : ' + element + ' to : ' + process.env[element] + ' using environment variables.')
       }
     })
     return self
