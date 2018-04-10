@@ -31,7 +31,6 @@ module.exports = class BotDriver {
   setCapabilities (caps) {
     this.caps = Object.assign(this.caps, caps)
     var self = this;
-    console.log(this)
     var capsToTest = Object.keys(this.caps)
     Object.keys(process.env).forEach(function(element,key,_array) {
       if (capsToTest.includes(element)) {
