@@ -22,24 +22,22 @@ module.exports = class BotDriver {
     this.envs = Object.assign({}, env)
     this.eventEmitter = new EventEmitter()
 
-    var self = this;
     var capsToTest = Object.keys(Capabilities)
     var sourcesToTest = Object.keys(Source)
 
-    Object.keys(process.env).forEach(function(element,key,_array) {
+    Object.keys(process.env).forEach((element,key,_array) => {
       if (element.startsWith("BOTIUM_")){
         var elementToTest = element.replace(/^BOTIUM_/,"");
       }
       if (capsToTest.includes(elementToTest)) {
-        self.caps[elementToTest] = process.env[element]
+        this.caps[elementToTest] = process.env[element]
         debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')
       }
       if (sourcesToTest.includes(elementToTest)) {
-        self.sources[elementToTest] = process.env[element]
+        this.sources[elementToTest] = process.env[element]
         debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')        
       }
     });
-    this = self
   }
 
   on (event, listener) {
