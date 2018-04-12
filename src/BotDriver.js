@@ -21,6 +21,25 @@ module.exports = class BotDriver {
     this.sources = Object.assign({}, Defaults.Sources, sources)
     this.envs = Object.assign({}, env)
     this.eventEmitter = new EventEmitter()
+
+    var self = this;
+    var capsToTest = Object.keys(Capabilities)
+    var sourcesToTest = Object.keys(Source)
+
+    Object.keys(process.env).forEach(function(element,key,_array) {
+      if (element.startsWith("BOTIUM_")){
+        var elementToTest = element.replace(/^BOTIUM_/,"");
+      }
+      if (capsToTest.includes(elementToTest)) {
+        self.caps[elementToTest] = process.env[element]
+        debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')
+      }
+      if (sourcesToTest.includes(elementToTest)) {
+        self.sources[elementToTest] = process.env[element]
+        debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')        
+      }
+    });
+    this = self
   }
 
   on (event, listener) {
@@ -30,15 +49,7 @@ module.exports = class BotDriver {
 
   setCapabilities (caps) {
     this.caps = Object.assign(this.caps, caps)
-    var self = this;
-    var capsToTest = Object.keys(this.caps)
-    Object.keys(process.env).forEach(function(element,key,_array) {
-      if (capsToTest.includes(element)) {
-        self.caps[element] = process.env[element]
-        debug('Changed : ' + element + ' to : ' + process.env[element] + ' using environment variables.')
-      }
-    });
-    return self
+    return this
   }
 
   setCapability (cap, value) {
@@ -48,15 +59,7 @@ module.exports = class BotDriver {
 
   setSources (sources) {
     this.sources = Object.assign(this.sources, sources)
-    var self = this;
-    var sourcesToTest = Object.keys(this.sources)
-    Object.keys(process.env).forEach(function(element,key,_array) {
-      if (sourcesToTest.includes(element)) {
-        self.sources[element] = process.env[element]
-        debug('Changed : ' + element + ' to : ' + process.env[element] + ' using environment variables.')
-      }
-    })
-    return self
+    return this
   }
 
   setSource (source, value) {
