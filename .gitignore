@@ -60,3 +60,5 @@ typings/
 temp
 botiumwork
 dist
+setEnv.sh
+testBotDriver.js
