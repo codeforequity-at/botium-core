@@ -38,6 +38,9 @@ module.exports = class BotDriver {
         debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')        
       }
     });
+    
+    this.caps = Object.assign(this.caps, caps)
+    this.sources = Object.assign(this.sources , sources)
   }
 
   on (event, listener) {
