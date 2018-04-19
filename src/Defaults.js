@@ -42,5 +42,8 @@ module.exports = {
     [Source.GITPATH]: 'git',
     [Source.GITBRANCH]: 'master',
     [Source.GITDIR]: '.'
+  },
+  Envs: {
+    'IS_BOTIUM_CONTAINER': true
   }
 }

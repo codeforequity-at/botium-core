@@ -1,4 +1,5 @@
 const util = require('util')
+const fs = require('fs')
 const path = require('path')
 const async = require('async')
 const mkdirp = require('mkdirp')
@@ -17,30 +18,63 @@ const ScriptingProvider = require('./scripting/ScriptingProvider')
 
 module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, env = {}) {
-    this.caps = Object.assign({}, Defaults.Capabilities, caps)
-    this.sources = Object.assign({}, Defaults.Sources, sources)
-    this.envs = Object.assign({}, env)
     this.eventEmitter = new EventEmitter()
 
-    var capsToTest = Object.keys(Capabilities)
-    var sourcesToTest = Object.keys(Source)
+    this.caps = Object.assign({}, Defaults.Capabilities)
+    this.sources = Object.assign({}, Defaults.Sources)
+    this.envs = Object.assign({}, Defaults.Envs)
 
-    Object.keys(process.env).forEach((element,key,_array) => {
-      if (element.startsWith("BOTIUM_")){
-        var elementToTest = element.replace(/^BOTIUM_/,"");
+    const loadConfigFile = (filename) => {
+      try {
+        let configJson = JSON.parse(fs.readFileSync(filename))
+        if (configJson.botium) {
+          this.caps = Object.assign(this.caps, configJson.botium.Capabilities)
+          this.sources = Object.assign(this.sources, configJson.botium.Sources)
+          this.envs = Object.assign(this.envs, configJson.botium.Envs)
+          debug(`Loaded Botium configuration file ${filename}`)
+        } else {
+          debug(`Botium configuration file ${filename} contains no botium configuration. Ignored.`)
+        }
+      } catch (err) {
+        throw new Error(`FAILED: loading Botium configuration file ${filename}: ${util.inspect(err)}`)
       }
+    }
+
+    if (fs.existsSync('./botium.json')) {
+      loadConfigFile('./botium.json')
+    }
+
+    let botiumConfigEnv = process.env['BOTIUM_CONFIG']
+    if (botiumConfigEnv) {
+      if (fs.existsSync(botiumConfigEnv)) {
+        loadConfigFile(botiumConfigEnv)
+      } else {
+        throw new Error(`FAILED: Botium configuration file ${botiumConfigEnv} not available`)
+      }
+    }
+
+    let capsToTest = Object.keys(Capabilities)
+    let sourcesToTest = Object.keys(Source)
+
+    Object.keys(process.env).filter(e => e.startsWith('BOTIUM_')).forEach((element) => {
+      let elementToTest = element.replace(/^BOTIUM_/, '')
       if (capsToTest.includes(elementToTest)) {
         this.caps[elementToTest] = process.env[element]
         debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')
       }
       if (sourcesToTest.includes(elementToTest)) {
         this.sources[elementToTest] = process.env[element]
-        debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')        
+        debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')
       }
-    });
-    
+      if (element.startsWith('BOTIUM_ENV_')) {
+        let envName = element.replace(/^BOTIUM_ENV_/, '')
+        this.envs[envName] = process.env[element]
+        debug('Changed env : ' + envName + ' to : ' + process.env[element] + ' using environment variables.')
+      }
+    })
+
     this.caps = Object.assign(this.caps, caps)
-    this.sources = Object.assign(this.sources , sources)
+    this.sources = Object.assign(this.sources, sources)
   }
 
   on (event, listener) {
@@ -84,7 +118,9 @@ module.exports = class BotDriver {
   }
 
   Build () {
-    debug(`Build - Sources : ${util.inspect(this.sources)} Capabilites: ${util.inspect(this.caps)}`)
+    debug(`Build - Capabilites: ${util.inspect(this.caps)}`)
+    debug(`Build - Sources : ${util.inspect(this.sources)}`)
+    debug(`Build - Envs : ${util.inspect(this.envs)}`)
     this.eventEmitter.emit(Events.CONTAINER_BUILDING)
 
     return new Promise((resolve, reject) => {
