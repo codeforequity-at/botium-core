@@ -254,7 +254,7 @@ module.exports = class DockerContainer extends BaseContainer {
             }
           }
           if (this.envs) {
-            composeEnv.services.botium.environment = this.envs
+            composeEnv.services.botium.environment = this._cleanDockerEnv(this.envs)
           }
           if (this.fbMock) {
             this.fbMock.FillDockerEnv(composeEnv, this.caps, sysLog)
@@ -527,5 +527,14 @@ module.exports = class DockerContainer extends BaseContainer {
         resolve(this)
       })
     })
+  }
+
+  _cleanDockerEnv (envs) {
+    const res = Object.assign({}, envs)
+    Object.keys(res).forEach((key) => {
+      let val = res[key]
+      if (typeof val === typeof true) res[key] = `${val}`
+    })
+    return res
   }
 }
