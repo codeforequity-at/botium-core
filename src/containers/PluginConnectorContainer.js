@@ -13,7 +13,13 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
         this.plugin = require(tryLoadPackage)
         debug(`Botium plugin ${tryLoadPackage} loaded`)
       } catch (err) {
-        throw new Error(`Loading Botium plugin ${tryLoadPackage} failed, try "npm install ${tryLoadPackage}" - ${util.inspect(err)}`)
+        debug(`Botium plugin loading ${tryLoadPackage} failed, trying to load from parent module`)
+        try {
+          this.plugin = require.main.require(tryLoadPackage)
+          debug(`Botium plugin ${tryLoadPackage} loaded`)
+        } catch (err1) {
+          throw new Error(`Loading Botium plugin ${tryLoadPackage} failed, try "npm install ${tryLoadPackage}" - ${util.inspect(err1)}`)
+        }
       }
       if (!this.plugin.PluginVersion || !this.plugin.PluginClass) {
         throw new Error(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
@@ -32,49 +38,72 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
   }
 
   Build () {
-    return super.Build().then(() => this.pluginInstance.Build ? this.pluginInstance.Build() : Promise.resolve()).then(() => this)
+    try {
+      return super.Build().then(() => this.pluginInstance.Build ? (this.pluginInstance.Build() || Promise.resolve()) : Promise.resolve()).then(() => this)
+    } catch (err) {
+      return Promise.reject(new Error(`Build - Botium plugin failed: ${util.inspect(err)}`))
+    }
   }
 
   Start () {
     this.eventEmitter.emit(Events.CONTAINER_STARTING, this)
 
-    return super.Start().then(() => this.pluginInstance.Start ? this.pluginInstance.Start() : Promise.resolve()).then(() => {
-      this.eventEmitter.emit(Events.CONTAINER_STARTED, this)
-      return this
-    }).catch((err) => {
+    try {
+      return super.Start().then(() => this.pluginInstance.Start ? (this.pluginInstance.Start() || Promise.resolve()) : Promise.resolve()).then(() => {
+        this.eventEmitter.emit(Events.CONTAINER_STARTED, this)
+        return this
+      }).catch((err) => {
+        this.eventEmitter.emit(Events.CONTAINER_START_ERROR, this, err)
+        throw err
+      })
+    } catch (err) {
       this.eventEmitter.emit(Events.CONTAINER_START_ERROR, this, err)
-      throw err
-    })
+      return Promise.reject(new Error(`Start - Botium plugin failed: ${util.inspect(err)}`))
+    }
   }
 
   UserSays (mockMsg) {
-    return this.pluginInstance.UserSays(mockMsg).then(() => {
-      this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
-      return this
-    })
+    try {
+      return (this.pluginInstance.UserSays(mockMsg) || Promise.resolve()).then(() => {
+        this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
+        return this
+      })
+    } catch (err) {
+      return Promise.reject(new Error(`UserSays - Botium plugin failed: ${util.inspect(err)}`))
+    }
   }
 
   Stop () {
     this.eventEmitter.emit(Events.CONTAINER_STOPPING, this)
 
-    return super.Stop().then(() => this.pluginInstance.Stop ? this.pluginInstance.Stop() : Promise.resolve()).then(() => {
-      this.eventEmitter.emit(Events.CONTAINER_STOPPED, this)
-      return this
-    }).catch((err) => {
+    try {
+      return super.Stop().then(() => this.pluginInstance.Stop ? (this.pluginInstance.Stop() || Promise.resolve()) : Promise.resolve()).then(() => {
+        this.eventEmitter.emit(Events.CONTAINER_STOPPED, this)
+        return this
+      }).catch((err) => {
+        this.eventEmitter.emit(Events.CONTAINER_STOP_ERROR, this, err)
+        throw err
+      })
+    } catch (err) {
       this.eventEmitter.emit(Events.CONTAINER_STOP_ERROR, this, err)
-      throw err
-    })
+      return Promise.reject(new Error(`Stop - Botium plugin failed: ${util.inspect(err)}`))
+    }
   }
 
   Clean () {
     this.eventEmitter.emit(Events.CONTAINER_CLEANING, this)
 
-    return (this.pluginInstance.Clean ? this.pluginInstance.Clean() : Promise.resolve()).then(() => super.Clean()).then(() => {
-      this.eventEmitter.emit(Events.CONTAINER_CLEANED, this)
-      return this
-    }).catch((err) => {
+    try {
+      return (this.pluginInstance.Clean ? (this.pluginInstance.Clean() || Promise.resolve()) : Promise.resolve()).then(() => super.Clean()).then(() => {
+        this.eventEmitter.emit(Events.CONTAINER_CLEANED, this)
+        return this
+      }).catch((err) => {
+        this.eventEmitter.emit(Events.CONTAINER_CLEAN_ERROR, this, err)
+        throw err
+      })
+    } catch (err) {
       this.eventEmitter.emit(Events.CONTAINER_CLEAN_ERROR, this, err)
-      throw err
-    })
+      return Promise.reject(new Error(`Clean - Botium plugin failed: ${util.inspect(err)}`))
+    }
   }
 }

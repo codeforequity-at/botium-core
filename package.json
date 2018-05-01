@@ -2,7 +2,7 @@
   "name": "botium-core",
   "version": "1.3.11",
   "description": "The Selenium for Chatbots",
-  "main": "dist/botium-cjs.js",
+  "main": "index.js",
   "module": "dist/botium-es.js",
   "scripts": {
     "build": "npm run eslint && rollup -c",
