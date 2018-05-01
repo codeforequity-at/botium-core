@@ -13,13 +13,7 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
         this.plugin = require(tryLoadPackage)
         debug(`Botium plugin ${tryLoadPackage} loaded`)
       } catch (err) {
-        debug(`Botium plugin loading ${tryLoadPackage} failed, trying to load from parent module`)
-        try {
-          this.plugin = require.main.require(tryLoadPackage)
-          debug(`Botium plugin ${tryLoadPackage} loaded`)
-        } catch (err1) {
-          throw new Error(`Loading Botium plugin ${tryLoadPackage} failed, try "npm install ${tryLoadPackage}" - ${util.inspect(err1)}`)
-        }
+        throw new Error(`Loading Botium plugin ${tryLoadPackage} failed, try "npm install ${tryLoadPackage}" - ${util.inspect(err)}`)
       }
       if (!this.plugin.PluginVersion || !this.plugin.PluginClass) {
         throw new Error(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
