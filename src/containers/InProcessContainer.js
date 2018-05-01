@@ -9,6 +9,5 @@ module.exports = class InProcessContainer extends BaseContainer {
   }
   InjectBotSays (botMsg) {
     this._QueueBotSays(new BotiumMockMessage(botMsg))
-    this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
   }
 }

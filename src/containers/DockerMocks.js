@@ -150,7 +150,6 @@ class BaseMock {
           this.socket.on(BotiumMockCommand.MOCKCMD_RECEIVEDFROMBOT, (botMsg) => {
             this.debug(`Mock - socket received from bot ${util.inspect(botMsg)}`)
             container._QueueBotSays(new BotiumMockMessage(botMsg))
-            container.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
           })
           this.socket.on('error', (err) => {
             this.debug(`Mock - socket connection error! ${util.inspect(err)}`)

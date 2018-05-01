@@ -81,7 +81,6 @@ module.exports = class GridContainer extends BaseContainer {
         this.socket.on(Events.MESSAGE_RECEIVEDFROMBOT, (botMsg) => {
           debug(`MESSAGE_RECEIVEDFROMBOT ${util.inspect(botMsg)}`)
           this._QueueBotSays(new BotiumMockMessage(botMsg))
-          this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
         })
 
         this.socket.on(Events.CONTAINER_STOPPED, () => {

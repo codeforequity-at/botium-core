@@ -171,7 +171,6 @@ module.exports = class SimpleRestContainer extends BaseContainer {
 
                   const botMsg = { sourceData: body, messageText }
                   this._QueueBotSays(new BotiumMockMessage(botMsg))
-                  this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
                 })
               })
             }

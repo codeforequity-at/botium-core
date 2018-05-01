@@ -73,7 +73,6 @@ module.exports = class FbContainer extends BaseContainer {
                 botMsg.messageText = event.body
               }
               this._QueueBotSays(new BotiumMockMessage(botMsg))
-              this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
             } else {
               debug(`fbapi received ignored event: ${util.inspect(event)}`)
             }

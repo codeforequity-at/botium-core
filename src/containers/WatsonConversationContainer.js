@@ -140,7 +140,6 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
           if (data.intents && data.intents.length > 0) {
             const botMsg = { sender: 'bot', sourceData: data, messageText: data.intents[0].intent }
             this._QueueBotSays(new BotiumMockMessage(botMsg))
-            this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
           }
         } else {
           if (data.output && data.output.text) {
@@ -151,7 +150,6 @@ module.exports = class WatsonConversationContainer extends BaseContainer {
 
               const botMsg = { sender: 'bot', sourceData: data, messageText }
               this._QueueBotSays(new BotiumMockMessage(botMsg))
-              this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
             })
           }
         }

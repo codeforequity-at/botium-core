@@ -266,6 +266,7 @@ module.exports = class BotDriver {
       const InProcessContainer = require('./containers/InProcessContainer')
       return new InProcessContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
-    throw new Error(`No Container provider1 found for Caps ${util.inspect(this.caps)}`)
+    const PluginConnectorContainer = require('./containers/PluginConnectorContainer')
+    return new PluginConnectorContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
   }
 }

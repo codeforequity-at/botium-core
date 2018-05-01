@@ -3,6 +3,7 @@ const async = require('async')
 const rimraf = require('rimraf')
 const debug = require('debug')('botium-BaseContainer')
 
+const Events = require('../Events')
 const Capabilities = require('../Capabilities')
 const Queue = require('../helpers/Queue')
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
@@ -157,5 +158,6 @@ module.exports = class BaseContainer {
     }
 
     this.queues[botMsg.channel].push(botMsg)
+    this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
   }
 }

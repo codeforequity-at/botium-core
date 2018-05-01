@@ -92,13 +92,11 @@ module.exports = class DialogflowContainer extends BaseContainer {
           if (response.queryResult.intent) {
             const botMsg = { sender: 'bot', sourceData: response.queryResult, messageText: response.queryResult.intent.displayName }
             this._QueueBotSays(new BotiumMockMessage(botMsg))
-            this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
           }
         } else {
           if (response.queryResult.fulfillmentText) {
             const botMsg = { sender: 'bot', sourceData: response.queryResult, messageText: response.queryResult.fulfillmentText }
             this._QueueBotSays(new BotiumMockMessage(botMsg))
-            this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
           }
         }
       }).catch((err) => {
