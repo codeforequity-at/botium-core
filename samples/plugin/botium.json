@@ -1,8 +1,0 @@
-{
-  "botium": {
-    "Capabilities": {
-      "PROJECTNAME": "Echo Plugin Sample",
-      "CONTAINERMODE": "echo"
-    }
-  }
-}
