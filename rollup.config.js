@@ -16,7 +16,6 @@ export default {
       sourcemap: true
     }
   ],
-  experimentalDynamicImport: true,
   plugins: [
     commonjs({
       exclude: 'node_modules/**'
