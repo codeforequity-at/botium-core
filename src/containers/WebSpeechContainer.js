@@ -55,7 +55,6 @@ module.exports = class WebSpeechContainer extends BaseContainer {
               if (msg) {
                 const botMsg = { sender: 'bot', messageText: msg }
                 this._QueueBotSays(new BotiumMockMessage(botMsg))
-                this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
               }
             })
             this.clientSocket.on('usersaid', (msg) => {
