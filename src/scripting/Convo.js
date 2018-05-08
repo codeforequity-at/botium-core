@@ -1,5 +1,7 @@
 const util = require('util')
 const async = require('async')
+const XRegExp = require('xregexp')
+const Mustache = require('mustache')
 const _ = require('lodash')
 const debug = require('debug')('botium-Convo')
 
@@ -45,10 +47,12 @@ class Convo {
 
   Run (container) {
     return new Promise((resolve, reject) => {
+      const scriptingMemory = {}
+
       async.eachSeries(this.conversation,
         (convoStep, convoStepDone) => {
           if (convoStep.sender === 'me') {
-            convoStep.messageText = this._checkNormalizeText(container, convoStep.messageText)
+            convoStep.messageText = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
             debug(`${this.header.name}/${convoStep.stepTag}: user says ${util.inspect(convoStep)}`)
             container.UserSays(new BotiumMockMessage(convoStep))
               .then(() => convoStepDone())
@@ -66,8 +70,9 @@ class Convo {
                   convoStepDone(err)
                 }
               } else if (convoStep.messageText) {
-                const response = this._checkNormalizeText(container, saysmsg.messageText)
-                const tomatch = this._checkNormalizeText(container, convoStep.messageText)
+                this._fillScriptingMemory(container, scriptingMemory, saysmsg.messageText, convoStep.messageText)
+                const response = this._checkNormalizeText(container, scriptingMemory, saysmsg.messageText)
+                const tomatch = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
                 if (convoStep.not) {
                   try {
                     this.provider.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
@@ -85,7 +90,7 @@ class Convo {
                 }
               } else if (convoStep.sourceData) {
                 try {
-                  this._compareObject(container, convoStep, saysmsg.sourceData, convoStep.sourceData)
+                  this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
                   convoStepDone()
                 } catch (err) {
                   convoStepDone(err)
@@ -118,7 +123,7 @@ class Convo {
     })
   }
 
-  _compareObject (container, convoStep, result, expected) {
+  _compareObject (container, scriptingMemory, convoStep, result, expected) {
     if (expected === null || expected === undefined) return
 
     if (_.isArray(expected)) {
@@ -140,16 +145,32 @@ class Convo {
         }
       })
     } else {
-      const response = this._checkNormalizeText(container, result)
-      const tomatch = this._checkNormalizeText(container, expected)
+      this._fillScriptingMemory(container, scriptingMemory, result, expected)
+      const response = this._checkNormalizeText(container, scriptingMemory, result)
+      const tomatch = this._checkNormalizeText(container, scriptingMemory, expected)
       this.provider.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
     }
   }
 
-  _checkNormalizeText (container, str) {
+  _fillScriptingMemory (container, scriptingMemory, result, expected) {
+    if (result && expected && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+      try {
+        const re = XRegExp(expected)
+        const reResult = XRegExp.exec(result, re)
+        Object.assign(scriptingMemory, reResult)
+      } catch (err) {
+        debug(`${this.header.name}: evaluating scripting memory (pattern ${util.inspect(expected)}) failed: ${util.inspect(err)}`)
+      }
+    }
+  }
+
+  _checkNormalizeText (container, scriptingMemory, str) {
     if (str && !_.isString(str)) {
       if (str.toString) str = str.toString()
       else str = `${str}`
+    }
+    if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+      str = Mustache.render(str, scriptingMemory)
     }
     if (str && container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]) {
       // remove html tags

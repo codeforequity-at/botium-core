@@ -49,7 +49,8 @@
     "uuid": "^3.1.0",
     "watson-developer-cloud": "^3.0.3",
     "write-yaml": "^1.0.0",
-    "xlsx": "^0.11.18"
+    "xlsx": "^0.11.18",
+    "xregexp": "^4.1.1"
   },
   "devDependencies": {
     "cross-env": "^5.1.3",
