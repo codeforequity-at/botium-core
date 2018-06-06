@@ -51,10 +51,26 @@ module.exports = class DialogflowContainer extends BaseContainer {
 
     return super.Start().then(() => {
       this.sessionClient = new dialogflow.SessionsClient(this.sessionOpts)
-      this.sessionPath = this.sessionClient.sessionPath(this.caps[Capabilities.DIALOGFLOW_PROJECT_ID], uuidV1())
+      this.conversationId = uuidV1()
+      this.sessionPath = this.sessionClient.sessionPath(this.caps[Capabilities.DIALOGFLOW_PROJECT_ID], this.conversationId)
       this.queryParams = null
-      this.eventEmitter.emit(Events.CONTAINER_STARTED, this)
       return this
+    }).then(() => {
+      if (!this.caps[Capabilities.DIALOGFLOW_INPUT_CONTEXT_NAME] ||
+                !this.caps[Capabilities.DIALOGFLOW_INPUT_CONTEXT_LIFESPAN]) {
+        return
+      }
+      this.contextClient = new dialogflow.ContextsClient(this.sessionOpts)
+      const contextPath = this.contextClient.contextPath(this.caps[Capabilities.DIALOGFLOW_PROJECT_ID],
+        this.conversationId, this.caps[Capabilities.DIALOGFLOW_INPUT_CONTEXT_NAME])
+      const context = {lifespanCount: parseInt(this.caps[Capabilities.DIALOGFLOW_INPUT_CONTEXT_LIFESPAN]), name: contextPath}
+      if (this.caps[Capabilities.DIALOGFLOW_INPUT_CONTEXT_PARAMETERS]) {
+        context.parameters = structjson.jsonToStructProto(this.caps[Capabilities.DIALOGFLOW_INPUT_CONTEXT_PARAMETERS])
+      }
+      const request = {parent: this.sessionPath, context: context}
+      return this.contextClient.createContext(request)
+    }).then(() => {
+      this.eventEmitter.emit(Events.CONTAINER_STARTED, this)
     })
   }
 
