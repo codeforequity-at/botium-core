@@ -1,0 +1,538 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Botium Agent Sample",
+		"_postman_id": "134d9321-3fc8-1fc6-d40d-8f807b269235",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "IBM Watson Conversation Sample",
+			"description": "",
+			"item": [
+				{
+					"name": "Build Agent Connection",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"worker_slot\", pm.response.json().slot);",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/build",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"caps\": {\n\t\t\"PROJECTNAME\": \"IBM Watson Conversation Sample\",\n\t\t\"CONTAINERMODE\": \"watsonconversation\",\n\t\t\"WATSONCONVERSATION_USER\": \"0274cb6f-3680-4cf7-bd6b-71c7f447542d\",\n\t\t\"WATSONCONVERSATION_PASSWORD\": \"ZWDE5xo02sby\",\n\t\t\"WATSONCONVERSATION_WORKSPACE_ID\": \"97513bc0-c581-4bec-ac9f-ea6a8ec308a9\",\n\t\t\"WATSONCONVERSATION_COPY_WORKSPACE\": false\n\t}\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Assert currentWorkers = 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"currentWorkers is 0\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.currentWorkers).to.eql(1);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/status",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Start container",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/start/{{worker_slot}}",
+						"method": "POST",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Start conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/usersays/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"messageText\": \"start\"\r\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Wait greeting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.messageText).to.contain('Hi. It looks like a nice drive today. What would you like me to do?');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/botsays/{{worker_slot}}",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Turn on the lights",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/usersays/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"messageText\": \"turn on the lights please\"\r\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Wait for lights",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.messageText).to.contain('I\\'ll turn on the lights for you.');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/botsays/{{worker_slot}}",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Play some jazz music",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/usersays/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"messageText\": \"play some jazz music\"\r\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Wait for music",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.messageText).to.contain('Great choice! Playing some jazz for you.');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/botsays/{{worker_slot}}",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Stop container",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/stop/{{worker_slot}}",
+						"method": "POST",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Cleanup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/clean/{{worker_slot}}",
+						"method": "POST",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Assert currentWorkers = 0",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"currentWorkers is 0\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.currentWorkers).to.eql(0);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/status",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "IBM Watson Scripting Sample",
+			"description": "",
+			"item": [
+				{
+					"name": "Build Agent Connection",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"worker_slot\", pm.response.json().slot);",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/build",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"caps\": {\n\t\t\"PROJECTNAME\": \"IBM Watson Conversation Sample\",\n\t\t\"CONTAINERMODE\": \"watsonconversation\",\n\t\t\"WATSONCONVERSATION_USER\": \"0274cb6f-3680-4cf7-bd6b-71c7f447542d\",\n\t\t\"WATSONCONVERSATION_PASSWORD\": \"ZWDE5xo02sby\",\n\t\t\"WATSONCONVERSATION_WORKSPACE_ID\": \"97513bc0-c581-4bec-ac9f-ea6a8ec308a9\",\n\t\t\"WATSONCONVERSATION_COPY_WORKSPACE\": false\n\t}\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Assert currentWorkers = 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"currentWorkers is 0\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.currentWorkers).to.eql(1);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/status",
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Lights and Music",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/runscript/{{worker_slot}}",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "lights and music\r\n\r\n#me\r\nstart\r\n\r\n#bot\r\nHi. It looks like a nice drive today. What would you like me to do?\r\n\r\n#me\r\nturn on the lights please\r\n\r\n#bot\r\nI'll turn on the lights for you.\r\n\r\n#me\r\nplay some jazz music\r\n\r\n#bot\r\nGreat choice! Playing some jazz for you.\r\n"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Restaurant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/runscript/{{worker_slot}}",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "restaurant\r\n\r\n#me\r\nhi\r\n\r\n#bot\r\nhi\r\n\r\n#me\r\nwhere is the next restauran\r\n\r\n#bot\r\nI understand you want me to find a location. I can find restaurants, gas stations and restrooms nearby.\r\n\r\n#me\r\nfind my a restaurant\r\n\r\n#bot\r\nOf course. Do you have a specific cuisine in mind?\r\n\r\n#me\r\npizza\r\n\r\n#bot\r\nSuper! I've found 5 locations for you. Which one would you like to drive to?\r\n\r\n#me\r\n1\r\n\r\n#bot\r\nSure! Restaurant 1 on the list gets great reviews.\r\n\r\n#bot\r\nWhat day/time did you want to go to the restaurant?\r\n\r\n#me\r\n10th of january\r\n\r\n#bot\r\nOK\r\n"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Cleanup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/clean/{{worker_slot}}",
+						"method": "POST",
+						"header": [],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Call /api/status copy",
+			"request": {
+				"url": "{{BOTIUMGRIDURL}}/api/status",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

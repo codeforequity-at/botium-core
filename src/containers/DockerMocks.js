@@ -36,6 +36,9 @@ class BaseMock {
     this.publishIp = publishIp
     if (caps[this.capNamePublishPort]) {
       this.publishPort = caps[this.capNamePublishPort]
+      if (caps[Capabilities.BOTIUMGRIDSLOT]) {
+        this.publishPort += caps[Capabilities.BOTIUMGRIDSLOT]
+      }
       return Promise.resolve()
     } else {
       return new Promise((resolve, reject) => {
