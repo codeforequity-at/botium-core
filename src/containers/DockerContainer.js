@@ -152,6 +152,9 @@ module.exports = class DockerContainer extends BaseContainer {
         (syslogPortSelected) => {
           if (this.caps[Capabilities.DOCKERSYSLOGPORT]) {
             this.syslogPort = this.caps[Capabilities.DOCKERSYSLOGPORT]
+            if (this.caps[Capabilities.BOTIUMGRIDSLOT]) {
+              this.publishPort += this.caps[Capabilities.BOTIUMGRIDSLOT]
+            }
             syslogPortSelected()
           } else {
             TcpPortUtils.GetFreePortInRange('127.0.0.1', this.caps[Capabilities.DOCKERSYSLOGPORT_RANGE])

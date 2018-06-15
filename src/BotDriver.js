@@ -238,6 +238,9 @@ module.exports = class BotDriver {
       const GridContainer = require('./containers/GridContainer')
       return new GridContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
+    if (!this.caps[Capabilities.CONTAINERMODE]) {
+      throw new Error(`Capability '${Capabilities.CONTAINERMODE}' missing`)
+    }
     if (this.caps[Capabilities.CONTAINERMODE] === 'docker') {
       const DockerContainer = require('./containers/DockerContainer')
       return new DockerContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
