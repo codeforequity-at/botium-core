@@ -14,6 +14,8 @@ const port = process.env.PORT || 46100
 const apiToken = process.env.BOTIUM_API_TOKEN || ''
 if (!apiToken) {
   console.log('WARNING: BOTIUM_API_TOKEN not set, all clients will be accepted')
+} else {
+  console.log('Add BOTIUM_API_TOKEN header to all HTTP requests, or BOTIUM_API_TOKEN URL parameter')
 }
 
 const app = express()
@@ -23,10 +25,22 @@ const io = ioSocket(server)
 app.use(bodyParser.json())
 app.use(bodyParser.text())
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use('/api/*', (req, res, next) => {
+  const clientApiToken = req.headers.BOTIUM_API_TOKEN || req.headers.botium_api_token || req.query.BOTIUM_API_TOKEN || req.query.botium_api_token || req.body.BOTIUM_API_TOKEN || req.body.botium_api_token
+
+  if (!apiToken || apiToken === clientApiToken) {
+    next()
+  } else {
+    debug(`agent client not authenticated, wrong api token or api token not given`)
+    const err = new Error('apiToken invalid')
+    err.code = 401
+    next(err)
+  }
+})
 app.use('/', require('./routes'))
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(require('./swagger.json')))
 app.use((err, req, res, next) => {
-  res.status(err.status || 500)
+  res.status(err.code || 500)
     .json({
       status: 'error',
       message: err.message ? err.message : err
@@ -40,7 +54,7 @@ app.get('/swagger.json', (req, res) => {
 ioAuth(io, {
   authenticate: (socket, data, callback) => {
     debug(`agent client authenticate ${socket.id} - ${JSON.stringify(data)} ...`)
-    var clientApiToken = data.apiToken
+    const clientApiToken = data.apiToken
 
     if (!apiToken || apiToken === clientApiToken) {
       debug(`agent client authenticated ${socket.id}`)
