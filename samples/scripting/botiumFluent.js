@@ -5,7 +5,7 @@ const Capabilities = require('../../index').Capabilities
 const Source = require('../../index').Source
 
 function assert (botresponse, tomatch, stepTag) {
-  console.log(`{stepTag}: BOTRESPONSE "${botresponse}", EXPECTED "${tomatch}"`)
+  console.log(`${stepTag}: BOTRESPONSE "${botresponse}", EXPECTED "${tomatch}"`)
 }
 function fail(err) {
     console.log(`ERROR: <${err}>`)

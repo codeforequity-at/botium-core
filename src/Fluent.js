@@ -104,7 +104,11 @@ module.exports = class Fluent {
         this.compiler.ExpandConvos()
 
         async.eachSeries(this.compiler.convos, (convo, convoDone) => {
-          convo.Run(this.container).then(() => convoDone()).catch(convoDone)
+          this.container.Start()
+            .then(() => convo.Run(this.container))
+            .then(() => this.container.Stop())
+            .then(() => convoDone())
+            .catch(convoDone)
         },
         (err) => {
           if (err) return reject(err)
