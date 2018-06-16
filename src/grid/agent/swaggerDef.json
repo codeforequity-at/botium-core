@@ -1,0 +1,8 @@
+{
+  "info": {
+    "title": "Botium Agent API",
+    "version": "1.0.0",
+    "description": "Botium Agent API to be used with Postman, Tosca or any other 3rd party test runner"
+  },
+  "basePath": "/"
+}

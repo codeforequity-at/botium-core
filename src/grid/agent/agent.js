@@ -1,54 +1,60 @@
 const util = require('util')
-const path = require('path')
 const express = require('express')
+const bodyParser = require('body-parser')
 const http = require('http')
 const ioSocket = require('socket.io')
 const ioAuth = require('socketio-auth')
+const swaggerUi = require('swagger-ui-express')
 const debug = require('debug')('botium-agent')
 
-const AgentWorker = require('./AgentWorker')
-const Defaults = require('../../Defaults')
-const Capabilities = require('../../Capabilities')
 const Events = require('../../Events')
+const workerpool = require('./agentworkerpool')
 
 const port = process.env.PORT || 46100
 const apiToken = process.env.BOTIUM_API_TOKEN || ''
 if (!apiToken) {
   console.log('WARNING: BOTIUM_API_TOKEN not set, all clients will be accepted')
+} else {
+  console.log('Add BOTIUM_API_TOKEN header to all HTTP requests, or BOTIUM_API_TOKEN URL parameter')
 }
 
 const app = express()
 const server = http.Server(app)
 const io = ioSocket(server)
 
-const agentWorkers = new Array(process.env.BOTIUM_WORKER_COUNT ? parseInt(process.env.BOTIUM_WORKER_COUNT) : 10)
+app.use(bodyParser.json())
+app.use(bodyParser.text())
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use('/api/*', (req, res, next) => {
+  const clientApiToken = req.headers.BOTIUM_API_TOKEN || req.headers.botium_api_token || req.query.BOTIUM_API_TOKEN || req.query.botium_api_token || req.body.BOTIUM_API_TOKEN || req.body.botium_api_token
 
-const capsDefault = {
-  [Capabilities.TEMPDIR]: process.env.BOTIUM_TEMPDIR || Defaults.Capabilities[Capabilities.TEMPDIR],
-  [Capabilities.CLEANUPTEMPDIR]: true,
-  [Capabilities.DOCKERCOMPOSEPATH]: process.env.BOTIUM_DOCKERCOMPOSEPATH || Defaults.Capabilities[Capabilities.DOCKERCOMPOSEPATH],
-  [Capabilities.DOCKERUNIQUECONTAINERNAMES]: true,
-  [Capabilities.BOTIUMGRIDURL]: ''
-}
-
-app.get('/', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'views', 'index.html'))
+  if (!apiToken || apiToken === clientApiToken) {
+    next()
+  } else {
+    debug(`agent client not authenticated, wrong api token or api token not given`)
+    const err = new Error('apiToken invalid')
+    err.code = 401
+    next(err)
+  }
+})
+app.use('/', require('./routes'))
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(require('./swagger.json')))
+app.use((err, req, res, next) => {
+  res.status(err.code || 500)
+    .json({
+      status: 'error',
+      message: err.message ? err.message : err
+    })
 })
 
-app.get('/api/status', (req, res) => {
-  const status = {
-    software: 'Botium Agent',
-    version: require(path.resolve(__dirname, '..', '..', '..', 'package.json')).version,
-    maxWorkers: agentWorkers.length,
-    currentWorkers: agentWorkers.filter((wp) => wp).length
-  }
-  res.json(status)
+app.get('/swagger.json', (req, res) => {
+  res.json(require('./swagger.json'))
 })
 
 ioAuth(io, {
   authenticate: (socket, data, callback) => {
     debug(`agent client authenticate ${socket.id} - ${JSON.stringify(data)} ...`)
-    var clientApiToken = data.apiToken
+    const clientApiToken = data.apiToken
 
     if (!apiToken || apiToken === clientApiToken) {
       debug(`agent client authenticated ${socket.id}`)
@@ -61,29 +67,22 @@ ioAuth(io, {
 })
 
 io.on('connection', (socket) => {
-  const workerSlot = agentWorkers.findIndex((wp) => !wp)
-  debug(`agent client connected ${socket.id}, worker slot ${workerSlot}`)
-
-  if (workerSlot < 0) {
-    socket.emit(Events.TOOMUCHWORKERS_ERROR, `Maximum worker count exceeded`)
-    socket.disconnect(true)
-    return
-  }
-
-  const workerCaps = Object.assign({}, capsDefault)
-  workerCaps[Capabilities.DOCKERSYSLOGPORT] = 47199 + workerSlot
-  workerCaps[Capabilities.FACEBOOK_PUBLISHPORT] = 46199 + workerSlot
-
-  const worker = new AgentWorker(workerCaps, socket)
-  agentWorkers[workerSlot] = worker
-  socket.on('disconnect', () => {
-    debug(`agent client disconnected ${socket.id}`)
-    agentWorkers[workerSlot] = null
-  })
-  socket.on('error', (err) => {
-    debug(`agent client error ${socket.id}: ${util.inspect(err)}`)
-    agentWorkers[workerSlot] = null
-  })
+  workerpool.allocate({ socket })
+    .then((worker) => {
+      debug(`agent client connected ${socket.id}, worker slot ${worker.args.slot}`)
+      socket.on('disconnect', () => {
+        debug(`agent client disconnected ${socket.id}`)
+        workerpool.free(worker)
+      })
+      socket.on('error', (err) => {
+        debug(`agent client error ${socket.id}: ${util.inspect(err)}`)
+        workerpool.free(worker)
+      })
+    })
+    .catch(() => {
+      socket.emit(Events.TOOMUCHWORKERS_ERROR, `Maximum worker count exceeded`)
+      socket.disconnect(true)
+    })
 })
 
 server.listen(port, () => {

@@ -7,7 +7,6 @@ module.exports = {
     [Capabilities.TEMPDIR]: 'botiumwork',
     [Capabilities.CLEANUPTEMPDIR]: true,
     [Capabilities.WAITFORBOTTIMEOUT]: 10000,
-    [Capabilities.CONTAINERMODE]: 'docker',
     [Capabilities.DOCKERCOMPOSEPATH]: 'docker-compose',
     [Capabilities.DOCKERMACHINEPATH]: 'docker-machine',
     [Capabilities.DOCKERMACHINE]: false,

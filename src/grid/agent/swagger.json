@@ -1,0 +1,288 @@
+{
+  "info": {
+    "title": "Botium Agent API",
+    "version": "1.0.0",
+    "description": "Demonstrating how to describe a RESTful API with Swagger"
+  },
+  "basePath": "/",
+  "swagger": "2.0",
+  "paths": {
+    "/api/status": {
+      "get": {
+        "description": "Returns Botium Agent Status",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "AgentStatus",
+            "schema": {
+              "$ref": "#/definitions/AgentStatus"
+            }
+          }
+        }
+      }
+    },
+    "/api/build": {
+      "post": {
+        "description": "Builds Botium driver for given capabilities, sources and envs in a separate worker slot",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "driverParameters",
+            "description": "Botium Driver parameters",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "caps": {
+                  "$ref": "#/definitions/KeyValues"
+                },
+                "sources": {
+                  "$ref": "#/definitions/KeyValues"
+                },
+                "envs": {
+                  "$ref": "#/definitions/KeyValues"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Botium worker slot",
+            "schema": {
+              "properties": {
+                "slot": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/start/{slot}": {
+      "post": {
+        "description": "Starts Botium driver for given worker slot",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slot",
+            "description": "Worker slot",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Botium driver started"
+          }
+        }
+      }
+    },
+    "/api/usersays/{slot}": {
+      "post": {
+        "description": "Sends user message to Botium driver for given worker slot",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slot",
+            "description": "Worker slot",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "msg",
+            "description": "User message",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BotMessage"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message sent"
+          }
+        }
+      }
+    },
+    "/api/botsays/{slot}": {
+      "post": {
+        "description": "Retrieves bot message from Botium driver for given worker slot",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slot",
+            "description": "Worker slot",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "args",
+            "description": "Wait arguments",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "properties": {
+                "channel": {
+                  "type": "string"
+                },
+                "timeoutMillis": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message retrieved",
+            "schema": {
+              "$ref": "#/definitions/BotMessage"
+            }
+          }
+        }
+      }
+    },
+    "/api/stop/{slot}": {
+      "post": {
+        "description": "Stops Botium driver for given worker slot",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slot",
+            "description": "Worker slot",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Botium driver stopped"
+          }
+        }
+      }
+    },
+    "/api/runscript/{slot}": {
+      "post": {
+        "description": "Run the Botium script for given worker slot, starting and stopping container as needed",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "name": "slot",
+            "description": "Worker slot",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "script",
+            "description": "Botium script",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Script successful"
+          }
+        }
+      }
+    },
+    "/api/clean/{slot}": {
+      "post": {
+        "description": "Cleans Botium driver for given worker slot and free worker slot",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slot",
+            "description": "Worker slot",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Botium driver cleaned and worker slot available"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AgentStatus": {
+      "type": "object",
+      "properties": {
+        "software": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "maxWorkers": {
+          "type": "integer"
+        },
+        "currentWorkers": {
+          "type": "integer"
+        }
+      }
+    },
+    "BotMessage": {
+      "type": "object",
+      "properties": {
+        "messageText": {
+          "type": "string"
+        },
+        "sender": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string"
+        },
+        "sourceData": {
+          "type": "object"
+        },
+        "sourceAction": {
+          "type": "string"
+        }
+      }
+    },
+    "KeyValues": {
+      "type": "object",
+      "description": "A generic list of Key/Value pairs",
+      "additionalProperties": true
+    }
+  },
+  "responses": {},
+  "parameters": {},
+  "securityDefinitions": {},
+  "tags": []
+}

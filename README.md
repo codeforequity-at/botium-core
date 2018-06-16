@@ -11,7 +11,7 @@ The Selenium for Chatbots
 
 See the [Botium Wiki](https://github.com/codeforequity-at/botium-core/wiki) for documentation.
 
-A short overview article has been published here: [Selenium for Chatbots — Introducing Botium](https://chatbotsmagazine.com/selenium-for-chatbots-introducing-botium-1f1f0b3d4164)
+A short overview article has been published here: [Selenium for Chatbots - Introducing Botium](https://chatbotsmagazine.com/selenium-for-chatbots-introducing-botium-1f1f0b3d4164)
 
 ## Sample Code
 
