@@ -12,6 +12,7 @@ function assert (expected, actual) {
 
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'core-CreateNewConversation')
+  .setCapability(Capabilities.CONTAINERMODE, 'docker')
   .setCapability(Capabilities.BOTFRAMEWORK_API, true)
   .setCapability(Capabilities.BOTFRAMEWORK_APP_ID, 'my microsoft app id')
   .setCapability(Capabilities.BOTFRAMEWORK_CHANNEL_ID, 'facebook')

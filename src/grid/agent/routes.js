@@ -68,11 +68,11 @@ router.get('/api/status', (req, res) => {
  *         required: true
  *         schema:
  *           properties:
- *             caps:
+ *             Capabilities:
  *               $ref: '#/definitions/KeyValues'
- *             sources:
+ *             Sources:
  *               $ref: '#/definitions/KeyValues'
- *             envs:
+ *             Envs:
  *               $ref: '#/definitions/KeyValues'
  *     responses:
  *       200:
@@ -86,7 +86,7 @@ router.post('/api/build', (req, res, next) => {
   workerpool.allocate()
     .then((worker) => {
       debug(`agent client connected, worker slot ${worker.args.slot}`)
-      worker.Build(req.body.caps, req.body.source, req.body.envs)
+      worker.Build(req.body.Capabilities, req.body.Sources, req.body.Envs)
         .then(() => {
           res.status(200).json({ slot: worker.args.slot })
         })
