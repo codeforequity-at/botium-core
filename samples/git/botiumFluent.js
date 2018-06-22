@@ -12,6 +12,7 @@ function assert (expected, actual) {
 
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'Testmybot Sample Calculator')
+  .setCapability(Capabilities.CONTAINERMODE, 'docker')
   .setCapability(Capabilities.FACEBOOK_API, true)
   .setCapability(Capabilities.FACEBOOK_WEBHOOK_PORT, 3000)
   .setCapability(Capabilities.FACEBOOK_WEBHOOK_PATH, 'facebook/receive')

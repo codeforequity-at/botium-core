@@ -12,6 +12,7 @@ function assert (expected, actual) {
 
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'Botkit Slack Sample')
+  .setCapability(Capabilities.CONTAINERMODE, 'docker')
   .setCapability(Capabilities.SLACK_API, true)
   .setCapability(Capabilities.SLACK_EVENT_PORT, 3000)
   .setCapability(Capabilities.SLACK_EVENT_PATH, 'slack/receive')
