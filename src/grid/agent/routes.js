@@ -266,7 +266,9 @@ router.post('/api/runscript/:slot', (req, res, next) => {
         .then(() => {
           res.status(200).send()
         })
-        .catch(next)
+        .catch((err) => {
+          worker.Stop().then(() => next(err)).catch(next)
+        })
     })
     .catch(next)
 })
