@@ -214,6 +214,45 @@
         }
       }
     },
+    "/api/runscript_body/{slot}": {
+      "post": {
+        "description": "Run the Botium script for given worker slot, starting and stopping container as needed",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slot",
+            "description": "Worker slot",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "args",
+            "description": "Script arguments",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "script": {
+                  "type": "string",
+                  "description": "Botium script"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Script successful"
+          }
+        }
+      }
+    },
     "/api/clean/{slot}": {
       "post": {
         "description": "Cleans Botium driver for given worker slot and free worker slot",
