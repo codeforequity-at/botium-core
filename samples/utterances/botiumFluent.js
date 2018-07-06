@@ -4,6 +4,8 @@ const BotDriver = require('../../index').BotDriver
 const Capabilities = require('../../index').Capabilities
 const Source = require('../../index').Source
 
+console.log('Please make sure that botium-connector-dialogflow module is installed before running this sample')
+
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'Botium Utterances Sample')
   .setCapability(Capabilities.CONTAINERMODE, 'dialogflow')
