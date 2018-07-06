@@ -25,8 +25,6 @@ module.exports = {
     [Capabilities.WATSONCONVERSATION_COPY_WORKSPACE]: false,
     [Capabilities.WATSONCONVERSATION_USE_INTENT]: false,
     [Capabilities.SIMPLEREST_METHOD]: 'GET',
-    [Capabilities.DIALOGFLOW_LANGUAGE_CODE]: 'en-US',
-    [Capabilities.DIALOGFLOW_USE_INTENT]: false,
     [Capabilities.WEBSPEECH_SERVER_PORT]: 46050,
     [Capabilities.WEBSPEECH_LANGUAGE]: 'en-US',
     [Capabilities.WEBSPEECH_CLOSEBROWSER]: true,
