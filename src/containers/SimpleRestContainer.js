@@ -3,6 +3,7 @@ const async = require('async')
 const request = require('request')
 const Mustache = require('mustache')
 const jp = require('jsonpath')
+const uuidv4 = require('uuid/v4')
 const _ = require('lodash')
 const debug = require('debug')('botium-SimpleRestContainer')
 
@@ -52,7 +53,11 @@ module.exports = class SimpleRestContainer extends BaseContainer {
         (contextInitComplete) => {
           this.view = {
             context: { },
-            msg: { }
+            msg: { },
+            botium: {
+              conversationId: uuidv4(),
+              stepId: null
+            }
           }
           if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
             try {
@@ -62,6 +67,14 @@ module.exports = class SimpleRestContainer extends BaseContainer {
             }
           }
           contextInitComplete()
+        },
+
+        (pingComplete) => {
+          if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
+            this._waitForPingUrl(this.caps[Capabilities.SIMPLEREST_PING_URL]).then(() => pingComplete()).catch(pingComplete)
+          } else {
+            pingComplete()
+          }
         },
 
         (initComplete) => {
@@ -83,6 +96,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
   }
 
   UserSays (mockMsg) {
+    this.view.botium.stepId = uuidv4()
     return this._doRequest(mockMsg, true)
   }
 
@@ -128,7 +142,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
   _doRequest (msg, evalResponseBody) {
     return new Promise((resolve, reject) => {
       const requestOptions = this._buildRequest(msg)
-      debug(`constructed requestOptions ${util.inspect(requestOptions)}`)
+      debug(`constructed requestOptions ${JSON.stringify(requestOptions, null, 2)}`)
 
       request(requestOptions, (err, response, body) => {
         if (err) {
@@ -142,7 +156,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
           }
 
           if (body) {
-            debug(`got response body: ${util.inspect(body)}`)
+            debug(`got response body: ${JSON.stringify(body, null, 2)}`)
 
             if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
               const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
@@ -216,5 +230,37 @@ module.exports = class SimpleRestContainer extends BaseContainer {
       }
     }
     return requestOptions
+  }
+
+  _waitForPingUrl (pingUrl) {
+    return new Promise((resolve, reject) => {
+      let online = false
+      async.until(
+        () => online,
+        (callback) => {
+          debug(`_waitForPingUrl checking url ${pingUrl} before proceed`)
+
+          request({
+            uri: pingUrl,
+            method: 'GET'
+          }, (err, response, body) => {
+            if (err) {
+              debug(`_waitForPingUrl error on url check ${pingUrl}: ${err}`)
+              setTimeout(callback, 2000)
+            } else if (response.statusCode >= 400) {
+              debug(`_waitForPingUrl on url check ${pingUrl} got error response: ${response.statusCode}/${response.statusMessage}`)
+              setTimeout(callback, 2000)
+            } else {
+              debug(`_waitForPingUrl success on url check ${pingUrl}: ${err}`)
+              online = true
+              callback()
+            }
+          })
+        },
+        (err) => {
+          if (err) return reject(err)
+          resolve()
+        })
+    })
   }
 }
