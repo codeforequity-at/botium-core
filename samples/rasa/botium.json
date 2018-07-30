@@ -1,0 +1,20 @@
+{
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "Rasa Core Sample",
+			"CONTAINERMODE": "simplerest",
+			"CUSTOMHOOK_ONBUILD": "python -m rasa_core.server -d models/dialogue -u models/nlu/current",
+			"CUSTOMHOOK_ONCLEAN": "killall -9 python",
+			"SIMPLEREST_PING_URL": "http://localhost:5005/version",
+			"SIMPLEREST_URL": "http://localhost:5005/conversations/{{botium.conversationId}}/respond",
+			"SIMPLEREST_METHOD": "POST",
+			"SIMPLEREST_BODY_TEMPLATE": "{ \"query\": \"{{msg.messageText}}\" }",
+			"SIMPLEREST_RESPONSE_JSONPATH": "$.*.text"
+    },
+		"Sources": {
+			"GITURL": "https://github.com/RasaHQ/rasa_core.git",
+			"GITDIR": "examples/moodbot",
+			"GITPREPARECMD": "make train-nlu train-core"
+		}
+  }
+}
