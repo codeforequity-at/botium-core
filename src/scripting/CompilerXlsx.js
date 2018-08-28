@@ -154,4 +154,27 @@ module.exports = class CompilerXlsx extends CompilerBase {
       return scriptResults
     }
   }
+
+  Decompile (convos) {
+    const data = []
+    if (convos) {
+      convos.forEach((convo) => {
+        if (!convo.conversation) return
+
+        convo.conversation.forEach((convoStep) => {
+          if (convoStep.sender === 'me') {
+            data.push({ me: convoStep.messageText })
+          } else if (convoStep.sender === 'bot') {
+            data.push({ bot: convoStep.messageText })
+          }
+        })
+        data.push({})
+      })
+    }
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(data, {header: ['me', 'bot']})
+    XLSX.utils.book_append_sheet(wb, ws, 'Botium')
+    const xlsxOutput = XLSX.write(wb, { type: 'buffer' })
+    return xlsxOutput
+  }
 }
