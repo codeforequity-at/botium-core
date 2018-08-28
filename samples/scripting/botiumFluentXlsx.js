@@ -19,3 +19,6 @@ const script = fs.readFileSync(__dirname + '/Book1.xlsx')
 
 const convos = driver.BuildCompiler().Compile(script, 'SCRIPTING_FORMAT_XSLX')
 console.log(`${convos}`)
+
+const xlsx = driver.BuildCompiler().Decompile(convos, 'SCRIPTING_FORMAT_XSLX')
+fs.writeFileSync('tmp.xlsx', xlsx)
