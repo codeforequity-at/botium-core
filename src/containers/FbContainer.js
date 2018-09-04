@@ -32,13 +32,13 @@ module.exports = class FbContainer extends BaseContainer {
           fblogin({ email: this.caps[Capabilities.FB_USER], password: this.caps[Capabilities.FB_PASSWORD] }, { logLevel: debugApi.enabled ? 'verbose' : 'warn' }, (err, api) => {
             if (err) {
               if (err.error === 'login-approval') {
-                 var rl = readline.createInterface({
-                   input: process.stdin,
-                   output: process.stdout,
-                 })
-                 rl.question('Please enter two-factor authentication code or authorise login from another browser: ', (answer) => {
-                   err.continue(answer)
-                 })
+                var rl = readline.createInterface({
+                  input: process.stdin,
+                  output: process.stdout
+                })
+                rl.question('Please enter two-factor authentication code or authorise login from another browser: ', (answer) => {
+                  err.continue(answer)
+                })
               } else {
                 fbLoginReady(`Facebook login failed: ${util.inspect(err)}`)
               }
