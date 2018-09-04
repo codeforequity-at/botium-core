@@ -124,6 +124,7 @@ module.exports = class ScriptingProvider {
 
   ExpandConvos () {
     const expandedConvos = []
+    debug('Using utterances expansion mode: ' + this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE])
     this.convos.forEach((convo) => {
       this._expandConvo(expandedConvos, convo)
     })
@@ -144,7 +145,18 @@ module.exports = class ScriptingProvider {
           const uttName = parts[0]
           const uttArgs = parts.slice(1)
           if (this.utterances[uttName]) {
-            this.utterances[uttName].utterances.forEach((utt) => {
+            const allutterances = this.utterances[uttName].utterances
+            let sampleutterances = allutterances
+            if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'first') {
+              sampleutterances = [ allutterances[0] ]
+            } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'random') {
+              sampleutterances = allutterances
+                .map(x => ({ x, r: Math.random() }))
+                .sort((a, b) => a.r - b.r)
+                .map(a => a.x)
+                .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
+            }
+            sampleutterances.forEach((utt) => {
               const currentStepsStack = convoStepsStack.slice()
               if (uttArgs) {
                 utt = util.format(utt, ...uttArgs)

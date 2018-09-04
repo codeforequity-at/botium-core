@@ -217,4 +217,12 @@ module.exports = class Fluent {
     })
     return this
   }
+
+  Call (customFunction) {
+    this.tasks.push(() => {
+      customFunction(this)
+      return Promise.resolve()
+    })
+    return this
+  }
 }
