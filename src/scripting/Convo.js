@@ -41,7 +41,7 @@ class Convo {
     this.sourceTag = fromJson.sourceTag
   }
 
-  toString () { return this.header.toString() + (this.sourceTag ? ` (${this.sourceTag})` : '') + ': ' + this.conversation.map((c) => c.toString()).join(' | ') }
+  toString () { return this.header.toString() + (this.sourceTag ? ` (${util.inspect(this.sourceTag)})` : '') + ': ' + this.conversation.map((c) => c.toString()).join(' | ') }
 
   Run (container) {
     return new Promise((resolve, reject) => {

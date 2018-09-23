@@ -92,34 +92,41 @@ module.exports = class ScriptingProvider {
     const filelist = glob.sync(globPattern, { cwd: convoDir })
     debug(`ReadConvosFromDirectory(${convoDir}) found filenames: ${filelist}`)
 
+    const dirConvos = []
+    const dirUtterances = []
     filelist.forEach((filename) => {
-      this.ReadScript(convoDir, filename)
+      const { convos, utterances } = this.ReadScript(convoDir, filename)
+      if (convos) dirConvos.push(...convos)
+      if (utterances) dirUtterances.push(...utterances)
     })
-    debug(`ReadConvosFromDirectory(${convoDir}) found convos:\n ${this.convos ? this.convos.join('\n') : 'none'}`)
-    debug(`ReadConvosFromDirectory(${convoDir}) found utterances:\n ${this.utterances ? _.map(this.utterances, (u) => u).join('\n') : 'none'}`)
+    debug(`ReadConvosFromDirectory(${convoDir}) found convos:\n ${dirConvos ? dirConvos.join('\n') : 'none'}`)
+    debug(`ReadConvosFromDirectory(${convoDir}) found utterances:\n ${dirUtterances ? _.map(dirUtterances, (u) => u).join('\n') : 'none'}`)
+    return { convos: dirConvos, utterances: dirUtterances }
   }
 
   ReadScript (convoDir, filename) {
     let fileConvos = []
+    let fileUtterances = []
 
     const scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
 
     if (filename.endsWith('.xlsx')) {
-      this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
+      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
     } else if (filename.endsWith('.convo.txt')) {
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
     } else if (filename.endsWith('.utterances.txt')) {
-      this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
+      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
     }
     if (fileConvos) {
       fileConvos.forEach((fileConvo) => {
-        fileConvo.sourceTag = filename
+        fileConvo.sourceTag = { filename }
         if (!fileConvo.header.name) {
           fileConvo.header.name = filename
         }
       })
     }
+    return { convos: fileConvos, utterances: fileUtterances }
   }
 
   ExpandConvos () {
