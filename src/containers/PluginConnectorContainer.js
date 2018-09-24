@@ -19,7 +19,9 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
         throw new Error(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
       }
       this.pluginInstance = new this.plugin.PluginClass({
+        container: this,
         queueBotSays: (msg) => this._QueueBotSays(msg),
+        eventEmitter: this.eventEmitter,
         caps: this.caps,
         sources: this.sources,
         envs: this.envs
@@ -43,8 +45,8 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
     this.eventEmitter.emit(Events.CONTAINER_STARTING, this)
 
     try {
-      return super.Start().then(() => this.pluginInstance.Start ? (this.pluginInstance.Start() || Promise.resolve()) : Promise.resolve()).then(() => {
-        this.eventEmitter.emit(Events.CONTAINER_STARTED, this)
+      return super.Start().then(() => this.pluginInstance.Start ? (this.pluginInstance.Start() || Promise.resolve()) : Promise.resolve()).then((context) => {
+        this.eventEmitter.emit(Events.CONTAINER_STARTED, this, context)
         return this
       }).catch((err) => {
         this.eventEmitter.emit(Events.CONTAINER_START_ERROR, this, err)
@@ -71,8 +73,8 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
     this.eventEmitter.emit(Events.CONTAINER_STOPPING, this)
 
     try {
-      return super.Stop().then(() => this.pluginInstance.Stop ? (this.pluginInstance.Stop() || Promise.resolve()) : Promise.resolve()).then(() => {
-        this.eventEmitter.emit(Events.CONTAINER_STOPPED, this)
+      return super.Stop().then(() => this.pluginInstance.Stop ? (this.pluginInstance.Stop() || Promise.resolve()) : Promise.resolve()).then((context) => {
+        this.eventEmitter.emit(Events.CONTAINER_STOPPED, this, context)
         return this
       }).catch((err) => {
         this.eventEmitter.emit(Events.CONTAINER_STOP_ERROR, this, err)
