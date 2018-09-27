@@ -8,8 +8,8 @@ const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
 
 module.exports = class CompilerTxt extends CompilerBase {
-  constructor (provider, caps = {}) {
-    super(provider, caps)
+  constructor (context, caps = {}) {
+    super(context, caps)
 
     this.eol = caps[Capabilities.SCRIPTING_TXT_EOL]
   }
@@ -113,15 +113,15 @@ module.exports = class CompilerTxt extends CompilerBase {
     })
     pushPrev()
 
-    let result = [ new Convo(this.provider, convo) ]
-    this.provider.AddConvos(result)
+    let result = [ new Convo(this.context, convo) ]
+    this.context.AddConvos(result)
     return result
   }
 
   _compileUtterances (lines) {
     if (lines && lines.length > 1) {
       let result = [ new Utterance({ name: lines[0], utterances: lines.slice(1) }) ]
-      this.provider.AddUtterances(result)
+      this.context.AddUtterances(result)
       return result
     }
   }

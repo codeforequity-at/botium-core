@@ -52,12 +52,24 @@ module.exports = class ScriptingProvider {
     }
   }
 
+  _buildScriptContext () {
+    return {
+      AddConvos: this.AddConvos.bind(this),
+      AddUtterances: this.AddUtterances.bind(this),
+      scriptingEvents: {
+        assertBotResponse: this.scriptingEvents.assertBotResponse.bind(this),
+        assertBotNotResponse: this.scriptingEvents.assertBotNotResponse.bind(this),
+        fail: this.scriptingEvents.fail.bind(this)
+      }
+    }
+  }
+
   Build () {
     const CompilerXlsx = require('./CompilerXlsx')
-    this.compilers[Constants.SCRIPTING_FORMAT_XSLX] = new CompilerXlsx(this, this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_XSLX] = new CompilerXlsx(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_XSLX].Validate()
     const CompilerTxt = require('./CompilerTxt')
-    this.compilers[Constants.SCRIPTING_FORMAT_TXT] = new CompilerTxt(this, this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_TXT] = new CompilerTxt(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_TXT].Validate()
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
@@ -179,7 +191,7 @@ module.exports = class ScriptingProvider {
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       }
     } else {
-      expandedConvos.push(new Convo(this, Object.assign({}, currentConvo, { conversation: convoStepsStack })))
+      expandedConvos.push(new Convo(this._buildScriptContext(), Object.assign({}, currentConvo, { conversation: convoStepsStack })))
     }
   }
 
