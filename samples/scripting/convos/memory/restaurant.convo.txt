@@ -1,0 +1,40 @@
+restaurant
+
+#me
+hi
+
+#bot
+HELLO
+
+#me
+where is the next restauran
+
+#bot
+I understand you want me to find a location. I can find restaurants, gas stations and restrooms nearby.
+
+#me
+find my a restaurant
+
+#bot
+Of course. Do you have a specific cuisine in mind?
+
+#me
+pizza
+
+#bot
+Super! I've found $count locations for you. Which one would you like to drive to?
+
+#me
+$count
+
+#bot
+Sure! Restaurant $count on the list gets great reviews.
+
+#bot
+What day/time did you want to go to the restaurant?
+
+#me
+10th of january
+
+#bot
+OK

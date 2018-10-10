@@ -1,7 +1,5 @@
 const util = require('util')
 const async = require('async')
-const XRegExp = require('xregexp')
-const Mustache = require('mustache')
 const _ = require('lodash')
 const debug = require('debug')('botium-Convo')
 
@@ -158,13 +156,18 @@ class Convo {
 
   _fillScriptingMemory (container, scriptingMemory, result, expected) {
     if (result && expected && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      try {
-        const re = XRegExp(expected)
-        const reResult = XRegExp.exec(result, re)
-        Object.assign(scriptingMemory, reResult)
-      } catch (err) {
-        debug(`${this.header.name}: evaluating scripting memory (pattern ${util.inspect(expected)}) failed: ${util.inspect(err)}`)
+      let reExpected = expected
+      const varMatches = expected.match(/\$\w+/g) || []
+      for (let i = 0; i < varMatches.length; i++) {
+        reExpected = reExpected.replace(varMatches[i], '(\\w+)')
       }
+      const resultMatches = result.match(reExpected) || []
+      for (let i = 1; i < resultMatches.length; i++) {
+        if (i <= varMatches.length) {
+          scriptingMemory[varMatches[i - 1]] = resultMatches[i]
+        }
+      }
+      debug(`_fillScriptingMemory scriptingMemory: ${util.inspect(scriptingMemory)}`)
     }
   }
 
@@ -174,7 +177,9 @@ class Convo {
       else str = `${str}`
     }
     if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      str = Mustache.render(str, scriptingMemory)
+      _.forOwn(scriptingMemory, (value, key) => {
+        str = str.replace(key, value)
+      })
     }
     if (str && container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]) {
       // remove html tags
