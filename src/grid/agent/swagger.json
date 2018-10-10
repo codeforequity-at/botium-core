@@ -2,7 +2,7 @@
   "info": {
     "title": "Botium Agent API",
     "version": "1.0.0",
-    "description": "Demonstrating how to describe a RESTful API with Swagger"
+    "description": "Botium Agent API to be used with Postman, Tosca or any other 3rd party test runner"
   },
   "basePath": "/",
   "swagger": "2.0",
@@ -37,13 +37,13 @@
             "required": true,
             "schema": {
               "properties": {
-                "caps": {
+                "Capabilities": {
                   "$ref": "#/definitions/KeyValues"
                 },
-                "sources": {
+                "Sources": {
                   "$ref": "#/definitions/KeyValues"
                 },
-                "envs": {
+                "Envs": {
                   "$ref": "#/definitions/KeyValues"
                 }
               }
@@ -204,6 +204,45 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Script successful"
+          }
+        }
+      }
+    },
+    "/api/runscript_body/{slot}": {
+      "post": {
+        "description": "Run the Botium script for given worker slot, starting and stopping container as needed",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slot",
+            "description": "Worker slot",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "args",
+            "description": "Script arguments",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "script": {
+                  "type": "string",
+                  "description": "Botium script"
+                }
+              }
             }
           }
         ],

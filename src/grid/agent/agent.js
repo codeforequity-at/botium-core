@@ -40,6 +40,10 @@ app.use('/api/*', (req, res, next) => {
 app.use('/', require('./routes'))
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(require('./swagger.json')))
 app.use((err, req, res, next) => {
+  debug(`request failed: ${err}`)
+
+  if (err.message) res.statusMessage = err.message
+
   res.status(err.code || 500)
     .json({
       status: 'error',
@@ -86,5 +90,7 @@ io.on('connection', (socket) => {
 })
 
 server.listen(port, () => {
+  console.log(`Swagger UI available at /api-docs`)
+  console.log(`Swagger definition available at /swagger.json`)
   console.log(`listening on *:${port}`)
 })

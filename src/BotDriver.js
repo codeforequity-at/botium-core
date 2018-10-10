@@ -53,17 +53,15 @@ module.exports = class BotDriver {
       }
     }
 
-    let capsToTest = Object.keys(Capabilities)
     let sourcesToTest = Object.keys(Source)
 
     Object.keys(process.env).filter(e => e.startsWith('BOTIUM_')).forEach((element) => {
       let elementToTest = element.replace(/^BOTIUM_/, '')
-      if (capsToTest.includes(elementToTest)) {
-        this.caps[elementToTest] = process.env[element]
-        debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')
-      }
       if (sourcesToTest.includes(elementToTest)) {
         this.sources[elementToTest] = process.env[element]
+        debug('Changed source : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')
+      } else {
+        this.caps[elementToTest] = process.env[element]
         debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')
       }
       if (element.startsWith('BOTIUM_ENV_')) {
@@ -252,10 +250,6 @@ module.exports = class BotDriver {
     if (this.caps[Capabilities.CONTAINERMODE] === 'watsonconversation') {
       const WatsonConversationContainer = require('./containers/WatsonConversationContainer')
       return new WatsonConversationContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
-    }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'dialogflow') {
-      const DialogflowContainer = require('./containers/DialogflowContainer')
-      return new DialogflowContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
     if (this.caps[Capabilities.CONTAINERMODE] === 'simplerest') {
       const SimpleRestContainer = require('./containers/SimpleRestContainer')

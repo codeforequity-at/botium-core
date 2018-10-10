@@ -2,7 +2,7 @@
 	"variables": [],
 	"info": {
 		"name": "Botium Agent Sample",
-		"_postman_id": "134d9321-3fc8-1fc6-d40d-8f807b269235",
+		"_postman_id": "64d37b62-50f7-8d85-a034-f21830d6afe7",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
@@ -37,11 +37,16 @@
 								"key": "Content-Type",
 								"value": "application/json",
 								"description": ""
+							},
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"caps\": {\n\t\t\"PROJECTNAME\": \"IBM Watson Conversation Sample\",\n\t\t\"CONTAINERMODE\": \"watsonconversation\",\n\t\t\"WATSONCONVERSATION_USER\": \"0274cb6f-3680-4cf7-bd6b-71c7f447542d\",\n\t\t\"WATSONCONVERSATION_PASSWORD\": \"ZWDE5xo02sby\",\n\t\t\"WATSONCONVERSATION_WORKSPACE_ID\": \"97513bc0-c581-4bec-ac9f-ea6a8ec308a9\",\n\t\t\"WATSONCONVERSATION_COPY_WORKSPACE\": false\n\t}\n}"
+							"raw": "{\n\t\"Capabilities\": {\n\t\t\"PROJECTNAME\": \"IBM Watson Conversation Sample\",\n\t\t\"CONTAINERMODE\": \"watsonconversation\",\n\t\t\"WATSONCONVERSATION_USER\": \"0274cb6f-3680-4cf7-bd6b-71c7f447542d\",\n\t\t\"WATSONCONVERSATION_PASSWORD\": \"ZWDE5xo02sby\",\n\t\t\"WATSONCONVERSATION_WORKSPACE_ID\": \"97513bc0-c581-4bec-ac9f-ea6a8ec308a9\",\n\t\t\"WATSONCONVERSATION_COPY_WORKSPACE\": false\n\t}\n}"
 						},
 						"description": ""
 					},
@@ -70,8 +75,22 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/status",
 						"method": "GET",
-						"header": [],
-						"body": {},
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}"
+							},
+							{
+								"key": "",
+								"value": "",
+								"description": "",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -94,8 +113,17 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/start/{{worker_slot}}",
 						"method": "POST",
-						"header": [],
-						"body": {},
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -122,6 +150,11 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
 								"description": ""
 							}
 						],
@@ -156,7 +189,13 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/botsays/{{worker_slot}}",
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": ""
@@ -187,6 +226,11 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
 								"description": ""
 							}
 						],
@@ -221,7 +265,13 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/botsays/{{worker_slot}}",
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": ""
@@ -252,6 +302,11 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
 								"description": ""
 							}
 						],
@@ -286,7 +341,13 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/botsays/{{worker_slot}}",
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": ""
@@ -313,8 +374,17 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/stop/{{worker_slot}}",
 						"method": "POST",
-						"header": [],
-						"body": {},
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -337,8 +407,17 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/clean/{{worker_slot}}",
 						"method": "POST",
-						"header": [],
-						"body": {},
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -366,8 +445,17 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/status",
 						"method": "GET",
-						"header": [],
-						"body": {},
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -404,11 +492,16 @@
 								"key": "Content-Type",
 								"value": "application/json",
 								"description": ""
+							},
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"caps\": {\n\t\t\"PROJECTNAME\": \"IBM Watson Conversation Sample\",\n\t\t\"CONTAINERMODE\": \"watsonconversation\",\n\t\t\"WATSONCONVERSATION_USER\": \"0274cb6f-3680-4cf7-bd6b-71c7f447542d\",\n\t\t\"WATSONCONVERSATION_PASSWORD\": \"ZWDE5xo02sby\",\n\t\t\"WATSONCONVERSATION_WORKSPACE_ID\": \"97513bc0-c581-4bec-ac9f-ea6a8ec308a9\",\n\t\t\"WATSONCONVERSATION_COPY_WORKSPACE\": false\n\t}\n}"
+							"raw": "{\n\t\"Capabilities\": {\n\t\t\"PROJECTNAME\": \"IBM Watson Conversation Sample\",\n\t\t\"CONTAINERMODE\": \"watsonconversation\",\n\t\t\"WATSONCONVERSATION_USER\": \"0274cb6f-3680-4cf7-bd6b-71c7f447542d\",\n\t\t\"WATSONCONVERSATION_PASSWORD\": \"ZWDE5xo02sby\",\n\t\t\"WATSONCONVERSATION_WORKSPACE_ID\": \"97513bc0-c581-4bec-ac9f-ea6a8ec308a9\",\n\t\t\"WATSONCONVERSATION_COPY_WORKSPACE\": false\n\t}\n}"
 						},
 						"description": ""
 					},
@@ -437,8 +530,17 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/status",
 						"method": "GET",
-						"header": [],
-						"body": {},
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -461,7 +563,13 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/runscript/{{worker_slot}}",
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "lights and music\r\n\r\n#me\r\nstart\r\n\r\n#bot\r\nHi. It looks like a nice drive today. What would you like me to do?\r\n\r\n#me\r\nturn on the lights please\r\n\r\n#bot\r\nI'll turn on the lights for you.\r\n\r\n#me\r\nplay some jazz music\r\n\r\n#bot\r\nGreat choice! Playing some jazz for you.\r\n"
@@ -488,7 +596,13 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/runscript/{{worker_slot}}",
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "restaurant\r\n\r\n#me\r\nhi\r\n\r\n#bot\r\nhi\r\n\r\n#me\r\nwhere is the next restauran\r\n\r\n#bot\r\nI understand you want me to find a location. I can find restaurants, gas stations and restrooms nearby.\r\n\r\n#me\r\nfind my a restaurant\r\n\r\n#bot\r\nOf course. Do you have a specific cuisine in mind?\r\n\r\n#me\r\npizza\r\n\r\n#bot\r\nSuper! I've found 5 locations for you. Which one would you like to drive to?\r\n\r\n#me\r\n1\r\n\r\n#bot\r\nSure! Restaurant 1 on the list gets great reviews.\r\n\r\n#bot\r\nWhat day/time did you want to go to the restaurant?\r\n\r\n#me\r\n10th of january\r\n\r\n#bot\r\nOK\r\n"
@@ -515,8 +629,17 @@
 					"request": {
 						"url": "{{BOTIUMGRIDURL}}/api/clean/{{worker_slot}}",
 						"method": "POST",
-						"header": [],
-						"body": {},
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -524,15 +647,523 @@
 			]
 		},
 		{
-			"name": "Call /api/status copy",
-			"request": {
-				"url": "{{BOTIUMGRIDURL}}/api/status",
-				"method": "GET",
-				"header": [],
-				"body": {},
-				"description": ""
-			},
-			"response": []
+			"name": "Amazon Alexa Sample",
+			"description": "",
+			"item": [
+				{
+					"name": "Build Agent Connection",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"worker_slot\", pm.response.json().slot);",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/build",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Capabilities\": {\r\n      \"PROJECTNAME\": \"Alexa Smapi Sample\",\r\n      \"CONTAINERMODE\": \"alexa-smapi\",\r\n      \"ALEXA_SMAPI_SKILLID\": \"amzn1.ask.skill.28e718e6-c557-4cfa-bdb7-26935ea6451b\",\r\n      \"ALEXA_SMAPI_API\": \"simulation\"\r\n    }\r\n}\r\n"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Assert currentWorkers = 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"currentWorkers is 0\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.currentWorkers).to.eql(1);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/status",
+						"method": "GET",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "TC1: Ask for help",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/runscript/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "call for help\r\n\r\n#me\r\nask space facts for help\r\n\r\n#bot\r\nYou can say"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "TC1: Tell me a fact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/runscript/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "tell me a fact\r\n\r\n#me\r\ntell me a space fact\r\n\r\n#bot\r\nHere's your fact\r\n\r\n#me\r\nask space facts to tell me a space trivia\r\n\r\n#bot\r\nHere's your fact"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Cleanup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/clean/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Docker Sandbox Sample",
+			"description": "",
+			"item": [
+				{
+					"name": "Build Agent Connection",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"worker_slot\", pm.response.json().slot);",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/build",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Capabilities\": {\n      \"PROJECTNAME\": \"testmybot-sample-botframework\",\n      \"CONTAINERMODE\": \"docker\",\n      \"BOTFRAMEWORK_API\": true,\n      \"BOTFRAMEWORK_APP_ID\": \"my microsoft app id\",\n      \"BOTFRAMEWORK_CHANNEL_ID\": \"facebook\",\n      \"CLEANUPTEMPDIR\": false,\n      \"STARTCMD\": \"npm start\"\n    },\n    \"Sources\": {\n      \"GITURL\": \"https://github.com/Microsoft/BotBuilder-Samples.git\",\n      \"GITPREPARECMD\": \"npm install\",\n\t  \"GITDIR\": \"Node/core-CreateNewConversation\"\n    },\n    \"Envs\": {\n      \"MICROSOFT_APP_ID\": \"my microsoft app id\",\n      \"MICROSOFT_APP_PASSWORD\": \"my microsoft app password\",\n      \"NODE_DEBUG\": \"botbuilder\"\n    }\n}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Assert currentWorkers = 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"currentWorkers is 0\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.currentWorkers).to.eql(1);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/status",
+						"method": "GET",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Survey",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/runscript/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "survey\r\n\r\n#me\r\nhi\r\n\r\n#bot\r\nYou've been invited to a survey! It will start in a few seconds...\r\n\r\n#bot\r\nHello... What's your name?\r\n\r\n#me\r\nJohn\r\n\r\n#bot\r\nHi John, How many years have you been coding?\r\n\r\n#me\r\n10\r\n\r\n#bot\r\nWhat language do you code Node using? \r\n\r\n#me\r\nC#\r\n\r\n#bot\r\nI didn't understand. Please choose an option from the list.\r\n\r\n#me\r\nJavaScript\r\n\r\n#bot\r\nGot it... John you've been programming for 10 years and use JavaScript.\r\n"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Cleanup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/clean/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Docker Sandbox Sample Failing",
+			"description": "",
+			"item": [
+				{
+					"name": "Build Agent Connection",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"worker_slot\", pm.response.json().slot);",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/build",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Capabilities\": {\n      \"PROJECTNAME\": \"testmybot-sample-slack\",\n\t  \"CONTAINERMODE\": \"docker\",\n      \"SLACK_API\": true,\n      \"SLACK_EVENT_PORT\": 3000,\n      \"SLACK_EVENT_PATH\": \"slack/receive\",\n      \"SLACK_OAUTH_PORT\": 3000,\n      \"SLACK_OAUTH_PATH\": \"oauth\",\n      \"CLEANUPTEMPDIR\": false,\n      \"STARTCMD\": \"npm run start\"\n    },\n    \"Sources\": {\n      \"GITURL\": \"https://github.com/howdyai/botkit-starter-slack\",\n      \"GITPREPARECMD\": \"npm install\"\n    },\n    \"Envs\": {\n      \"NODE_TLS_REJECT_UNAUTHORIZED\": 0,\n      \"NODE_ENV\": \"dev\",\n      \"DEBUG\": \"*\",\n      \"PORT\": \"3000\",\n      \"clientId\": \"159753246482.159685134291\",\n      \"clientSecret\": \"b993ecebb034fe06bb05e2e31bc8f465\"\n    }\n}\n"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Assert currentWorkers = 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"currentWorkers is 0\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.currentWorkers).to.eql(1);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/status",
+						"method": "GET",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "TC1: Simple Color Question",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/runscript/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "Should ask for color when I say \"color\"\n\n#bot #private\nI am a bot that has just joined your team\n\n#bot #private\nYou must now /invite me to a channel so that I can be of use!\n\n#me #private\ncolor\n\n#bot #private\nThis is an example of using convo.ask with a single callback.\n\n#bot #private\nWhat is your favorite color?\n\n#me #private\ngreen\n\n#bot #private\nCool, I like green too!\n"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "TC2: Check Task Reminder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/runscript/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "Should ask for color when I say \"color\"\n\n#bot #private\nI am a bot that has just joined your team\n\n#bot #private\nYou must now /invite me to a channel so that I can be of use!\n\n#me #private\ncolor\n\n#bot #private\nThis is an example of using convo.ask with a single callback.\n\n#bot #private\nWhat is your favorite color?\n\n#me #private\ngreen\n\n#bot #private\nCool, I like green too!\n"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Cleanup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "{{BOTIUMGRIDURL}}/api/clean/{{worker_slot}}",
+						"method": "POST",
+						"header": [
+							{
+								"key": "BOTIUM_API_TOKEN",
+								"value": "{{BOTIUM_API_TOKEN}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

@@ -11,8 +11,8 @@ const Utterance = require('./Utterance')
 const { Convo } = require('./Convo')
 
 module.exports = class CompilerXlsx extends CompilerBase {
-  constructor (provider, caps = {}) {
-    super(provider, caps)
+  constructor (context, caps = {}) {
+    super(context, caps)
 
     this.colnames = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' ]
   }
@@ -103,7 +103,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
             emptylines = 0
           } else {
             if (currentConvo.length > 0) {
-              scriptResults.push(new Convo(this.provider, {
+              scriptResults.push(new Convo(this.context, {
                 header: {
                   name: `${sheetname}-${startcell}`
                 },
@@ -147,11 +147,34 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
     if (scriptResults && scriptResults.length > 0) {
       if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-        this.provider.AddConvos(scriptResults)
+        this.context.AddConvos(scriptResults)
       } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
-        this.provider.AddUtterances(scriptResults)
+        this.context.AddUtterances(scriptResults)
       }
       return scriptResults
     }
+  }
+
+  Decompile (convos) {
+    const data = []
+    if (convos) {
+      convos.forEach((convo) => {
+        if (!convo.conversation) return
+
+        convo.conversation.forEach((convoStep) => {
+          if (convoStep.sender === 'me') {
+            data.push({ me: convoStep.messageText })
+          } else if (convoStep.sender === 'bot') {
+            data.push({ bot: convoStep.messageText })
+          }
+        })
+        data.push({})
+      })
+    }
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(data, {header: ['me', 'bot']})
+    XLSX.utils.book_append_sheet(wb, ws, 'Botium')
+    const xlsxOutput = XLSX.write(wb, { type: 'buffer' })
+    return xlsxOutput
   }
 }

@@ -1,6 +1,10 @@
 module.exports = class CompilerBase {
-  constructor (provider, caps = {}) {
-    this.provider = provider
+  constructor ({ AddConvos, AddUtterances, scriptingEvents }, caps = {}) {
+    this.context = {
+      AddConvos,
+      AddUtterances,
+      scriptingEvents
+    }
     this.caps = caps
   }
 

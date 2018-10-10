@@ -68,11 +68,11 @@ router.get('/api/status', (req, res) => {
  *         required: true
  *         schema:
  *           properties:
- *             caps:
+ *             Capabilities:
  *               $ref: '#/definitions/KeyValues'
- *             sources:
+ *             Sources:
  *               $ref: '#/definitions/KeyValues'
- *             envs:
+ *             Envs:
  *               $ref: '#/definitions/KeyValues'
  *     responses:
  *       200:
@@ -86,7 +86,7 @@ router.post('/api/build', (req, res, next) => {
   workerpool.allocate()
     .then((worker) => {
       debug(`agent client connected, worker slot ${worker.args.slot}`)
-      worker.Build(req.body.caps, req.body.source, req.body.envs)
+      worker.Build(req.body.Capabilities, req.body.Sources, req.body.Envs)
         .then(() => {
           res.status(200).json({ slot: worker.args.slot })
         })
@@ -258,6 +258,8 @@ router.post('/api/stop/:slot', (req, res, next) => {
  *         description: Script successful
  */
 router.post('/api/runscript/:slot', (req, res, next) => {
+  if (!req.body) return next(new Error('no script body given'))
+
   workerpool.get(req.params.slot)
     .then((worker) => {
       worker.Start()
@@ -266,7 +268,55 @@ router.post('/api/runscript/:slot', (req, res, next) => {
         .then(() => {
           res.status(200).send()
         })
-        .catch(next)
+        .catch((err) => {
+          worker.Stop().then(() => next(err)).catch(next)
+        })
+    })
+    .catch(next)
+})
+
+/**
+ * @swagger
+ * /api/runscript_body/{slot}:
+ *   post:
+ *     description: Run the Botium script for given worker slot, starting and stopping container as needed
+ *     produces:
+ *       - application/json
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - name: slot
+ *         description: Worker slot
+ *         in: path
+ *         required: true
+ *         type: integer
+ *       - name: args
+ *         description: Script arguments
+ *         in: body
+ *         required: true
+ *         schema:
+ *           properties:
+ *             script:
+ *               type: string
+ *               description: Botium script
+ *     responses:
+ *       200:
+ *         description: Script successful
+ */
+router.post('/api/runscript_body/:slot', (req, res, next) => {
+  if (!req.body || !req.body.script) return next(new Error('no script parameter given'))
+
+  workerpool.get(req.params.slot)
+    .then((worker) => {
+      worker.Start()
+        .then(() => worker.RunScript(req.body.script))
+        .then(() => worker.Stop())
+        .then(() => {
+          res.status(200).send()
+        })
+        .catch((err) => {
+          worker.Stop().then(() => next(err)).catch(next)
+        })
     })
     .catch(next)
 })

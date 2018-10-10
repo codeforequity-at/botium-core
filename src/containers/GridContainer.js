@@ -1,5 +1,6 @@
 const util = require('util')
 const async = require('async')
+const _ = require('lodash')
 const io = require('socket.io-client')
 const debug = require('debug')('botium-GridContainer')
 
@@ -192,6 +193,18 @@ module.exports = class GridContainer extends BaseContainer {
         return Promise.resolve(this)
       }
     })
+  }
+
+  _ValidateCustomHook (capKey) {
+    if (this.caps[capKey]) {
+      if (!_.isString(this.caps[capKey])) {
+        throw new Error(`Custom Hook ${capKey} has to be a command line string`)
+      }
+    }
+  }
+
+  _RunCustomHook (capKey) {
+    return Promise.resolve()
   }
 
   _defer () {

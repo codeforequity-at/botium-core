@@ -26,7 +26,16 @@ module.exports = class Fluent {
   Exec () {
     return new Promise((resolve, reject) => {
       async.eachSeries(this.tasks, (task, cb) => {
-        task().then(() => cb()).catch(cb)
+        try {
+          const taskResult = task()
+          if (taskResult && taskResult.then) {
+            taskResult.then(() => cb()).catch(cb)
+          } else {
+            cb()
+          }
+        } catch (err) {
+          cb(err)
+        }
       }, (err) => {
         if (err) return reject(err)
         resolve()
@@ -218,6 +227,13 @@ module.exports = class Fluent {
   Clean () {
     this.tasks.push(() => {
       return this.container.Clean()
+    })
+    return this
+  }
+
+  Call (customFunction) {
+    this.tasks.push(() => {
+      return (customFunction(this) || Promise.resolve())
     })
     return this
   }
