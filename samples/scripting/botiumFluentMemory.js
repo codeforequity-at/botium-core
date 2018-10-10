@@ -1,15 +1,15 @@
 const fs = require('fs')
+const path = require('path')
 
 const BotDriver = require('../../index').BotDriver
 const Capabilities = require('../../index').Capabilities
-const Source = require('../../index').Source
 
 function assert (botresponse, tomatch, stepTag) {
   console.log(`${stepTag}: BOTRESPONSE "${botresponse}", EXPECTED "${tomatch}"`)
 }
-function fail(err) {
-    console.log(`ERROR: <${err}>`)
-    throw err
+function fail (err) {
+  console.log(`ERROR: <${err}>`)
+  throw err
 }
 
 const driver = new BotDriver()
@@ -19,13 +19,9 @@ const driver = new BotDriver()
   .setCapability(Capabilities.WATSONCONVERSATION_PASSWORD, 'ZWDE5xo02sby')
   .setCapability(Capabilities.WATSONCONVERSATION_WORKSPACE_ID, '97513bc0-c581-4bec-ac9f-ea6a8ec308a9')
   .setCapability(Capabilities.WATSONCONVERSATION_COPY_WORKSPACE, false)
+  .setCapability(Capabilities.SCRIPTING_ENABLE_MEMORY, true)
 
-const scriptBuffer = fs.readFileSync(__dirname + '/convos/txt/restaurant.convo.txt')
-
-const compiler = driver.BuildCompiler()
-const convos = compiler.Compile(scriptBuffer, 'SCRIPTING_FORMAT_TXT')
-const decompiledscript = compiler.Decompile(convos, 'SCRIPTING_FORMAT_TXT')
-console.log(decompiledscript)
+const scriptBuffer = fs.readFileSync(path.join(__dirname, '/convos/memory/restaurant.convo.txt'))
 
 driver.BuildFluent()
   .Compile(scriptBuffer, 'SCRIPTING_FORMAT_TXT')

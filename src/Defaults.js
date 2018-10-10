@@ -32,6 +32,7 @@ module.exports = {
     [Capabilities.SCRIPTING_XLSX_STARTROW]: 1,
     [Capabilities.SCRIPTING_XLSX_STARTCOL]: 'A',
     [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true,
+    [Capabilities.SCRIPTING_ENABLE_MEMORY]: false,
     [Capabilities.SCRIPTING_MATCHING_MODE]: 'includeLowerCase',
     [Capabilities.SCRIPTING_UTTEXPANSION_MODE]: 'all',
     [Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]: 1

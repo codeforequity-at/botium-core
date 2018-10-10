@@ -49,10 +49,12 @@ class Convo {
 
   Run (container) {
     return new Promise((resolve, reject) => {
+      const scriptingMemory = {}
+
       async.eachSeries(this.conversation,
         (convoStep, convoStepDone) => {
           if (convoStep.sender === 'me') {
-            convoStep.messageText = this._checkNormalizeText(container, convoStep.messageText)
+            convoStep.messageText = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
             debug(`${this.header.name}/${convoStep.stepTag}: user says ${util.inspect(convoStep)}`)
             container.UserSays(new BotiumMockMessage(convoStep))
               .then(() => convoStepDone())
@@ -70,8 +72,9 @@ class Convo {
                   convoStepDone(err)
                 }
               } else if (convoStep.messageText) {
-                const response = this._checkNormalizeText(container, saysmsg.messageText)
-                const tomatch = this._checkNormalizeText(container, convoStep.messageText)
+                this._fillScriptingMemory(container, scriptingMemory, saysmsg.messageText, convoStep.messageText)
+                const response = this._checkNormalizeText(container, scriptingMemory, saysmsg.messageText)
+                const tomatch = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
                 if (convoStep.not) {
                   try {
                     this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
@@ -89,7 +92,7 @@ class Convo {
                 }
               } else if (convoStep.sourceData) {
                 try {
-                  this._compareObject(container, convoStep, saysmsg.sourceData, convoStep.sourceData)
+                  this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
                   convoStepDone()
                 } catch (err) {
                   convoStepDone(err)
@@ -122,7 +125,7 @@ class Convo {
     })
   }
 
-  _compareObject (container, convoStep, result, expected) {
+  _compareObject (container, scriptingMemory, convoStep, result, expected) {
     if (expected === null || expected === undefined) return
 
     if (_.isArray(expected)) {
@@ -144,16 +147,39 @@ class Convo {
         }
       })
     } else {
-      const response = this._checkNormalizeText(container, result)
-      const tomatch = this._checkNormalizeText(container, expected)
+      this._fillScriptingMemory(container, scriptingMemory, result, expected)
+      const response = this._checkNormalizeText(container, scriptingMemory, result)
+      const tomatch = this._checkNormalizeText(container, scriptingMemory, expected)
       this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
     }
   }
 
-  _checkNormalizeText (container, str) {
+  _fillScriptingMemory (container, scriptingMemory, result, expected) {
+    if (result && expected && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+      let reExpected = expected
+      const varMatches = expected.match(/\$\w+/g) || []
+      for (let i = 0; i < varMatches.length; i++) {
+        reExpected = reExpected.replace(varMatches[i], '(\\w+)')
+      }
+      const resultMatches = result.match(reExpected) || []
+      for (let i = 1; i < resultMatches.length; i++) {
+        if (i <= varMatches.length) {
+          scriptingMemory[varMatches[i - 1]] = resultMatches[i]
+        }
+      }
+      debug(`_fillScriptingMemory scriptingMemory: ${util.inspect(scriptingMemory)}`)
+    }
+  }
+
+  _checkNormalizeText (container, scriptingMemory, str) {
     if (str && !_.isString(str)) {
       if (str.toString) str = str.toString()
       else str = `${str}`
+    }
+    if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+      _.forOwn(scriptingMemory, (value, key) => {
+        str = str.replace(key, value)
+      })
     }
     if (str && container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]) {
       // remove html tags
