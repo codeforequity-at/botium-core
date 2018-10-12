@@ -58,19 +58,33 @@ module.exports = class CompilerTxt extends CompilerBase {
     let currentChannel = null
 
     const parseMsg = (lines) => {
-      if (!lines) return null
+      if (!lines || lines.length === 0) return {}
 
-      let not = false
-      if (lines[0].startsWith('!')) {
-        not = true
-        lines[0] = lines[0].substr(1)
+      const convoStep = { asserters: [], not: false }
+
+      const textLines = []
+      lines.forEach(l => {
+        const checkAsserterName = l.split(' ')[0]
+        if (this.context.IsAsserterValid(checkAsserterName)) {
+          const asserterArgs = (l.length > checkAsserterName.length ? l.substr(checkAsserterName.length + 1).split('|').map(a => a.trim()) : [])
+          convoStep.asserters.push({ name: checkAsserterName, args: asserterArgs })
+        } else {
+          textLines.push(l)
+        }
+      })
+      if (textLines.length > 0) {
+        if (textLines[0].startsWith('!')) {
+          convoStep.not = true
+          textLines[0] = textLines[0].substr(1)
+        }
+        let content = textLines.join(' ')
+        if (isJSON(content)) {
+          convoStep.sourceData = JSON.parse(content)
+        } else {
+          convoStep.messageText = textLines.join(this.eol)
+        }
       }
-      let content = lines.join(' ')
-      if (isJSON(content)) {
-        return { not, sourceData: JSON.parse(content) }
-      } else {
-        return { not, messageText: lines.join(this.eol) }
-      }
+      return convoStep
     }
 
     let pushPrev = () => {
@@ -80,10 +94,7 @@ module.exports = class CompilerTxt extends CompilerBase {
           channel: currentChannel,
           stepTag: 'Line ' + currentLineIndex
         }
-        let { not, messageText, sourceData } = parseMsg(currentLines)
-        convoStep.not = not
-        convoStep.messageText = messageText
-        convoStep.sourceData = sourceData
+        Object.assign(convoStep, parseMsg(currentLines))
         convo.conversation.push(convoStep)
       } else if (!currentSender && currentLines) {
         convo.header.name = currentLines[0]
@@ -96,8 +107,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     lines.forEach((line) => {
       currentLineIndex++
       line = line.trim()
-      if (!line) {
-      } else if (line.startsWith('#')) {
+      if (line && line.startsWith('#')) {
         pushPrev()
 
         currentSender = line.substr(1)
@@ -107,7 +117,7 @@ module.exports = class CompilerTxt extends CompilerBase {
           currentSender = currentSender.substr(0, currentSender.indexOf(' ')).trim()
         }
         currentLines = []
-      } else {
+      } else if (line && line.length > 0) {
         currentLines.push(line)
       }
     })

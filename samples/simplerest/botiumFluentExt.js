@@ -1,3 +1,5 @@
+const fs = require('fs')
+const path = require('path')
 const BotDriver = require('../../index').BotDriver
 const Capabilities = require('../../index').Capabilities
 
@@ -13,12 +15,14 @@ const driver = new BotDriver()
   .setCapability(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, '$.text.*')
   .setCapability(Capabilities.SIMPLEREST_BUTTONS_JSONPATH, '$.quick_response.*')
 
+// const scriptBuffer = fs.readFileSync(path.join(__dirname, 'convos/hellobuttons.convo.txt'))
+// const compiler = driver.BuildCompiler()
+// const convos = compiler.Compile(scriptBuffer, 'SCRIPTING_FORMAT_TXT')
+// console.log(convos.toString())
+
 driver.BuildFluent()
-  .Start()
-  .UserSaysText('Hallo')
-  .WaitBotSays(console.log)
-  .Stop()
-  .Clean()
+  .ReadScripts('convos')
+  .RunScripts()
   .Exec()
   .then(() => {
     console.log('READY')
