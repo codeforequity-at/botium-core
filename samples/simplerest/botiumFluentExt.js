@@ -1,14 +1,6 @@
 const BotDriver = require('../../index').BotDriver
 const Capabilities = require('../../index').Capabilities
 
-function assert (expected, actual) {
-  if (!actual || actual.indexOf(expected) < 0) {
-    console.log(`ERROR: Expected <${expected}>, got <${actual}>`)
-  } else {
-    console.log(`SUCCESS: Got Expected <${expected}>`)
-  }
-}
-
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'Simple Rest Sample')
   .setCapability(Capabilities.CONTAINERMODE, 'simplerest')
@@ -23,10 +15,8 @@ const driver = new BotDriver()
 
 driver.BuildFluent()
   .Start()
-  .UserSaysText('Wer bist du ?')
-  .WaitBotSaysText((text) => assert('Ich bin ein virtueller Berater namens Troy', text))
-  .WaitBotSaysText((text) => assert('Wie geht es Ihnen', text))
-  .WaitBotSaysText((text) => assert('Welche Fragen kann ich Dich fragen?', text))
+  .UserSaysText('Hallo')
+  .WaitBotSays(console.log)
   .Stop()
   .Clean()
   .Exec()

@@ -247,10 +247,6 @@ module.exports = class BotDriver {
       const FbContainer = require('./containers/FbContainer')
       return new FbContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'watsonconversation') {
-      const WatsonConversationContainer = require('./containers/WatsonConversationContainer')
-      return new WatsonConversationContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
-    }
     if (this.caps[Capabilities.CONTAINERMODE] === 'simplerest') {
       const SimpleRestContainer = require('./containers/SimpleRestContainer')
       return new SimpleRestContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)

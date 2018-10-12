@@ -3,6 +3,7 @@ const async = require('async')
 const request = require('request')
 const Mustache = require('mustache')
 const jp = require('jsonpath')
+const mime = require('mime-types')
 const uuidv4 = require('uuid/v4')
 const _ = require('lodash')
 const debug = require('debug')('botium-SimpleRestContainer')
@@ -171,6 +172,36 @@ module.exports = class SimpleRestContainer extends BaseContainer {
             }
 
             if (evalResponseBody) {
+              const media = []
+              const jsonPathMediaCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_MEDIA_JSONPATH))
+              _(jsonPathMediaCaps).keys().sort().each((key) => {
+                const jsonPath = this.caps[key]
+                const responseMedia = jp.query(body, jsonPath)
+                if (responseMedia) {
+                  (_.isArray(responseMedia) ? responseMedia : [ responseMedia ]).forEach(m =>
+                    media.push({
+                      mediaUri: m,
+                      mimeType: mime.lookup(m) || 'application/unknown'
+                    })
+                  )
+                  debug(`found response media: ${util.inspect(media)}`)
+                }
+              })
+              const buttons = []
+              const jsonPathButtonsCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_BUTTONS_JSONPATH))
+              _(jsonPathButtonsCaps).keys().sort().each((key) => {
+                const jsonPath = this.caps[key]
+                const responseButtons = jp.query(body, jsonPath)
+                if (responseButtons) {
+                  (_.isArray(responseButtons) ? responseButtons : [ responseButtons ]).forEach(b =>
+                    buttons.push({
+                      text: b
+                    })
+                  )
+                  debug(`found response buttons: ${util.inspect(buttons)}`)
+                }
+              })
+
               const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_RESPONSE_JSONPATH))
               _(jsonPathCaps).keys().sort().each((key) => {
                 const jsonPath = this.caps[key]
@@ -183,7 +214,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
                 messageTexts.forEach((messageText) => {
                   if (!messageText) return
 
-                  const botMsg = { sourceData: body, messageText }
+                  const botMsg = { sourceData: body, messageText, media, buttons }
                   this._QueueBotSays(new BotiumMockMessage(botMsg))
                 })
               })
