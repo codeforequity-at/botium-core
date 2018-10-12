@@ -16,6 +16,15 @@ class ConvoHeader {
   toString () { return this.order + ' ' + this.name + (this.description ? ` (${this.description})` : '') }
 }
 
+class ConvoStepAssert {
+  constructor (fromJson = {}) {
+    this.name = fromJson.name
+    this.args = fromJson.args
+  }
+
+  toString () { return this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')' }
+}
+
 class ConvoStep {
   constructor (fromJson = {}) {
     this.sender = fromJson.sender
@@ -24,18 +33,15 @@ class ConvoStep {
     this.sourceData = fromJson.sourceData
     this.stepTag = fromJson.stepTag
     this.not = fromJson.not
+    this.asserters = _.map(fromJson.asserters, (asserter) => new ConvoStepAssert(asserter))
   }
 
-  toString () { return this.stepTag + ': #' + this.sender + ' - ' + (this.not ? '!' : '') + this.messageText }
+  toString () { return this.stepTag + ': #' + this.sender + ' - ' + (this.not ? '!' : '') + this.messageText + (this.asserters ? ' ' + this.asserters.map(a => a.toString()).join(' ASS: ') : '') }
 }
 
 class Convo {
-  constructor ({ scriptingEvents: { assertBotResponse, assertBotNotResponse, fail } }, fromJson = {}) {
-    this.scriptingEvents = {
-      assertBotResponse,
-      assertBotNotResponse,
-      fail
-    }
+  constructor ({ scriptingEvents }, fromJson = {}) {
+    this.scriptingEvents = scriptingEvents
     this.header = new ConvoHeader(fromJson.header)
     if (fromJson.conversation && _.isArray(fromJson.conversation)) {
       this.conversation = _.map(fromJson.conversation, (step) => new ConvoStep(step))
@@ -65,41 +71,46 @@ class Convo {
             debug(`${this.header.name} wait for bot ${util.inspect(convoStep.channel)}`)
             container.WaitBotSays(convoStep.channel).then((saysmsg) => {
               debug(`${this.header.name}: bot says ${util.inspect(saysmsg)}`)
-              if (!saysmsg || (!saysmsg.messageText && !saysmsg.sourceData)) {
+              if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData)) {
                 try {
                   this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
+                  return
                 } catch (err) {
                   convoStepDone(err)
+                  return
                 }
-              } else if (convoStep.messageText) {
+              }
+
+              if (convoStep.messageText) {
                 this._fillScriptingMemory(container, scriptingMemory, saysmsg.messageText, convoStep.messageText)
                 const response = this._checkNormalizeText(container, scriptingMemory, saysmsg.messageText)
                 const tomatch = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
                 if (convoStep.not) {
                   try {
                     this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
-                    convoStepDone()
                   } catch (err) {
                     convoStepDone(err)
+                    return
                   }
                 } else {
                   try {
                     this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
-                    convoStepDone()
                   } catch (err) {
                     convoStepDone(err)
+                    return
                   }
                 }
               } else if (convoStep.sourceData) {
                 try {
                   this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
-                  convoStepDone()
                 } catch (err) {
                   convoStepDone(err)
+                  return
                 }
-              } else {
-                convoStepDone()
               }
+              this.scriptingEvents.assertConvoStep(this, convoStep, saysmsg)
+                .then(() => convoStepDone())
+                .catch(convoStepDone)
             }).catch((err) => {
               try {
                 this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`)
@@ -172,7 +183,9 @@ class Convo {
   }
 
   _checkNormalizeText (container, scriptingMemory, str) {
-    if (str && !_.isString(str)) {
+    if (str && _.isArray(str)) {
+      str = str.join(' ')
+    } else if (str && !_.isString(str)) {
       if (str.toString) str = str.toString()
       else str = `${str}`
     }

@@ -1,0 +1,11 @@
+{
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "Botium Scripting Sample",
+      "CONTAINERMODE": "watson",
+      "WATSON_USER": "0274cb6f-3680-4cf7-bd6b-71c7f447542d",
+      "WATSON_PASSWORD": "ZWDE5xo02sby",
+      "WATSON_WORKSPACE_ID": "97513bc0-c581-4bec-ac9f-ea6a8ec308a9"
+    }
+  }
+}

@@ -8,6 +8,8 @@ const debug = require('debug')('botium-ScriptingProvider')
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
+const ButtonsAsserter = require('./asserter/ButtonsAsserter')
+const MediaAsserter = require('./asserter/MediaAsserter')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx)'
 
@@ -17,9 +19,20 @@ module.exports = class ScriptingProvider {
     this.compilers = {}
     this.convos = []
     this.utterances = { }
-    this.match = null
+    this.matchFn = null
+    this.asserters = { }
 
     this.scriptingEvents = {
+      assertConvoBegin: (convo) => {
+        return Promise.resolve()
+      },
+      assertConvoStep: (convo, convoStep, botMsg) => {
+        const allPromises = (convoStep.asserters || []).map(a => this.asserters[a.name].assertConvoStep(convo, convoStep, a.args, botMsg))
+        return Promise.all(allPromises)
+      },
+      assertConvoEnd: (convo, msgs) => {
+        return Promise.resolve()
+      },
       assertBotResponse: (botresponse, tomatch, stepTag) => {
         if (!_.isArray(tomatch)) {
           if (this.utterances[tomatch]) {
@@ -30,7 +43,7 @@ module.exports = class ScriptingProvider {
         }
         const found = _.find(tomatch, (utt) => {
           if (_.isString(botresponse)) {
-            return this.match(botresponse, utt)
+            return this.matchFn(botresponse, utt)
           } else {
             return botresponse === utt
           }
@@ -56,7 +69,12 @@ module.exports = class ScriptingProvider {
     return {
       AddConvos: this.AddConvos.bind(this),
       AddUtterances: this.AddUtterances.bind(this),
+      Match: this.Match.bind(this),
+      IsAsserterValid: this.IsAsserterValid.bind(this),
       scriptingEvents: {
+        assertConvoBegin: this.scriptingEvents.assertConvoBegin.bind(this),
+        assertConvoStep: this.scriptingEvents.assertConvoStep.bind(this),
+        assertConvoEnd: this.scriptingEvents.assertConvoEnd.bind(this),
         assertBotResponse: this.scriptingEvents.assertBotResponse.bind(this),
         assertBotNotResponse: this.scriptingEvents.assertBotNotResponse.bind(this),
         fail: this.scriptingEvents.fail.bind(this)
@@ -74,16 +92,25 @@ module.exports = class ScriptingProvider {
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
     if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp') {
-      this.match = (botresponse, utterance) => (new RegExp(utterance, 'i')).test(botresponse)
+      this.matchFn = (botresponse, utterance) => (new RegExp(utterance, 'i')).test(botresponse)
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include') {
-      this.match = (botresponse, utterance) => botresponse.indexOf(utterance) >= 0
+      this.matchFn = (botresponse, utterance) => botresponse.indexOf(utterance) >= 0
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
-      this.match = (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+      this.matchFn = (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
     } else {
-      this.match = (botresponse, utterance) => botresponse === utterance
+      this.matchFn = (botresponse, utterance) => botresponse === utterance
     }
+
+    this.asserters['BUTTONS'] = new ButtonsAsserter(this._buildScriptContext(), this.caps)
+    this.asserters['MEDIA'] = new MediaAsserter(this._buildScriptContext(), this.caps)
   }
 
+  IsAsserterValid (name) {
+    return this.asserters[name] || false
+  }
+  Match (botresponse, utterance) {
+    return this.matchFn(botresponse, utterance)
+  }
   Compile (scriptBuffer, scriptFormat, scriptType) {
     let compiler = this.GetCompiler(scriptFormat)
     return compiler.Compile(scriptBuffer, scriptType)

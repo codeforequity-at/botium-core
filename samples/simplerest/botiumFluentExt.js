@@ -1,13 +1,7 @@
+const fs = require('fs')
+const path = require('path')
 const BotDriver = require('../../index').BotDriver
 const Capabilities = require('../../index').Capabilities
-
-function assert (expected, actual) {
-  if (!actual || actual.indexOf(expected) < 0) {
-    console.log(`ERROR: Expected <${expected}>, got <${actual}>`)
-  } else {
-    console.log(`SUCCESS: Got Expected <${expected}>`)
-  }
-}
 
 const driver = new BotDriver()
   .setCapability(Capabilities.PROJECTNAME, 'Simple Rest Sample')
@@ -21,14 +15,14 @@ const driver = new BotDriver()
   .setCapability(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, '$.text.*')
   .setCapability(Capabilities.SIMPLEREST_BUTTONS_JSONPATH, '$.quick_response.*')
 
+// const scriptBuffer = fs.readFileSync(path.join(__dirname, 'convos/hellobuttons.convo.txt'))
+// const compiler = driver.BuildCompiler()
+// const convos = compiler.Compile(scriptBuffer, 'SCRIPTING_FORMAT_TXT')
+// console.log(convos.toString())
+
 driver.BuildFluent()
-  .Start()
-  .UserSaysText('Wer bist du ?')
-  .WaitBotSaysText((text) => assert('Ich bin ein virtueller Berater namens Troy', text))
-  .WaitBotSaysText((text) => assert('Wie geht es Ihnen', text))
-  .WaitBotSaysText((text) => assert('Welche Fragen kann ich Dich fragen?', text))
-  .Stop()
-  .Clean()
+  .ReadScripts('convos')
+  .RunScripts()
   .Exec()
   .then(() => {
     console.log('READY')
