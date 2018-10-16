@@ -9,7 +9,7 @@ module.exports = class ButtonsAsserter extends BaseAsserter {
           if (botMsg.buttons.findIndex(mb => this.context.Match(mb.text, args[i])) >= 0) continue
         }
         if (botMsg.cards) {
-          if (botMsg.cards.findIndex(mc => mc.buttons && mc.buttons.findIndex(mcb => this.context.Match(mcb.text, args[i])) >= 0)) continue
+          if (botMsg.cards.findIndex(mc => mc.buttons && mc.buttons.findIndex(mcb => this.context.Match(mcb.text, args[i])) >= 0) >= 0) continue
         }
         buttonsNotFound.push(args[i])
       }

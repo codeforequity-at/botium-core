@@ -61,7 +61,7 @@ class Convo {
         (convoStep, convoStepDone) => {
           if (convoStep.sender === 'me') {
             convoStep.messageText = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
-            debug(`${this.header.name}/${convoStep.stepTag}: user says ${util.inspect(convoStep)}`)
+            debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`)
             container.UserSays(new BotiumMockMessage(convoStep))
               .then(() => convoStepDone())
               .catch((err) => {
@@ -70,7 +70,7 @@ class Convo {
           } else if (convoStep.sender === 'bot') {
             debug(`${this.header.name} wait for bot ${util.inspect(convoStep.channel)}`)
             container.WaitBotSays(convoStep.channel).then((saysmsg) => {
-              debug(`${this.header.name}: bot says ${util.inspect(saysmsg)}`)
+              debug(`${this.header.name}: bot says ${JSON.stringify(saysmsg, null, 2)}`)
               if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData)) {
                 try {
                   this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
