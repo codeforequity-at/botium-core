@@ -100,10 +100,16 @@ module.exports = class ScriptingProvider {
     } else {
       this.matchFn = (botresponse, utterance) => botresponse === utterance
     }
-    this._fetchAsserters();
+    this._setDefaultAsserters()
+    this._fetchAsserters()
   }
 
-  _fetchAsserters() {
+  _setDefaultAsserters () {
+    this.asserters['BUTTONS'] = new ButtonsAsserter(this._buildScriptContext(), this.caps)
+    this.asserters['MEDIA'] = new MediaAsserter(this._buildScriptContext(), this.caps)
+  }
+
+  _fetchAsserters () {
     this.caps[Capabilities.ASSERTERS]
       .map(asserter => {
         try {
@@ -115,13 +121,13 @@ module.exports = class ScriptingProvider {
         }
       })
   }
-
   IsAsserterValid (name) {
     return this.asserters[name] || false
   }
   Match (botresponse, utterance) {
     return this.matchFn(botresponse, utterance)
   }
+
   Compile (scriptBuffer, scriptFormat, scriptType) {
     let compiler = this.GetCompiler(scriptFormat)
     return compiler.Compile(scriptBuffer, scriptType)
