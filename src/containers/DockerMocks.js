@@ -126,16 +126,20 @@ class BaseMock {
                 uri: this.mockUrl,
                 method: 'GET'
               }
-              this.debug(`Mock - checking endpoint ${this.mockUrl} before proceed`)
+              this.debug(`Mock - checking endpoint ${this.mockUrl} is online before proceed ...`)
               request(options, (err, response, body) => {
-                if (err) {
-                  setTimeout(callback, 2000)
-                } else if (response && response.statusCode === 200) {
-                  this.debug(`Mock - endpoint ${this.mockUrl} is online`)
+                if (!err && response.statusCode === 200) {
+                  this.debug(`Mock - endpoint ${this.mockUrl} is online (${body})`)
                   online = true
                   callback()
-                } else {
+                } else if (err) {
+                  this.debug(`Mock - endpoint ${this.mockUrl} not online (${err} - ${body}), checking again in 2 seconds ...`)
                   setTimeout(callback, 2000)
+                } else if (response) {
+                  this.debug(`Mock - endpoint ${this.mockUrl} not online (Status Code: ${response.statusCode} - ${body}), checking again in 2 seconds ...`)
+                  setTimeout(callback, 2000)
+                } else {
+                  callback(new Error(`Mock - checking endpoint didn't either return error nor response.`))
                 }
               })
             },

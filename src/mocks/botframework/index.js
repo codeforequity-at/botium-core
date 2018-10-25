@@ -22,7 +22,7 @@ if (publishPort) {
   publishPort = 46199
 }
 
-let microsoftAppId = process.env.BOTIUM_BOTFRAMEWORK_APP_ID || 'MICROSOFT_APP_ID'
+let microsoftAppId = process.env.BOTIUM_BOTFRAMEWORK_APP_ID || ''
 let channelId = process.env.BOTIUM_BOTFRAMEWORK_CHANNEL_ID || 'facebook'
 let securityToken = getSecurityToken()
 
@@ -203,9 +203,9 @@ appTest.get('/', (req, res) => {
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
-      console.log('port usage (' + webhookurl + '): ' + inUse)
+      console.log('port usage chatbot endpoint (' + webhookurl + '): ' + inUse)
       if (inUse) {
-        console.log('checking (' + webhookurl + ') for response')
+        console.log('checking chatbot endpoint (' + webhookurl + ') for response')
         var options = {
           uri: webhookurl,
           method: 'POST',
@@ -216,20 +216,22 @@ appTest.get('/', (req, res) => {
         }
         request(options, (err, response, body) => {
           if (err) {
-            console.log('webhook (' + webhookurl + ') not yet online ' + err)
-            res.status(500).send('testendpoint not yet online')
+            var offlineMsg = 'chatbot endpoint (' + webhookurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
+            console.log(offlineMsg)
+            res.status(500).send(offlineMsg)
           } else {
-            console.log('webhook (' + webhookurl + ') online')
-            res.status(200).send('testendpoint online')
+            var onlineMsg = 'chatbot endpoint (' + webhookurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+            console.log(onlineMsg)
+            res.status(200).send(onlineMsg)
           }
         })
       } else {
-        res.status(500).send('testendpoint not yet online')
+        res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port not in use)')
       }
     },
     (err) => {
-      console.log('error on port check: ' + err)
-      res.status(500).send('testendpoint not yet online')
+      console.log('error on port check chatbot endpoint: ' + err)
+      res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port check failed ' + err + ')')
     })
 })
 
@@ -315,7 +317,8 @@ function callWebhook (msg) {
 function getSecurityToken () {
   return jwt.sign(
     {
-      serviceUrl: 'https://api.botframework.com'
+      serviceUrl: 'https://api.botframework.com',
+      serviceurl: 'https://api.botframework.com'
     },
     pem,
     {

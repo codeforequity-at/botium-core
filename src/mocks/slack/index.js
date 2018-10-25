@@ -252,9 +252,9 @@ appTest.get('/', (req, res) => {
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
-      console.log('port usage (' + oauthurl + '): ' + inUse)
+      console.log('port usage chatbot oauth endpoint (' + oauthurl + '): ' + inUse)
       if (inUse) {
-        console.log('checking (' + oauthurl + ') for response')
+        console.log('checking chatbot oauth endpoint (' + oauthurl + ') for response')
         var options = {
           uri: oauthurl,
           method: 'GET',
@@ -262,18 +262,22 @@ appTest.get('/', (req, res) => {
         }
         request(options, (err, response, body) => {
           if (err) {
-            res.status(500).send('endpoint ' + oauthurl + ' not yet online')
+            var offlineMsg = 'chatbot oauth endpoint (' + oauthurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
+            console.log(offlineMsg)
+            res.status(500).send(offlineMsg)
           } else {
-            res.status(200).send('endpoint ' + oauthurl + ' online')
+            var onlineMsg = 'chatbot oauth endpoint (' + oauthurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+            console.log(onlineMsg)
+            res.status(200).send(onlineMsg)
           }
         })
       } else {
-        res.status(500).send('endpoint not yet online')
+        res.status(500).send('chatbot oauth endpoint (' + oauthurl + ') not yet online (port not in use)')
       }
     },
     (err) => {
-      console.log('error on port check: ' + err)
-      res.status(500).send('endpoint ' + oauthurl + ' not yet online')
+      console.log('error on port check chatbot oauth endpoint: ' + err)
+      res.status(500).send('chatbot oauth endpoint (' + oauthurl + ') not yet online (port check failed ' + err + ')')
     })
 })
 

@@ -1,0 +1,22 @@
+{
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "Microsoft Bot Framework Sample",
+			"CONTAINERMODE": "docker",
+      "DOCKERIMAGE": "node:10",
+			"BOTFRAMEWORK_API": true,
+			"BOTFRAMEWORK_APP_ID": "mymicrosoftappid",
+			"BOTFRAMEWORK_CHANNEL_ID": "facebook",
+			"STARTCMD": "npm install && npm start"
+    },
+		"Sources": {
+			"GITURL": "https://github.com/Microsoft/BotBuilder-Samples.git",
+			"GITDIR": "samples/javascript_nodejs/04.simple-prompt",
+      "GITPREPARECMD": "sed -i 10s/.*/\"appId\":\"mymicrosoftappid\",/ simple-prompt-bot.bot"
+		},
+    "Envs": {
+			"NODE_DEBUG": "botbuilder",
+			"DEBUG": "*"
+    }
+  }
+}
