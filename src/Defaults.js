@@ -31,7 +31,10 @@ module.exports = {
     [Capabilities.SCRIPTING_ENABLE_MEMORY]: false,
     [Capabilities.SCRIPTING_MATCHING_MODE]: 'includeLowerCase',
     [Capabilities.SCRIPTING_UTTEXPANSION_MODE]: 'all',
-    [Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]: 1
+    [Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]: 1,
+    [Capabilities.ASSERTERS]: [
+      {ref: 'BUTTONS', path: './asserter/ButtonsAsserter'},
+      {ref: 'MEDIA', path: './asserter/MediaAsserter'}]
   },
   Sources: {
     [Source.LOCALPATH]: '.',
