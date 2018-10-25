@@ -100,9 +100,20 @@ module.exports = class ScriptingProvider {
     } else {
       this.matchFn = (botresponse, utterance) => botresponse === utterance
     }
+    this._fetchAsserters();
+  }
 
-    this.asserters['BUTTONS'] = new ButtonsAsserter(this._buildScriptContext(), this.caps)
-    this.asserters['MEDIA'] = new MediaAsserter(this._buildScriptContext(), this.caps)
+  _fetchAsserters() {
+    this.caps[Capabilities.ASSERTERS]
+      .map(asserter => {
+        try {
+          const Asserter = require(asserter.path)
+          this.asserters[asserter.ref] = new Asserter(this._buildScriptContext(), this.caps)
+          debug(`Loaded ${asserter.ref} asserter successfully`)
+        } catch (err) {
+          throw new Error(`Failed to fetch ${asserter.ref} asserter from ${asserter.path} - ${util.inspect(err)} `)
+        }
+      })
   }
 
   IsAsserterValid (name) {
