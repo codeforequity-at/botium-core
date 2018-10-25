@@ -161,7 +161,7 @@ module.exports = class BaseContainer {
   }
 
   _AssertCapabilityExists (cap) {
-    if (!this.caps[cap]) {
+    if (!this.caps.hasOwnProperty(cap)) {
       throw new Error(`Capability property ${cap} not set`)
     }
   }
