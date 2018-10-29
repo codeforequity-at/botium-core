@@ -1,35 +1,64 @@
 const util = require('util')
+const _ = require('lodash')
 const debug = require('debug')('botium-PluginConnectorContainer')
 
 const Events = require('../Events')
 const Capabilities = require('../Capabilities')
 const BaseContainer = require('./BaseContainer')
 
+const tryLoadPlugin = (containermode, args) => {
+  if (_.isFunction(containermode)) {
+    const pluginInstance = containermode(args)
+    debug(`Botium plugin loaded from function call`)
+    return pluginInstance
+  }
+  try {
+    const plugin = require(containermode)
+    if (!plugin.PluginVersion || !plugin.PluginClass) {
+      debug(`Invalid Botium plugin loaded from ${containermode}, expected PluginVersion, PluginClass fields`)
+    } else {
+      const pluginInstance = new plugin.PluginClass(args)
+      debug(`Botium plugin loaded from ${containermode}`)
+      return pluginInstance
+    }
+  } catch (err) {
+    debug(`Loading Botium plugin from ${containermode} failed - ${util.inspect(err)}`)
+  }
+  const tryLoadPackage = `botium-connector-${containermode}`
+  try {
+    const plugin = require(tryLoadPackage)
+    if (!plugin.PluginVersion || !plugin.PluginClass) {
+      debug(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
+    } else {
+      const pluginInstance = new plugin.PluginClass(args)
+      debug(`Botium plugin ${tryLoadPackage} loaded`)
+      return pluginInstance
+    }
+  } catch (err) {
+    debug(`Loading Botium plugin ${tryLoadPackage} failed, try "npm install ${tryLoadPackage}" - ${util.inspect(err)}`)
+  }
+}
+
 module.exports = class PluginConnectorContainer extends BaseContainer {
   Validate () {
     return super.Validate().then(() => {
-      const tryLoadPackage = `botium-connector-${this.caps[Capabilities.CONTAINERMODE]}`
-      try {
-        this.plugin = require(tryLoadPackage)
-        debug(`Botium plugin ${tryLoadPackage} loaded`)
-      } catch (err) {
-        throw new Error(`Loading Botium plugin ${tryLoadPackage} failed, try "npm install ${tryLoadPackage}" - ${util.inspect(err)}`)
+      this.pluginInstance = tryLoadPlugin(
+        this.caps[Capabilities.CONTAINERMODE],
+        {
+          container: this,
+          queueBotSays: (msg) => this._QueueBotSays(msg),
+          eventEmitter: this.eventEmitter,
+          caps: this.caps,
+          sources: this.sources,
+          envs: this.envs
+        })
+      if (!this.pluginInstance) {
+        throw new Error(`Loading Botium plugin failed`)
       }
-      if (!this.plugin.PluginVersion || !this.plugin.PluginClass) {
-        throw new Error(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
-      }
-      this.pluginInstance = new this.plugin.PluginClass({
-        container: this,
-        queueBotSays: (msg) => this._QueueBotSays(msg),
-        eventEmitter: this.eventEmitter,
-        caps: this.caps,
-        sources: this.sources,
-        envs: this.envs
-      })
       if (!this.pluginInstance.UserSays) {
-        throw new Error(`Invalid Botium plugin ${tryLoadPackage}, expected UserSays function`)
+        throw new Error(`Invalid Botium plugin, expected UserSays function`)
       }
-      return this.pluginInstance.Validate()
+      return this.pluginInstance.Validate ? (this.pluginInstance.Validate() || Promise.resolve()) : Promise.resolve()
     })
   }
 
