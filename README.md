@@ -7,6 +7,10 @@ The Selenium for Chatbots
 [![npm version](https://badge.fury.io/js/botium-core.svg)](https://badge.fury.io/js/testmybot)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
 
+## Codesandbox.io Sample Project
+
+[![Open Botium Codesandbox Sample](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/codeforequity-at/botium-codesandbox-sample/tree/master/?module=%2FREADME.md)
+
 ## Documentation
 
 See the [Botium Wiki](https://github.com/codeforequity-at/botium-core/wiki) for documentation.
