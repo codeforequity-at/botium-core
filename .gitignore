@@ -61,6 +61,5 @@ temp
 botiumwork
 dist
 setEnv.sh
-testBotDriver.js
 yarn.lock
 botium-core.iml
