@@ -39,6 +39,7 @@ module.exports = class ScriptingProvider {
             tomatch = [tomatch]
           }
         }
+        debug(`assertBotResponse ${stepTag} BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => {
           if (_.isString(botresponse)) {
             return this.matchFn(botresponse, utt)
@@ -51,11 +52,13 @@ module.exports = class ScriptingProvider {
         }
       },
       assertBotNotResponse: (botresponse, nottomatch, stepTag) => {
+        debug(`assertBotNotResponse ${stepTag} BOT: ${botresponse} != ${nottomatch} ...`)
         try {
-          this.scriptingEvents.assertBotResponse(botresponse, nottomatch)
-          throw new Error(`${stepTag}: Expected bot response "${botresponse}" NOT to match one of "${nottomatch}"`)
+          this.scriptingEvents.assertBotResponse(botresponse, nottomatch, stepTag)
         } catch (err) {
+          return
         }
+        throw new Error(`${stepTag}: Expected bot response "${botresponse}" NOT to match one of "${nottomatch}"`)
       },
       fail: (msg) => {
         throw new Error(msg)
@@ -201,13 +204,14 @@ module.exports = class ScriptingProvider {
                 .map(a => a.x)
                 .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
             }
-            sampleutterances.forEach((utt) => {
+            sampleutterances.forEach((utt, index) => {
               const currentStepsStack = convoStepsStack.slice()
               if (uttArgs) {
                 utt = util.format(utt, ...uttArgs)
               }
               currentStepsStack.push(Object.assign({}, currentStep, {messageText: utt}))
-              this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+              const currentConvoLabeled = Object.assign({}, currentConvo, {header: Object.assign({}, currentConvo.header, {name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1)})})
+              this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
             return
           }
