@@ -15,10 +15,9 @@ if (!fs.existsSync('botium-utterances-master')) {
 
 driver.BuildFluent()
   .ReadScripts('botium-utterances-master/shared', '**/+(INCOMPREHENSION.en.utterances.txt)')
-  .ReadScripts('botium-utterances-master/convos/joke')
-  .Call((f) => console.log('Convos read: ' + f.compiler.convos.length))
-  .Call((f) => f.compiler.ExpandConvos())
-  .Call((f) => console.log('Convos expanded: ' + f.compiler.convos.length))
+  .ReadScripts('botium-utterances-master/convos/joke', '**/*.en.utterances.txt')
+  .Call((f) => f.compiler.ExpandUtterancesToConvos())
+  .Call((f) => console.log('Utterances expanded: ' + f.compiler.convos.length))
   .Start()
   .RunScripts()
   .Stop()
