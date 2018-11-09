@@ -58,7 +58,7 @@ module.exports = class Fluent {
     return this
   }
 
-  ReadScripts (scriptDir) {
+  ReadScripts (convoDir, globFilter) {
     this.tasks.push(() => {
       return new Promise((resolve, reject) => {
         if (this.compiler == null) {
@@ -69,7 +69,7 @@ module.exports = class Fluent {
           }
         }
         try {
-          this.compiler.ReadScriptsFromDirectory(scriptDir)
+          this.compiler.ReadScriptsFromDirectory(convoDir, globFilter)
           resolve()
         } catch (err) {
           reject(err)

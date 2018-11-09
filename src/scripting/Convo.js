@@ -57,11 +57,13 @@ class Convo {
     return new Promise((resolve, reject) => {
       const scriptingMemory = {}
 
+      let lastMeMsg = null
       async.eachSeries(this.conversation,
         (convoStep, convoStepDone) => {
           if (convoStep.sender === 'me') {
             convoStep.messageText = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
             debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`)
+            lastMeMsg = convoStep
             container.UserSays(new BotiumMockMessage(convoStep))
               .then(() => convoStepDone())
               .catch((err) => {
@@ -73,7 +75,7 @@ class Convo {
               debug(`${this.header.name}: bot says ${JSON.stringify(saysmsg, null, 2)}`)
               if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData)) {
                 try {
-                  this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
+                  this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: bot says nothing`, lastMeMsg)
                   return
                 } catch (err) {
                   convoStepDone(err)
@@ -87,14 +89,14 @@ class Convo {
                 const tomatch = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
                 if (convoStep.not) {
                   try {
-                    this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
+                    this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)
                   } catch (err) {
                     convoStepDone(err)
                     return
                   }
                 } else {
                   try {
-                    this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
+                    this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)
                   } catch (err) {
                     convoStepDone(err)
                     return
@@ -113,7 +115,7 @@ class Convo {
                 .catch(convoStepDone)
             }).catch((err) => {
               try {
-                this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`)
+                this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`, lastMeMsg)
               } catch (err) {
                 convoStepDone(err)
               }
