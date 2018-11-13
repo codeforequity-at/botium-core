@@ -17,7 +17,7 @@ const Events = require('./Events')
 const ScriptingProvider = require('./scripting/ScriptingProvider')
 
 module.exports = class BotDriver {
-  constructor (caps = {}, sources = {}, env = {}) {
+  constructor (caps = {}, sources = {}, envs = {}) {
     this.eventEmitter = new EventEmitter()
 
     this.caps = Object.assign({}, Defaults.Capabilities)
@@ -73,6 +73,7 @@ module.exports = class BotDriver {
 
     this.caps = Object.assign(this.caps, caps)
     this.sources = Object.assign(this.sources, sources)
+    this.envs = Object.assign(this.envs, envs)
   }
 
   on (event, listener) {
