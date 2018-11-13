@@ -100,7 +100,7 @@ if (!oauthurl) {
 
 var appMock = express()
 appMock.use(bodyParser.json())
-appMock.use(bodyParser.urlencoded({ extended: true }))
+appMock.use(bodyParser.urlencoded({extended: true}))
 
 appMock.post('/api/oauth.access', (req, res) => {
   console.log('/api/oauth.access: ' + JSON.stringify(req.body))
@@ -258,18 +258,17 @@ appTest.get('/', (req, res) => {
         var options = {
           uri: oauthurl,
           method: 'GET',
-          qs: { code: 'C123123123', state: 'C123123123' }
+          qs: {code: 'C123123123', state: 'C123123123'}
         }
         request(options, (err, response, body) => {
           if (err) {
             var offlineMsg = 'chatbot oauth endpoint (' + oauthurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
             console.log(offlineMsg)
             res.status(500).send(offlineMsg)
-          } else {
-            var onlineMsg = 'chatbot oauth endpoint (' + oauthurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
-            console.log(onlineMsg)
-            res.status(200).send(onlineMsg)
           }
+          var onlineMsg = 'chatbot oauth endpoint (' + oauthurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+          console.log(onlineMsg)
+          res.status(response.statusCode).send(onlineMsg)
         })
       } else {
         res.status(500).send('chatbot oauth endpoint (' + oauthurl + ') not yet online (port not in use)')

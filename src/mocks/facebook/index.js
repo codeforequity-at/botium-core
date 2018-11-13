@@ -58,15 +58,15 @@ appMock.use(bodyParser.json())
 
 appMock.all('*/me/messenger_profile*', function (req, res) {
   console.log('messenger_profile called')
-  res.json({ result: 'success' })
+  res.json({result: 'success'})
 })
 appMock.all('*/me/thread_settings*', function (req, res) {
   console.log('thread_settings called')
-  res.json({ result: 'success' })
+  res.json({result: 'success'})
 })
 appMock.all('*/subscribed_apps*', function (req, res) {
   console.log('subscribed_apps called')
-  res.json({ success: true })
+  res.json({success: true})
 })
 appMock.all('*/me/messages*', function (req, res) {
   if (req.body) {
@@ -153,7 +153,7 @@ appTest.get('/', function (req, res) {
           method: 'POST',
           json: {
             entry: [
-              { messaging: [] }
+              {messaging: []}
             ]
           }
         }
@@ -162,11 +162,10 @@ appTest.get('/', function (req, res) {
             var offlineMsg = 'chatbot endpoint (' + webhookurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
             console.log(offlineMsg)
             res.status(500).send(offlineMsg)
-          } else {
-            var onlineMsg = 'chatbot endpoint (' + webhookurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
-            console.log(onlineMsg)
-            res.status(200).send(onlineMsg)
           }
+          var onlineMsg = 'chatbot endpoint (' + webhookurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+          console.log(onlineMsg)
+          res.status(response.statusCode).send(onlineMsg)
         })
       } else {
         res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port not in use)')
@@ -187,7 +186,7 @@ function sendToBot (mockMsg) {
       {
         id: pageid,
         time: ts,
-        messaging: [ ]
+        messaging: []
       }
     ]
   }

@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken')
 const jwkToPem = require('jwk-to-pem')
 
 const botiumJwk = require('./botium-jwk.json')
-const pem = jwkToPem(botiumJwk, { private: true })
+const pem = jwkToPem(botiumJwk, {private: true})
 
 let currentConversationId = uuidv4()
 
@@ -99,12 +99,12 @@ appMock.post('/:version/conversations', (req, res) => {
 appMock.post('/:version/conversations/:conversationId/activities', (req, res) => {
   console.log(req.path)
   handleActivity(req, res)
-  res.json({ })
+  res.json({})
 })
 appMock.post('/:version/conversations/:conversationId/activities/:activityId', (req, res) => {
   console.log(req.path)
   handleActivity(req, res)
-  res.json({ })
+  res.json({})
 })
 
 function handleActivity (req, res) {
@@ -141,7 +141,7 @@ appMock.get('/:version/botstate/:channelId/users/:userId', (req, res) => {
 })
 appMock.delete('/:version/botstate/:channelId/users/:userId', (req, res) => {
   console.log(req.method + ' ' + req.path)
-  res.json({ })
+  res.json({})
 })
 appMock.post('/:version/botstate/:channelId/conversations/:conversationId', (req, res) => {
   console.log(req.method + ' ' + req.path)
@@ -179,7 +179,7 @@ appMock.all('*', (req, res) => {
   console.log(req.method)
   console.log(req.path)
   console.log(JSON.stringify(req.body))
-  res.json({ })
+  res.json({})
 })
 
 var httpsOptions = {
@@ -209,7 +209,7 @@ appTest.get('/', (req, res) => {
         var options = {
           uri: webhookurl,
           method: 'POST',
-          json: { },
+          json: {},
           headers: {
             'Authorization': 'Bearer ' + securityToken
           }
@@ -219,11 +219,10 @@ appTest.get('/', (req, res) => {
             var offlineMsg = 'chatbot endpoint (' + webhookurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
             console.log(offlineMsg)
             res.status(500).send(offlineMsg)
-          } else {
-            var onlineMsg = 'chatbot endpoint (' + webhookurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
-            console.log(onlineMsg)
-            res.status(200).send(onlineMsg)
           }
+          var onlineMsg = 'chatbot endpoint (' + webhookurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+          console.log(onlineMsg)
+          res.status(response.statusCode()).send(onlineMsg)
         })
       } else {
         res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port not in use)')
@@ -255,8 +254,11 @@ function sendToBot (mockMsg) {
     }
   }
 
-  if (mockMsg.sender) msgContainer.from.name = mockMsg.sender
-  else msgContainer.from.name = 'botium' // param
+  if (mockMsg.sender) {
+    msgContainer.from.name = mockMsg.sender
+  } else {
+    msgContainer.from.name = 'botium'
+  } // param
 
   if (mockMsg.messageText) {
     msgContainer.text = mockMsg.messageText

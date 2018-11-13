@@ -128,7 +128,7 @@ class BaseMock {
               }
               this.debug(`Mock - checking endpoint ${this.mockUrl} is online before proceed ...`)
               request(options, (err, response, body) => {
-                if (!err && response.statusCode === 200) {
+                if (!err && response.statusCode === container.caps[Capabilities.BOT_HEALTH_STATUS]) {
                   this.debug(`Mock - endpoint ${this.mockUrl} is online (${body})`)
                   online = true
                   callback()
