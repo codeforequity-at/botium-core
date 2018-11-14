@@ -25,7 +25,7 @@ driver.Build()
   .then(() => container.WaitBotSaysText())
   .then((text) => {
     if (text !== 'Text received, echo: hallo!') {
-      throw new Error('Expected echo');
+      throw new Error('Expected echo')
     }
   })
   .then(() => container.Stop())
@@ -39,10 +39,10 @@ driver.Build()
   .catch((err) => {
     console.log('tests failed')
     console.log(err)
-  })   
+  })
   .then(() => container.Stop())
   .then(() => container.Clean())
   .catch((err) => {
     console.log('cleanup failed')
     console.log(err)
-  })   
+  })

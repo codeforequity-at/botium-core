@@ -44,6 +44,9 @@ if (!webhookurl) {
   }
 }
 
+const botHealthCheckVerb = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_VERB || 'POST'
+const botHealthCheckUrl = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_URL || webhookurl
+
 const appMock = express()
 appMock.use(bodyParser.json())
 
@@ -199,16 +202,16 @@ var appTest = express()
 appTest.use(bodyParser.json())
 
 appTest.get('/', (req, res) => {
-  var urlparts = url.parse(webhookurl)
+  var urlparts = url.parse(botHealthCheckUrl)
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
-      console.log('port usage chatbot endpoint (' + webhookurl + '): ' + inUse)
+      console.log('port usage chatbot endpoint (' + botHealthCheckUrl + '): ' + inUse)
       if (inUse) {
-        console.log('checking chatbot endpoint (' + webhookurl + ') for response')
+        console.log('checking chatbot endpoint (' + botHealthCheckUrl + ') for response')
         var options = {
-          uri: webhookurl,
-          method: 'POST',
+          uri: botHealthCheckUrl,
+          method: botHealthCheckVerb,
           json: {},
           headers: {
             'Authorization': 'Bearer ' + securityToken
@@ -216,21 +219,21 @@ appTest.get('/', (req, res) => {
         }
         request(options, (err, response, body) => {
           if (err) {
-            var offlineMsg = 'chatbot endpoint (' + webhookurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
+            var offlineMsg = 'chatbot endpoint (' + botHealthCheckUrl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
             console.log(offlineMsg)
             res.status(500).send(offlineMsg)
           }
-          var onlineMsg = 'chatbot endpoint (' + webhookurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+          var onlineMsg = 'chatbot endpoint (' + botHealthCheckUrl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
           console.log(onlineMsg)
           res.status(response.statusCode()).send(onlineMsg)
         })
       } else {
-        res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port not in use)')
+        res.status(500).send('chatbot endpoint (' + botHealthCheckUrl + ') not yet online (port not in use)')
       }
     },
     (err) => {
       console.log('error on port check chatbot endpoint: ' + err)
-      res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port check failed ' + err + ')')
+      res.status(500).send('chatbot endpoint (' + botHealthCheckUrl + ') not yet online (port check failed ' + err + ')')
     })
 })
 

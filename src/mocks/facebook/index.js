@@ -47,11 +47,13 @@ if (!webhookurl) {
     process.exit(1)
   }
 
-  webhookurl = webhookprotocol + '://' + webhookhost + ':' + webhookport + '/'
+  webhookurl = `${webhookprotocol}://${webhookhost}:${webhookport}/`
   if (webhookpath) {
     webhookurl += webhookpath
   }
 }
+const botHealthCheckVerb = process.env.BOTIUM_FACEBOOK_HEALTH_CHECK_VERB || 'POST'
+const botHealthCheckUrl = process.env.BOTIUM_FACEBOOK_HEALTH_CHECK_URL || webhookurl
 
 var appMock = express()
 appMock.use(bodyParser.json())
@@ -86,7 +88,7 @@ appMock.all('*/me/messages*', function (req, res) {
 
   var response = {
     recipient_id: userProfileIdDefault,
-    message_id: 'mid.' + randomInt(1000000000, 9999999999)
+    message_id: `mid.${randomInt(1000000000, 9999999999)}`
   }
 
   if (req.body && req.body.recipient && req.body.recipient.id) {
@@ -131,7 +133,7 @@ var httpsOptions = {
 
 https.createServer(httpsOptions, appMock).listen(443, '0.0.0.0', function (err) {
   if (err) {
-    console.log('error listening 443: ' + err)
+    console.log(`error listening 443: ${err}`)
   } else {
     console.log('Mock server listening on port 443')
   }
@@ -141,16 +143,16 @@ var appTest = express()
 appTest.use(bodyParser.json())
 
 appTest.get('/', function (req, res) {
-  var urlparts = url.parse(webhookurl)
+  let urlparts = url.parse(botHealthCheckUrl)
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
-      console.log('port usage chatbot endpoint (' + webhookurl + '): ' + inUse)
+      console.log(`port usage chatbot endpoint (${botHealthCheckUrl}): ${inUse}`)
       if (inUse) {
-        console.log('checking chatbot endpoint (' + webhookurl + ') for response')
+        console.log(`checking chatbot health check endpoint (${botHealthCheckUrl}) for response`)
         var options = {
-          uri: webhookurl,
-          method: 'POST',
+          uri: botHealthCheckUrl,
+          method: botHealthCheckVerb,
           json: {
             entry: [
               {messaging: []}
@@ -159,21 +161,21 @@ appTest.get('/', function (req, res) {
         }
         request(options, function (err, response, body) {
           if (err) {
-            var offlineMsg = 'chatbot endpoint (' + webhookurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
+            var offlineMsg = `chatbot health check endpoint (${botHealthCheckUrl}) not yet online (Err: ${err}, Body: ${body})`
             console.log(offlineMsg)
             res.status(500).send(offlineMsg)
           }
-          var onlineMsg = 'chatbot endpoint (' + webhookurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+          var onlineMsg = `chatbot health check endpoint (${botHealthCheckUrl}) online (StatusCode: ${response.statusCode}, Body: ${body})`
           console.log(onlineMsg)
           res.status(response.statusCode).send(onlineMsg)
         })
       } else {
-        res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port not in use)')
+        res.status(500).send(`chatbot health check endpoint (${botHealthCheckUrl}) not yet online (port not in use)`)
       }
     },
     (err) => {
-      console.log('error on port check chatbot endpoint: ' + err)
-      res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port check failed ' + err + ')')
+      console.log(`error on port check chatbot endpoint: ${err}`)
+      res.status(500).send(`chatbot health check endpoint (${botHealthCheckUrl}) not yet online (port check failed ${err})`)
     })
 })
 
@@ -200,7 +202,7 @@ function sendToBot (mockMsg) {
   } else if (mockMsg.sourceData) {
     msgContainer.entry[0].messaging.push(mockMsg.sourceData)
   } else {
-    console.log('No messageText or sourceData given. Ignored.', mockMsg)
+    console.log(`No messageText or sourceData given. Ignored.`, mockMsg)
     return
   }
 
@@ -214,7 +216,7 @@ function sendToBot (mockMsg) {
     if (!msg.delivery && !msg.timestamp) msg.timestamp = ts
 
     if (msg.message) {
-      if (!msg.message.mid) msg.message.mid = 'mid.' + randomInt(1000000000, 9999999999)
+      if (!msg.message.mid) msg.message.mid = `mid.${randomInt(1000000000, 9999999999)}`
       if (!msg.message.seq) msg.message.seq = outputSeq++
     }
     if (msg.read) {
@@ -228,7 +230,7 @@ function sendToBot (mockMsg) {
   callWebhook(msgContainer)
 }
 
-console.log('Test server start on port ' + publishPort)
+console.log(`Test server start on port ${publishPort}`)
 
 var serverTest = http.createServer(appTest).listen(publishPort, '0.0.0.0', function (err) {
   if (err) {
@@ -257,7 +259,7 @@ function getTs () {
 }
 
 function callWebhook (msg) {
-  console.log('callWebhook: ' + JSON.stringify(msg, null, 2))
+  console.log(`callWebhook: ${JSON.stringify(msg, null, 2)}`)
 
   var options = {
     uri: webhookurl,
@@ -266,7 +268,7 @@ function callWebhook (msg) {
   }
   request(options, function (err, response, body) {
     if (err) {
-      console.log('callWebhook Error: ' + err)
+      console.log(`callWebhook Error: ${err}`)
     } else {
       console.log('callWebhook OK')
     }

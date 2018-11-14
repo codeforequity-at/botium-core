@@ -97,6 +97,8 @@ if (!oauthurl) {
     oauthurl += oauthpath
   }
 }
+const botHealthCheckVerb = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_VERB || 'GET'
+const botHealthCheckUrl = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_URL || oauthurl
 
 var appMock = express()
 appMock.use(bodyParser.json())
@@ -248,35 +250,35 @@ var appTest = express()
 appTest.use(bodyParser.json())
 
 appTest.get('/', (req, res) => {
-  var urlparts = url.parse(oauthurl)
+  var urlparts = url.parse(botHealthCheckUrl)
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
-      console.log('port usage chatbot oauth endpoint (' + oauthurl + '): ' + inUse)
+      console.log('port usage chatbot oauth endpoint (' + botHealthCheckUrl + '): ' + inUse)
       if (inUse) {
-        console.log('checking chatbot oauth endpoint (' + oauthurl + ') for response')
+        console.log('checking chatbot oauth endpoint (' + botHealthCheckUrl + ') for response')
         var options = {
-          uri: oauthurl,
-          method: 'GET',
+          uri: botHealthCheckUrl,
+          method: botHealthCheckVerb,
           qs: {code: 'C123123123', state: 'C123123123'}
         }
         request(options, (err, response, body) => {
           if (err) {
-            var offlineMsg = 'chatbot oauth endpoint (' + oauthurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
+            var offlineMsg = 'chatbot oauth endpoint (' + botHealthCheckUrl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
             console.log(offlineMsg)
             res.status(500).send(offlineMsg)
           }
-          var onlineMsg = 'chatbot oauth endpoint (' + oauthurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+          var onlineMsg = 'chatbot oauth endpoint (' + botHealthCheckUrl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
           console.log(onlineMsg)
           res.status(response.statusCode).send(onlineMsg)
         })
       } else {
-        res.status(500).send('chatbot oauth endpoint (' + oauthurl + ') not yet online (port not in use)')
+        res.status(500).send('chatbot oauth endpoint (' + botHealthCheckUrl + ') not yet online (port not in use)')
       }
     },
     (err) => {
       console.log('error on port check chatbot oauth endpoint: ' + err)
-      res.status(500).send('chatbot oauth endpoint (' + oauthurl + ') not yet online (port check failed ' + err + ')')
+      res.status(500).send('chatbot oauth endpoint (' + botHealthCheckUrl + ') not yet online (port check failed ' + err + ')')
     })
 })
 
