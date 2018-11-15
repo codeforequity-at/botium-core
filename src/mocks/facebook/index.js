@@ -53,7 +53,13 @@ if (!webhookurl) {
   }
 }
 const botHealthCheckVerb = process.env.BOTIUM_FACEBOOK_HEALTH_CHECK_VERB || 'POST'
-const botHealthCheckUrl = process.env.BOTIUM_FACEBOOK_HEALTH_CHECK_URL || webhookurl
+const botHealthCheckPath = process.env.BOTIUM_FACEBOOK_HEALTH_CHECK_PATH
+const botHealthCheckUrl = botHealthCheckPath ? `${webhookprotocol}://${webhookhost}:${webhookport}/${botHealthCheckPath}` : webhookurl
+const botHealthCheckStatus = parseInt(process.env.BOTIUM_FACEBOOK_HEALTH_CHECK_STATUS)
+
+if (!Number.isInteger(botHealthCheckStatus)) {
+  throw new Error(`${botHealthCheckStatus} is not a valid http status`)
+}
 
 var appMock = express()
 appMock.use(bodyParser.json())
@@ -160,14 +166,15 @@ appTest.get('/', function (req, res) {
           }
         }
         request(options, function (err, response, body) {
-          if (err) {
+          if (!err && response.statusCode === botHealthCheckStatus) {
+            const onlineMsg = `Bot is healthy under ${botHealthCheckStatus} is online (${body})`
+            console.log(onlineMsg)
+            res.status(200).send(onlineMsg)
+          } else {
             var offlineMsg = `chatbot health check endpoint (${botHealthCheckUrl}) not yet online (Err: ${err}, Body: ${body})`
             console.log(offlineMsg)
             res.status(500).send(offlineMsg)
           }
-          var onlineMsg = `chatbot health check endpoint (${botHealthCheckUrl}) online (StatusCode: ${response.statusCode}, Body: ${body})`
-          console.log(onlineMsg)
-          res.status(response.statusCode).send(onlineMsg)
         })
       } else {
         res.status(500).send(`chatbot health check endpoint (${botHealthCheckUrl}) not yet online (port not in use)`)

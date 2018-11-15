@@ -128,7 +128,7 @@ class BaseMock {
               }
               this.debug(`Mock - checking endpoint ${this.mockUrl} is online before proceed ...`)
               request(options, (err, response, body) => {
-                if (!err && response.statusCode === container.caps[Capabilities.BOT_HEALTH_STATUS]) {
+                if (!err && response.statusCode === 200) {
                   this.debug(`Mock - endpoint ${this.mockUrl} is online (${body})`)
                   online = true
                   callback()
@@ -218,8 +218,9 @@ module.exports = {
           BOTIUM_FACEBOOK_WEBHOOKPATH: caps[Capabilities.FACEBOOK_WEBHOOK_PATH],
           BOTIUM_FACEBOOK_PUBLISHPORT: this.publishPort,
           BOTIUM_FACEBOOK_SENDDELIVERY: `${caps[Capabilities.FACEBOOK_SEND_DELIVERY_CONFIRMATION]}`,
-          BOTIUM_FACEBOOK_HEALTH_CHECK_URL: `${caps[Capabilities.BOT_HEALTH_CHECK_URL] || ''}`,
-          BOTIUM_FACEBOOK_HEALTH_CHECK_VERB: `${caps[Capabilities.BOT_HEALTH_CHECK_VERB] || ''}`
+          BOTIUM_FACEBOOK_HEALTH_CHECK_PATH: `${caps[Capabilities.BOT_HEALTH_CHECK_PATH] || ''}`,
+          BOTIUM_FACEBOOK_HEALTH_CHECK_VERB: `${caps[Capabilities.BOT_HEALTH_CHECK_VERB] || ''}`,
+          BOTIUM_FACEBOOK_HEALTH_CHECK_STATUS: `${caps[Capabilities.BOT_HEALTH_STATUS]}`
         }
       }
     }
@@ -253,8 +254,9 @@ module.exports = {
           BOTIUM_SLACK_OAUTHPORT: caps[Capabilities.SLACK_OAUTH_PORT],
           BOTIUM_SLACK_OAUTHPATH: caps[Capabilities.SLACK_OAUTH_PATH],
           BOTIUM_SLACK_PUBLISHPORT: this.publishPort,
-          BOTIUM_SLACK_HEALTH_CHECK_URL: `${caps[Capabilities.BOT_HEALTH_CHECK_URL] || ''}`,
-          BOTIUM_SLACK_HEALTH_CHECK_VERB: `${caps[Capabilities.BOT_HEALTH_CHECK_VERB] || ''}`
+          BOTIUM_SLACK_HEALTH_CHECK_PATH: `${caps[Capabilities.BOT_HEALTH_CHECK_PATH] || ''}`,
+          BOTIUM_SLACK_HEALTH_CHECK_VERB: `${caps[Capabilities.BOT_HEALTH_CHECK_VERB] || ''}`,
+          BOTIUM_SLACK_HEALTH_CHECK_STATUS: `${caps[Capabilities.BOT_HEALTH_STATUS]}`
         }
       }
     }
@@ -288,8 +290,9 @@ module.exports = {
           BOTIUM_BOTFRAMEWORK_APP_ID: caps[Capabilities.BOTFRAMEWORK_APP_ID],
           BOTIUM_BOTFRAMEWORK_CHANNEL_ID: caps[Capabilities.BOTFRAMEWORK_CHANNEL_ID],
           BOTIUM_BOTFRAMEWORK_PUBLISHPORT: this.publishPort,
-          BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_URL: `${caps[Capabilities.BOT_HEALTH_CHECK_URL] || ''}`,
-          BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_VERB: `${caps[Capabilities.BOT_HEALTH_CHECK_VERB] || ''}`
+          BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_PATH: `${caps[Capabilities.BOT_HEALTH_CHECK_PATH] || ''}`,
+          BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_VERB: `${caps[Capabilities.BOT_HEALTH_CHECK_VERB] || ''}`,
+          BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_STATUS: `${caps[Capabilities.BOT_HEALTH_STATUS]}`
         }
       }
     }

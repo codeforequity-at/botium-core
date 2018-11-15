@@ -45,7 +45,8 @@ if (!webhookurl) {
 }
 
 const botHealthCheckVerb = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_VERB || 'POST'
-const botHealthCheckUrl = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_URL || webhookurl
+const botHealthCheckPath = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_URL
+const botHealthCheckUrl = botHealthCheckPath ? `${webhookurl}/${botHealthCheckPath}` : webhookurl
 
 const appMock = express()
 appMock.use(bodyParser.json())
