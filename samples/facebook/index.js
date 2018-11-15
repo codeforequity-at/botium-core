@@ -34,7 +34,7 @@ app.get('/webhook/', function (req, res) {
   }
 })
 
-app.get('/example/', function (req, res) {
+app.get('/health/', function (req, res) {
   res.status(201).send('Chatbot is ready')
 })
 

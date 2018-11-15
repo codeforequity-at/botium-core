@@ -26,13 +26,12 @@ let microsoftAppId = process.env.BOTIUM_BOTFRAMEWORK_APP_ID || ''
 let channelId = process.env.BOTIUM_BOTFRAMEWORK_CHANNEL_ID || 'facebook'
 let securityToken = getSecurityToken()
 
-let webhookurl = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKURL
+var webhookurl = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKURL
+const webhookport = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPORT
+const webhookpath = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPATH
+const webhookhost = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKHOST
+const webhookprotocol = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPROTOCOL
 if (!webhookurl) {
-  let webhookport = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPORT
-  let webhookpath = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPATH
-  let webhookhost = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKHOST
-  let webhookprotocol = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPROTOCOL
-
   if (!webhookport || !webhookhost || !webhookprotocol) {
     console.log('BOTIUM_BOTFRAMEWORK_WEBHOOKURL env variables not set')
     process.exit(1)
@@ -45,8 +44,13 @@ if (!webhookurl) {
 }
 
 const botHealthCheckVerb = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_VERB || 'POST'
-const botHealthCheckPath = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_URL
-const botHealthCheckUrl = botHealthCheckPath ? `${webhookurl}/${botHealthCheckPath}` : webhookurl
+const botHealthCheckPath = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_PATH
+const botHealthCheckUrl = botHealthCheckPath ? `${webhookprotocol}://${webhookhost}:${webhookport}/${botHealthCheckPath}` : webhookurl
+const botHealthCheckStatus = parseInt(process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_STATUS)
+
+if (!Number.isInteger(botHealthCheckStatus)) {
+  throw new Error(`${botHealthCheckStatus} is not a valid http status`)
+}
 
 const appMock = express()
 appMock.use(bodyParser.json())
@@ -219,14 +223,15 @@ appTest.get('/', (req, res) => {
           }
         }
         request(options, (err, response, body) => {
-          if (err) {
-            var offlineMsg = 'chatbot endpoint (' + botHealthCheckUrl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
+          if (!err && response.statusCode === botHealthCheckStatus) {
+            const onlineMsg = `Bot is healthy under ${botHealthCheckStatus} is online (${body})`
+            console.log(onlineMsg)
+            res.status(200).send(onlineMsg)
+          } else {
+            const offlineMsg = `chatbot health check endpoint (${botHealthCheckUrl}) not yet online (Err: ${err}, Body: ${body})`
             console.log(offlineMsg)
             res.status(500).send(offlineMsg)
           }
-          var onlineMsg = 'chatbot endpoint (' + botHealthCheckUrl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
-          console.log(onlineMsg)
-          res.status(response.statusCode()).send(onlineMsg)
         })
       } else {
         res.status(500).send('chatbot endpoint (' + botHealthCheckUrl + ') not yet online (port not in use)')

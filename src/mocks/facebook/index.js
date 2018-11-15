@@ -36,22 +36,21 @@ if (process.env.BOTIUM_FACEBOOK_SENDDELIVERY === 'false') {
 }
 
 var webhookurl = process.env.BOTIUM_FACEBOOK_WEBHOOKURL
+const webhookport = process.env.BOTIUM_FACEBOOK_WEBHOOKPORT
+const webhookpath = process.env.BOTIUM_FACEBOOK_WEBHOOKPATH
+const webhookhost = process.env.BOTIUM_FACEBOOK_WEBHOOKHOST
+const webhookprotocol = process.env.BOTIUM_FACEBOOK_WEBHOOKPROTOCOL
 if (!webhookurl) {
-  var webhookport = process.env.BOTIUM_FACEBOOK_WEBHOOKPORT
-  var webhookpath = process.env.BOTIUM_FACEBOOK_WEBHOOKPATH
-  var webhookhost = process.env.BOTIUM_FACEBOOK_WEBHOOKHOST
-  var webhookprotocol = process.env.BOTIUM_FACEBOOK_WEBHOOKPROTOCOL
-
   if (!webhookport || !webhookhost || !webhookprotocol) {
     console.log('BOTIUM_FACEBOOK_WEBHOOKURL env variables not set')
     process.exit(1)
   }
-
   webhookurl = `${webhookprotocol}://${webhookhost}:${webhookport}/`
   if (webhookpath) {
     webhookurl += webhookpath
   }
 }
+
 const botHealthCheckVerb = process.env.BOTIUM_FACEBOOK_HEALTH_CHECK_VERB || 'POST'
 const botHealthCheckPath = process.env.BOTIUM_FACEBOOK_HEALTH_CHECK_PATH
 const botHealthCheckUrl = botHealthCheckPath ? `${webhookprotocol}://${webhookhost}:${webhookport}/${botHealthCheckPath}` : webhookurl
@@ -171,7 +170,7 @@ appTest.get('/', function (req, res) {
             console.log(onlineMsg)
             res.status(200).send(onlineMsg)
           } else {
-            var offlineMsg = `chatbot health check endpoint (${botHealthCheckUrl}) not yet online (Err: ${err}, Body: ${body})`
+            const offlineMsg = `chatbot health check endpoint (${botHealthCheckUrl}) not yet online (Err: ${err}, Body: ${body})`
             console.log(offlineMsg)
             res.status(500).send(offlineMsg)
           }
