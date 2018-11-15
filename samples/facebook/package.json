@@ -5,6 +5,7 @@
     "node": ">=4.0"
   },
   "scripts": {
+    "start": "node botiumFluent.js",
     "build": "npm run eslint",
     "eslint": "eslint \"./*.js\""
   },
