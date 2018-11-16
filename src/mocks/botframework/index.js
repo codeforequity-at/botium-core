@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken')
 const jwkToPem = require('jwk-to-pem')
 
 const botiumJwk = require('./botium-jwk.json')
-const pem = jwkToPem(botiumJwk, { private: true })
+const pem = jwkToPem(botiumJwk, {private: true})
 
 let currentConversationId = uuidv4()
 
@@ -26,13 +26,12 @@ let microsoftAppId = process.env.BOTIUM_BOTFRAMEWORK_APP_ID || ''
 let channelId = process.env.BOTIUM_BOTFRAMEWORK_CHANNEL_ID || 'facebook'
 let securityToken = getSecurityToken()
 
-let webhookurl = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKURL
+var webhookurl = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKURL
+const webhookport = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPORT
+const webhookpath = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPATH
+const webhookhost = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKHOST
+const webhookprotocol = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPROTOCOL
 if (!webhookurl) {
-  let webhookport = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPORT
-  let webhookpath = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPATH
-  let webhookhost = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKHOST
-  let webhookprotocol = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPROTOCOL
-
   if (!webhookport || !webhookhost || !webhookprotocol) {
     console.log('BOTIUM_BOTFRAMEWORK_WEBHOOKURL env variables not set')
     process.exit(1)
@@ -42,6 +41,15 @@ if (!webhookurl) {
   if (webhookpath) {
     webhookurl += webhookpath
   }
+}
+
+const botHealthCheckVerb = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_VERB || 'POST'
+const botHealthCheckPath = process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_PATH
+const botHealthCheckUrl = botHealthCheckPath ? `${webhookprotocol}://${webhookhost}:${webhookport}/${botHealthCheckPath}` : webhookurl
+const botHealthCheckStatus = parseInt(process.env.BOTIUM_BOTFRAMEWORK_HEALTH_CHECK_STATUS)
+
+if (!Number.isInteger(botHealthCheckStatus)) {
+  throw new Error(`${botHealthCheckStatus} is not a valid http status`)
 }
 
 const appMock = express()
@@ -99,12 +107,12 @@ appMock.post('/:version/conversations', (req, res) => {
 appMock.post('/:version/conversations/:conversationId/activities', (req, res) => {
   console.log(req.path)
   handleActivity(req, res)
-  res.json({ })
+  res.json({})
 })
 appMock.post('/:version/conversations/:conversationId/activities/:activityId', (req, res) => {
   console.log(req.path)
   handleActivity(req, res)
-  res.json({ })
+  res.json({})
 })
 
 function handleActivity (req, res) {
@@ -141,7 +149,7 @@ appMock.get('/:version/botstate/:channelId/users/:userId', (req, res) => {
 })
 appMock.delete('/:version/botstate/:channelId/users/:userId', (req, res) => {
   console.log(req.method + ' ' + req.path)
-  res.json({ })
+  res.json({})
 })
 appMock.post('/:version/botstate/:channelId/conversations/:conversationId', (req, res) => {
   console.log(req.method + ' ' + req.path)
@@ -179,7 +187,7 @@ appMock.all('*', (req, res) => {
   console.log(req.method)
   console.log(req.path)
   console.log(JSON.stringify(req.body))
-  res.json({ })
+  res.json({})
 })
 
 var httpsOptions = {
@@ -199,39 +207,39 @@ var appTest = express()
 appTest.use(bodyParser.json())
 
 appTest.get('/', (req, res) => {
-  var urlparts = url.parse(webhookurl)
+  var urlparts = url.parse(botHealthCheckUrl)
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
-      console.log('port usage chatbot endpoint (' + webhookurl + '): ' + inUse)
+      console.log('port usage chatbot endpoint (' + botHealthCheckUrl + '): ' + inUse)
       if (inUse) {
-        console.log('checking chatbot endpoint (' + webhookurl + ') for response')
+        console.log('checking chatbot endpoint (' + botHealthCheckUrl + ') for response')
         var options = {
-          uri: webhookurl,
-          method: 'POST',
-          json: { },
+          uri: botHealthCheckUrl,
+          method: botHealthCheckVerb,
+          json: {},
           headers: {
             'Authorization': 'Bearer ' + securityToken
           }
         }
         request(options, (err, response, body) => {
-          if (err) {
-            var offlineMsg = 'chatbot endpoint (' + webhookurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
-            console.log(offlineMsg)
-            res.status(500).send(offlineMsg)
-          } else {
-            var onlineMsg = 'chatbot endpoint (' + webhookurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+          if (!err && response.statusCode === botHealthCheckStatus) {
+            const onlineMsg = `Bot is healthy under ${botHealthCheckStatus} is online (${body})`
             console.log(onlineMsg)
             res.status(200).send(onlineMsg)
+          } else {
+            const offlineMsg = `chatbot health check endpoint (${botHealthCheckUrl}) not yet online (Err: ${err}, Body: ${body})`
+            console.log(offlineMsg)
+            res.status(500).send(offlineMsg)
           }
         })
       } else {
-        res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port not in use)')
+        res.status(500).send('chatbot endpoint (' + botHealthCheckUrl + ') not yet online (port not in use)')
       }
     },
     (err) => {
       console.log('error on port check chatbot endpoint: ' + err)
-      res.status(500).send('chatbot endpoint (' + webhookurl + ') not yet online (port check failed ' + err + ')')
+      res.status(500).send('chatbot endpoint (' + botHealthCheckUrl + ') not yet online (port check failed ' + err + ')')
     })
 })
 
@@ -255,8 +263,11 @@ function sendToBot (mockMsg) {
     }
   }
 
-  if (mockMsg.sender) msgContainer.from.name = mockMsg.sender
-  else msgContainer.from.name = 'botium' // param
+  if (mockMsg.sender) {
+    msgContainer.from.name = mockMsg.sender
+  } else {
+    msgContainer.from.name = 'botium'
+  } // param
 
   if (mockMsg.messageText) {
     msgContainer.text = mockMsg.messageText
