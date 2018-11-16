@@ -11,8 +11,9 @@ const Utterance = require('./Utterance')
 const { Convo } = require('./Convo')
 
 module.exports = class CompilerXlsx extends CompilerBase {
-  constructor (context, caps = {}) {
-    super(context, caps)
+  constructor (args) {
+    let {context, caps, asserters} = args
+    super(context, caps, asserters)
 
     this.colnames = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' ]
   }

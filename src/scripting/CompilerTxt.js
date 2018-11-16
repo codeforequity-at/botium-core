@@ -8,8 +8,9 @@ const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
 
 module.exports = class CompilerTxt extends CompilerBase {
-  constructor (context, caps = {}) {
-    super(context, caps)
+  constructor (args) {
+    let {context, caps, asserters} = args
+    super(context, caps, asserters)
 
     this.eol = caps[Capabilities.SCRIPTING_TXT_EOL]
   }
@@ -49,7 +50,8 @@ module.exports = class CompilerTxt extends CompilerBase {
   _compileConvo (lines) {
     let convo = {
       header: {},
-      conversation: []
+      conversation: [],
+      asserter: []
     }
 
     let currentLineIndex = 0
@@ -123,6 +125,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     })
     pushPrev()
 
+    convo.asserter = this.asserters
     let result = [ new Convo(this.context, convo) ]
     this.context.AddConvos(result)
     return result

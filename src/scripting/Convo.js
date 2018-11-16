@@ -13,7 +13,9 @@ class ConvoHeader {
     this.description = fromJson.description
   }
 
-  toString () { return this.order + ' ' + this.name + (this.description ? ` (${this.description})` : '') }
+  toString () {
+    return this.order + ' ' + this.name + (this.description ? ` (${this.description})` : '')
+  }
 }
 
 class ConvoStepAssert {
@@ -22,7 +24,9 @@ class ConvoStepAssert {
     this.args = fromJson.args
   }
 
-  toString () { return this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')' }
+  toString () {
+    return this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
+  }
 }
 
 class ConvoStep {
@@ -36,11 +40,13 @@ class ConvoStep {
     this.asserters = _.map(fromJson.asserters, (asserter) => new ConvoStepAssert(asserter))
   }
 
-  toString () { return this.stepTag + ': #' + this.sender + ' - ' + (this.not ? '!' : '') + this.messageText + (this.asserters ? ' ' + this.asserters.map(a => a.toString()).join(' ASS: ') : '') }
+  toString () {
+    return this.stepTag + ': #' + this.sender + ' - ' + (this.not ? '!' : '') + this.messageText + (this.asserters ? ' ' + this.asserters.map(a => a.toString()).join(' ASS: ') : '')
+  }
 }
 
 class Convo {
-  constructor ({ scriptingEvents }, fromJson = {}) {
+  constructor ({scriptingEvents}, fromJson = {}) {
     this.scriptingEvents = scriptingEvents
     this.header = new ConvoHeader(fromJson.header)
     if (fromJson.conversation && _.isArray(fromJson.conversation)) {
@@ -49,21 +55,31 @@ class Convo {
       this.conversation = []
     }
     this.sourceTag = fromJson.sourceTag
+    if (fromJson.asserter) {
+      this.asserters = Object.keys(fromJson.asserter)
+    }
   }
 
-  toString () { return this.header.toString() + (this.sourceTag ? ` (${util.inspect(this.sourceTag)})` : '') + ': ' + this.conversation.map((c) => c.toString()).join(' | ') }
+  toString () {
+    return this.header.toString() + (this.sourceTag ? ` (${util.inspect(this.sourceTag)})` : '') + ': ' + this.conversation.map((c) => c.toString()).join(' | ')
+  }
 
   Run (container) {
     return new Promise((resolve, reject) => {
       const scriptingMemory = {}
 
-      async.eachSeries(this.conversation,
+      this.scriptingEvents.assertConvoBegin({convo: this, container: container})
+        .catch(err => {
+          reject(new Error(`${this.header.name}: error on ConvoBegin assertion ${util.inspect(err)}`))
+        })
+
+      async.mapSeries(this.conversation,
         (convoStep, convoStepDone) => {
           if (convoStep.sender === 'me') {
             convoStep.messageText = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
             debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`)
             container.UserSays(new BotiumMockMessage(convoStep))
-              .then(() => convoStepDone())
+              .then(() => convoStepDone(null, {me: convoStep.messageText, bot: null}))
               .catch((err) => {
                 convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: error sending to bot ${util.inspect(err)}`))
               })
@@ -109,7 +125,7 @@ class Convo {
                 }
               }
               this.scriptingEvents.assertConvoStep(this, convoStep, saysmsg)
-                .then(() => convoStepDone())
+                .then(() => convoStepDone(null, {me: null, bot: saysmsg}))
                 .catch(convoStepDone)
             }).catch((err) => {
               try {
@@ -126,11 +142,14 @@ class Convo {
             }
           }
         },
-        (err) => {
+        (err, results) => {
           if (err) {
             reject(err)
           } else {
-            resolve()
+            this.scriptingEvents.assertConvoEnd({convo: this, container: container, msgs: results})
+              .catch(err => {
+                reject(new Error(`${this.header.name}: error on ConvoBegin assertion ${util.inspect(err)}`))
+              })
           }
         })
     })
@@ -186,8 +205,11 @@ class Convo {
     if (str && _.isArray(str)) {
       str = str.join(' ')
     } else if (str && !_.isString(str)) {
-      if (str.toString) str = str.toString()
-      else str = `${str}`
+      if (str.toString) {
+        str = str.toString()
+      } else {
+        str = `${str}`
+      }
     }
     if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
       _.forOwn(scriptingMemory, (value, key) => {
@@ -209,7 +231,7 @@ class Convo {
         .replace(/&amp;/g, '&')
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
-        .replace(/&#39;/g, "'")
+        .replace(/&#39;/g, '\'')
         .replace(/&quot;/g, '"')
       // replace two spaces with one
       str = str.replace(/\s+/g, ' ')

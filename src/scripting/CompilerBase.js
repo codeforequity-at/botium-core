@@ -1,5 +1,5 @@
 module.exports = class CompilerBase {
-  constructor ({ AddConvos, AddUtterances, IsAsserterValid, scriptingEvents }, caps = {}) {
+  constructor ({ AddConvos, AddUtterances, IsAsserterValid, scriptingEvents }, caps = {}, asserters) {
     this.context = {
       AddConvos,
       AddUtterances,
@@ -7,6 +7,7 @@ module.exports = class CompilerBase {
       scriptingEvents
     }
     this.caps = caps
+    this.asserters = asserters
   }
 
   Validate () {

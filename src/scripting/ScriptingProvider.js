@@ -21,15 +21,23 @@ module.exports = class ScriptingProvider {
     this.asserters = {}
 
     this.scriptingEvents = {
-      assertConvoBegin: (convo) => {
-        return Promise.resolve()
+      assertConvoBegin: ({convo, container}) => {
+        const allPromises = (convo.asserters || [])
+          .map(name => this.asserters[name])
+          .filter(a => a.assertConvoBegin)
+          .map(a => a.assertConvoBegin({convo, container}))
+        return Promise.all(allPromises)
       },
       assertConvoStep: (convo, convoStep, botMsg) => {
         const allPromises = (convoStep.asserters || []).map(a => this.asserters[a.name].assertConvoStep(convo, convoStep, a.args, botMsg))
         return Promise.all(allPromises)
       },
-      assertConvoEnd: (convo, msgs) => {
-        return Promise.resolve()
+      assertConvoEnd: ({convo, container, msgs}) => {
+        const allPromises = (convo.asserters || [])
+          .map(name => this.asserters[name])
+          .filter(a => a.assertConvoEnd)
+          .map(a => a.assertConvoEnd({convo, container, msgs}))
+        return Promise.all(allPromises)
       },
       assertBotResponse: (botresponse, tomatch, stepTag) => {
         if (!_.isArray(tomatch)) {
@@ -81,11 +89,22 @@ module.exports = class ScriptingProvider {
   }
 
   Build () {
+    const asserterUtils = new AsserterUtils({buildScriptContext: this._buildScriptContext(), caps: this.caps})
+    this.asserters = asserterUtils.asserters
     const CompilerXlsx = require('./CompilerXlsx')
-    this.compilers[Constants.SCRIPTING_FORMAT_XSLX] = new CompilerXlsx(this._buildScriptContext(), this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_XSLX] = new CompilerXlsx({
+      context: this._buildScriptContext(),
+      caps: this.caps,
+      asserter: this.asserters
+    })
     this.compilers[Constants.SCRIPTING_FORMAT_XSLX].Validate()
+
     const CompilerTxt = require('./CompilerTxt')
-    this.compilers[Constants.SCRIPTING_FORMAT_TXT] = new CompilerTxt(this._buildScriptContext(), this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_TXT] = new CompilerTxt({
+      context: this._buildScriptContext(),
+      caps: this.caps,
+      asserters: this.asserters
+    })
     this.compilers[Constants.SCRIPTING_FORMAT_TXT].Validate()
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
@@ -98,8 +117,6 @@ module.exports = class ScriptingProvider {
     } else {
       this.matchFn = (botresponse, utterance) => botresponse === utterance
     }
-    const asserterUtils = new AsserterUtils({buildScriptContext: this._buildScriptContext(), caps: this.caps})
-    this.asserters = asserterUtils.asserters
   }
 
   IsAsserterValid (name) {
@@ -217,7 +234,10 @@ module.exports = class ScriptingProvider {
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       }
     } else {
-      expandedConvos.push(new Convo(this._buildScriptContext(), Object.assign({}, currentConvo, {conversation: convoStepsStack})))
+      expandedConvos.push(new Convo(this._buildScriptContext(), Object.assign({}, currentConvo, {
+        conversation: convoStepsStack,
+        asserter: this.asserters
+      })))
     }
   }
 

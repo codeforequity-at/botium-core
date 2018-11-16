@@ -1,6 +1,9 @@
-const BaseAsserter = require('./BaseAsserter')
+module.exports = class MediaAsserter {
+  constructor (context, caps = {}) {
+    this.context = context
+    this.caps = caps
+  }
 
-module.exports = class MediaAsserter extends BaseAsserter {
   assertConvoStep (convo, convoStep, args, botMsg) {
     if (args && args.length > 0) {
       const mediaNotFound = []

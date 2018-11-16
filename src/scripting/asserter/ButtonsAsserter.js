@@ -1,6 +1,9 @@
-const BaseAsserter = require('./BaseAsserter')
+module.exports = class ButtonsAsserter {
+  constructor (context, caps = {}) {
+    this.context = context
+    this.caps = caps
+  }
 
-module.exports = class ButtonsAsserter extends BaseAsserter {
   assertConvoStep (convo, convoStep, args, botMsg) {
     if (args && args.length > 0) {
       const buttonsNotFound = []
