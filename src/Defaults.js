@@ -13,6 +13,7 @@ module.exports = {
     [Capabilities.DOCKERIMAGE]: 'node:boron',
     [Capabilities.DOCKERUNIQUECONTAINERNAMES]: false,
     [Capabilities.DOCKERSYSLOGPORT_RANGE]: '47100-47299',
+    [Capabilities.BOT_HEALTH_STATUS]: 200,
     [Capabilities.SLACK_PUBLISHPORT_RANGE]: '46100-46299',
     [Capabilities.FACEBOOK_PUBLISHPORT_RANGE]: '46300-46499',
     [Capabilities.FACEBOOK_SEND_DELIVERY_CONFIRMATION]: true,
