@@ -6,6 +6,8 @@ module.exports = {
   // "docker" "fbdirect" "watsonconversation", "simplerest", "webspeech", "inprocess"
   CONTAINERMODE: 'CONTAINERMODE',
   STARTCMD: 'STARTCMD',
+  // falsy or ms/keystroke
+  SIMULATE_WRITING_SPEED: 'SIMULATE_WRITING_SPEED',
   DOCKERCOMPOSEPATH: 'DOCKERCOMPOSEPATH',
   DOCKERMACHINEPATH: 'DOCKERMACHINEPATH',
   DOCKERMACHINE: 'DOCKERMACHINE',
