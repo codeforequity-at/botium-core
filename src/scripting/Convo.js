@@ -62,7 +62,15 @@ class Convo {
           if (convoStep.sender === 'me') {
             convoStep.messageText = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
             debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`)
-            container.UserSays(new BotiumMockMessage(convoStep))
+
+            new Promise(resolve => {
+              if (container.caps.SIMULATE_WRITING_SPEED) {
+                setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * convoStep.messageText.length)
+              } else {
+                resolve()
+              }
+            })
+              .then(() => container.UserSays(new BotiumMockMessage(convoStep)))
               .then(() => convoStepDone())
               .catch((err) => {
                 convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: error sending to bot ${util.inspect(err)}`))

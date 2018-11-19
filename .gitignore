@@ -63,3 +63,4 @@ dist
 setEnv.sh
 yarn.lock
 botium-core.iml
+/.idea
