@@ -65,15 +65,16 @@ class Convo {
             debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`)
 
             new Promise(resolve => {
-              if (container.caps.SIMULATE_WRITING_SPEED) {
+              if (container.caps.SIMULATE_WRITING_SPEED && convoStep.messageText && convoStep.messageText.length) {
                 setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * convoStep.messageText.length)
               } else {
                 resolve()
               }
             })
-              .then(() => container.UserSays(new BotiumMockMessage(convoStep)))
-            lastMeMsg = convoStep
-            container.UserSays(new BotiumMockMessage(convoStep))
+              .then(() => {
+                lastMeMsg = convoStep
+                return container.UserSays(new BotiumMockMessage(convoStep))
+              })
               .then(() => convoStepDone())
               .catch((err) => {
                 convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: error sending to bot ${util.inspect(err)}`))
