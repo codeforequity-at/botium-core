@@ -8,6 +8,9 @@ const driver = new BotDriver()
   .setCapability(Capabilities.FACEBOOK_API, true)
   .setCapability(Capabilities.FACEBOOK_WEBHOOK_PORT, 5000)
   .setCapability(Capabilities.FACEBOOK_WEBHOOK_PATH, 'webhook')
+  .setCapability(Capabilities.BOT_HEALTH_STATUS, 201)
+  .setCapability(Capabilities.BOT_HEALTH_CHECK_PATH, 'health')
+  .setCapability(Capabilities.BOT_HEALTH_CHECK_VERB, 'GET')
   .setCapability(Capabilities.CLEANUPTEMPDIR, false)
   .setSource(Source.LOCALPATH, '.')
   .setCapability(Capabilities.STARTCMD, 'npm install && node index.js')
@@ -25,7 +28,7 @@ driver.Build()
   .then(() => container.WaitBotSaysText())
   .then((text) => {
     if (text !== 'Text received, echo: hallo!') {
-      throw new Error('Expected echo');
+      throw new Error('Expected echo')
     }
   })
   .then(() => container.Stop())
@@ -39,10 +42,10 @@ driver.Build()
   .catch((err) => {
     console.log('tests failed')
     console.log(err)
-  })   
+  })
   .then(() => container.Stop())
   .then(() => container.Clean())
   .catch((err) => {
     console.log('cleanup failed')
     console.log(err)
-  })   
+  })

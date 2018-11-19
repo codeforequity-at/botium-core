@@ -1,6 +1,6 @@
 {
   "name": "botium-core",
-  "version": "1.3.32",
+  "version": "1.3.34",
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "module": "dist/botium-es.js",
@@ -9,7 +9,8 @@
     "eslint": "eslint \"./src/**/*.js\" \"./test/**/*.js\"",
     "newpatch": "npm version patch",
     "agent": "node ./src/grid/agent/agent.js",
-    "agent-jsdoc": "swagger-jsdoc -d ./src/grid/agent/swaggerDef.json -o ./src/grid/agent/swagger.json ./src/grid/agent/routes.js"
+    "agent-jsdoc": "swagger-jsdoc -d ./src/grid/agent/swaggerDef.json -o ./src/grid/agent/swagger.json ./src/grid/agent/routes.js",
+    "link": "npm link botium-connector-dialogflow botium-connector-webdriverio botium-connector-directline3 botium-connector-watson botium-connector-alexa-smapi botium-connector-echo"
   },
   "repository": {
     "type": "git",

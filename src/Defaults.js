@@ -14,6 +14,7 @@ module.exports = {
     [Capabilities.DOCKERIMAGE]: 'node:boron',
     [Capabilities.DOCKERUNIQUECONTAINERNAMES]: false,
     [Capabilities.DOCKERSYSLOGPORT_RANGE]: '47100-47299',
+    [Capabilities.BOT_HEALTH_STATUS]: 200,
     [Capabilities.SLACK_PUBLISHPORT_RANGE]: '46100-46299',
     [Capabilities.FACEBOOK_PUBLISHPORT_RANGE]: '46300-46499',
     [Capabilities.FACEBOOK_SEND_DELIVERY_CONFIRMATION]: true,
@@ -33,6 +34,7 @@ module.exports = {
     [Capabilities.SCRIPTING_MATCHING_MODE]: 'includeLowerCase',
     [Capabilities.SCRIPTING_UTTEXPANSION_MODE]: 'all',
     [Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]: 1,
+    [Capabilities.SCRIPTING_UTTEXPANSION_INCOMPREHENSION]: 'INCOMPREHENSION',
     [Capabilities.ASSERTERS]: []
   },
   Sources: {

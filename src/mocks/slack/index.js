@@ -81,12 +81,11 @@ if (!eventurl) {
   }
 }
 var oauthurl = process.env.BOTIUM_SLACK_OAUTHURL
+const oauthport = process.env.BOTIUM_SLACK_OAUTHPORT
+const oauthpath = process.env.BOTIUM_SLACK_OAUTHPATH
+const oauthhost = process.env.BOTIUM_SLACK_OAUTHHOST
+const oauthprotocol = process.env.BOTIUM_SLACK_OAUTHPROTOCOL
 if (!oauthurl) {
-  var oauthport = process.env.BOTIUM_SLACK_OAUTHPORT
-  var oauthpath = process.env.BOTIUM_SLACK_OAUTHPATH
-  var oauthhost = process.env.BOTIUM_SLACK_OAUTHHOST
-  var oauthprotocol = process.env.BOTIUM_SLACK_OAUTHPROTOCOL
-
   if (!oauthport || !oauthhost || !oauthprotocol) {
     console.log('BOTIUM_SLACK_OAUTHURL env variables not set')
     process.exit(1)
@@ -97,10 +96,18 @@ if (!oauthurl) {
     oauthurl += oauthpath
   }
 }
+const botHealthCheckVerb = process.env.BOTIUM_SLACK_HEALTH_CHECK_VERB || 'GET'
+const botHealthCheckPath = process.env.BOTIUM_SLACK_HEALTH_CHECK_PATH
+const botHealthCheckUrl = botHealthCheckPath ? `${oauthprotocol}://${oauthhost}:${oauthport}/${botHealthCheckPath}` : oauthurl
+const botHealthCheckStatus = parseInt(process.env.BOTIUM_SLACK_HEALTH_CHECK_STATUS)
+
+if (!Number.isInteger(botHealthCheckStatus)) {
+  throw new Error(`${botHealthCheckStatus} is not a valid http status`)
+}
 
 var appMock = express()
 appMock.use(bodyParser.json())
-appMock.use(bodyParser.urlencoded({ extended: true }))
+appMock.use(bodyParser.urlencoded({extended: true}))
 
 appMock.post('/api/oauth.access', (req, res) => {
   console.log('/api/oauth.access: ' + JSON.stringify(req.body))
@@ -248,36 +255,36 @@ var appTest = express()
 appTest.use(bodyParser.json())
 
 appTest.get('/', (req, res) => {
-  var urlparts = url.parse(oauthurl)
+  var urlparts = url.parse(botHealthCheckUrl)
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
-      console.log('port usage chatbot oauth endpoint (' + oauthurl + '): ' + inUse)
+      console.log('port usage chatbot oauth endpoint (' + botHealthCheckUrl + '): ' + inUse)
       if (inUse) {
-        console.log('checking chatbot oauth endpoint (' + oauthurl + ') for response')
+        console.log('checking chatbot oauth endpoint (' + botHealthCheckUrl + ') for response')
         var options = {
-          uri: oauthurl,
-          method: 'GET',
-          qs: { code: 'C123123123', state: 'C123123123' }
+          uri: botHealthCheckUrl,
+          method: botHealthCheckVerb,
+          qs: {code: 'C123123123', state: 'C123123123'}
         }
         request(options, (err, response, body) => {
-          if (err) {
-            var offlineMsg = 'chatbot oauth endpoint (' + oauthurl + ') not yet online (Err: ' + err + ', Body: ' + body + ')'
-            console.log(offlineMsg)
-            res.status(500).send(offlineMsg)
-          } else {
-            var onlineMsg = 'chatbot oauth endpoint (' + oauthurl + ') online (StatusCode: ' + response.statusCode + ', Body: ' + body + ')'
+          if (!err && response.statusCode === botHealthCheckStatus) {
+            const onlineMsg = `Bot is healthy under ${botHealthCheckStatus} is online (${body})`
             console.log(onlineMsg)
             res.status(200).send(onlineMsg)
+          } else {
+            const offlineMsg = `chatbot health check endpoint (${botHealthCheckUrl}) not yet online (Err: ${err}, Body: ${body})`
+            console.log(offlineMsg)
+            res.status(500).send(offlineMsg)
           }
         })
       } else {
-        res.status(500).send('chatbot oauth endpoint (' + oauthurl + ') not yet online (port not in use)')
+        res.status(500).send('chatbot oauth endpoint (' + botHealthCheckUrl + ') not yet online (port not in use)')
       }
     },
     (err) => {
       console.log('error on port check chatbot oauth endpoint: ' + err)
-      res.status(500).send('chatbot oauth endpoint (' + oauthurl + ') not yet online (port check failed ' + err + ')')
+      res.status(500).send('chatbot oauth endpoint (' + botHealthCheckUrl + ') not yet online (port check failed ' + err + ')')
     })
 })
 
