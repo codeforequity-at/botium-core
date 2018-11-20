@@ -127,7 +127,6 @@ module.exports = class CompilerTxt extends CompilerBase {
     this.context.AddConvos(result)
     return result
   }
-
   _compileUtterances (lines) {
     if (lines && lines.length > 1) {
       let result = [ new Utterance({ name: lines[0], utterances: lines.slice(1) }) ]
@@ -153,7 +152,8 @@ module.exports = class CompilerTxt extends CompilerBase {
     }
 
     convo.conversation.forEach((set) => {
-      if (!set.messageText && !set.sourceData) return
+      // button/media is asserter. And they can be in ConvoStep without text
+      if (!set.messageText && !set.sourceData && !set.asserters) return
 
       script += this.eol
 
@@ -173,6 +173,10 @@ module.exports = class CompilerTxt extends CompilerBase {
           script += '!'
         }
         script += JSON.stringify(set.sourceData, null, 2) + this.eol
+      }
+
+      for (const asserter of set.asserters) {
+        script += asserter.name + ' ' + asserter.args.join('|') + this.eol
       }
     })
     return script
