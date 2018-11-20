@@ -127,6 +127,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     this.context.AddConvos(result)
     return result
   }
+
   _compileUtterances (lines) {
     if (lines && lines.length > 1) {
       let result = [ new Utterance({ name: lines[0], utterances: lines.slice(1) }) ]
