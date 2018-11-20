@@ -176,9 +176,9 @@ module.exports = class CompilerTxt extends CompilerBase {
         script += JSON.stringify(set.sourceData, null, 2) + this.eol
       }
 
-      for (const asserter of set.asserters) {
+      set.asserters.map((asserter) => {
         script += asserter.name + ' ' + asserter.args.join('|') + this.eol
-      }
+      })
     })
     return script
   }
