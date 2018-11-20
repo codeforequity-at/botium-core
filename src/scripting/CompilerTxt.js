@@ -153,7 +153,8 @@ module.exports = class CompilerTxt extends CompilerBase {
     }
 
     convo.conversation.forEach((set) => {
-      if (!set.messageText && !set.sourceData) return
+      // button/media is asserter. And they can be in ConvoStep without text
+      if (!set.messageText && !set.sourceData && !set.asserters) return
 
       script += this.eol
 
@@ -174,6 +175,10 @@ module.exports = class CompilerTxt extends CompilerBase {
         }
         script += JSON.stringify(set.sourceData, null, 2) + this.eol
       }
+
+      set.asserters.map((asserter) => {
+        script += asserter.name + ' ' + asserter.args.join('|') + this.eol
+      })
     })
     return script
   }
