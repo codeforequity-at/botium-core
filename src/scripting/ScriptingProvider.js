@@ -54,7 +54,7 @@ module.exports = class ScriptingProvider {
           .catch(err => this.scriptingEvents.fail(new Error(`Failed to execute end assertion
           ${util.inspect(convo.endAsserter)}, and global ${util.inspect(this.globalAsserter)}: ${err} `)))
       },
-      assertBotResponse: (botresponse, tomatch, stepTag) => {
+      assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
         if (!_.isArray(tomatch)) {
           if (this.utterances[tomatch]) {
             tomatch = this.utterances[tomatch].utterances
@@ -62,6 +62,7 @@ module.exports = class ScriptingProvider {
             tomatch = [tomatch]
           }
         }
+        debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => {
           if (_.isString(botresponse)) {
             return this.matchFn(botresponse, utt)
@@ -70,17 +71,19 @@ module.exports = class ScriptingProvider {
           }
         })
         if (!found) {
-          throw new Error(`${stepTag}: Expected bot response "${botresponse}" to match one of "${tomatch}"`)
+          throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`)
         }
       },
-      assertBotNotResponse: (botresponse, nottomatch, stepTag) => {
+      assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg) => {
+        debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
         try {
-          this.scriptingEvents.assertBotResponse(botresponse, nottomatch)
-          throw new Error(`${stepTag}: Expected bot response "${botresponse}" NOT to match one of "${nottomatch}"`)
+          this.scriptingEvents.assertBotResponse(botresponse, nottomatch, stepTag)
         } catch (err) {
+          return
         }
+        throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`)
       },
-      fail: (msg) => {
+      fail: (msg, meMsg) => {
         throw new Error(msg)
       }
     }
@@ -150,8 +153,12 @@ module.exports = class ScriptingProvider {
     throw new Error(`No compiler found for scriptFormat ${scriptFormat}`)
   }
 
-  ReadScriptsFromDirectory (convoDir) {
+  ReadScriptsFromDirectory (convoDir, globFilter) {
     const filelist = glob.sync(globPattern, {cwd: convoDir})
+    if (globFilter) {
+      const filelistGlobbed = glob.sync(globFilter, {cwd: convoDir})
+      _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
+    }
     debug(`ReadConvosFromDirectory(${convoDir}) found filenames: ${filelist}`)
 
     const dirConvos = []
@@ -188,12 +195,52 @@ module.exports = class ScriptingProvider {
         }
       })
     }
+    if (fileUtterances) {
+      fileUtterances.forEach((fileUtt) => {
+        fileUtt.sourceTag = {filename}
+      })
+    }
     return {convos: fileConvos, utterances: fileUtterances}
+  }
+
+  ExpandUtterancesToConvos () {
+    const expandedConvos = []
+    const incomprehensionUtt = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_INCOMPREHENSION]
+    if (!this.utterances[incomprehensionUtt]) {
+      throw new Error(`ExpandUtterancesToConvos - incomprehension utterance '${incomprehensionUtt}' undefined`)
+    }
+    debug(`ExpandUtterancesToConvos - Using incomprehension utterance expansion mode: ${incomprehensionUtt}`)
+
+    _.keys(this.utterances).filter(u => u !== incomprehensionUtt).forEach(uttName => {
+      const utt = this.utterances[uttName]
+      expandedConvos.push(new Convo(this._buildScriptContext(), {
+        header: {
+          name: utt.name,
+          description: `Expanded Utterances - ${utt.name}`
+        },
+        conversation: [
+          {
+            sender: 'me',
+            messageText: utt.name,
+            stepTag: 'Step 1 - tell utterance'
+          },
+          {
+            sender: 'bot',
+            messageText: incomprehensionUtt,
+            stepTag: 'Step 2 - check incomprehension',
+            not: true
+          }
+        ],
+        sourceTag: utt.sourceTag
+      }))
+    })
+    this.convos = this.convos.concat(expandedConvos)
+    this._sortConvos()
   }
 
   ExpandConvos () {
     const expandedConvos = []
-    debug('Using utterances expansion mode: ' + this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE])
+    debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     this.convos.forEach((convo) => {
       this._expandConvo(expandedConvos, convo)
     })
@@ -225,13 +272,14 @@ module.exports = class ScriptingProvider {
                 .map(a => a.x)
                 .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
             }
-            sampleutterances.forEach((utt) => {
+            sampleutterances.forEach((utt, index) => {
               const currentStepsStack = convoStepsStack.slice()
               if (uttArgs) {
                 utt = util.format(utt, ...uttArgs)
               }
               currentStepsStack.push(Object.assign({}, currentStep, {messageText: utt}))
-              this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+              const currentConvoLabeled = Object.assign({}, currentConvo, {header: Object.assign({}, currentConvo.header, {name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1)})})
+              this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
             return
           }
