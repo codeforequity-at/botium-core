@@ -19,17 +19,40 @@ module.exports = class ScriptingProvider {
     this.utterances = {}
     this.matchFn = null
     this.asserters = {}
+    this.globalAsserter = {}
 
     this.scriptingEvents = {
-      assertConvoBegin: (convo) => {
-        return Promise.resolve()
+      assertConvoBegin: ({convo, container}) => {
+        const convoAsserter = convo.beginAsserter
+          .filter(a => this.asserters[a.name].assertConvoBegin)
+          .map(a => this.asserters[a.name].assertConvoBegin({convo, container, args: a.args}))
+
+        const globalAsserter = Object.values(this.globalAsserter)
+          .filter(a => a.assertConvoBegin)
+          .map(a => a.assertConvoBegin({convo, container, args: []}))
+        const allPromises = [...convoAsserter, ...globalAsserter]
+        return Promise.all(allPromises)
+          .then(() => debug(`Executed SUCCESSFULL all begin assertions ${util.inspect(convo.beginAsserter)} and all 
+          global assertions ${util.inspect(this.globalAsserter)}`))
+          .catch(err => this.scriptingEvents.fail(new Error(`Failed to execute begin assertion 
+          ${util.inspect(convo.beginAsserter)}, and global ${util.inspect(this.globalAsserter)}, stack: ${util.inspect(err)}`)))
       },
       assertConvoStep: (convo, convoStep, botMsg) => {
         const allPromises = (convoStep.asserters || []).map(a => this.asserters[a.name].assertConvoStep(convo, convoStep, a.args, botMsg))
         return Promise.all(allPromises)
       },
-      assertConvoEnd: (convo, msgs) => {
-        return Promise.resolve()
+      assertConvoEnd: ({convo, container, msgs}) => {
+        const convoAsserter = convo.endAsserter
+          .filter(a => this.asserters[a.name].assertConvoEnd)
+          .map(a => this.asserters[a.name].assertConvoEnd({convo, container, msgs: msgs, args: a.args}))
+        const globalAsserter = Object.values(this.globalAsserter)
+          .filter(a => a.assertConvoEnd)
+          .map(a => a.assertConvoEnd({convo, container, msgs: msgs, args: []}))
+        const allPromises = [...convoAsserter, ...globalAsserter]
+        return Promise.all(allPromises)
+          .then(() => debug(`Executed SUCCESSFULL all end assertions ${util.inspect(convo.endAsserter)} and all global assertions ${this.globalAsserter}`))
+          .catch(err => this.scriptingEvents.fail(new Error(`Failed to execute end assertion
+          ${util.inspect(convo.endAsserter)}, and global ${util.inspect(this.globalAsserter)}: ${err} `)))
       },
       assertBotResponse: (botresponse, tomatch, stepTag) => {
         if (!_.isArray(tomatch)) {
@@ -100,6 +123,7 @@ module.exports = class ScriptingProvider {
     }
     const asserterUtils = new AsserterUtils({buildScriptContext: this._buildScriptContext(), caps: this.caps})
     this.asserters = asserterUtils.asserters
+    this.globalAsserter = asserterUtils.getGlobalAsserter()
   }
 
   IsAsserterValid (name) {

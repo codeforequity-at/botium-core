@@ -8,6 +8,7 @@ const _ = require('lodash')
 module.exports = class AsserterUtils {
   constructor ({buildScriptContext, caps}) {
     this.asserters = {}
+    this.globalAsserters = []
     this.buildScriptContext = buildScriptContext
     this.caps = caps
     this._setDefaultAsserters()
@@ -28,7 +29,16 @@ module.exports = class AsserterUtils {
         }
         this.asserters[asserter.ref] = this._loadAsserterClass(asserter)
         debug(`Loaded ${asserter.ref} SUCCESSFULLY - ${util.inspect(asserter)}`)
+        if (asserter.global) {
+          this.globalAsserters.push(asserter.ref)
+          debug(`global asserter: ${asserter.ref} was set and will be executed in every convo`)
+        }
       })
+  }
+
+  getGlobalAsserter () {
+    return this.globalAsserters
+      .map(name => this.asserters[name])
   }
 
   _loadAsserterClass ({src, ref}) {
