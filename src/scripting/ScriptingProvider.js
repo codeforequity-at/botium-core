@@ -38,7 +38,9 @@ module.exports = class ScriptingProvider {
           ${util.inspect(convo.beginAsserter)}, and global ${util.inspect(this.globalAsserter)}, stack: ${util.inspect(err)}`)))
       },
       assertConvoStep: (convo, convoStep, botMsg) => {
-        const allPromises = (convoStep.asserters || []).map(a => this.asserters[a.name].assertConvoStep(convo, convoStep, a.args, botMsg))
+        const allPromises = (convoStep.asserters || [])
+          .filter(a => this.asserters[a.name].assertConvoStep)
+          .map(a => this.asserters[a.name].assertConvoStep(convo, convoStep, a.args, botMsg))
         return Promise.all(allPromises)
       },
       assertConvoEnd: ({convo, container, msgs}) => {
