@@ -32,10 +32,6 @@ module.exports = class ScriptingProvider {
           .map(a => a.assertConvoBegin({convo, container, args: []}))
         const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
-          .then(() => debug(`Executed SUCCESSFULL all begin assertions ${util.inspect(convo.beginAsserter)} and all 
-          global assertions ${util.inspect(this.globalAsserter)}`))
-          .catch(err => this.scriptingEvents.fail(new Error(`Failed to execute begin assertion 
-          ${util.inspect(convo.beginAsserter)}, and global ${util.inspect(this.globalAsserter)}, stack: ${util.inspect(err)}`)))
       },
       assertConvoStep: (convo, convoStep, botMsg) => {
         const allPromises = (convoStep.asserters || [])
@@ -52,9 +48,6 @@ module.exports = class ScriptingProvider {
           .map(a => a.assertConvoEnd({convo, container, msgs: msgs, args: []}))
         const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
-          .then(() => debug(`Executed SUCCESSFULL all end assertions ${util.inspect(convo.endAsserter)} and all global assertions ${this.globalAsserter}`))
-          .catch(err => this.scriptingEvents.fail(new Error(`Failed to execute end assertion
-          ${util.inspect(convo.endAsserter)}, and global ${util.inspect(this.globalAsserter)}: ${err} `)))
       },
       assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
         if (!_.isArray(tomatch)) {
@@ -253,7 +246,7 @@ module.exports = class ScriptingProvider {
   _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
     if (convoStepIndex < currentConvo.conversation.length) {
       const currentStep = currentConvo.conversation[convoStepIndex]
-      if (currentStep.sender === 'bot') {
+      if (currentStep.sender === 'bot' || currentStep.sender === 'begin' || currentStep.sender === 'end') {
         const currentStepsStack = convoStepsStack.slice()
         currentStepsStack.push(Object.assign({}, currentStep))
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)

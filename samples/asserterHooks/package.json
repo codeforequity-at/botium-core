@@ -1,0 +1,16 @@
+{
+  "name": "asserterHookExample",
+  "version": "1.0.0",
+  "description": "Example of implementation and usage of botium asserters",
+  "main": "botiumFluent.js",
+  "scripts": {
+    "start": "node botiumFluent.js",
+    "start:dev": "DEBUG=* node botiumFluent.js"
+  },
+  "repository": "https://github.com/codeforequity-at/botium-core",
+  "author": "Stefan Sevelda",
+  "license": "MIT",
+  "dependencies": {
+    "botium-connector-watson": "^0.0.2"
+  }
+}
