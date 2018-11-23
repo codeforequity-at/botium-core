@@ -136,7 +136,7 @@ class Convo {
               lastMeMsg = convoStep
               return container.UserSays(new BotiumMockMessage(convoStep))
             })
-            .then(() => convoStepDone(null, {sender: convoStep.sender, msg: convoStep.messageText}))
+            .then(() => convoStepDone(null, convoStep))
             .catch((err) => {
               try {
                 this.scriptingEvents.fail(new Error(`${this.header.name}/${convoStep.stepTag}: error sending to bot ${util.inspect(err)}`))
@@ -186,10 +186,7 @@ class Convo {
               }
             }
             this.scriptingEvents.assertConvoStep(this, convoStep, saysmsg)
-              .then(() => {
-                let msg = convoStep.messageText ? convoStep.messageText : convoStep.sourceData
-                convoStepDone(null, {sender: convoStep.sender, msg: msg})
-              })
+              .then(() => convoStepDone(null, saysmsg))
               .catch((err) => {
                 try {
                   this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: assertion error - ${util.inspect(err)}`, lastMeMsg)
