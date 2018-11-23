@@ -19,17 +19,35 @@ module.exports = class ScriptingProvider {
     this.utterances = {}
     this.matchFn = null
     this.asserters = {}
+    this.globalAsserter = {}
 
     this.scriptingEvents = {
-      assertConvoBegin: (convo) => {
-        return Promise.resolve()
-      },
-      assertConvoStep: (convo, convoStep, botMsg) => {
-        const allPromises = (convoStep.asserters || []).map(a => this.asserters[a.name].assertConvoStep(convo, convoStep, a.args, botMsg))
+      assertConvoBegin: ({convo, container}) => {
+        const convoAsserter = convo.beginAsserter
+          .filter(a => this.asserters[a.name].assertConvoBegin)
+          .map(a => this.asserters[a.name].assertConvoBegin({convo, container, args: a.args}))
+
+        const globalAsserter = Object.values(this.globalAsserter)
+          .filter(a => a.assertConvoBegin)
+          .map(a => a.assertConvoBegin({convo, container, args: []}))
+        const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
-      assertConvoEnd: (convo, msgs) => {
-        return Promise.resolve()
+      assertConvoStep: (convo, convoStep, botMsg) => {
+        const allPromises = (convoStep.asserters || [])
+          .filter(a => this.asserters[a.name].assertConvoStep)
+          .map(a => this.asserters[a.name].assertConvoStep(convo, convoStep, a.args, botMsg))
+        return Promise.all(allPromises)
+      },
+      assertConvoEnd: ({convo, container, msgs}) => {
+        const convoAsserter = convo.endAsserter
+          .filter(a => this.asserters[a.name].assertConvoEnd)
+          .map(a => this.asserters[a.name].assertConvoEnd({convo, container, msgs: msgs, args: a.args}))
+        const globalAsserter = Object.values(this.globalAsserter)
+          .filter(a => a.assertConvoEnd)
+          .map(a => a.assertConvoEnd({convo, container, msgs: msgs, args: []}))
+        const allPromises = [...convoAsserter, ...globalAsserter]
+        return Promise.all(allPromises)
       },
       assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
         if (!_.isArray(tomatch)) {
@@ -103,6 +121,7 @@ module.exports = class ScriptingProvider {
     }
     const asserterUtils = new AsserterUtils({buildScriptContext: this._buildScriptContext(), caps: this.caps})
     this.asserters = asserterUtils.asserters
+    this.globalAsserter = asserterUtils.getGlobalAsserter()
   }
 
   IsAsserterValid (name) {
@@ -227,7 +246,7 @@ module.exports = class ScriptingProvider {
   _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
     if (convoStepIndex < currentConvo.conversation.length) {
       const currentStep = currentConvo.conversation[convoStepIndex]
-      if (currentStep.sender === 'bot') {
+      if (currentStep.sender === 'bot' || currentStep.sender === 'begin' || currentStep.sender === 'end') {
         const currentStepsStack = convoStepsStack.slice()
         currentStepsStack.push(Object.assign({}, currentStep))
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
