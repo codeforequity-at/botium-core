@@ -12,7 +12,7 @@
     "Sources": {
       "GITURL": "https://github.com/Microsoft/BotBuilder-Samples.git",
       "GITDIR": "samples/javascript_nodejs/04.simple-prompt",
-      "GITPREPARECMD": "sed -i 10s/.*/\"appId\":\"mymicrosoftappid\",/ simple-prompt-bot.bot"
+      "GITPREPARECMD": "sed -i 10s/.*/\"appId\":\"mymicrosoftappid\",/ simple-prompt.bot"
     },
     "Envs": {
       "NODE_DEBUG": "botbuilder",
