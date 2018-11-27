@@ -154,7 +154,7 @@ module.exports = class CompilerTxt extends CompilerBase {
 
     convo.conversation.forEach((set) => {
       // button/media is asserter. And they can be in ConvoStep without text
-      if (!set.messageText && !set.sourceData && !set.asserters) return
+      if (!set.messageText && !set.sourceData && !set.asserters && !set.media && !set.buttons && !set.cards) return
 
       script += this.eol
 
@@ -169,6 +169,15 @@ module.exports = class CompilerTxt extends CompilerBase {
           script += '!'
         }
         script += set.messageText + this.eol
+      } else if (set.media || set.buttons || set.cards) {
+        if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
+        if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
+        if (set.cards && set.cards.length > 0) {
+          set.cards.forEach(c => {
+            if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
+            if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
+          })
+        }
       } else if (set.sourceData) {
         if (set.not) {
           script += '!'
@@ -176,7 +185,7 @@ module.exports = class CompilerTxt extends CompilerBase {
         script += JSON.stringify(set.sourceData, null, 2) + this.eol
       }
 
-      set.asserters.map((asserter) => {
+      set.asserters && set.asserters.map((asserter) => {
         script += asserter.name + ' ' + asserter.args.join('|') + this.eol
       })
     })
