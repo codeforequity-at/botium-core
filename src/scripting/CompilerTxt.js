@@ -153,9 +153,6 @@ module.exports = class CompilerTxt extends CompilerBase {
     }
 
     convo.conversation.forEach((set) => {
-      // button/media is asserter. And they can be in ConvoStep without text
-      if (!set.messageText && !set.sourceData && !set.asserters && !set.media && !set.buttons && !set.cards) return
-
       script += this.eol
 
       script += '#' + set.sender
