@@ -1,6 +1,7 @@
 const debug = require('debug')('botium-asserterUtils')
 const ButtonsAsserter = require('./ButtonsAsserter')
 const MediaAsserter = require('./MediaAsserter')
+const PauseAsserter = require('./PauseAsserter')
 const Capabilities = require('../../Capabilities')
 const util = require('util')
 const _ = require('lodash')
@@ -18,6 +19,7 @@ module.exports = class AsserterUtils {
   _setDefaultAsserters () {
     this.asserters['BUTTONS'] = new ButtonsAsserter(this.buildScriptContext, this.caps)
     this.asserters['MEDIA'] = new MediaAsserter(this.buildScriptContext, this.caps)
+    this.asserters['PAUSE'] = new PauseAsserter(this.buildScriptContext, this.caps)
     debug(`Loaded Default asserter - ${util.inspect(this.asserters)}`)
   }
 
