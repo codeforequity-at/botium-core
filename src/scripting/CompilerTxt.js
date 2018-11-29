@@ -58,8 +58,6 @@ module.exports = class CompilerTxt extends CompilerBase {
     let currentChannel = null
 
     const parseMsg = (lines) => {
-      if (!lines || lines.length === 0) return {}
-
       const convoStep = { asserters: [], not: false }
 
       const textLines = []
@@ -83,6 +81,8 @@ module.exports = class CompilerTxt extends CompilerBase {
         } else {
           convoStep.messageText = textLines.join(this.eol)
         }
+      } else {
+        convoStep.messageText = ''
       }
       return convoStep
     }
