@@ -58,6 +58,8 @@ module.exports = class CompilerTxt extends CompilerBase {
     let currentChannel = null
 
     const parseMsg = (lines) => {
+      lines = lines || []
+
       const convoStep = { asserters: [], not: false }
 
       const textLines = []
