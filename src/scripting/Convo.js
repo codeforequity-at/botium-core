@@ -63,6 +63,7 @@ class Convo {
   setConvoBeginAndEndAsserter (fromJson) {
     // collecting asserters to map e.g. "Button": List (args)
     let asserterMap = fromJson.conversation
+      .filter(c => c.asserters)
       .map(s => s.asserters)
       .reduce((acc, val) => acc.concat(val), [])
       .reduce((xs, x) => {

@@ -58,7 +58,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     let currentChannel = null
 
     const parseMsg = (lines) => {
-      if (!lines || lines.length === 0) return {}
+      lines = lines || []
 
       const convoStep = { asserters: [], not: false }
 
@@ -83,6 +83,8 @@ module.exports = class CompilerTxt extends CompilerBase {
         } else {
           convoStep.messageText = textLines.join(this.eol)
         }
+      } else {
+        convoStep.messageText = ''
       }
       return convoStep
     }
@@ -153,9 +155,6 @@ module.exports = class CompilerTxt extends CompilerBase {
     }
 
     convo.conversation.forEach((set) => {
-      // button/media is asserter. And they can be in ConvoStep without text
-      if (!set.messageText && !set.sourceData && !set.asserters && !set.media && !set.buttons && !set.cards) return
-
       script += this.eol
 
       script += '#' + set.sender
