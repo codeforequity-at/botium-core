@@ -4,7 +4,7 @@ module.exports = class MediaAsserter {
     this.caps = caps
   }
 
-  assertConvoStep (convo, convoStep, args, botMsg) {
+  assertMeEnd (convo, convoStep, args, botMsg) {
     if (!args || args.length < 1) {
       return Promise.reject(new Error(`${convoStep.stepTag}: Missing argument`))
     }
