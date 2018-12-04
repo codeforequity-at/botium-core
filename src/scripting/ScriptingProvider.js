@@ -1,4 +1,4 @@
-const AsserterUtils = require('./asserter/AsserterUtils')
+const LogicHookUtils = require('./logichook/LogicHookUtils')
 const util = require('util')
 const fs = require('fs')
 const path = require('path')
@@ -20,32 +20,49 @@ module.exports = class ScriptingProvider {
     this.matchFn = null
     this.asserters = {}
     this.globalAsserter = {}
+    this.logicHooks = {}
+    this.globalLogicHook = {}
 
     this.scriptingEvents = {
-      assertConvoBegin: ({convo, container}) => {
+      onMeStart: ({ convoStep, ...rest }) => {
+        return this._createLogicHookPromises(convoStep, 'onMeStart', rest)
+      },
+      onMeEnd: ({ convoStep, ...rest }) => {
+        return this._createLogicHookPromises(convoStep, 'onMeEnd', rest)
+      },
+      onBotStart: ({ convoStep, ...rest }) => {
+        return this._createLogicHookPromises(convoStep, 'onBotStart', rest)
+      },
+      onBotEnd: ({ convoStep, ...rest }) => {
+        return this._createLogicHookPromises(convoStep, 'onBotEnd', rest)
+      },
+      assertConvoBegin: ({ convo, convoStep, ...rest }) => {
         const convoAsserter = convo.beginAsserter
           .filter(a => this.asserters[a.name].assertConvoBegin)
-          .map(a => this.asserters[a.name].assertConvoBegin({convo, container, args: a.args}))
-
+          .map(a => this.asserters[a.name].assertConvoBegin({ convo, convoStep, args: a.args, ...rest }))
         const globalAsserter = Object.values(this.globalAsserter)
           .filter(a => a.assertConvoBegin)
-          .map(a => a.assertConvoBegin({convo, container, args: []}))
+          .map(a => a.assertConvoBegin({ convo, convoStep, args: [], ...rest }))
         const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
-      assertConvoStep: (convo, convoStep, botMsg) => {
-        const allPromises = (convoStep.asserters || [])
+      assertConvoStep: ({ convo, convoStep, ...rest }) => {
+        const convoAsserter = (convoStep.asserters || [])
           .filter(a => this.asserters[a.name].assertConvoStep)
-          .map(a => this.asserters[a.name].assertConvoStep(convo, convoStep, a.args, botMsg))
+          .map(a => this.asserters[a.name].assertConvoStep({ convo, convoStep, args: a.args, ...rest }))
+        const globalAsserter = Object.values(this.globalAsserter)
+          .filter(a => a.assertConvoStep)
+          .map(a => a.assertConvoStep({ convo, convoStep, args: [], ...rest }))
+        const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
-      assertConvoEnd: ({convo, container, msgs}) => {
+      assertConvoEnd: ({ convo, convoStep, ...rest }) => {
         const convoAsserter = convo.endAsserter
           .filter(a => this.asserters[a.name].assertConvoEnd)
-          .map(a => this.asserters[a.name].assertConvoEnd({convo, container, msgs: msgs, args: a.args}))
+          .map(a => this.asserters[a.name].assertConvoEnd({convo, convoStep, args: a.args, ...rest}))
         const globalAsserter = Object.values(this.globalAsserter)
           .filter(a => a.assertConvoEnd)
-          .map(a => a.assertConvoEnd({convo, container, msgs: msgs, args: []}))
+          .map(a => a.assertConvoEnd({ convo, convoStep, args: [], ...rest }))
         const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
@@ -84,18 +101,40 @@ module.exports = class ScriptingProvider {
     }
   }
 
+  _createLogicHookPromises (convoStep, hookType, eventArgs) {
+    if (hookType !== 'onMeStart' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' && hookType !== 'onBotEnd') {
+      throw Error(`Unknown hookType ${hookType}`)
+    }
+
+    const convoStepPromises = (convoStep.logicHooks || [])
+      .filter(l => this.logicHooks[l.name][hookType])
+      .map(l => this.logicHooks[l.name][hookType]({ convoStep, args: l.args, ...eventArgs }))
+
+    const globalPromises = Object.values(this.globalLogicHook)
+      .filter(l => l[hookType])
+      .map(l => l[hookType]({ convoStep, args: [], ...eventArgs }))
+
+    const allPromises = [...convoStepPromises, ...globalPromises]
+    return Promise.all(allPromises)
+  }
+
   _buildScriptContext () {
     return {
       AddConvos: this.AddConvos.bind(this),
       AddUtterances: this.AddUtterances.bind(this),
       Match: this.Match.bind(this),
       IsAsserterValid: this.IsAsserterValid.bind(this),
+      IsLogicHookValid: this.IsLogicHookValid.bind(this),
       scriptingEvents: {
         assertConvoBegin: this.scriptingEvents.assertConvoBegin.bind(this),
         assertConvoStep: this.scriptingEvents.assertConvoStep.bind(this),
         assertConvoEnd: this.scriptingEvents.assertConvoEnd.bind(this),
         assertBotResponse: this.scriptingEvents.assertBotResponse.bind(this),
         assertBotNotResponse: this.scriptingEvents.assertBotNotResponse.bind(this),
+        onMeStart: this.scriptingEvents.onMeStart.bind(this),
+        onMeEnd: this.scriptingEvents.onMeEnd.bind(this),
+        onBotStart: this.scriptingEvents.onBotStart.bind(this),
+        onBotEnd: this.scriptingEvents.onBotEnd.bind(this),
         fail: this.scriptingEvents.fail.bind(this)
       }
     }
@@ -119,13 +158,19 @@ module.exports = class ScriptingProvider {
     } else {
       this.matchFn = (botresponse, utterance) => botresponse === utterance
     }
-    const asserterUtils = new AsserterUtils({buildScriptContext: this._buildScriptContext(), caps: this.caps})
-    this.asserters = asserterUtils.asserters
-    this.globalAsserter = asserterUtils.getGlobalAsserter()
+    const logicHookUtils = new LogicHookUtils({buildScriptContext: this._buildScriptContext(), caps: this.caps})
+    this.asserters = logicHookUtils.asserters
+    this.globalAsserter = logicHookUtils.getGlobalAsserter()
+    this.logicHooks = logicHookUtils.logicHooks
+    this.globalLogicHook = logicHookUtils.getGlobalLogicHook()
   }
 
   IsAsserterValid (name) {
     return this.asserters[name] || false
+  }
+
+  IsLogicHookValid (name) {
+    return this.logicHooks[name] || false
   }
 
   Match (botresponse, utterance) {

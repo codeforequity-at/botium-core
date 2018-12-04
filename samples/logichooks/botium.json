@@ -1,0 +1,8 @@
+{
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "Botium Logichooks Sample",
+      "CONTAINERMODE": "echo"
+    }
+  }
+}
