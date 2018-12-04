@@ -64,7 +64,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
       if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
         const parseCell = (content) => {
-          if (!content) return {}
+          if (!content) return {messageText: ''}
 
           if (!_.isString(content)) content = '' + content
 
