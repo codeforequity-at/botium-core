@@ -1,10 +1,10 @@
-module.exports = class MediaAsserter {
+module.exports = class PauseLogicHook {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
   }
 
-  assertMeEnd (convo, convoStep, args, botMsg) {
+  onMeStart ({convo, convoStep, args}) {
     if (!args || args.length < 1) {
       return Promise.reject(new Error(`${convoStep.stepTag}: Missing argument`))
     }
