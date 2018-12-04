@@ -24,29 +24,45 @@ module.exports = class ScriptingProvider {
     this.globalLogicHook = {}
 
     this.scriptingEvents = {
-      assertConvoBegin: ({convo, container}) => {
+      onMeStart: ({ convoStep, ...rest }) => {
+        return this._createLogicHookPromises(convoStep, 'onMeStart', rest)
+      },
+      onMeEnd: ({ convoStep, ...rest }) => {
+        return this._createLogicHookPromises(convoStep, 'onMeEnd', rest)
+      },
+      onBotStart: ({ convoStep, ...rest }) => {
+        return this._createLogicHookPromises(convoStep, 'onBotStart', rest)
+      },
+      onBotEnd: ({ convoStep, ...rest }) => {
+        return this._createLogicHookPromises(convoStep, 'onBotEnd', rest)
+      },
+      assertConvoBegin: ({ convo, convoStep, ...rest }) => {
         const convoAsserter = convo.beginAsserter
           .filter(a => this.asserters[a.name].assertConvoBegin)
-          .map(a => this.asserters[a.name].assertConvoBegin({convo, container, args: a.args}))
+          .map(a => this.asserters[a.name].assertConvoBegin({ convo, convoStep, args: a.args, ...rest }))
         const globalAsserter = Object.values(this.globalAsserter)
           .filter(a => a.assertConvoBegin)
-          .map(a => a.assertConvoBegin({convo, container, args: []}))
+          .map(a => a.assertConvoBegin({ convo, convoStep, args: [], ...rest }))
         const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
-      assertConvoStep: (convo, convoStep, botMsg) => {
-        const allPromises = (convoStep.asserters || [])
+      assertConvoStep: ({ convo, convoStep, ...rest }) => {
+        const convoAsserter = (convoStep.asserters || [])
           .filter(a => this.asserters[a.name].assertConvoStep)
-          .map(a => this.asserters[a.name].assertConvoStep(convo, convoStep, a.args, botMsg))
+          .map(a => this.asserters[a.name].assertConvoStep({ convo, convoStep, args: a.args, ...rest }))
+        const globalAsserter = Object.values(this.globalAsserter)
+          .filter(a => a.assertConvoStep)
+          .map(a => a.assertConvoStep({ convo, convoStep, args: [], ...rest }))
+        const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
-      assertConvoEnd: ({convo, container, msgs}) => {
+      assertConvoEnd: ({ convo, convoStep, ...rest }) => {
         const convoAsserter = convo.endAsserter
           .filter(a => this.asserters[a.name].assertConvoEnd)
-          .map(a => this.asserters[a.name].assertConvoEnd({convo, container, msgs: msgs, args: a.args}))
+          .map(a => this.asserters[a.name].assertConvoEnd({convo, convoStep, args: a.args, ...rest}))
         const globalAsserter = Object.values(this.globalAsserter)
           .filter(a => a.assertConvoEnd)
-          .map(a => a.assertConvoEnd({convo, container, msgs: msgs, args: []}))
+          .map(a => a.assertConvoEnd({ convo, convoStep, args: [], ...rest }))
         const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
@@ -79,36 +95,24 @@ module.exports = class ScriptingProvider {
         }
         throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`)
       },
-      onMeStart: (convo, convoStep, container, scriptingMemory) => {
-        return this._createLogicHookPromises(convoStep, 'onMeStart', arguments)
-      },
-      onMeEnd: (convo, convoStep, container, scriptingMemory) => {
-        return this._createLogicHookPromises(convoStep, 'onMeEnd', arguments)
-      },
-      onBotStart: (convo, convoStep, container, onBotStart) => {
-        return this._createLogicHookPromises(convoStep, 'onMeStart', arguments)
-      },
-      onBotEnd: (convo, convoStep, container, scriptingMemory, saysmsg) => {
-        return this._createLogicHookPromises(convoStep, 'onBotEnd', arguments)
-      },
       fail: (msg, meMsg) => {
         throw new Error(msg)
       }
     }
   }
 
-  _createLogicHookPromises (convoStep, type, args) {
-    if (type !== 'onMeStart' && type !== 'onMeEnd' && type !== 'onBotStart' && type !== 'onBotEnd') {
-      throw Error(`Unknown type ${type}`)
+  _createLogicHookPromises (convoStep, hookType, eventArgs) {
+    if (hookType !== 'onMeStart' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' && hookType !== 'onBotEnd') {
+      throw Error(`Unknown hookType ${hookType}`)
     }
 
     const convoStepPromises = (convoStep.logicHooks || [])
-      .filter(l => this.logicHooks[l.name][type])
-      .map(l => this.logicHooks[l.name][type](Object.assign({args: l.args}, args)))
+      .filter(l => this.logicHooks[l.name][hookType])
+      .map(l => this.logicHooks[l.name][hookType]({ convoStep, args: l.args, ...eventArgs }))
 
     const globalPromises = Object.values(this.globalLogicHook)
-      .filter(l => l[type])
-      .map(l => this.logicHooks[l.name][type](Object.assign({args: []}, args)))
+      .filter(l => l[hookType])
+      .map(l => l[hookType]({ convoStep, args: [], ...eventArgs }))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)

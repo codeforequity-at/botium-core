@@ -11,7 +11,7 @@ module.exports = class DummyAsserter {
     return Promise.resolve()
   }
 
-  assertConvoStep (convo, convoStep, args, botMsg) {
+  assertConvoStep ({convo, convoStep, args, botMsg}) {
     console.log(`ConvoStep dummy assertion with those args: ${utils.inspect(args)}, botMessage: ${utils.inspect(botMsg)} ...`)
     return Promise.resolve()
   }

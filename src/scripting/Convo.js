@@ -78,25 +78,17 @@ class Convo {
   }
 
   setConvoBeginAndEndAsserter (fromJson) {
-    // collecting asserters to map e.g. "Button": List (args)
-    let asserterMap = fromJson.conversation
+    const beginAsserter = fromJson.conversation
+      .filter(s => s.sender === 'begin' && s.asserters && s.asserters.length > 0)
       .map(s => s.asserters)
       .reduce((acc, val) => acc.concat(val), [])
-      .reduce((xs, x) => {
-        xs[x.name] = xs[x.name] || []
-        xs[x.name].push(x.args)
-        return xs
-      }, {})
-    /* assign args from first appearance of asserter-keyword as beginAsserter and last appearance of asserter-keyword
-     * as endAsserter args
-     */
-    let beginAsserter = []
-    let endAsserter = []
-    for (const key in asserterMap) {
-      beginAsserter.push({name: key, args: asserterMap[key][0]})
-      endAsserter.push({name: key, args: asserterMap[key][asserterMap[key].length - 1]})
-    }
-    return {beginAsserter: beginAsserter, endAsserter: endAsserter}
+
+    const endAsserter = fromJson.conversation
+      .filter(s => s.sender === 'end' && s.asserters && s.asserters.length > 0)
+      .map(s => s.asserters)
+      .reduce((acc, val) => acc.concat(val), [])
+
+    return { beginAsserter, endAsserter }
   }
 
   toString () {
@@ -109,7 +101,7 @@ class Convo {
 
       async.waterfall([
         (cb) => {
-          this.scriptingEvents.assertConvoBegin({convo: this, container: container})
+          this.scriptingEvents.assertConvoBegin({convo: this, container})
             .catch((err) => cb(new Error(`${this.header.name}: error begin asserter ${util.inspect(err)}`)))
           cb()
         },
@@ -117,7 +109,7 @@ class Convo {
           this.runConversation(container, scriptingMemory, cb)
         },
         (msgs, cb) => {
-          this.scriptingEvents.assertConvoEnd({convo: this, container: container, msgs: msgs})
+          this.scriptingEvents.assertConvoEnd({convo: this, container, msgs})
             .then(() => cb(null, null))
             .catch((err) => cb(err))
         }
@@ -143,7 +135,7 @@ class Convo {
           debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`)
 
           let convoStepDoneCalling = false
-          return this.scriptingEvents.onMeStart(this, convoStep, container, scriptingMemory)
+          return this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory })
             .then(() => {
               return new Promise(resolve => {
                 if (container.caps.SIMULATE_WRITING_SPEED && convoStep.messageText && convoStep.messageText.length) {
@@ -157,7 +149,7 @@ class Convo {
               lastMeMsg = convoStep
               return container.UserSays(new BotiumMockMessage(convoStep))
             })
-            .then(() => this.scriptingEvents.onMeEnd(this, convoStep, container, scriptingMemory))
+            .then(() => this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory }))
             .then(() => {
               convoStepDoneCalling = true
               convoStepDone(null, convoStep)
@@ -178,12 +170,8 @@ class Convo {
             })
         } else if (convoStep.sender === 'bot') {
           debug(`${this.header.name} wait for bot ${util.inspect(convoStep.channel)}`)
-          return this.scriptingEvents.onBotStart(this, convoStep, container, scriptingMemory)
+          return this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory })
             .then(() => container.WaitBotSays(convoStep.channel))
-            .then((saysmsg) => {
-              return this.scriptingEvents.onBotEnd(this, convoStep, container, scriptingMemory, saysmsg)
-                .then(() => saysmsg)
-            })
             .then((saysmsg) => {
               debug(`${this.header.name}: bot says ${JSON.stringify(saysmsg, null, 2)}`)
               if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData)) {
@@ -222,7 +210,8 @@ class Convo {
                   return
                 }
               }
-              this.scriptingEvents.assertConvoStep(this, convoStep, saysmsg)
+              this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
+                .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
                 .then(() => convoStepDone(null, saysmsg))
                 .catch((err) => {
                   try {

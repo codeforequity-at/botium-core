@@ -1,9 +1,11 @@
+const util = require('util')
+const path = require('path')
+const isClass = require('is-class')
 const debug = require('debug')('botium-asserterUtils')
 const ButtonsAsserter = require('./asserter/ButtonsAsserter')
 const MediaAsserter = require('./asserter/MediaAsserter')
 const PauseLogicHook = require('./PauseLogicHook')
 const Capabilities = require('../../Capabilities')
-const util = require('util')
 const _ = require('lodash')
 
 module.exports = class LogicHookUtils {
@@ -35,7 +37,7 @@ module.exports = class LogicHookUtils {
     this.caps[Capabilities.ASSERTERS]
       .map(asserter => {
         if (this.asserters[asserter.ref]) {
-          throw new Error(`${asserter.ref} asserter already exists.`)
+          debug(`${asserter.ref} asserter already exists, overwriting.`)
         }
         this.asserters[asserter.ref] = this._loadClass(asserter, 'asserter')
         debug(`Loaded ${asserter.ref} SUCCESSFULLY - ${util.inspect(asserter)}`)
@@ -50,7 +52,7 @@ module.exports = class LogicHookUtils {
     this.caps[Capabilities.LOGIC_HOOKS]
       .map(logicHook => {
         if (this.logicHooks[logicHook.ref]) {
-          throw new Error(`${logicHook.ref} logic hook already exists.`)
+          debug(`${logicHook.ref} logic hook already exists, overwriting.`)
         }
         this.logicHooks[logicHook.ref] = this._loadClass(logicHook, 'logic-hook')
         debug(`Loaded ${logicHook.ref} SUCCESSFULLY - ${util.inspect(logicHook)}`)
@@ -71,34 +73,55 @@ module.exports = class LogicHookUtils {
       .map(name => this.logicHooks[name])
   }
 
-  _loadClass ({src, ref}, type) {
-    if (type !== 'asserter' || type !== 'logic-hook') {
-      throw Error(`Unknown type ${type}`)
+  _loadClass ({src, ref}, hookType) {
+    if (hookType !== 'asserter' && hookType !== 'logic-hook') {
+      throw Error(`Unknown hookType ${hookType}`)
     }
 
     if (!src) {
-      let packageName = `botium-${type}-${ref}`
+      let packageName = `botium-${hookType}-${ref}`
+      debug(`Trying to load ${ref} ${hookType} from ${packageName}`)
       try {
-        const Class = require(packageName)
-        return new Class(this.buildScriptContext, this.caps)
+        const CheckClass = require(packageName)
+        if (isClass(CheckClass)) {
+          return new CheckClass(this.buildScriptContext, this.caps)
+        } else if (_.isFunction(CheckClass)) {
+          return CheckClass(this.buildScriptContext, this.caps)
+        } else {
+          throw new Error(`${packageName} class or function expected`)
+        }
       } catch (err) {
         throw new Error(`Failed to fetch package ${packageName} - ${util.inspect(err)}`)
       }
     }
+    if (isClass(src)) {
+      try {
+        const CheckClass = src
+        return new CheckClass(this.buildScriptContext, this.caps)
+      } catch (err) {
+        throw new Error(`Failed to load package ${ref} from provided class - ${util.inspect(err)}`)
+      }
+    }
     if (_.isFunction(src)) {
       try {
-        const Class = src()
-        return new Class(this.buildScriptContext, this.caps)
+        return src(this.buildScriptContext, this.caps)
       } catch (err) {
         throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
       }
     }
+    const tryLoadFile = path.resolve(process.cwd(), src)
+    debug(`Trying to load ${ref} ${hookType} from ${tryLoadFile}`)
     try {
-      const Class = require(src)
-      debug(`Loaded ${ref} ${type} successfully`)
-      return new Class(this.buildScriptContext, this.caps)
+      const CheckClass = require(tryLoadFile)
+      if (isClass(CheckClass)) {
+        return new CheckClass(this.buildScriptContext, this.caps)
+      } else if (_.isFunction(CheckClass)) {
+        return CheckClass(this.buildScriptContext, this.caps)
+      } else {
+        throw new Error(`${tryLoadFile} class or function expected`)
+      }
     } catch (err) {
-      throw new Error(`Failed to fetch ${ref} ${type} from ${src} - ${util.inspect(err)} `)
+      throw new Error(`Failed to fetch ${ref} ${hookType} from ${tryLoadFile} - ${util.inspect(err)} `)
     }
   }
 }

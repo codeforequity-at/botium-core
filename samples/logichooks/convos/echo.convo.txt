@@ -1,0 +1,13 @@
+Logic Hooks Sample
+
+#me
+Hello
+
+#bot
+
+#me
+Hello again!
+PAUSE 1000
+
+#bot
+
