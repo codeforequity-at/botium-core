@@ -112,7 +112,6 @@ module.exports = class ScriptingProvider {
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)
-
   }
 
   _buildScriptContext () {
