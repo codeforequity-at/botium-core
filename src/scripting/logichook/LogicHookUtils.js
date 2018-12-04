@@ -109,6 +109,21 @@ module.exports = class LogicHookUtils {
         throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
       }
     }
+    const tryLoadPackage = src
+    debug(`Trying to load ${ref} ${hookType} from ${tryLoadPackage}`)
+    try {
+      const CheckClass = require(tryLoadPackage)
+      if (isClass(CheckClass)) {
+        return new CheckClass(this.buildScriptContext, this.caps)
+      } else if (_.isFunction(CheckClass)) {
+        return CheckClass(this.buildScriptContext, this.caps)
+      } else {
+        throw new Error(`${tryLoadPackage} class or function expected`)
+      }
+    } catch (err) {
+      debug(`Failed to fetch ${ref} ${hookType} from ${tryLoadPackage} - ${util.inspect(err)} `)
+    }
+
     const tryLoadFile = path.resolve(process.cwd(), src)
     debug(`Trying to load ${ref} ${hookType} from ${tryLoadFile}`)
     try {
@@ -121,7 +136,9 @@ module.exports = class LogicHookUtils {
         throw new Error(`${tryLoadFile} class or function expected`)
       }
     } catch (err) {
-      throw new Error(`Failed to fetch ${ref} ${hookType} from ${tryLoadFile} - ${util.inspect(err)} `)
+      debug(`Failed to fetch ${ref} ${hookType} from ${tryLoadFile} - ${util.inspect(err)} `)
     }
+
+    throw new Error(`Failed to fetch ${ref} ${hookType}, no idea how to load ...`)
   }
 }
