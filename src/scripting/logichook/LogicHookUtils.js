@@ -73,7 +73,7 @@ module.exports = class LogicHookUtils {
       .map(name => this.logicHooks[name])
   }
 
-  _loadClass ({src, ref}, hookType) {
+  _loadClass ({src, ref, args}, hookType) {
     if (hookType !== 'asserter' && hookType !== 'logic-hook') {
       throw Error(`Unknown hookType ${hookType}`)
     }
@@ -84,9 +84,9 @@ module.exports = class LogicHookUtils {
       try {
         const CheckClass = require(packageName)
         if (isClass(CheckClass)) {
-          return new CheckClass(this.buildScriptContext, this.caps)
+          return new CheckClass(this.buildScriptContext, this.caps, args)
         } else if (_.isFunction(CheckClass)) {
-          return CheckClass(this.buildScriptContext, this.caps)
+          return CheckClass(this.buildScriptContext, this.caps, args)
         } else {
           throw new Error(`${packageName} class or function expected`)
         }
@@ -97,14 +97,14 @@ module.exports = class LogicHookUtils {
     if (isClass(src)) {
       try {
         const CheckClass = src
-        return new CheckClass(this.buildScriptContext, this.caps)
+        return new CheckClass(this.buildScriptContext, this.caps, args)
       } catch (err) {
         throw new Error(`Failed to load package ${ref} from provided class - ${util.inspect(err)}`)
       }
     }
     if (_.isFunction(src)) {
       try {
-        return src(this.buildScriptContext, this.caps)
+        return src(this.buildScriptContext, this.caps, args)
       } catch (err) {
         throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
       }
@@ -114,9 +114,9 @@ module.exports = class LogicHookUtils {
     try {
       const CheckClass = require(tryLoadPackage)
       if (isClass(CheckClass)) {
-        return new CheckClass(this.buildScriptContext, this.caps)
+        return new CheckClass(this.buildScriptContext, this.caps, args)
       } else if (_.isFunction(CheckClass)) {
-        return CheckClass(this.buildScriptContext, this.caps)
+        return CheckClass(this.buildScriptContext, this.caps, args)
       } else {
         throw new Error(`${tryLoadPackage} class or function expected`)
       }
@@ -129,9 +129,9 @@ module.exports = class LogicHookUtils {
     try {
       const CheckClass = require(tryLoadFile)
       if (isClass(CheckClass)) {
-        return new CheckClass(this.buildScriptContext, this.caps)
+        return new CheckClass(this.buildScriptContext, this.caps, args)
       } else if (_.isFunction(CheckClass)) {
-        return CheckClass(this.buildScriptContext, this.caps)
+        return CheckClass(this.buildScriptContext, this.caps, args)
       } else {
         throw new Error(`${tryLoadFile} class or function expected`)
       }
