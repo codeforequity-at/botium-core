@@ -15,15 +15,10 @@ module.exports = class CompilerXlsx extends CompilerBase {
     super(context, caps)
 
     this.colnames = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' ]
-    this.eolSplit = caps[Capabilities.SCRIPTING_XLSX_EOL_SPLIT]
-    this.eol = caps[Capabilities.SCRIPTING_XLSX_EOL_WRITE]
+  }
 
-    if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
-      this.sheetnamesConvos = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES].split(/\s*[;,\s|]\s*/)
-    }
-    if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
-      this.sheetnamesUtterances = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES].split(/\s*[;,\s|]\s*/)
-    }
+  _splitSheetnames (sheetnames) {
+    if (sheetnames) return sheetnames.split(/\s*[;,\s|]\s*/)
   }
 
   Validate () {
@@ -42,16 +37,19 @@ module.exports = class CompilerXlsx extends CompilerBase {
     const workbook = XLSX.read(scriptBuffer, { type: 'buffer' })
     if (!workbook) throw new Error(`Workbook not readable`)
 
+    const eolSplit = this.caps[Capabilities.SCRIPTING_XLSX_EOL_SPLIT]
+    const eol = this.caps[Capabilities.SCRIPTING_XLSX_EOL_WRITE]
+
     let sheetnames = []
     if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-      if (this.sheetnamesConvos) {
-        sheetnames = this.sheetnamesConvos
+      if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
+        sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES])
       } else {
         sheetnames = workbook.SheetNames || []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
-      if (this.sheetnamesUtterances) {
-        sheetnames = this.sheetnamesUtterances
+      if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
+        sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES])
       } else {
         sheetnames = workbook.SheetNames || []
       }
@@ -76,7 +74,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (!content) return {messageText: ''}
 
           if (!_.isString(content)) content = '' + content
-          const lines = content.split(this.eolSplit).map(l => l.trim()).filter(l => l)
+          const lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
 
           const convoStep = { asserters: [], logicHooks: [], not: false }
 
@@ -102,7 +100,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
             if (isJSON(content)) {
               convoStep.sourceData = JSON.parse(content)
             } else {
-              convoStep.messageText = textLines.join(this.eol)
+              convoStep.messageText = textLines.join(eol)
             }
           } else {
             convoStep.messageText = ''
@@ -186,6 +184,12 @@ module.exports = class CompilerXlsx extends CompilerBase {
   }
 
   Decompile (convos) {
+    const eol = this.caps[Capabilities.SCRIPTING_XLSX_EOL_WRITE]
+
+    let sheetname = 'Botium'
+    if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
+      sheetname = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES])[0]
+    }
     const data = []
     if (convos) {
       convos.forEach((convo) => {
@@ -197,27 +201,27 @@ module.exports = class CompilerXlsx extends CompilerBase {
             if (set.not) {
               cellContent += '!'
             }
-            cellContent += set.messageText + this.eol
+            cellContent += set.messageText + eol
           } else if (set.sourceData) {
             if (set.not) {
               cellContent += '!'
             }
-            cellContent += JSON.stringify(set.sourceData, null, 2) + this.eol
+            cellContent += JSON.stringify(set.sourceData, null, 2) + eol
           }
 
-          if (set.buttons && set.buttons.length > 0) cellContent += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
-          if (set.media && set.media.length > 0) cellContent += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
+          if (set.buttons && set.buttons.length > 0) cellContent += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + eol
+          if (set.media && set.media.length > 0) cellContent += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + eol
           if (set.cards && set.cards.length > 0) {
             set.cards.forEach(c => {
-              if (c.buttons && c.buttons.length > 0) cellContent += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
-              if (c.image) cellContent += 'MEDIA ' + c.image.mediaUri + this.eol
+              if (c.buttons && c.buttons.length > 0) cellContent += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + eol
+              if (c.image) cellContent += 'MEDIA ' + c.image.mediaUri + eol
             })
           }
           set.asserters && set.asserters.map((asserter) => {
-            cellContent += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + this.eol
+            cellContent += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + eol
           })
           set.logicHooks && set.logicHooks.map((logicHook) => {
-            cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
+            cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
           })
 
           data.push({ [set.sender]: cellContent })
@@ -227,7 +231,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
     }
     const wb = XLSX.utils.book_new()
     const ws = XLSX.utils.json_to_sheet(data, {header: ['me', 'bot']})
-    XLSX.utils.book_append_sheet(wb, ws, this.sheetnamesConvos ? this.sheetnamesConvos[0] : 'Botium')
+    XLSX.utils.book_append_sheet(wb, ws, sheetname)
     const xlsxOutput = XLSX.write(wb, { type: 'buffer' })
     return xlsxOutput
   }
