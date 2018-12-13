@@ -15,6 +15,15 @@ module.exports = class CompilerXlsx extends CompilerBase {
     super(context, caps)
 
     this.colnames = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' ]
+    this.eolSplit = caps[Capabilities.SCRIPTING_XLSX_EOL_SPLIT]
+    this.eol = caps[Capabilities.SCRIPTING_XLSX_EOL_WRITE]
+
+    if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
+      this.sheetnamesConvos = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES].split(/\s*[;,\s|]\s*/)
+    }
+    if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
+      this.sheetnamesUtterances = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES].split(/\s*[;,\s|]\s*/)
+    }
   }
 
   Validate () {
@@ -35,14 +44,14 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
     let sheetnames = []
     if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-      if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
-        sheetnames = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES].split(/\s*[;,\s|]\s*/) || []
+      if (this.sheetnamesConvos) {
+        sheetnames = this.sheetnamesConvos
       } else {
         sheetnames = workbook.SheetNames || []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
-      if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
-        sheetnames = this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES].split(/\s*[;,\s|]\s*/) || []
+      if (this.sheetnamesUtterances) {
+        sheetnames = this.sheetnamesUtterances
       } else {
         sheetnames = workbook.SheetNames || []
       }
@@ -67,17 +76,38 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (!content) return {messageText: ''}
 
           if (!_.isString(content)) content = '' + content
+          const lines = content.split(this.eolSplit).map(l => l.trim()).filter(l => l)
 
-          let not = false
-          if (content.startsWith('!')) {
-            not = true
-            content = content.substr(1)
-          }
-          if (isJSON(content)) {
-            return { not, sourceData: JSON.parse(content) }
+          const convoStep = { asserters: [], logicHooks: [], not: false }
+
+          const textLines = []
+          lines.forEach(l => {
+            const name = l.split(' ')[0]
+            if (this.context.IsAsserterValid(name)) {
+              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+              convoStep.asserters.push({ name, args })
+            } else if (this.context.IsLogicHookValid(name)) {
+              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+              convoStep.logicHooks.push({ name, args })
+            } else {
+              textLines.push(l)
+            }
+          })
+          if (textLines.length > 0) {
+            if (textLines[0].startsWith('!')) {
+              convoStep.not = true
+              textLines[0] = textLines[0].substr(1)
+            }
+            let content = textLines.join(' ')
+            if (isJSON(content)) {
+              convoStep.sourceData = JSON.parse(content)
+            } else {
+              convoStep.messageText = textLines.join(this.eol)
+            }
           } else {
-            return { not, messageText: content }
+            convoStep.messageText = ''
           }
+          return convoStep
         }
 
         let currentConvo = []
@@ -161,19 +191,43 @@ module.exports = class CompilerXlsx extends CompilerBase {
       convos.forEach((convo) => {
         if (!convo.conversation) return
 
-        convo.conversation.forEach((convoStep) => {
-          if (convoStep.sender === 'me') {
-            data.push({ me: convoStep.messageText })
-          } else if (convoStep.sender === 'bot') {
-            data.push({ bot: convoStep.messageText })
+        convo.conversation.forEach((set) => {
+          let cellContent = ''
+          if (set.messageText) {
+            if (set.not) {
+              cellContent += '!'
+            }
+            cellContent += set.messageText + this.eol
+          } else if (set.sourceData) {
+            if (set.not) {
+              cellContent += '!'
+            }
+            cellContent += JSON.stringify(set.sourceData, null, 2) + this.eol
           }
+
+          if (set.buttons && set.buttons.length > 0) cellContent += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
+          if (set.media && set.media.length > 0) cellContent += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
+          if (set.cards && set.cards.length > 0) {
+            set.cards.forEach(c => {
+              if (c.buttons && c.buttons.length > 0) cellContent += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
+              if (c.image) cellContent += 'MEDIA ' + c.image.mediaUri + this.eol
+            })
+          }
+          set.asserters && set.asserters.map((asserter) => {
+            cellContent += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + this.eol
+          })
+          set.logicHooks && set.logicHooks.map((logicHook) => {
+            cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
+          })
+
+          data.push({ [set.sender]: cellContent })
         })
         data.push({})
       })
     }
     const wb = XLSX.utils.book_new()
     const ws = XLSX.utils.json_to_sheet(data, {header: ['me', 'bot']})
-    XLSX.utils.book_append_sheet(wb, ws, 'Botium')
+    XLSX.utils.book_append_sheet(wb, ws, this.sheetnamesConvos ? this.sheetnamesConvos[0] : 'Botium')
     const xlsxOutput = XLSX.write(wb, { type: 'buffer' })
     return xlsxOutput
   }
