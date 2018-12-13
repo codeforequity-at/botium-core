@@ -6,7 +6,7 @@ const Capabilities = require('../../index').Capabilities
 console.log('Please make sure that botium-connector-watson module is installed before running this sample')
 
 const driver = new BotDriver()
-  .setCapability(Capabilities.SCRIPTING_XLSX_SHEETNAMES, '2-Schritt-Dialoge |    3-Schritt-Dialoge')
+  .setCapability(Capabilities.SCRIPTING_XLSX_SHEETNAMES, 'Convos')
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTROW, 2)
   .setCapability(Capabilities.SCRIPTING_XLSX_STARTCOL, 1)
 
@@ -17,3 +17,8 @@ console.log(`${convos}`)
 
 const xlsx = driver.BuildCompiler().Decompile(convos, 'SCRIPTING_FORMAT_XSLX')
 fs.writeFileSync('tmp.xlsx', xlsx)
+
+const script1 = fs.readFileSync(path.join(__dirname, 'tmp.xlsx'))
+
+const convos1 = driver.BuildCompiler().Compile(script1, 'SCRIPTING_FORMAT_XSLX')
+console.log(`${convos1}`)

@@ -27,6 +27,8 @@ module.exports = {
     [Capabilities.WEBSPEECH_LANGUAGE]: 'en-US',
     [Capabilities.WEBSPEECH_CLOSEBROWSER]: true,
     [Capabilities.SCRIPTING_TXT_EOL]: '\n',
+    [Capabilities.SCRIPTING_XLSX_EOL_SPLIT]: '\r',
+    [Capabilities.SCRIPTING_XLSX_EOL_WRITE]: '\r\n',
     [Capabilities.SCRIPTING_XLSX_STARTROW]: 1,
     [Capabilities.SCRIPTING_XLSX_STARTCOL]: 'A',
     [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true,

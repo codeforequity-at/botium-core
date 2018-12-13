@@ -32,6 +32,7 @@ Sure! Restaurant 1 on the list gets great reviews.
 
 #bot
 What day/time did you want to go to the restaurant?
+PAUSE 1000
 
 #me
 10th of january
