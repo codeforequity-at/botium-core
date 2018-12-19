@@ -25,12 +25,12 @@ module.exports = class LogicHookUtils {
   _setDefaultAsserters () {
     this.asserters['BUTTONS'] = new ButtonsAsserter(this.buildScriptContext, this.caps)
     this.asserters['MEDIA'] = new MediaAsserter(this.buildScriptContext, this.caps)
-    debug(`Loaded Default asserter - ${util.inspect(this.asserters)}`)
+    debug(`Loaded Default asserter - ${util.inspect(Object.keys(this.asserters))}`)
   }
 
   _setDefaultLogicHooks () {
     this.logicHooks['PAUSE'] = new PauseLogicHook(this.buildScriptContext, this.caps)
-    debug(`Loaded Default logic hook - ${util.inspect(this.logicHooks)}`)
+    debug(`Loaded Default logic hook - ${util.inspect(Object.keys(this.logicHooks))}`)
   }
 
   _fetchAsserters () {
