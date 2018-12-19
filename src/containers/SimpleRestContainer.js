@@ -140,7 +140,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
     })
   }
 
-  _doRequest (msg, evalResponseBody) {
+  _doRequest (msg, isFromUser) {
     return new Promise((resolve, reject) => {
       const requestOptions = this._buildRequest(msg)
       debug(`constructed requestOptions ${JSON.stringify(requestOptions, null, 2)}`)
@@ -149,7 +149,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
         if (err) {
           reject(new Error(`rest request failed: ${util.inspect(err)}`))
         } else {
-          this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, msg)
+          isFromUser && this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, msg)
 
           if (response.statusCode >= 400) {
             debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
@@ -183,7 +183,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
               this.view.context = body
             }
 
-            if (evalResponseBody) {
+            if (isFromUser) {
               const media = []
               const buttons = []
 
