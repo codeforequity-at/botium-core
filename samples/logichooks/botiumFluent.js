@@ -1,6 +1,5 @@
 const fs = require('fs')
 const path = require('path')
-const util = require('util')
 const BotDriver = require('../../index').BotDriver
 
 console.log('Please make sure that botium-connector-echo module is installed before running this sample')
@@ -8,7 +7,7 @@ console.log('Please make sure that botium-connector-echo module is installed bef
 const driver = new BotDriver()
   .setCapability('ASSERTERS', [
     {
-      ref: "INLINEASSERTER",
+      ref: 'INLINEASSERTER',
       src: () => ({
         assertConvoBegin: ({ convo, ...args }) => {
           console.log(`InlineAsserter assertConvoBegin: ${convo.header.name}`)
@@ -19,17 +18,11 @@ const driver = new BotDriver()
         assertConvoEnd: ({ convo, ...args }) => {
           console.log(`InlineAsserter assertConvoEnd: ${convo.header.name}`)
         }
-      }),
-      global: true
-    },
-    {
-      ref: "MYASSERTER",
-      src: "./custom/MyAsserter.js",
-      global: true
+      })
     }
   ])
   .setCapability('LOGIC_HOOKS', [{
-    ref: "INLINEHOOK",
+    ref: 'INLINEHOOK',
     src: class InlineHook {
       onMeStart ({ convoStep, ...args }) {
         console.log(`InlineHook onMeStart before sending text: ${convoStep.messageText}`)
@@ -45,7 +38,9 @@ const driver = new BotDriver()
       }
     },
     global: true
-  }])  
+  }])
+
+console.log(driver.caps)
 
 const scriptBuffer = fs.readFileSync(path.join(__dirname, 'convos/echo.convo.txt'))
 

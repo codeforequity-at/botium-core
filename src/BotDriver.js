@@ -6,6 +6,8 @@ const mkdirp = require('mkdirp')
 const slug = require('slug')
 const moment = require('moment')
 const randomize = require('randomatic')
+const _ = require('lodash')
+const boolean = require('boolean')
 const EventEmitter = require('events')
 const debug = require('debug')('botium-BotDriver')
 
@@ -28,9 +30,9 @@ module.exports = class BotDriver {
       try {
         let configJson = JSON.parse(fs.readFileSync(filename))
         if (configJson.botium) {
-          this.caps = Object.assign(this.caps, configJson.botium.Capabilities)
-          this.sources = Object.assign(this.sources, configJson.botium.Sources)
-          this.envs = Object.assign(this.envs, configJson.botium.Envs)
+          if (configJson.botium.Capabilities) this._mergeCaps(this.caps, configJson.botium.Capabilities)
+          if (configJson.botium.Sources) this._mergeCaps(this.sources, configJson.botium.Sources)
+          if (configJson.botium.Envs) this.envs = Object.assign(this.envs, configJson.botium.Envs)
           debug(`Loaded Botium configuration file ${filename}`)
         } else {
           debug(`Botium configuration file ${filename} contains no botium configuration. Ignored.`)
@@ -58,22 +60,22 @@ module.exports = class BotDriver {
     Object.keys(process.env).filter(e => e.startsWith('BOTIUM_')).forEach((element) => {
       let elementToTest = element.replace(/^BOTIUM_/, '')
       if (sourcesToTest.includes(elementToTest)) {
-        this.sources[elementToTest] = process.env[element]
-        debug('Changed source : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')
+        this._mergeCaps(this.sources, { [elementToTest]: process.env[element] })
+        debug('Changed source ' + elementToTest + ' to "' + this.sources[elementToTest] + '" using environment variables.')
       } else {
-        this.caps[elementToTest] = process.env[element]
-        debug('Changed capability : ' + elementToTest + ' to : ' + process.env[element] + ' using environment variables.')
+        this._mergeCaps(this.caps, { [elementToTest]: process.env[element] })
+        debug('Changed capability ' + elementToTest + ' to "' + this.caps[elementToTest] + '" using environment variables.')
       }
       if (element.startsWith('BOTIUM_ENV_')) {
         let envName = element.replace(/^BOTIUM_ENV_/, '')
         this.envs[envName] = process.env[element]
-        debug('Changed env : ' + envName + ' to : ' + process.env[element] + ' using environment variables.')
+        debug('Changed env ' + envName + ' to "' + process.env[element] + '" using environment variables.')
       }
     })
 
-    this.caps = Object.assign(this.caps, caps)
-    this.sources = Object.assign(this.sources, sources)
-    this.envs = Object.assign(this.envs, envs)
+    if (caps) this._mergeCaps(this.caps, caps)
+    if (sources) this._mergeCaps(this.sources, sources)
+    if (envs) this.envs = Object.assign(this.envs, envs)
   }
 
   on (event, listener) {
@@ -82,22 +84,22 @@ module.exports = class BotDriver {
   }
 
   setCapabilities (caps) {
-    this.caps = Object.assign(this.caps, caps)
+    this._mergeCaps(this.caps, caps)
     return this
   }
 
   setCapability (cap, value) {
-    this.caps[cap] = value
+    this._mergeCaps(this.caps, { [cap]: value })
     return this
   }
 
   setSources (sources) {
-    this.sources = Object.assign(this.sources, sources)
+    this._mergeCaps(this.sources, sources)
     return this
   }
 
   setSource (source, value) {
-    this.sources[source] = value
+    this._mergeCaps(this.sources, { [source]: value })
     return this
   }
 
@@ -185,6 +187,77 @@ module.exports = class BotDriver {
   }
 
   /* Private Functions */
+
+  _findKeyProperty (obj) {
+    const lookup = ['id', 'ID', 'Id', 'ref', 'REF', 'Ref', 'name', 'NAME', 'Name']
+    for (let checkPropIdx in lookup) {
+      if (obj.hasOwnProperty(lookup[checkPropIdx])) return lookup[checkPropIdx]
+    }
+  }
+
+  _mergeCaps (caps, newCaps) {
+    Object.keys(newCaps).forEach(capKey => {
+      if (!caps[capKey]) {
+        if (_.isString(newCaps[capKey])) {
+          try {
+            caps[capKey] = JSON.parse(newCaps[capKey])
+          } catch (err) {
+            caps[capKey] = newCaps[capKey]
+          }
+        }
+        return
+      }
+
+      if (_.isArray(caps[capKey])) {
+        let newCapArray = newCaps[capKey]
+        if (!_.isArray(newCapArray)) {
+          try {
+            newCapArray = JSON.parse(newCapArray)
+          } catch (err) {
+            debug(`Expected JSON Array in capability ${capKey}, JSON parse failed (${err}). Capability will be overwritten with maybe unexpected side effects.`)
+          }
+        }
+        if (_.isArray(newCapArray)) {
+          newCapArray.forEach(capElement => {
+            const mergeKey = this._findKeyProperty(capElement)
+            if (mergeKey) {
+              const oldElement = caps[capKey].find(oldElement => oldElement[mergeKey] && oldElement[mergeKey] === capElement[mergeKey])
+              if (oldElement) {
+                _.merge(oldElement, capElement)
+                return
+              }
+            }
+            caps[capKey].push(capElement)
+          })
+          return
+        }
+      }
+
+      if (_.isObject(caps[capKey])) {
+        let newCapObject = newCaps[capKey]
+        if (!_.isObject(newCapObject)) {
+          try {
+            newCapObject = JSON.parse(newCapObject)
+          } catch (err) {
+            debug(`Expected JSON Object in capability ${capKey}, JSON parse failed (${err}). Capability will be overwritten with maybe unexpected side effects.`)
+          }
+        }
+        if (_.isObject(newCapObject)) {
+          _.merge(caps[capKey], newCapObject)
+          return
+        }
+      }
+
+      if (_.isBoolean(caps[capKey])) {
+        if (!_.isBoolean(newCaps[capKey])) {
+          caps[capKey] = boolean(newCaps[capKey])
+          return
+        }
+      }
+
+      caps[capKey] = newCaps[capKey]
+    })
+  }
 
   _validate () {
     return new Promise((resolve, reject) => {
