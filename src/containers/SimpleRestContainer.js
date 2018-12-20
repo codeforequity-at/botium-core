@@ -21,7 +21,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
       this._AssertCapabilityExists(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
 
       if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
-        JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
+        _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
       }
     })
   }
@@ -62,7 +62,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
           }
           if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
             try {
-              this.view.context = JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
+              this.view.context = _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) ? this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT] : JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
             } catch (err) {
               contextInitComplete(`parsing SIMPLEREST_INIT_CONTEXT failed, no JSON detected (${util.inspect(err)})`)
             }
