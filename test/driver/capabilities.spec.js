@@ -59,7 +59,7 @@ describe('botdriver.mergecapabilities', function () {
     assert.equal(driver.caps['MYCAP'].KEY, 'VALUE')
     assert.equal(driver.caps['MYCAP'].KEY1, 'VALUE1')
   })
-  it('should parse JSON caps', function () {
+  it('should not parse JSON caps', function () {
     const myCaps = {
       'MYJSONCAP': '{"KEY":"VALUE1"}'
     }

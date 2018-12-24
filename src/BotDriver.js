@@ -204,6 +204,8 @@ module.exports = class BotDriver {
           } catch (err) {
             caps[capKey] = newCaps[capKey]
           }
+        } else {
+          caps[capKey] = newCaps[capKey]
         }
         return
       }
