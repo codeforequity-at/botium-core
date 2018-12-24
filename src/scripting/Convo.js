@@ -63,8 +63,9 @@ class ConvoStep {
 }
 
 class Transcript {
-  constructor ({ steps, convoBegin, convoEnd, err }) {
+  constructor ({ steps, scriptingMemory, convoBegin, convoEnd, err }) {
     this.steps = steps
+    this.scriptingMemory = scriptingMemory
     this.convoBegin = convoBegin
     this.convoEnd = convoEnd
     this.err = err
@@ -296,6 +297,7 @@ class Convo {
       (err, transcriptSteps) => {
         transcript.err = err
         transcript.steps = transcriptSteps
+        transcript.scriptingMemory = scriptingMemory
         transcript.convoEnd = new Date()
         cb(transcript)
       })
