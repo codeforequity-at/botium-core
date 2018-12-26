@@ -1,6 +1,6 @@
 const async = require('async')
 const randomize = require('randomatic')
-const slug = require('slug')
+const slugify = require('slugify')
 const _ = require('lodash')
 
 const ProcessUtils = require('../helpers/ProcessUtils')
@@ -11,9 +11,9 @@ module.exports = class DockerCmd {
     this.dockercomposepath = dockercomposepath
     this.composefiles = composefiles
     if (uniquecontainernames) {
-      this.containername = slug(`${this.projectname} ${randomize('Aa0', 5)}`)
+      this.containername = slugify(`${this.projectname} ${randomize('Aa0', 5)}`)
     } else {
-      this.containername = slug(`${this.projectname}`)
+      this.containername = slugify(`${this.projectname}`)
     }
   }
 

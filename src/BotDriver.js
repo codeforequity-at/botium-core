@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const async = require('async')
 const mkdirp = require('mkdirp')
-const slug = require('slug')
+const slugify = require('slugify')
 const moment = require('moment')
 const randomize = require('randomatic')
 const _ = require('lodash')
@@ -272,7 +272,7 @@ module.exports = class BotDriver {
 
       async.series([
         (tempdirCreated) => {
-          this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slug(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
+          this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slugify(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
 
           mkdirp(this.tempDirectory, (err) => {
             if (err) {
