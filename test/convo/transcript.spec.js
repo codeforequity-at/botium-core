@@ -49,7 +49,6 @@ describe('transcript.transcriptsteps', function () {
     assert.equal(compiler.convos.length, 1)
 
     const transcript = await compiler.convos[0].Run(container)
-    console.log(JSON.stringify(transcript, null, 2))
     assert.isDefined(transcript)
     assert.isDefined(transcript.convoBegin)
     assert.isDefined(transcript.convoEnd)
