@@ -1,7 +1,5 @@
 2 steps
 
-#begin
-
 #me
 Hello
 
@@ -9,9 +7,9 @@ Hello
 Hello
 
 #me
+PAUSE 1000
 Hello again!
 
 #bot
 Hello again!
 
-#end
