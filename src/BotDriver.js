@@ -197,7 +197,7 @@ module.exports = class BotDriver {
 
   _mergeCaps (caps, newCaps) {
     Object.keys(newCaps).forEach(capKey => {
-      if (!caps[capKey]) {
+      if (!caps.hasOwnProperty(capKey)) {
         if (_.isString(newCaps[capKey])) {
           try {
             caps[capKey] = JSON.parse(newCaps[capKey])
