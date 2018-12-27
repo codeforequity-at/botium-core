@@ -15,6 +15,7 @@ const echoConnector = ({ queueBotSays, caps: { WAITECHO } }) => {
 describe('logichooks.waitforbot', function () {
   it('should waitforbot', async function () {
     const myCaps = {
+      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot',
       [Capabilities.CONTAINERMODE]: echoConnector,
       [Capabilities.WAITFORBOTTIMEOUT]: 0,
       WAITECHO: 500
@@ -26,10 +27,12 @@ describe('logichooks.waitforbot', function () {
     compiler.ReadScript(path.resolve(__dirname, 'convos'), 'WAITFORBOT_1000.convo.txt')
     assert.equal(compiler.convos.length, 1)
 
-    return compiler.convos[0].Run(container)
+    await compiler.convos[0].Run(container)
+    await container.Clean()
   }).timeout(3000)
   it('should fail on waitforbot timeout', async function () {
     const myCaps = {
+      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot',
       [Capabilities.CONTAINERMODE]: echoConnector,
       [Capabilities.WAITFORBOTTIMEOUT]: 0,
       WAITECHO: 2000
@@ -46,9 +49,11 @@ describe('logichooks.waitforbot', function () {
       assert.fail(`should have failed with timeout`)
     } catch (err) {
     }
+    await container.Clean()
   }).timeout(3000)
   it('should waitforbot infinite timeout', async function () {
     const myCaps = {
+      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot',
       [Capabilities.CONTAINERMODE]: echoConnector,
       [Capabilities.WAITFORBOTTIMEOUT]: 0,
       WAITECHO: 1000
@@ -60,6 +65,7 @@ describe('logichooks.waitforbot', function () {
     compiler.ReadScript(path.resolve(__dirname, 'convos'), 'WAITFORBOT_INFINITE.convo.txt')
     assert.equal(compiler.convos.length, 1)
 
-    return compiler.convos[0].Run(container)
+    await compiler.convos[0].Run(container)
+    await container.Clean()
   }).timeout(3000)
 })

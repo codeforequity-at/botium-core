@@ -12,9 +12,10 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('scriptingmemory.memory', function () {
+describe('convo.scriptingmemory', function () {
   it('should fill scripting memory', async function () {
     const myCaps = {
+      [Capabilities.PROJECTNAME]: 'convo.scriptingmemory',
       [Capabilities.CONTAINERMODE]: echoConnector,
       [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
     }
@@ -29,5 +30,7 @@ describe('scriptingmemory.memory', function () {
     assert.isObject(transcript.scriptingMemory)
     assert.isDefined(transcript.scriptingMemory['$myvar'])
     assert.equal(transcript.scriptingMemory['$myvar'], 'VARVALUE')
+
+    await container.Clean()
   })
 })
