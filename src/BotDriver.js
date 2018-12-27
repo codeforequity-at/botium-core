@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const async = require('async')
 const mkdirp = require('mkdirp')
-const slug = require('slug')
+const slugify = require('slugify')
 const moment = require('moment')
 const randomize = require('randomatic')
 const _ = require('lodash')
@@ -197,13 +197,15 @@ module.exports = class BotDriver {
 
   _mergeCaps (caps, newCaps) {
     Object.keys(newCaps).forEach(capKey => {
-      if (!caps[capKey]) {
+      if (!caps.hasOwnProperty(capKey)) {
         if (_.isString(newCaps[capKey])) {
           try {
             caps[capKey] = JSON.parse(newCaps[capKey])
           } catch (err) {
             caps[capKey] = newCaps[capKey]
           }
+        } else {
+          caps[capKey] = newCaps[capKey]
         }
         return
       }
@@ -270,7 +272,7 @@ module.exports = class BotDriver {
 
       async.series([
         (tempdirCreated) => {
-          this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slug(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
+          this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slugify(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
 
           mkdirp(this.tempDirectory, (err) => {
             if (err) {

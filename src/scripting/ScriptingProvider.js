@@ -11,6 +11,14 @@ const Capabilities = require('../Capabilities')
 const {Convo} = require('./Convo')
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx)'
 
+const p = (fn) => new Promise((resolve, reject) => {
+  try {
+    resolve(fn())
+  } catch (err) {
+    reject(err)
+  }
+})
+
 module.exports = class ScriptingProvider {
   constructor (caps = {}) {
     this.caps = caps
@@ -39,30 +47,30 @@ module.exports = class ScriptingProvider {
       assertConvoBegin: ({ convo, convoStep, ...rest }) => {
         const convoAsserter = convo.beginAsserter
           .filter(a => this.asserters[a.name].assertConvoBegin)
-          .map(a => this.asserters[a.name].assertConvoBegin({ convo, convoStep, args: a.args, ...rest }))
+          .map(a => p(() => this.asserters[a.name].assertConvoBegin({ convo, convoStep, args: a.args, ...rest })))
         const globalAsserter = Object.values(this.globalAsserter)
           .filter(a => a.assertConvoBegin)
-          .map(a => a.assertConvoBegin({ convo, convoStep, args: [], ...rest }))
+          .map(a => p(() => a.assertConvoBegin({ convo, convoStep, args: [], ...rest })))
         const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
       assertConvoStep: ({ convo, convoStep, ...rest }) => {
         const convoAsserter = (convoStep.asserters || [])
           .filter(a => this.asserters[a.name].assertConvoStep)
-          .map(a => this.asserters[a.name].assertConvoStep({ convo, convoStep, args: a.args, ...rest }))
+          .map(a => p(() => this.asserters[a.name].assertConvoStep({ convo, convoStep, args: a.args, ...rest })))
         const globalAsserter = Object.values(this.globalAsserter)
           .filter(a => a.assertConvoStep)
-          .map(a => a.assertConvoStep({ convo, convoStep, args: [], ...rest }))
+          .map(a => p(() => a.assertConvoStep({ convo, convoStep, args: [], ...rest })))
         const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
       assertConvoEnd: ({ convo, convoStep, ...rest }) => {
         const convoAsserter = convo.endAsserter
           .filter(a => this.asserters[a.name].assertConvoEnd)
-          .map(a => this.asserters[a.name].assertConvoEnd({convo, convoStep, args: a.args, ...rest}))
+          .map(a => p(() => this.asserters[a.name].assertConvoEnd({convo, convoStep, args: a.args, ...rest})))
         const globalAsserter = Object.values(this.globalAsserter)
           .filter(a => a.assertConvoEnd)
-          .map(a => a.assertConvoEnd({ convo, convoStep, args: [], ...rest }))
+          .map(a => p(() => a.assertConvoEnd({ convo, convoStep, args: [], ...rest })))
         const allPromises = [...convoAsserter, ...globalAsserter]
         return Promise.all(allPromises)
       },
@@ -95,9 +103,7 @@ module.exports = class ScriptingProvider {
         }
         throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`)
       },
-      fail: (msg, meMsg) => {
-        throw new Error(msg)
-      }
+      fail: null
     }
   }
 
@@ -108,11 +114,11 @@ module.exports = class ScriptingProvider {
 
     const convoStepPromises = (convoStep.logicHooks || [])
       .filter(l => this.logicHooks[l.name][hookType])
-      .map(l => this.logicHooks[l.name][hookType]({ convoStep, args: l.args, ...eventArgs }))
+      .map(l => p(() => this.logicHooks[l.name][hookType]({ convoStep, args: l.args, ...eventArgs })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
-      .map(l => l[hookType]({ convoStep, args: [], ...eventArgs }))
+      .map(l => p(() => l[hookType]({ convoStep, args: [], ...eventArgs })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)
@@ -135,7 +141,7 @@ module.exports = class ScriptingProvider {
         onMeEnd: this.scriptingEvents.onMeEnd.bind(this),
         onBotStart: this.scriptingEvents.onBotStart.bind(this),
         onBotEnd: this.scriptingEvents.onBotEnd.bind(this),
-        fail: this.scriptingEvents.fail.bind(this)
+        fail: this.scriptingEvents.fail && this.scriptingEvents.fail.bind(this)
       }
     }
   }

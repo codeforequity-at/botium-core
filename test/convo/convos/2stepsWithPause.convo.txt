@@ -1,0 +1,15 @@
+2 steps
+
+#me
+Hello
+
+#bot
+Hello
+
+#me
+PAUSE 1000
+Hello again!
+
+#bot
+Hello again!
+

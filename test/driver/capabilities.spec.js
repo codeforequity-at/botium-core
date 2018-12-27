@@ -3,20 +3,21 @@ const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 
-describe('botdriver.mergecapabilities', function () {
+describe('driver.capabilities', function () {
   it('should merge boolean caps', function () {
     const myCaps = {
-      [Capabilities.CLEANUPTEMPDIR]: 'YES'
+      [Capabilities.DOCKERMACHINE]: 'YES'
     }
     const driver = new BotDriver(myCaps)
-    assert.isBoolean(driver.caps[Capabilities.CLEANUPTEMPDIR])
-    assert.isTrue(driver.caps[Capabilities.CLEANUPTEMPDIR])
+    assert.isBoolean(driver.caps[Capabilities.DOCKERMACHINE])
+    assert.isTrue(driver.caps[Capabilities.DOCKERMACHINE])
   })
   it('should merge boolean envs', function () {
-    process.env.BOTIUM_CLEANUPTEMPDIR = 'NO'
+    process.env.BOTIUM_DOCKERMACHINE = 'NO'
     const driver = new BotDriver()
-    assert.isBoolean(driver.caps[Capabilities.CLEANUPTEMPDIR])
-    assert.isFalse(driver.caps[Capabilities.CLEANUPTEMPDIR])
+    delete process.env.BOTIUM_DOCKERMACHINE
+    assert.isBoolean(driver.caps[Capabilities.DOCKERMACHINE])
+    assert.isFalse(driver.caps[Capabilities.DOCKERMACHINE])
   })
   it('should parse array caps', function () {
     DefaultCapabilities['MYCAP'] = []
@@ -59,7 +60,7 @@ describe('botdriver.mergecapabilities', function () {
     assert.equal(driver.caps['MYCAP'].KEY, 'VALUE')
     assert.equal(driver.caps['MYCAP'].KEY1, 'VALUE1')
   })
-  it('should parse JSON caps', function () {
+  it('should not parse JSON caps', function () {
     const myCaps = {
       'MYJSONCAP': '{"KEY":"VALUE1"}'
     }

@@ -5,6 +5,7 @@ const debug = require('debug')('botium-Convo')
 
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
+const Events = require('../Events')
 
 class ConvoHeader {
   constructor (fromJson = {}) {
@@ -62,6 +63,37 @@ class ConvoStep {
   }
 }
 
+class Transcript {
+  constructor ({ steps, scriptingMemory, convoBegin, convoEnd, err }) {
+    this.steps = steps
+    this.scriptingMemory = scriptingMemory
+    this.convoBegin = convoBegin
+    this.convoEnd = convoEnd
+    this.err = err
+  }
+}
+
+class TranscriptStep {
+  constructor ({ expected, actual, stepBegin, stepEnd, botBegin, botEnd, err }) {
+    this.expected = expected
+    this.actual = actual
+    this.stepBegin = stepBegin
+    this.stepEnd = stepEnd
+    this.botBegin = botBegin
+    this.botEnd = botEnd
+    this.err = err
+  }
+}
+
+class TranscriptError extends Error {
+  constructor (message, transcript) {
+    super(message)
+    this.name = this.constructor.name
+    this.transcript = transcript
+    Error.captureStackTrace(this, this.constructor)
+  }
+}
+
 class Convo {
   constructor ({scriptingEvents}, fromJson = {}) {
     this.scriptingEvents = scriptingEvents
@@ -102,39 +134,69 @@ class Convo {
       async.waterfall([
         (cb) => {
           this.scriptingEvents.assertConvoBegin({convo: this, container})
+            .then(() => cb())
             .catch((err) => cb(new Error(`${this.header.name}: error begin asserter ${util.inspect(err)}`)))
-          cb()
         },
         (cb) => {
-          this.runConversation(container, scriptingMemory, cb)
+          this.runConversation(container, scriptingMemory, (transcript) => {
+            if (transcript.err) {
+              cb(transcript.err, transcript)
+            } else {
+              cb(null, transcript)
+            }
+          })
         },
-        (msgs, cb) => {
-          this.scriptingEvents.assertConvoEnd({convo: this, container, msgs})
-            .then(() => cb(null, null))
-            .catch((err) => cb(err))
+        (transcript, cb) => {
+          this.scriptingEvents.assertConvoEnd({convo: this, container, transcript})
+            .then(() => cb(null, transcript))
+            .catch((err) => cb(new Error(`${this.header.name}: error end asserter ${util.inspect(err)}`), transcript))
         }
       ],
-      (err, results) => {
+      (err, transcript) => {
+        container.eventEmitter.emit(Events.MESSAGE_TRANSCRIPT, container, transcript)
+
         if (err) {
-          reject(err)
+          return reject(new TranscriptError(err, transcript))
+        } else {
+          resolve(transcript)
         }
-        resolve()
       }
       )
     })
   }
 
   runConversation (container, scriptingMemory, cb) {
+    const transcript = new Transcript({
+      steps: [],
+      convoBegin: new Date(),
+      convoEnd: null,
+      err: null
+    })
+
     let lastMeMsg = null
     return async.mapSeries(this.conversation,
-      (convoStep, convoStepDone) => {
+      (convoStep, convoStepDoneCb) => {
+        const transcriptStep = new TranscriptStep({
+          expected: new BotiumMockMessage(convoStep),
+          actual: null,
+          stepBegin: new Date(),
+          stepEnd: null,
+          botBegin: null,
+          botEnd: null,
+          err: null
+        })
+        const convoStepDone = (err) => {
+          transcriptStep.stepEnd = new Date()
+          transcriptStep.err = err
+          convoStepDoneCb(err, transcriptStep)
+        }
+
         if (convoStep.sender === 'begin' || convoStep.sender === 'end') {
-          convoStepDone(null, null)
+          convoStepDoneCb()
         } else if (convoStep.sender === 'me') {
           convoStep.messageText = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
           debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`)
 
-          let convoStepDoneCalling = false
           return this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory })
             .then(() => {
               return new Promise(resolve => {
@@ -146,42 +208,46 @@ class Convo {
               })
             })
             .then(() => {
+              transcriptStep.botBegin = new Date()
+              transcriptStep.actual = new BotiumMockMessage(convoStep)
               lastMeMsg = convoStep
-              return container.UserSays(new BotiumMockMessage(convoStep))
-            })
-            .then(() => this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory }))
-            .then(() => {
-              convoStepDoneCalling = true
-              convoStepDone(null, convoStep)
+              return container.UserSays(transcriptStep.actual)
+                .then(() => {
+                  transcriptStep.botEnd = new Date()
+                  return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory })
+                })
+                .then(() => convoStepDone())
             })
             .catch((err) => {
+              transcriptStep.botEnd = new Date()
+
+              const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: error sending to bot ${util.inspect(err)}`)
+              debug(failErr)
               try {
-                this.scriptingEvents.fail(new Error(`${this.header.name}/${convoStep.stepTag}: error sending to bot ${util.inspect(err)}`))
-              } catch (err) {
-                // avoid calling callback twice
-                if (!convoStepDoneCalling) {
-                  convoStepDone(new Error(`${this.header.name}/${convoStep.stepTag}: error sending to bot ${util.inspect(err)}`))
-                } else {
-                  const errorMessage = `Fatal error while seinding to bot ${util.inspect(err)}`
-                  console.log(errorMessage)
-                  debug(errorMessage)
-                }
+                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr)
+              } catch (failErr) {
               }
+              convoStepDone(failErr)
             })
         } else if (convoStep.sender === 'bot') {
           debug(`${this.header.name} wait for bot ${util.inspect(convoStep.channel)}`)
           return this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory })
-            .then(() => container.WaitBotSays(convoStep.channel))
-            .then((saysmsg) => {
+            .then(() => {
+              transcriptStep.botBegin = new Date()
+              return container.WaitBotSays(convoStep.channel)
+            }).then((saysmsg) => {
+              transcriptStep.botEnd = new Date()
+              transcriptStep.actual = new BotiumMockMessage(saysmsg)
+
               debug(`${this.header.name}: bot says ${JSON.stringify(saysmsg, null, 2)}`)
               if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData)) {
+                const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
+                debug(failErr)
                 try {
-                  this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: bot says nothing`, lastMeMsg)
-                  return
-                } catch (err) {
-                  convoStepDone(err)
-                  return
+                  this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
+                } catch (failErr) {
                 }
+                return convoStepDone(failErr)
               }
               if (convoStep.messageText) {
                 this._fillScriptingMemory(container, scriptingMemory, saysmsg.messageText, convoStep.messageText)
@@ -191,57 +257,61 @@ class Convo {
                   try {
                     this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)
                   } catch (err) {
-                    convoStepDone(err)
-                    return
+                    return convoStepDone(err)
                   }
                 } else {
                   try {
                     this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)
                   } catch (err) {
-                    convoStepDone(err)
-                    return
+                    return convoStepDone(err)
                   }
                 }
               } else if (convoStep.sourceData) {
                 try {
                   this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
                 } catch (err) {
-                  convoStepDone(err)
-                  return
+                  return convoStepDone(err)
                 }
               }
               this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
                 .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
-                .then(() => convoStepDone(null, saysmsg))
+                .then(() => convoStepDone())
                 .catch((err) => {
+                  const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: assertion error - ${util.inspect(err)}`)
+                  debug(failErr)
                   try {
-                    this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: assertion error - ${util.inspect(err)}`, lastMeMsg)
-                  } catch (err) {
-                    convoStepDone(err)
+                    this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
+                  } catch (failErr) {
                   }
+                  convoStepDone(failErr)
                 })
             }).catch((err) => {
+              transcriptStep.botEnd = new Date()
+
+              const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`)
+              debug(failErr)
               try {
-                this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`, lastMeMsg)
-              } catch (err) {
-                convoStepDone(err)
+                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
+              } catch (failErr) {
               }
+              convoStepDone(failErr)
             })
         } else {
+          const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: invalid sender ${util.inspect(convoStep.sender)}`)
+          debug(failErr)
           try {
-            this.scriptingEvents.fail(`${this.header.name}/${convoStep.stepTag}: invalid sender ${util.inspect(convoStep.sender)}`)
-          } catch (err) {
-            convoStepDone(err)
+            this.scriptingEvents.fail && this.scriptingEvents.fail(failErr)
+          } catch (failErr) {
           }
+          convoStepDone(failErr)
         }
       },
-      (err, results) => {
-        if (err) {
-          cb(err)
-        } else {
-          let msgs = results.filter(e => e != null)
-          cb(null, msgs)
-        }
+      (err, transcriptSteps) => {
+        transcript.err = err
+        transcript.steps = transcriptSteps.filter(s => s)
+        transcript.scriptingMemory = scriptingMemory
+        transcript.convoEnd = new Date()
+        cb(transcript)
       })
   }
 

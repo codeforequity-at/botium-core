@@ -266,15 +266,18 @@ module.exports = class SimpleRestContainer extends BaseContainer {
       this.view.msg.messageText = nonEncodedMessage
     }
     if (this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) {
+      const headersTemplate = _.isString(this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE])
       try {
-        requestOptions.headers = JSON.parse(Mustache.render(this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE], this.view))
+        requestOptions.headers = JSON.parse(Mustache.render(headersTemplate, this.view))
       } catch (err) {
         throw new Error(`composing headers from SIMPLEREST_HEADERS_TEMPLATE failed (${util.inspect(err)})`)
       }
     }
     if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
+      const bodyTemplate = _.isString(this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE])
+
       try {
-        requestOptions.body = Mustache.render(this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE], this.view)
+        requestOptions.body = Mustache.render(bodyTemplate, this.view)
       } catch (err) {
         throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${util.inspect(err)})`)
       }

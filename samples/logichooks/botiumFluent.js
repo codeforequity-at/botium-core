@@ -40,8 +40,6 @@ const driver = new BotDriver()
     global: true
   }])
 
-console.log(driver.caps)
-
 const scriptBuffer = fs.readFileSync(path.join(__dirname, 'convos/echo.convo.txt'))
 
 driver.BuildFluent()

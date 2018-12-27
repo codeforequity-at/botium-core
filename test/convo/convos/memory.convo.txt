@@ -1,0 +1,14 @@
+scripting memory
+
+#me
+this is a variable: VARVALUE
+
+#bot
+this is a variable: $myvar
+
+#me
+show var $myvar
+
+#bot
+show var VARVALUE
+

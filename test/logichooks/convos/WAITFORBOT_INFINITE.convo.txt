@@ -1,0 +1,8 @@
+WAITFORBOT INFINTE
+
+#me
+Hello
+
+#bot
+WAITFORBOT
+Hello
