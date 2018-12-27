@@ -5,6 +5,7 @@ const debug = require('debug')('botium-Convo')
 
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
+const Events = require('../Events')
 
 class ConvoHeader {
   constructor (fromJson = {}) {
@@ -152,6 +153,8 @@ class Convo {
         }
       ],
       (err, transcript) => {
+        container.eventEmitter.emit(Events.MESSAGE_TRANSCRIPT, container, transcript)
+
         if (err) {
           return reject(new TranscriptError(err, transcript))
         } else {

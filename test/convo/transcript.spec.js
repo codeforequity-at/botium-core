@@ -3,6 +3,7 @@ const moment = require('moment')
 const assert = require('chai').assert
 const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
+const Events = require('../../').Events
 
 const echoConnector = ({ queueBotSays }) => {
   return {
@@ -99,6 +100,44 @@ describe('transcript.transcriptsteps', function () {
       assert.isDefined(err.transcript)
       assert.equal(err.transcript.steps.length, 1)
       assert.isDefined(err.transcript.steps[0].err)
+    }
+  })
+  it('should emit transcript event on success', async function () {
+    const myCaps = {
+      [Capabilities.CONTAINERMODE]: echoConnector
+    }
+    const driver = new BotDriver(myCaps)
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), '2steps.convo.txt')
+    assert.equal(compiler.convos.length, 1)
+
+    let transcript = null
+    driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { transcript = transcriptEv })
+
+    await compiler.convos[0].Run(container)
+    assert.isDefined(transcript)
+  })
+  it('should emit transcript event on failure', async function () {
+    const myCaps = {
+      [Capabilities.CONTAINERMODE]: echoConnector
+    }
+    const driver = new BotDriver(myCaps)
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), '2stepsfailing.convo.txt')
+    assert.equal(compiler.convos.length, 1)
+
+    let transcript = null
+    driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { transcript = transcriptEv })
+
+    try {
+      await compiler.convos[0].Run(container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.isDefined(transcript)
     }
   })
 })
