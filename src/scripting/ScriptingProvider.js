@@ -32,47 +32,26 @@ module.exports = class ScriptingProvider {
     this.globalLogicHook = {}
 
     this.scriptingEvents = {
-      onMeStart: ({ convoStep, ...rest }) => {
+      onMeStart: ({convoStep, ...rest}) => {
         return this._createLogicHookPromises(convoStep, 'onMeStart', rest)
       },
-      onMeEnd: ({ convoStep, ...rest }) => {
+      onMeEnd: ({convoStep, ...rest}) => {
         return this._createLogicHookPromises(convoStep, 'onMeEnd', rest)
       },
-      onBotStart: ({ convoStep, ...rest }) => {
+      onBotStart: ({convoStep, ...rest}) => {
         return this._createLogicHookPromises(convoStep, 'onBotStart', rest)
       },
-      onBotEnd: ({ convoStep, ...rest }) => {
+      onBotEnd: ({convoStep, ...rest}) => {
         return this._createLogicHookPromises(convoStep, 'onBotEnd', rest)
       },
-      assertConvoBegin: ({ convo, convoStep, ...rest }) => {
-        const convoAsserter = convo.beginAsserter
-          .filter(a => this.asserters[a.name].assertConvoBegin)
-          .map(a => p(() => this.asserters[a.name].assertConvoBegin({ convo, convoStep, args: a.args, ...rest })))
-        const globalAsserter = Object.values(this.globalAsserter)
-          .filter(a => a.assertConvoBegin)
-          .map(a => p(() => a.assertConvoBegin({ convo, convoStep, args: [], ...rest })))
-        const allPromises = [...convoAsserter, ...globalAsserter]
-        return Promise.all(allPromises)
+      assertConvoBegin: ({convo, convoStep, ...rest}) => {
+        return this._createAsserterPromises((convo.beginAsserter || []), convoStep, rest, convo, 'assertConvoBegin')
       },
-      assertConvoStep: ({ convo, convoStep, ...rest }) => {
-        const convoAsserter = (convoStep.asserters || [])
-          .filter(a => this.asserters[a.name].assertConvoStep)
-          .map(a => p(() => this.asserters[a.name].assertConvoStep({ convo, convoStep, args: a.args, ...rest })))
-        const globalAsserter = Object.values(this.globalAsserter)
-          .filter(a => a.assertConvoStep)
-          .map(a => p(() => a.assertConvoStep({ convo, convoStep, args: [], ...rest })))
-        const allPromises = [...convoAsserter, ...globalAsserter]
-        return Promise.all(allPromises)
+      assertConvoStep: ({convo, convoStep, ...rest}) => {
+        return this._createAsserterPromises((convoStep.asserters || []), convoStep, rest, convo, 'assertConvoStep')
       },
-      assertConvoEnd: ({ convo, convoStep, ...rest }) => {
-        const convoAsserter = convo.endAsserter
-          .filter(a => this.asserters[a.name].assertConvoEnd)
-          .map(a => p(() => this.asserters[a.name].assertConvoEnd({convo, convoStep, args: a.args, ...rest})))
-        const globalAsserter = Object.values(this.globalAsserter)
-          .filter(a => a.assertConvoEnd)
-          .map(a => p(() => a.assertConvoEnd({ convo, convoStep, args: [], ...rest })))
-        const allPromises = [...convoAsserter, ...globalAsserter]
-        return Promise.all(allPromises)
+      assertConvoEnd: ({convo, convoStep, ...rest}) => {
+        return this._createAsserterPromises((convo.endAsserter || []), convoStep, rest, convo, 'assertConvoEnd')
       },
       assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
         if (!_.isArray(tomatch)) {
@@ -107,6 +86,26 @@ module.exports = class ScriptingProvider {
     }
   }
 
+  _createAsserterPromises (asserters, convoStep, rest, convo, asserterType) {
+    if (!this._isValidAsserterType(asserterType)) {
+      throw Error(`Unknown asserterType ${asserterType}`)
+    }
+    const convoAsserter = asserters
+      .filter(a => this.asserters[a.name][asserterType])
+      .map(a => this._addScriptingMemoryToArgs(a, rest.scriptingMemory))
+      .map(a => p(() => this.asserters[a.name][asserterType]({
+        convo,
+        convoStep,
+        args: a.args,
+        ...rest
+      })))
+    const globalAsserter = Object.values(this.globalAsserter)
+      .filter(a => a[asserterType])
+      .map(a => p(() => a[asserterType]({convo, convoStep, args: [], ...rest})))
+    const allPromises = [...convoAsserter, ...globalAsserter]
+    return Promise.all(allPromises)
+  }
+
   _createLogicHookPromises (convoStep, hookType, eventArgs) {
     if (hookType !== 'onMeStart' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' && hookType !== 'onBotEnd') {
       throw Error(`Unknown hookType ${hookType}`)
@@ -114,14 +113,27 @@ module.exports = class ScriptingProvider {
 
     const convoStepPromises = (convoStep.logicHooks || [])
       .filter(l => this.logicHooks[l.name][hookType])
-      .map(l => p(() => this.logicHooks[l.name][hookType]({ convoStep, args: l.args, ...eventArgs })))
+      .map(l => this._addScriptingMemoryToArgs(l, eventArgs.scriptingMemory))
+      .map(l => p(() => this.logicHooks[l.name][hookType]({convoStep, args: l.args, ...eventArgs})))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
-      .map(l => p(() => l[hookType]({ convoStep, args: [], ...eventArgs })))
+      .map(l => p(() => l[hookType]({convoStep, args: [], ...eventArgs})))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)
+  }
+
+  _isValidAsserterType (asserterType) {
+    return ['assertConvoBegin', 'assertConvoStep', 'assertConvoEnd'].some(t => asserterType === t)
+  }
+
+  _addScriptingMemoryToArgs (asserter, scriptingMemory) {
+    let args = asserter.args
+    _.forOwn(scriptingMemory, (value, key) => {
+      asserter.args = args.map(arg => arg.replace(key, value))
+    })
+    return asserter
   }
 
   _buildScriptContext () {

@@ -25,8 +25,8 @@ Of course. Do you have a specific cuisine in mind?
 pizza
 
 #bot
-Super! I've found 5 locations for you. Which one would you like to drive to?
-DUMMY arg1 | arg2
+Super! I've found $count locations for you. Which one would you like to drive to?
+DUMMY $count | arg2
 
 #me
 1

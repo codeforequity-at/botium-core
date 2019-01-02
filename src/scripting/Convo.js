@@ -147,7 +147,7 @@ class Convo {
           })
         },
         (transcript, cb) => {
-          this.scriptingEvents.assertConvoEnd({convo: this, container, transcript})
+          this.scriptingEvents.assertConvoEnd({convo: this, container, transcript, scriptingMemory: scriptingMemory})
             .then(() => cb(null, transcript))
             .catch((err) => cb(new Error(`${this.header.name}: error end asserter ${util.inspect(err)}`), transcript))
         }
