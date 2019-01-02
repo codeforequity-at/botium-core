@@ -10,7 +10,9 @@ Of course, code contributions are welcome!
 
 * Please fork the repository
 * Please create an issue and refer to it in the pull request
+* Add unit tests for implemented behaviour
 * The NPM script "npm run build" has to succeed before posting a pull request
+** it will run unit tests
 ** it will enforce eslint and rollup build
 
 These points are subject to possible change at any time.
