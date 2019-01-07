@@ -24,6 +24,15 @@ See the [Botium Wiki](https://github.com/codeforequity-at/botium-core/wiki) for 
 
 A short overview article has been published here: [Selenium for Chatbots - Introducing Botium](https://chatbotsmagazine.com/selenium-for-chatbots-introducing-botium-1f1f0b3d4164)
 
-## Sample Code
+## Connectors
+Botium Core provides the core functionality. For attaching Botium to your chatbot, there are lots of _connectors_ available for most important chatbot technologies, frameworks, APIs, SDKs, cloud services etc. Please follow these links to the connector repositories. Sample configurations and scripts are included with each connector.
 
-The [Samples Directory](https://github.com/codeforequity-at/botium-core/tree/master/samples) contains examples for most important Botium use cases.
+* [IBM Watson Assistant](https://github.com/codeforequity-at/botium-connector-watson)
+* [Alexa Voice Service](https://github.com/codeforequity-at/botium-connector-alexa-avs)
+* [Alexa Skill Management API](https://github.com/codeforequity-at/botium-connector-alexa-smapi)
+* [Facebook Messenger](https://github.com/codeforequity-at/botium-connector-fbpagereceiver)
+* [Microsoft Bot Framework](https://github.com/codeforequity-at/botium-connector-directline3)
+* [Google Dialogflow](https://github.com/codeforequity-at/botium-connector-dialogflow)
+* [Botpress](https://github.com/codeforequity-at/botium-connector-botpress)
+* [Webdriver](https://github.com/codeforequity-at/botium-connector-webdriverio) - for testing on user interface level
+* [Generic HTTP(s)/JSON Endpoints](https://github.com/codeforequity-at/botium-core/wiki/operation-mode-simplerest)
