@@ -4,6 +4,7 @@ const isClass = require('is-class')
 const debug = require('debug')('botium-asserterUtils')
 const ButtonsAsserter = require('./asserter/ButtonsAsserter')
 const MediaAsserter = require('./asserter/MediaAsserter')
+const PauseAsserter = require('./asserter/PauseAsserter')
 const PauseLogicHook = require('./PauseLogicHook')
 const WaitForBotLogicHook = require('./WaitForBotLogicHook')
 const Capabilities = require('../../Capabilities')
@@ -26,6 +27,7 @@ module.exports = class LogicHookUtils {
   _setDefaultAsserters () {
     this.asserters['BUTTONS'] = new ButtonsAsserter(this.buildScriptContext, this.caps)
     this.asserters['MEDIA'] = new MediaAsserter(this.buildScriptContext, this.caps)
+    this.asserters['PAUSE_ASSERTER'] = new PauseAsserter(this.buildScriptContext, this.caps)
     debug(`Loaded Default asserter - ${util.inspect(Object.keys(this.asserters))}`)
   }
 
