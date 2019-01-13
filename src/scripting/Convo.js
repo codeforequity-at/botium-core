@@ -194,7 +194,8 @@ class Convo {
         if (convoStep.sender === 'begin' || convoStep.sender === 'end') {
           convoStepDoneCb()
         } else if (convoStep.sender === 'me') {
-          convoStep.messageText = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
+          convoStep.messageText = this._checkNormalizeText(container, convoStep.messageText)
+          convoStep.messageText = this._applyScriptingMemory(container, scriptingMemory, convoStep.messageText)
           debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`)
 
           return this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory })
@@ -251,8 +252,8 @@ class Convo {
               }
               if (convoStep.messageText) {
                 this._fillScriptingMemory(container, scriptingMemory, saysmsg.messageText, convoStep.messageText)
-                const response = this._checkNormalizeText(container, scriptingMemory, saysmsg.messageText)
-                const tomatch = this._checkNormalizeText(container, scriptingMemory, convoStep.messageText)
+                const response = this._checkNormalizeText(container, saysmsg.messageText)
+                const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, convoStep.messageText)
                 if (convoStep.not) {
                   try {
                     this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)
@@ -338,30 +339,49 @@ class Convo {
       })
     } else {
       this._fillScriptingMemory(container, scriptingMemory, result, expected)
-      const response = this._checkNormalizeText(container, scriptingMemory, result)
-      const tomatch = this._checkNormalizeText(container, scriptingMemory, expected)
+      const response = this._checkNormalizeText(container, result)
+      const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, expected)
       this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
     }
   }
 
-  _fillScriptingMemory (container, scriptingMemory, result, expected) {
-    if (result && expected && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      let reExpected = expected
-      const varMatches = expected.match(/\$\w+/g) || []
-      for (let i = 0; i < varMatches.length; i++) {
-        reExpected = reExpected.replace(varMatches[i], '(\\w+)')
-      }
-      const resultMatches = result.match(reExpected) || []
-      for (let i = 1; i < resultMatches.length; i++) {
-        if (i <= varMatches.length) {
-          scriptingMemory[varMatches[i - 1]] = resultMatches[i]
+  _fillScriptingMemory (container, scriptingMemory, result, utterance) {
+    if (result && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+      const utterances = this.scriptingEvents.resolveUtterance({ utterance })
+      utterances.forEach(expected => {
+        let reExpected = expected
+        const varMatches = expected.match(/\$\w+/g) || []
+        for (let i = 0; i < varMatches.length; i++) {
+          reExpected = reExpected.replace(varMatches[i], '(\\w+)')
         }
-      }
+        const resultMatches = result.match(reExpected) || []
+        for (let i = 1; i < resultMatches.length; i++) {
+          if (i <= varMatches.length) {
+            scriptingMemory[varMatches[i - 1]] = resultMatches[i]
+          }
+        }
+      })
       debug(`_fillScriptingMemory scriptingMemory: ${util.inspect(scriptingMemory)}`)
     }
   }
 
-  _checkNormalizeText (container, scriptingMemory, str) {
+  _resolveUtterancesToMatch (container, scriptingMemory, utterance) {
+    const utterances = this.scriptingEvents.resolveUtterance({ utterance })
+    const normalizedUtterances = utterances.map(str => this._checkNormalizeText(container, str))
+    const tomatch = normalizedUtterances.map(str => this._applyScriptingMemory(container, scriptingMemory, str))
+    return tomatch
+  }
+
+  _applyScriptingMemory (container, scriptingMemory, str) {
+    if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+      _.forOwn(scriptingMemory, (value, key) => {
+        str = str.replace(key, value)
+      })
+    }
+    return str
+  }
+
+  _checkNormalizeText (container, str) {
     if (str && _.isArray(str)) {
       str = str.join(' ')
     } else if (str && !_.isString(str)) {
@@ -370,11 +390,6 @@ class Convo {
       } else {
         str = `${str}`
       }
-    }
-    if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      _.forOwn(scriptingMemory, (value, key) => {
-        str = str.replace(key, value)
-      })
     }
     if (str && container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]) {
       // remove html tags
