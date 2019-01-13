@@ -74,8 +74,9 @@ class Transcript {
 }
 
 class TranscriptStep {
-  constructor ({ expected, actual, stepBegin, stepEnd, botBegin, botEnd, err }) {
+  constructor ({ expected, not, actual, stepBegin, stepEnd, botBegin, botEnd, err }) {
     this.expected = expected
+    this.not = not
     this.actual = actual
     this.stepBegin = stepBegin
     this.stepEnd = stepEnd
@@ -178,6 +179,7 @@ class Convo {
       (convoStep, convoStepDoneCb) => {
         const transcriptStep = new TranscriptStep({
           expected: new BotiumMockMessage(convoStep),
+          not: convoStep.not,
           actual: null,
           stepBegin: new Date(),
           stepEnd: null,

@@ -45,6 +45,15 @@ describe('convo.transcript', function () {
       assert.isTrue(moment(step.stepBegin).isSameOrBefore(step.stepEnd), 'begin should be same or before end')
     })
   })
+  it('should provide transcript negated steps on success', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2stepsneg.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isDefined(transcript)
+    assert.equal(transcript.steps.length, 2)
+    assert.isTrue(transcript.steps[1].not)
+  })
   it('should include pause in transcript steps', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2stepsWithPause.convo.txt')
     assert.equal(this.compiler.convos.length, 1)
