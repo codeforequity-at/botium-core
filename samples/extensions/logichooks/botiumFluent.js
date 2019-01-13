@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const BotDriver = require('../../index').BotDriver
+const BotDriver = require('../../../index').BotDriver
 
 console.log('Please make sure that botium-connector-echo module is installed before running this sample')
 

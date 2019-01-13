@@ -1,5 +1,5 @@
-const BotDriver = require('../../index').BotDriver
-const Capabilities = require('../../index').Capabilities
+const BotDriver = require('../../../index').BotDriver
+const Capabilities = require('../../../index').Capabilities
 
 console.log('Please make sure that botium-connector-watson module is installed before running this sample')
 

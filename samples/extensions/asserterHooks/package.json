@@ -11,7 +11,7 @@
   "author": "Stefan Sevelda",
   "license": "MIT",
   "dependencies": {
-    "botium-connector-watson": "0.0.2",
-    "botium-core": "file:../../"
+    "botium-connector-watson": "latest",
+    "botium-core": "latest"
   }
 }

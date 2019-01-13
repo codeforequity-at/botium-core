@@ -10,7 +10,7 @@
       "ASSERTERS": [
         {
           "ref": "DUMMY",
-          "src": "../../../samples/asserterHooks/DummyAsserter.js"
+          "src": "./DummyAsserter.js"
         }
       ]
     }

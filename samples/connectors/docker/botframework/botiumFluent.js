@@ -1,6 +1,5 @@
-const BotDriver = require('../../index').BotDriver
-const Capabilities = require('../../index').Capabilities
-const Source = require('../../index').Source
+const BotDriver = require('../../../../index').BotDriver
+const Capabilities = require('../../../../index').Capabilities
 
 function assert (expected, actual) {
   if (!actual || actual.indexOf(expected) < 0) {

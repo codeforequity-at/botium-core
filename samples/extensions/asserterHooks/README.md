@@ -1,10 +1,11 @@
-#Botium asserter hooks
-##Description
+# Botium asserter hooks
+
 There are currently three types of asserter hooks
 - before convo (assertConvoBegin)
 - on step (assertConvoStep)
 - after convo (assertConvoEnd)
-##Custom asserter
+
+## Custom asserter
 You can write your own asserter e.g
 ```javascript 1.6
 const utils = require('util')
@@ -28,7 +29,7 @@ module.exports = class CustomAsserter {
   }
 }
 ```
-##Configuration of Asserters
+## Configuration of Asserters
 There are 3 ways how you add custom asserters to your botium tests:
 1. referring public npm package
 ```json
