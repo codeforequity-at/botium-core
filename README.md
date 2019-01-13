@@ -38,5 +38,6 @@ Botium Core provides the core functionality. For attaching Botium to your chatbo
 * [Google Dialogflow](https://github.com/codeforequity-at/botium-connector-dialogflow)
 * [Botpress](https://github.com/codeforequity-at/botium-connector-botpress)
 * [Botkit](https://github.com/codeforequity-at/botium-connector-botkit)
+* [Kore.ai](https://github.com/codeforequity-at/botium-connector-koreai-webhook)
 * [Webdriver](https://github.com/codeforequity-at/botium-connector-webdriverio) - for testing on user interface level
 * [Generic HTTP(s)/JSON Endpoints](https://github.com/codeforequity-at/botium-core/wiki/operation-mode-simplerest)
