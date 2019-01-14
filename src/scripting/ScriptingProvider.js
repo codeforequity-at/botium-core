@@ -53,13 +53,16 @@ module.exports = class ScriptingProvider {
       assertConvoEnd: ({convo, convoStep, ...rest}) => {
         return this._createAsserterPromises((convo.endAsserter || []), convoStep, rest, convo, 'assertConvoEnd')
       },
+      resolveUtterance: ({ utterance }) => {
+        if (this.utterances[utterance]) {
+          return this.utterances[utterance].utterances
+        } else {
+          return [utterance]
+        }
+      },
       assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
         if (!_.isArray(tomatch)) {
-          if (this.utterances[tomatch]) {
-            tomatch = this.utterances[tomatch].utterances
-          } else {
-            tomatch = [tomatch]
-          }
+          tomatch = [tomatch]
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => {
@@ -147,6 +150,7 @@ module.exports = class ScriptingProvider {
         assertConvoBegin: this.scriptingEvents.assertConvoBegin.bind(this),
         assertConvoStep: this.scriptingEvents.assertConvoStep.bind(this),
         assertConvoEnd: this.scriptingEvents.assertConvoEnd.bind(this),
+        resolveUtterance: this.scriptingEvents.resolveUtterance.bind(this),
         assertBotResponse: this.scriptingEvents.assertBotResponse.bind(this),
         assertBotNotResponse: this.scriptingEvents.assertBotNotResponse.bind(this),
         onMeStart: this.scriptingEvents.onMeStart.bind(this),

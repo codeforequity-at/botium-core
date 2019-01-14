@@ -1,0 +1,25 @@
+utterances memory
+
+#me
+I am 40 years old
+
+#bot
+AGE_UTT
+
+#me
+show var $years
+
+#bot
+show var 40
+
+#me
+I am 2 months old
+
+#bot
+AGE_UTT
+
+#me
+show var $months
+
+#bot
+show var 2
