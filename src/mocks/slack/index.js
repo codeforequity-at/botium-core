@@ -4,7 +4,6 @@ const https = require('https')
 const http = require('http')
 const bodyParser = require('body-parser')
 const fs = require('fs')
-const url = require('url')
 const tcpPortUsed = require('tcp-port-used')
 
 var publishPort = process.env.BOTIUM_SLACK_PUBLISHPORT
@@ -107,7 +106,7 @@ if (!Number.isInteger(botHealthCheckStatus)) {
 
 var appMock = express()
 appMock.use(bodyParser.json())
-appMock.use(bodyParser.urlencoded({extended: true}))
+appMock.use(bodyParser.urlencoded({ extended: true }))
 
 appMock.post('/api/oauth.access', (req, res) => {
   console.log('/api/oauth.access: ' + JSON.stringify(req.body))
@@ -255,7 +254,7 @@ var appTest = express()
 appTest.use(bodyParser.json())
 
 appTest.get('/', (req, res) => {
-  var urlparts = url.parse(botHealthCheckUrl)
+  var urlparts = new URL(botHealthCheckUrl)
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
@@ -265,7 +264,7 @@ appTest.get('/', (req, res) => {
         var options = {
           uri: botHealthCheckUrl,
           method: botHealthCheckVerb,
-          qs: {code: 'C123123123', state: 'C123123123'}
+          qs: { code: 'C123123123', state: 'C123123123' }
         }
         request(options, (err, response, body) => {
           if (!err && response.statusCode === botHealthCheckStatus) {

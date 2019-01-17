@@ -71,7 +71,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
       if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
         const parseCell = (content) => {
-          if (!content) return {messageText: ''}
+          if (!content) return { messageText: '' }
 
           if (!_.isString(content)) content = '' + content
           const lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
@@ -230,7 +230,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       })
     }
     const wb = XLSX.utils.book_new()
-    const ws = XLSX.utils.json_to_sheet(data, {header: ['me', 'bot']})
+    const ws = XLSX.utils.json_to_sheet(data, { header: ['me', 'bot'] })
     XLSX.utils.book_append_sheet(wb, ws, sheetname)
     const xlsxOutput = XLSX.write(wb, { type: 'buffer' })
     return xlsxOutput

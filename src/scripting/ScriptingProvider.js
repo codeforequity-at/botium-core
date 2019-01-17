@@ -8,7 +8,7 @@ const debug = require('debug')('botium-ScriptingProvider')
 
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
-const {Convo} = require('./Convo')
+const { Convo } = require('./Convo')
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx)'
 
 const p = (fn) => new Promise((resolve, reject) => {
@@ -32,25 +32,25 @@ module.exports = class ScriptingProvider {
     this.globalLogicHook = {}
 
     this.scriptingEvents = {
-      onMeStart: ({convoStep, ...rest}) => {
+      onMeStart: ({ convoStep, ...rest }) => {
         return this._createLogicHookPromises(convoStep, 'onMeStart', rest)
       },
-      onMeEnd: ({convoStep, ...rest}) => {
+      onMeEnd: ({ convoStep, ...rest }) => {
         return this._createLogicHookPromises(convoStep, 'onMeEnd', rest)
       },
-      onBotStart: ({convoStep, ...rest}) => {
+      onBotStart: ({ convoStep, ...rest }) => {
         return this._createLogicHookPromises(convoStep, 'onBotStart', rest)
       },
-      onBotEnd: ({convoStep, ...rest}) => {
+      onBotEnd: ({ convoStep, ...rest }) => {
         return this._createLogicHookPromises(convoStep, 'onBotEnd', rest)
       },
-      assertConvoBegin: ({convo, convoStep, ...rest}) => {
+      assertConvoBegin: ({ convo, convoStep, ...rest }) => {
         return this._createAsserterPromises((convo.beginAsserter || []), convoStep, rest, convo, 'assertConvoBegin')
       },
-      assertConvoStep: ({convo, convoStep, ...rest}) => {
+      assertConvoStep: ({ convo, convoStep, ...rest }) => {
         return this._createAsserterPromises((convoStep.asserters || []), convoStep, rest, convo, 'assertConvoStep')
       },
-      assertConvoEnd: ({convo, convoStep, ...rest}) => {
+      assertConvoEnd: ({ convo, convoStep, ...rest }) => {
         return this._createAsserterPromises((convo.endAsserter || []), convoStep, rest, convo, 'assertConvoEnd')
       },
       resolveUtterance: ({ utterance }) => {
@@ -104,7 +104,7 @@ module.exports = class ScriptingProvider {
       })))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
-      .map(a => p(() => a[asserterType]({convo, convoStep, args: [], ...rest})))
+      .map(a => p(() => a[asserterType]({ convo, convoStep, args: [], ...rest })))
     const allPromises = [...convoAsserter, ...globalAsserter]
     return Promise.all(allPromises)
   }
@@ -117,11 +117,11 @@ module.exports = class ScriptingProvider {
     const convoStepPromises = (convoStep.logicHooks || [])
       .filter(l => this.logicHooks[l.name][hookType])
       .map(l => this._addScriptingMemoryToArgs(l, eventArgs.scriptingMemory))
-      .map(l => p(() => this.logicHooks[l.name][hookType]({convoStep, args: l.args, ...eventArgs})))
+      .map(l => p(() => this.logicHooks[l.name][hookType]({ convoStep, args: l.args, ...eventArgs })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
-      .map(l => p(() => l[hookType]({convoStep, args: [], ...eventArgs})))
+      .map(l => p(() => l[hookType]({ convoStep, args: [], ...eventArgs })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)
@@ -180,7 +180,7 @@ module.exports = class ScriptingProvider {
     } else {
       this.matchFn = (botresponse, utterance) => botresponse === utterance
     }
-    const logicHookUtils = new LogicHookUtils({buildScriptContext: this._buildScriptContext(), caps: this.caps})
+    const logicHookUtils = new LogicHookUtils({ buildScriptContext: this._buildScriptContext(), caps: this.caps })
     this.asserters = logicHookUtils.asserters
     this.globalAsserter = logicHookUtils.getGlobalAsserter()
     this.logicHooks = logicHookUtils.logicHooks
@@ -216,9 +216,9 @@ module.exports = class ScriptingProvider {
   }
 
   ReadScriptsFromDirectory (convoDir, globFilter) {
-    const filelist = glob.sync(globPattern, {cwd: convoDir})
+    const filelist = glob.sync(globPattern, { cwd: convoDir })
     if (globFilter) {
-      const filelistGlobbed = glob.sync(globFilter, {cwd: convoDir})
+      const filelistGlobbed = glob.sync(globFilter, { cwd: convoDir })
       _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
     }
     debug(`ReadConvosFromDirectory(${convoDir}) found filenames: ${filelist}`)
@@ -226,13 +226,13 @@ module.exports = class ScriptingProvider {
     const dirConvos = []
     const dirUtterances = []
     filelist.forEach((filename) => {
-      const {convos, utterances} = this.ReadScript(convoDir, filename)
+      const { convos, utterances } = this.ReadScript(convoDir, filename)
       if (convos) dirConvos.push(...convos)
       if (utterances) dirUtterances.push(...utterances)
     })
     debug(`ReadConvosFromDirectory(${convoDir}) found convos:\n ${dirConvos ? dirConvos.join('\n') : 'none'}`)
     debug(`ReadConvosFromDirectory(${convoDir}) found utterances:\n ${dirUtterances ? _.map(dirUtterances, (u) => u).join('\n') : 'none'}`)
-    return {convos: dirConvos, utterances: dirUtterances}
+    return { convos: dirConvos, utterances: dirUtterances }
   }
 
   ReadScript (convoDir, filename) {
@@ -251,7 +251,7 @@ module.exports = class ScriptingProvider {
     }
     if (fileConvos) {
       fileConvos.forEach((fileConvo) => {
-        fileConvo.sourceTag = {filename}
+        fileConvo.sourceTag = { filename }
         if (!fileConvo.header.name) {
           fileConvo.header.name = filename
         }
@@ -259,10 +259,10 @@ module.exports = class ScriptingProvider {
     }
     if (fileUtterances) {
       fileUtterances.forEach((fileUtt) => {
-        fileUtt.sourceTag = {filename}
+        fileUtt.sourceTag = { filename }
       })
     }
-    return {convos: fileConvos, utterances: fileUtterances}
+    return { convos: fileConvos, utterances: fileUtterances }
   }
 
   ExpandUtterancesToConvos () {
@@ -329,7 +329,7 @@ module.exports = class ScriptingProvider {
               sampleutterances = [allutterances[0]]
             } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'random') {
               sampleutterances = allutterances
-                .map(x => ({x, r: Math.random()}))
+                .map(x => ({ x, r: Math.random() }))
                 .sort((a, b) => a.r - b.r)
                 .map(a => a.x)
                 .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
@@ -339,8 +339,8 @@ module.exports = class ScriptingProvider {
               if (uttArgs) {
                 utt = util.format(utt, ...uttArgs)
               }
-              currentStepsStack.push(Object.assign({}, currentStep, {messageText: utt}))
-              const currentConvoLabeled = Object.assign({}, currentConvo, {header: Object.assign({}, currentConvo.header, {name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1)})})
+              currentStepsStack.push(Object.assign({}, currentStep, { messageText: utt }))
+              const currentConvoLabeled = Object.assign({}, currentConvo, { header: Object.assign({}, currentConvo.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) }) })
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
             return
@@ -351,7 +351,7 @@ module.exports = class ScriptingProvider {
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       }
     } else {
-      expandedConvos.push(new Convo(this._buildScriptContext(), Object.assign({}, currentConvo, {conversation: convoStepsStack})))
+      expandedConvos.push(new Convo(this._buildScriptContext(), Object.assign({}, currentConvo, { conversation: convoStepsStack })))
     }
   }
 

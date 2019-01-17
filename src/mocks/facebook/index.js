@@ -5,7 +5,6 @@ const http = require('http')
 const bodyParser = require('body-parser')
 const fs = require('fs')
 const path = require('path')
-const url = require('url')
 const tcpPortUsed = require('tcp-port-used')
 
 var publishPort = process.env.BOTIUM_FACEBOOK_PUBLISHPORT
@@ -65,15 +64,15 @@ appMock.use(bodyParser.json())
 
 appMock.all('*/me/messenger_profile*', function (req, res) {
   console.log('messenger_profile called')
-  res.json({result: 'success'})
+  res.json({ result: 'success' })
 })
 appMock.all('*/me/thread_settings*', function (req, res) {
   console.log('thread_settings called')
-  res.json({result: 'success'})
+  res.json({ result: 'success' })
 })
 appMock.all('*/subscribed_apps*', function (req, res) {
   console.log('subscribed_apps called')
-  res.json({success: true})
+  res.json({ success: true })
 })
 appMock.all('*/me/messages*', function (req, res) {
   if (req.body) {
@@ -148,7 +147,7 @@ var appTest = express()
 appTest.use(bodyParser.json())
 
 appTest.get('/', function (req, res) {
-  let urlparts = url.parse(botHealthCheckUrl)
+  let urlparts = new URL(botHealthCheckUrl)
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
@@ -160,7 +159,7 @@ appTest.get('/', function (req, res) {
           method: botHealthCheckVerb,
           json: {
             entry: [
-              {messaging: []}
+              { messaging: [] }
             ]
           }
         }

@@ -96,7 +96,7 @@ class TranscriptError extends Error {
 }
 
 class Convo {
-  constructor ({scriptingEvents}, fromJson = {}) {
+  constructor ({ scriptingEvents }, fromJson = {}) {
     this.scriptingEvents = scriptingEvents
     this.header = new ConvoHeader(fromJson.header)
     if (fromJson.conversation && _.isArray(fromJson.conversation)) {
@@ -105,7 +105,7 @@ class Convo {
       this.conversation = []
     }
     this.sourceTag = fromJson.sourceTag
-    let {beginAsserter, endAsserter} = this.setConvoBeginAndEndAsserter(fromJson)
+    let { beginAsserter, endAsserter } = this.setConvoBeginAndEndAsserter(fromJson)
     this.beginAsserter = beginAsserter
     this.endAsserter = endAsserter
   }
@@ -134,7 +134,7 @@ class Convo {
 
       async.waterfall([
         (cb) => {
-          this.scriptingEvents.assertConvoBegin({convo: this, container})
+          this.scriptingEvents.assertConvoBegin({ convo: this, container })
             .then(() => cb())
             .catch((err) => cb(new Error(`${this.header.name}: error begin asserter ${util.inspect(err)}`)))
         },
@@ -148,7 +148,7 @@ class Convo {
           })
         },
         (transcript, cb) => {
-          this.scriptingEvents.assertConvoEnd({convo: this, container, transcript, scriptingMemory: scriptingMemory})
+          this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
             .then(() => cb(null, transcript))
             .catch((err) => cb(new Error(`${this.header.name}: error end asserter ${util.inspect(err)}`), transcript))
         }

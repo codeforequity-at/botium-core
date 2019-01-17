@@ -2,7 +2,7 @@ const async = require('async')
 const debug = require('debug')('botium-WaitForBotLogicHook')
 
 module.exports = class WaitForBotLogicHook {
-  onBotStart ({convoStep, container, args}) {
+  onBotStart ({ convoStep, container, args }) {
     if (args && args.length > 1) {
       return Promise.reject(new Error(`${convoStep.stepTag}: WaitForBotLogicHook Too much argument "${args}"`))
     }

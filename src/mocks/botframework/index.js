@@ -4,14 +4,13 @@ const https = require('https')
 const http = require('http')
 const bodyParser = require('body-parser')
 const fs = require('fs')
-const url = require('url')
 const tcpPortUsed = require('tcp-port-used')
 const uuidv4 = require('uuid/v4')
 const jwt = require('jsonwebtoken')
 const jwkToPem = require('jwk-to-pem')
 
 const botiumJwk = require('./botium-jwk.json')
-const pem = jwkToPem(botiumJwk, {private: true})
+const pem = jwkToPem(botiumJwk, { private: true })
 
 let currentConversationId = uuidv4()
 
@@ -207,7 +206,7 @@ var appTest = express()
 appTest.use(bodyParser.json())
 
 appTest.get('/', (req, res) => {
-  var urlparts = url.parse(botHealthCheckUrl)
+  var urlparts = new URL(botHealthCheckUrl)
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {

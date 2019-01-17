@@ -11,7 +11,7 @@ const Capabilities = require('../../Capabilities')
 const _ = require('lodash')
 
 module.exports = class LogicHookUtils {
-  constructor ({buildScriptContext, caps}) {
+  constructor ({ buildScriptContext, caps }) {
     this.asserters = {}
     this.globalAsserters = []
     this.logicHooks = {}
@@ -77,7 +77,7 @@ module.exports = class LogicHookUtils {
       .map(name => this.logicHooks[name])
   }
 
-  _loadClass ({src, ref, args}, hookType) {
+  _loadClass ({ src, ref, args }, hookType) {
     if (hookType !== 'asserter' && hookType !== 'logic-hook') {
       throw Error(`Unknown hookType ${hookType}`)
     }

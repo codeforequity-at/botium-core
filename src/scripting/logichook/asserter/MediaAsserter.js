@@ -4,7 +4,7 @@ module.exports = class MediaAsserter {
     this.caps = caps
   }
 
-  assertConvoStep ({convo, convoStep, args, botMsg}) {
+  assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (args && args.length > 0) {
       const mediaNotFound = []
       for (let i = 0; i < args.length; i++) {

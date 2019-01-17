@@ -29,7 +29,7 @@ describe('driver.capabilities', function () {
     assert.lengthOf(driver.caps['MYCAP'], 2)
   })
   it('should merge array caps', function () {
-    DefaultCapabilities['MYCAP'] = [{id: 'id1', key: 'VALUE'}]
+    DefaultCapabilities['MYCAP'] = [{ id: 'id1', key: 'VALUE' }]
     const myCaps = {
       'MYCAP': '[{"id":"id1", "key1": "VALUE1"},{"key":"VALUE1"}]'
     }
