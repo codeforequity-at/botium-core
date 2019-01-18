@@ -1,0 +1,3760 @@
+├─ @babel/code-frame@7.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/babel/babel/tree/master/packages/babel-code-frame
+│  ├─ publisher: Sebastian McKenzie
+│  ├─ email: sebmck@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\@babel\code-frame
+│  └─ licenseFile: D:\dev\botium-core\node_modules\@babel\code-frame\LICENSE
+├─ @babel/highlight@7.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/babel/babel/tree/master/packages/babel-highlight
+│  ├─ publisher: suchipi
+│  ├─ email: me@suchipi.com
+│  ├─ path: D:\dev\botium-core\node_modules\@babel\highlight
+│  └─ licenseFile: D:\dev\botium-core\node_modules\@babel\highlight\LICENSE
+├─ @types/estree@0.0.39
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/DefinitelyTyped/DefinitelyTyped
+│  ├─ path: D:\dev\botium-core\node_modules\@types\estree
+│  └─ licenseFile: D:\dev\botium-core\node_modules\@types\estree\LICENSE
+├─ @types/node@10.12.12
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/DefinitelyTyped/DefinitelyTyped
+│  ├─ path: D:\dev\botium-core\node_modules\@types\node
+│  └─ licenseFile: D:\dev\botium-core\node_modules\@types\node\LICENSE
+├─ JSONSelect@0.4.0
+│  ├─ licenses: Custom: http://jsonselect.org
+│  ├─ repository: https://github.com/lloyd/JSONSelect
+│  ├─ publisher: Lloyd Hilaiel
+│  ├─ email: lloyd@hilaiel.com
+│  ├─ url: http://lloyd.io
+│  ├─ path: D:\dev\botium-core\node_modules\JSONSelect
+│  └─ licenseFile: D:\dev\botium-core\node_modules\JSONSelect\LICENSE
+├─ abbrev@1.1.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/abbrev-js
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ path: D:\dev\botium-core\node_modules\abbrev
+│  └─ licenseFile: D:\dev\botium-core\node_modules\abbrev\LICENSE
+├─ accepts@1.3.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/accepts
+│  ├─ path: D:\dev\botium-core\node_modules\accepts
+│  └─ licenseFile: D:\dev\botium-core\node_modules\accepts\LICENSE
+├─ acorn-jsx@5.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/RReverser/acorn-jsx
+│  ├─ path: D:\dev\botium-core\node_modules\acorn-jsx
+│  └─ licenseFile: D:\dev\botium-core\node_modules\acorn-jsx\LICENSE
+├─ acorn@6.0.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/acornjs/acorn
+│  ├─ path: D:\dev\botium-core\node_modules\acorn
+│  └─ licenseFile: D:\dev\botium-core\node_modules\acorn\LICENSE
+├─ adler-32@1.2.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/SheetJS/js-adler32
+│  ├─ publisher: sheetjs
+│  ├─ path: D:\dev\botium-core\node_modules\adler-32
+│  └─ licenseFile: D:\dev\botium-core\node_modules\adler-32\LICENSE
+├─ after@0.8.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Raynos/after
+│  ├─ publisher: Raynos
+│  ├─ email: raynos2@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\after
+│  └─ licenseFile: D:\dev\botium-core\node_modules\after\LICENCE
+├─ ajv@6.6.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/epoberezkin/ajv
+│  ├─ publisher: Evgeny Poberezkin
+│  ├─ path: D:\dev\botium-core\node_modules\har-validator\node_modules\ajv
+│  └─ licenseFile: D:\dev\botium-core\node_modules\har-validator\node_modules\ajv\LICENSE
+├─ ajv@6.7.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/epoberezkin/ajv
+│  ├─ publisher: Evgeny Poberezkin
+│  ├─ path: D:\dev\botium-core\node_modules\ajv
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ajv\LICENSE
+├─ ansi-escapes@3.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/ansi-escapes
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\ansi-escapes
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ansi-escapes\license
+├─ ansi-regex@2.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/ansi-regex
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\ansi-regex
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\ansi-regex\license
+├─ ansi-regex@3.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/ansi-regex
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\ansi-regex
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ansi-regex\license
+├─ ansi-regex@4.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/ansi-regex
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\inquirer\node_modules\ansi-regex
+│  └─ licenseFile: D:\dev\botium-core\node_modules\inquirer\node_modules\ansi-regex\license
+├─ ansi-styles@3.2.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/ansi-styles
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\ansi-styles
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ansi-styles\license
+├─ ansi@0.3.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/TooTallNate/ansi.js
+│  ├─ publisher: Nathan Rajlich
+│  ├─ email: nathan@tootallnate.net
+│  ├─ url: http://tootallnate.net
+│  ├─ path: D:\dev\botium-core\node_modules\ansi
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ansi\LICENSE
+├─ anymatch@1.3.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/es128/anymatch
+│  ├─ publisher: Elan Shanker
+│  ├─ url: http://github.com/es128
+│  ├─ path: D:\dev\botium-core\node_modules\anymatch
+│  └─ licenseFile: D:\dev\botium-core\node_modules\anymatch\LICENSE
+├─ aproba@1.2.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/iarna/aproba
+│  ├─ publisher: Rebecca Turner
+│  ├─ email: me@re-becca.org
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\aproba
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\aproba\LICENSE
+├─ are-we-there-yet@1.0.6
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/iarna/are-we-there-yet
+│  ├─ publisher: Rebecca Turner
+│  ├─ url: http://re-becca.org
+│  ├─ path: D:\dev\botium-core\node_modules\are-we-there-yet
+│  └─ licenseFile: D:\dev\botium-core\node_modules\are-we-there-yet\LICENSE
+├─ are-we-there-yet@1.1.4
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/iarna/are-we-there-yet
+│  ├─ publisher: Rebecca Turner
+│  ├─ url: http://re-becca.org
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\are-we-there-yet
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\are-we-there-yet\LICENSE
+├─ argparse@1.0.10
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/nodeca/argparse
+│  ├─ path: D:\dev\botium-core\node_modules\argparse
+│  └─ licenseFile: D:\dev\botium-core\node_modules\argparse\LICENSE
+├─ arr-diff@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/arr-diff
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\arr-diff
+│  └─ licenseFile: D:\dev\botium-core\node_modules\arr-diff\LICENSE
+├─ arr-flatten@1.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/arr-flatten
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\arr-flatten
+│  └─ licenseFile: D:\dev\botium-core\node_modules\arr-flatten\LICENSE
+├─ array-find-index@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/array-find-index
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\array-find-index
+│  └─ licenseFile: D:\dev\botium-core\node_modules\array-find-index\license
+├─ array-flatten@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/blakeembrey/array-flatten
+│  ├─ publisher: Blake Embrey
+│  ├─ email: hello@blakeembrey.com
+│  ├─ url: http://blakeembrey.me
+│  ├─ path: D:\dev\botium-core\node_modules\array-flatten
+│  └─ licenseFile: D:\dev\botium-core\node_modules\array-flatten\LICENSE
+├─ array-unique@0.2.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/array-unique
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\array-unique
+│  └─ licenseFile: D:\dev\botium-core\node_modules\array-unique\LICENSE
+├─ arraybuffer.slice@0.0.7
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rase-/arraybuffer.slice
+│  ├─ path: D:\dev\botium-core\node_modules\arraybuffer.slice
+│  └─ licenseFile: D:\dev\botium-core\node_modules\arraybuffer.slice\LICENCE
+├─ asap@2.0.6
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kriskowal/asap
+│  ├─ path: D:\dev\botium-core\node_modules\asap
+│  └─ licenseFile: D:\dev\botium-core\node_modules\asap\LICENSE.md
+├─ asn1@0.2.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/joyent/node-asn1
+│  ├─ publisher: Joyent
+│  ├─ url: joyent.com
+│  ├─ path: D:\dev\botium-core\node_modules\asn1
+│  └─ licenseFile: D:\dev\botium-core\node_modules\asn1\LICENSE
+├─ assert-plus@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mcavage/node-assert-plus
+│  ├─ publisher: Mark Cavage
+│  ├─ email: mcavage@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\assert-plus
+│  └─ licenseFile: D:\dev\botium-core\node_modules\assert-plus\README.md
+├─ assertion-error@1.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chaijs/assertion-error
+│  ├─ publisher: Jake Luer
+│  ├─ email: jake@qualiancy.com
+│  ├─ url: http://qualiancy.com
+│  ├─ path: D:\dev\botium-core\node_modules\assertion-error
+│  └─ licenseFile: D:\dev\botium-core\node_modules\assertion-error\README.md
+├─ astral-regex@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kevva/astral-regex
+│  ├─ publisher: Kevin Mårtensson
+│  ├─ email: kevinmartensson@gmail.com
+│  ├─ url: github.com/kevva
+│  ├─ path: D:\dev\botium-core\node_modules\astral-regex
+│  └─ licenseFile: D:\dev\botium-core\node_modules\astral-regex\license
+├─ async-each@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/paulmillr/async-each
+│  ├─ publisher: Paul Miller
+│  ├─ url: http://paulmillr.com/
+│  ├─ path: D:\dev\botium-core\node_modules\async-each
+│  └─ licenseFile: D:\dev\botium-core\node_modules\async-each\README.md
+├─ async-limiter@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/strml/async-limiter
+│  ├─ publisher: Samuel Reed
+│  ├─ path: D:\dev\botium-core\node_modules\async-limiter
+│  └─ licenseFile: D:\dev\botium-core\node_modules\async-limiter\LICENSE
+├─ async@2.6.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/caolan/async
+│  ├─ publisher: Caolan McMahon
+│  ├─ path: D:\dev\botium-core\node_modules\async
+│  └─ licenseFile: D:\dev\botium-core\node_modules\async\LICENSE
+├─ asynckit@0.4.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/alexindigo/asynckit
+│  ├─ publisher: Alex Indigo
+│  ├─ email: iam@alexindigo.com
+│  ├─ path: D:\dev\botium-core\node_modules\asynckit
+│  └─ licenseFile: D:\dev\botium-core\node_modules\asynckit\LICENSE
+├─ aws-sign2@0.7.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/mikeal/aws-sign
+│  ├─ publisher: Mikeal Rogers
+│  ├─ email: mikeal.rogers@gmail.com
+│  ├─ url: http://www.futurealoof.com
+│  ├─ path: D:\dev\botium-core\node_modules\aws-sign2
+│  └─ licenseFile: D:\dev\botium-core\node_modules\aws-sign2\LICENSE
+├─ aws4@1.8.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mhart/aws4
+│  ├─ publisher: Michael Hart
+│  ├─ email: michael.hart.au@gmail.com
+│  ├─ url: http://github.com/mhart
+│  ├─ path: D:\dev\botium-core\node_modules\aws4
+│  └─ licenseFile: D:\dev\botium-core\node_modules\aws4\LICENSE
+├─ backo2@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mokesmokes/backo
+│  ├─ path: D:\dev\botium-core\node_modules\backo2
+│  └─ licenseFile: D:\dev\botium-core\node_modules\backo2\Readme.md
+├─ balanced-match@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/juliangruber/balanced-match
+│  ├─ publisher: Julian Gruber
+│  ├─ email: mail@juliangruber.com
+│  ├─ url: http://juliangruber.com
+│  ├─ path: D:\dev\botium-core\node_modules\balanced-match
+│  └─ licenseFile: D:\dev\botium-core\node_modules\balanced-match\LICENSE.md
+├─ base64-arraybuffer@0.1.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/niklasvh/base64-arraybuffer
+│  ├─ publisher: Niklas von Hertzen
+│  ├─ email: niklasvh@gmail.com
+│  ├─ url: http://hertzen.com
+│  ├─ path: D:\dev\botium-core\node_modules\base64-arraybuffer
+│  └─ licenseFile: D:\dev\botium-core\node_modules\base64-arraybuffer\LICENSE-MIT
+├─ base64id@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/faeldt/base64id
+│  ├─ publisher: Kristian Faeldt
+│  ├─ email: faeldt_kristian@cyberagent.co.jp
+│  ├─ path: D:\dev\botium-core\node_modules\base64id
+│  └─ licenseFile: D:\dev\botium-core\node_modules\base64id\LICENSE
+├─ bcrypt-pbkdf@1.0.2
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/joyent/node-bcrypt-pbkdf
+│  ├─ path: D:\dev\botium-core\node_modules\bcrypt-pbkdf
+│  └─ licenseFile: D:\dev\botium-core\node_modules\bcrypt-pbkdf\LICENSE
+├─ better-assert@1.0.2
+│  ├─ licenses: MIT*
+│  ├─ repository: https://github.com/visionmedia/better-assert
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\better-assert
+│  └─ licenseFile: D:\dev\botium-core\node_modules\better-assert\Readme.md
+├─ binary-extensions@1.11.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/binary-extensions
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\binary-extensions
+│  └─ licenseFile: D:\dev\botium-core\node_modules\binary-extensions\license
+├─ blob@0.0.4
+│  ├─ licenses: MIT*
+│  ├─ repository: https://github.com/rase-/blob
+│  ├─ path: D:\dev\botium-core\node_modules\blob
+│  └─ licenseFile: D:\dev\botium-core\node_modules\blob\README.md
+├─ bluebird@2.11.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/petkaantonov/bluebird
+│  ├─ publisher: Petka Antonov
+│  ├─ email: petka_antonov@hotmail.com
+│  ├─ url: http://github.com/petkaantonov/
+│  ├─ path: D:\dev\botium-core\node_modules\bluebird
+│  └─ licenseFile: D:\dev\botium-core\node_modules\bluebird\LICENSE
+├─ body-parser@1.18.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/expressjs/body-parser
+│  ├─ path: D:\dev\botium-core\node_modules\body-parser
+│  └─ licenseFile: D:\dev\botium-core\node_modules\body-parser\LICENSE
+├─ boolbase@1.0.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/fb55/boolbase
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\boolbase
+│  └─ licenseFile: D:\dev\botium-core\node_modules\boolbase\README.md
+├─ boolean@0.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/thenativeweb/boolean
+│  ├─ path: D:\dev\botium-core\node_modules\boolean
+│  └─ licenseFile: D:\dev\botium-core\node_modules\boolean\README.md
+├─ botium-core@1.4.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/codeforequity-at/botium-core
+│  ├─ publisher: Florian Treml
+│  ├─ path: D:\dev\botium-core
+│  └─ licenseFile: D:\dev\botium-core\LICENSE
+├─ brace-expansion@1.1.11
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/juliangruber/brace-expansion
+│  ├─ publisher: Julian Gruber
+│  ├─ email: mail@juliangruber.com
+│  ├─ url: http://juliangruber.com
+│  ├─ path: D:\dev\botium-core\node_modules\brace-expansion
+│  └─ licenseFile: D:\dev\botium-core\node_modules\brace-expansion\LICENSE
+├─ braces@1.8.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/braces
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\braces
+│  └─ licenseFile: D:\dev\botium-core\node_modules\braces\LICENSE
+├─ browser-stdout@1.3.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/kumavis/browser-stdout
+│  ├─ publisher: kumavis
+│  ├─ path: D:\dev\botium-core\node_modules\browser-stdout
+│  └─ licenseFile: D:\dev\botium-core\node_modules\browser-stdout\LICENSE
+├─ buble@0.19.6
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Rich-Harris/buble
+│  ├─ publisher: Rich Harris
+│  ├─ path: D:\dev\botium-core\node_modules\buble
+│  └─ licenseFile: D:\dev\botium-core\node_modules\buble\LICENSE.md
+├─ builtin-modules@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/builtin-modules
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\builtin-modules
+│  └─ licenseFile: D:\dev\botium-core\node_modules\builtin-modules\license
+├─ builtin-modules@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/builtin-modules
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\rollup-plugin-node-resolve\node_modules\builtin-modules
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rollup-plugin-node-resolve\node_modules\builtin-modules\license
+├─ bytes@3.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/visionmedia/bytes.js
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ url: http://tjholowaychuk.com
+│  ├─ path: D:\dev\botium-core\node_modules\bytes
+│  └─ licenseFile: D:\dev\botium-core\node_modules\bytes\LICENSE
+├─ call-me-maybe@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/limulus/call-me-maybe
+│  ├─ publisher: Eric McCarthy
+│  ├─ email: eric@limulus.net
+│  ├─ url: http://www.limulus.net/
+│  ├─ path: D:\dev\botium-core\node_modules\call-me-maybe
+│  └─ licenseFile: D:\dev\botium-core\node_modules\call-me-maybe\LICENSE
+├─ callsite@1.0.0
+│  ├─ licenses: MIT*
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\callsite
+│  └─ licenseFile: D:\dev\botium-core\node_modules\callsite\Readme.md
+├─ callsites@3.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/callsites
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\callsites
+│  └─ licenseFile: D:\dev\botium-core\node_modules\callsites\license
+├─ caseless@0.12.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/mikeal/caseless
+│  ├─ publisher: Mikeal Rogers
+│  ├─ email: mikeal.rogers@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\caseless
+│  └─ licenseFile: D:\dev\botium-core\node_modules\caseless\LICENSE
+├─ cfb@1.0.5
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/SheetJS/js-cfb
+│  ├─ publisher: sheetjs
+│  ├─ path: D:\dev\botium-core\node_modules\cfb
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cfb\LICENSE
+├─ chai@4.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chaijs/chai
+│  ├─ publisher: Jake Luer
+│  ├─ email: jake@alogicalparadox.com
+│  ├─ path: D:\dev\botium-core\node_modules\chai
+│  └─ licenseFile: D:\dev\botium-core\node_modules\chai\LICENSE
+├─ chalk@2.4.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/chalk
+│  ├─ path: D:\dev\botium-core\node_modules\buble\node_modules\chalk
+│  └─ licenseFile: D:\dev\botium-core\node_modules\buble\node_modules\chalk\license
+├─ chalk@2.4.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/chalk
+│  ├─ path: D:\dev\botium-core\node_modules\chalk
+│  └─ licenseFile: D:\dev\botium-core\node_modules\chalk\license
+├─ chardet@0.7.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/runk/node-chardet
+│  ├─ publisher: Dmitry Shirokov
+│  ├─ email: deadrunk@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\chardet
+│  └─ licenseFile: D:\dev\botium-core\node_modules\chardet\LICENSE
+├─ check-error@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chaijs/check-error
+│  ├─ publisher: Jake Luer
+│  ├─ email: jake@alogicalparadox.com
+│  ├─ url: http://alogicalparadox.com
+│  ├─ path: D:\dev\botium-core\node_modules\check-error
+│  └─ licenseFile: D:\dev\botium-core\node_modules\check-error\LICENSE
+├─ cheerio@0.19.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/cheeriojs/cheerio
+│  ├─ publisher: Matt Mueller
+│  ├─ email: mattmuelle@gmail.com
+│  ├─ url: mat.io
+│  ├─ path: D:\dev\botium-core\node_modules\cheerio
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cheerio\Readme.md
+├─ chokidar@1.7.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/paulmillr/chokidar
+│  ├─ publisher: Paul Miller
+│  ├─ url: http://paulmillr.com
+│  ├─ path: D:\dev\botium-core\node_modules\chokidar
+│  └─ licenseFile: D:\dev\botium-core\node_modules\chokidar\README.md
+├─ chownr@1.0.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/chownr
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\chownr
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\chownr\LICENSE
+├─ circular-json@0.3.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/WebReflection/circular-json
+│  ├─ publisher: Andrea Giammarchi
+│  ├─ url: http://webreflection.blogspot.com/
+│  ├─ path: D:\dev\botium-core\node_modules\circular-json
+│  └─ licenseFile: D:\dev\botium-core\node_modules\circular-json\LICENSE.txt
+├─ cjson@0.2.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kof/node-cjson
+│  ├─ publisher: Oleg Slobodskoi
+│  ├─ email: oleg008@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\cjson
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cjson\readme.md
+├─ cli-cursor@2.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/cli-cursor
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\cli-cursor
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cli-cursor\license
+├─ cli-width@2.2.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/knownasilya/cli-width
+│  ├─ publisher: Ilya Radchenko
+│  ├─ email: ilya@burstcreations.com
+│  ├─ path: D:\dev\botium-core\node_modules\cli-width
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cli-width\LICENSE
+├─ code-point-at@1.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/code-point-at
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\code-point-at
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\code-point-at\license
+├─ codepage@1.12.2
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/SheetJS/js-codepage
+│  ├─ publisher: SheetJS
+│  ├─ path: D:\dev\botium-core\node_modules\codepage
+│  └─ licenseFile: D:\dev\botium-core\node_modules\codepage\LICENSE
+├─ color-convert@1.9.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Qix-/color-convert
+│  ├─ publisher: Heather Arthur
+│  ├─ email: fayearthur@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\color-convert
+│  └─ licenseFile: D:\dev\botium-core\node_modules\color-convert\LICENSE
+├─ color-name@1.1.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/dfcreative/color-name
+│  ├─ publisher: DY
+│  ├─ email: dfcreative@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\color-name
+│  └─ licenseFile: D:\dev\botium-core\node_modules\color-name\LICENSE
+├─ colors@0.5.1
+│  ├─ licenses: Custom: http://i.imgur.com/goJdO.png
+│  ├─ repository: https://github.com/Marak/colors.js
+│  ├─ publisher: Marak Squires
+│  ├─ path: D:\dev\botium-core\node_modules\colors
+│  └─ licenseFile: D:\dev\botium-core\node_modules\colors\ReadMe.md
+├─ combined-stream@1.0.7
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/felixge/node-combined-stream
+│  ├─ publisher: Felix Geisendörfer
+│  ├─ email: felix@debuggable.com
+│  ├─ url: http://debuggable.com/
+│  ├─ path: D:\dev\botium-core\node_modules\combined-stream
+│  └─ licenseFile: D:\dev\botium-core\node_modules\combined-stream\License
+├─ commander@2.13.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/tj/commander.js
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\commander
+│  └─ licenseFile: D:\dev\botium-core\node_modules\commander\LICENSE
+├─ commander@2.14.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/tj/commander.js
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\codepage\node_modules\commander
+│  └─ licenseFile: D:\dev\botium-core\node_modules\codepage\node_modules\commander\LICENSE
+├─ commander@2.15.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/tj/commander.js
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\cfb\node_modules\commander
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cfb\node_modules\commander\LICENSE
+├─ commander@2.15.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/tj/commander.js
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\mocha\node_modules\commander
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mocha\node_modules\commander\LICENSE
+├─ component-bind@1.0.0
+│  ├─ licenses: MIT*
+│  ├─ repository: https://github.com/component/bind
+│  ├─ path: D:\dev\botium-core\node_modules\component-bind
+│  └─ licenseFile: D:\dev\botium-core\node_modules\component-bind\Readme.md
+├─ component-emitter@1.2.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/component/emitter
+│  ├─ path: D:\dev\botium-core\node_modules\component-emitter
+│  └─ licenseFile: D:\dev\botium-core\node_modules\component-emitter\LICENSE
+├─ component-inherit@0.0.3
+│  ├─ licenses: MIT*
+│  ├─ repository: https://github.com/component/inherit
+│  ├─ path: D:\dev\botium-core\node_modules\component-inherit
+│  └─ licenseFile: D:\dev\botium-core\node_modules\component-inherit\Readme.md
+├─ concat-map@0.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/substack/node-concat-map
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\concat-map
+│  └─ licenseFile: D:\dev\botium-core\node_modules\concat-map\LICENSE
+├─ console-control-strings@1.1.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/iarna/console-control-strings
+│  ├─ publisher: Rebecca Turner
+│  ├─ email: me@re-becca.org
+│  ├─ url: http://re-becca.org/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\console-control-strings
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\console-control-strings\LICENSE
+├─ contains-path@0.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/contains-path
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\contains-path
+│  └─ licenseFile: D:\dev\botium-core\node_modules\contains-path\LICENSE
+├─ content-disposition@0.5.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/content-disposition
+│  ├─ path: D:\dev\botium-core\node_modules\content-disposition
+│  └─ licenseFile: D:\dev\botium-core\node_modules\content-disposition\LICENSE
+├─ content-type@1.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/content-type
+│  ├─ publisher: Douglas Christopher Wilson
+│  ├─ email: doug@somethingdoug.com
+│  ├─ path: D:\dev\botium-core\node_modules\content-type
+│  └─ licenseFile: D:\dev\botium-core\node_modules\content-type\LICENSE
+├─ cookie-signature@1.0.6
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/visionmedia/node-cookie-signature
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@learnboost.com
+│  ├─ path: D:\dev\botium-core\node_modules\cookie-signature
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cookie-signature\Readme.md
+├─ cookie@0.3.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/cookie
+│  ├─ publisher: Roman Shtylman
+│  ├─ email: shtylman@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\cookie
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cookie\LICENSE
+├─ copy-dir@0.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/pillys/copy-dir
+│  ├─ publisher: pillys
+│  ├─ email: pillys@163.com
+│  ├─ url: http://www.qque.com
+│  ├─ path: D:\dev\botium-core\node_modules\copy-dir
+│  └─ licenseFile: D:\dev\botium-core\node_modules\copy-dir\LICENSE
+├─ core-util-is@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/isaacs/core-util-is
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\core-util-is
+│  └─ licenseFile: D:\dev\botium-core\node_modules\core-util-is\LICENSE
+├─ crc-32@1.2.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/SheetJS/js-crc32
+│  ├─ publisher: sheetjs
+│  ├─ path: D:\dev\botium-core\node_modules\crc-32
+│  └─ licenseFile: D:\dev\botium-core\node_modules\crc-32\LICENSE
+├─ cross-env@5.1.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kentcdodds/cross-env
+│  ├─ publisher: Kent C. Dodds
+│  ├─ email: kent@doddsfamily.us
+│  ├─ url: http://kentcdodds.com/
+│  ├─ path: D:\dev\botium-core\node_modules\cross-env
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cross-env\LICENSE
+├─ cross-spawn@5.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/IndigoUnited/node-cross-spawn
+│  ├─ publisher: IndigoUnited
+│  ├─ email: hello@indigounited.com
+│  ├─ url: http://indigounited.com
+│  ├─ path: D:\dev\botium-core\node_modules\cross-spawn
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cross-spawn\LICENSE
+├─ cross-spawn@6.0.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/moxystudio/node-cross-spawn
+│  ├─ publisher: André Cruz
+│  ├─ email: andre@moxy.studio
+│  ├─ path: D:\dev\botium-core\node_modules\eslint\node_modules\cross-spawn
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint\node_modules\cross-spawn\LICENSE
+├─ css-select@1.0.0
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/fb55/css-select
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\css-select
+│  └─ licenseFile: D:\dev\botium-core\node_modules\css-select\LICENSE
+├─ css-what@1.0.0
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/fb55/css-what
+│  ├─ publisher: Felix Böhm
+│  ├─ email: me@feedic.com
+│  ├─ url: http://feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\css-what
+│  └─ licenseFile: D:\dev\botium-core\node_modules\css-what\LICENSE
+├─ dashdash@1.14.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/trentm/node-dashdash
+│  ├─ publisher: Trent Mick
+│  ├─ email: trentm@gmail.com
+│  ├─ url: http://trentm.com
+│  ├─ path: D:\dev\botium-core\node_modules\dashdash
+│  └─ licenseFile: D:\dev\botium-core\node_modules\dashdash\LICENSE.txt
+├─ debug@2.6.9
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/visionmedia/debug
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\body-parser\node_modules\debug
+│  └─ licenseFile: D:\dev\botium-core\node_modules\body-parser\node_modules\debug\LICENSE
+├─ debug@3.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/visionmedia/debug
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\debug
+│  └─ licenseFile: D:\dev\botium-core\node_modules\debug\LICENSE
+├─ debug@4.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/visionmedia/debug
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\eslint\node_modules\debug
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint\node_modules\debug\LICENSE
+├─ debuglog@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sam-github/node-debuglog
+│  ├─ publisher: Sam Roberts
+│  ├─ email: sam@strongloop.com
+│  ├─ path: D:\dev\botium-core\node_modules\debuglog
+│  └─ licenseFile: D:\dev\botium-core\node_modules\debuglog\LICENSE
+├─ deep-eql@3.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chaijs/deep-eql
+│  ├─ publisher: Jake Luer
+│  ├─ email: jake@alogicalparadox.com
+│  ├─ path: D:\dev\botium-core\node_modules\deep-eql
+│  └─ licenseFile: D:\dev\botium-core\node_modules\deep-eql\LICENSE
+├─ deep-extend@0.5.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/unclechu/node-deep-extend
+│  ├─ publisher: Viacheslav Lotsmanov
+│  ├─ email: lotsmanov89@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\deep-extend
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\deep-extend\LICENSE
+├─ deep-is@0.1.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/thlorenz/deep-is
+│  ├─ publisher: Thorsten Lorenz
+│  ├─ email: thlorenz@gmx.de
+│  ├─ url: http://thlorenz.com
+│  ├─ path: D:\dev\botium-core\node_modules\deep-is
+│  └─ licenseFile: D:\dev\botium-core\node_modules\deep-is\LICENSE
+├─ delayed-stream@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/felixge/node-delayed-stream
+│  ├─ publisher: Felix Geisendörfer
+│  ├─ email: felix@debuggable.com
+│  ├─ url: http://debuggable.com/
+│  ├─ path: D:\dev\botium-core\node_modules\delayed-stream
+│  └─ licenseFile: D:\dev\botium-core\node_modules\delayed-stream\License
+├─ delegates@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/visionmedia/node-delegates
+│  ├─ path: D:\dev\botium-core\node_modules\delegates
+│  └─ licenseFile: D:\dev\botium-core\node_modules\delegates\License
+├─ depd@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/dougwilson/nodejs-depd
+│  ├─ publisher: Douglas Christopher Wilson
+│  ├─ email: doug@somethingdoug.com
+│  ├─ path: D:\dev\botium-core\node_modules\http-errors\node_modules\depd
+│  └─ licenseFile: D:\dev\botium-core\node_modules\http-errors\node_modules\depd\LICENSE
+├─ depd@1.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/dougwilson/nodejs-depd
+│  ├─ publisher: Douglas Christopher Wilson
+│  ├─ email: doug@somethingdoug.com
+│  ├─ path: D:\dev\botium-core\node_modules\depd
+│  └─ licenseFile: D:\dev\botium-core\node_modules\depd\LICENSE
+├─ destroy@1.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/stream-utils/destroy
+│  ├─ publisher: Jonathan Ong
+│  ├─ email: me@jongleberry.com
+│  ├─ url: http://jongleberry.com
+│  ├─ path: D:\dev\botium-core\node_modules\destroy
+│  └─ licenseFile: D:\dev\botium-core\node_modules\destroy\LICENSE
+├─ detect-libc@1.0.3
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/lovell/detect-libc
+│  ├─ publisher: Lovell Fuller
+│  ├─ email: npm@lovell.info
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\detect-libc
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\detect-libc\LICENSE
+├─ dezalgo@1.0.3
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/dezalgo
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\dezalgo
+│  └─ licenseFile: D:\dev\botium-core\node_modules\dezalgo\LICENSE
+├─ diff@3.5.0
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/kpdecker/jsdiff
+│  ├─ path: D:\dev\botium-core\node_modules\diff
+│  └─ licenseFile: D:\dev\botium-core\node_modules\diff\LICENSE
+├─ doctrine@1.5.0
+│  ├─ licenses: BSD
+│  ├─ repository: https://github.com/eslint/doctrine
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-plugin-import\node_modules\doctrine
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-plugin-import\node_modules\doctrine\LICENSE.BSD
+├─ doctrine@2.1.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/eslint/doctrine
+│  ├─ path: D:\dev\botium-core\node_modules\doctrine
+│  └─ licenseFile: D:\dev\botium-core\node_modules\doctrine\LICENSE
+├─ dom-serializer@0.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/cheeriojs/dom-renderer
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\dom-serializer
+│  └─ licenseFile: D:\dev\botium-core\node_modules\dom-serializer\LICENSE
+├─ domelementtype@1.1.3
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/FB55/domelementtype
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\dom-serializer\node_modules\domelementtype
+│  └─ licenseFile: D:\dev\botium-core\node_modules\dom-serializer\node_modules\domelementtype\LICENSE
+├─ domelementtype@1.3.0
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/FB55/domelementtype
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\domelementtype
+│  └─ licenseFile: D:\dev\botium-core\node_modules\domelementtype\LICENSE
+├─ domhandler@2.3.0
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/fb55/DomHandler
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\domhandler
+│  └─ licenseFile: D:\dev\botium-core\node_modules\domhandler\LICENSE
+├─ domutils@1.4.3
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/FB55/domutils
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\domutils
+│  └─ licenseFile: D:\dev\botium-core\node_modules\domutils\LICENSE
+├─ domutils@1.5.1
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/FB55/domutils
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\htmlparser2\node_modules\domutils
+│  └─ licenseFile: D:\dev\botium-core\node_modules\htmlparser2\node_modules\domutils\LICENSE
+├─ ebnf-parser@0.1.10
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/zaach/ebnf-parser
+│  ├─ publisher: Zach Carter
+│  ├─ path: D:\dev\botium-core\node_modules\ebnf-parser
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ebnf-parser\README.md
+├─ ecc-jsbn@0.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/quartzjer/ecc-jsbn
+│  ├─ publisher: Jeremie Miller
+│  ├─ email: jeremie@jabber.org
+│  ├─ url: http://jeremie.com/
+│  ├─ path: D:\dev\botium-core\node_modules\ecc-jsbn
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ecc-jsbn\LICENSE
+├─ ee-first@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonathanong/ee-first
+│  ├─ publisher: Jonathan Ong
+│  ├─ email: me@jongleberry.com
+│  ├─ url: http://jongleberry.com
+│  ├─ path: D:\dev\botium-core\node_modules\ee-first
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ee-first\LICENSE
+├─ encodeurl@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/pillarjs/encodeurl
+│  ├─ path: D:\dev\botium-core\node_modules\encodeurl
+│  └─ licenseFile: D:\dev\botium-core\node_modules\encodeurl\LICENSE
+├─ engine.io-client@3.1.6
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/socketio/engine.io-client
+│  ├─ path: D:\dev\botium-core\node_modules\engine.io-client
+│  └─ licenseFile: D:\dev\botium-core\node_modules\engine.io-client\LICENSE
+├─ engine.io-parser@2.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/socketio/engine.io-parser
+│  ├─ path: D:\dev\botium-core\node_modules\engine.io-parser
+│  └─ licenseFile: D:\dev\botium-core\node_modules\engine.io-parser\LICENSE
+├─ engine.io@3.1.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/socketio/engine.io
+│  ├─ publisher: Guillermo Rauch
+│  ├─ email: guillermo@learnboost.com
+│  ├─ path: D:\dev\botium-core\node_modules\engine.io
+│  └─ licenseFile: D:\dev\botium-core\node_modules\engine.io\LICENSE
+├─ entities@1.0.0
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/fb55/node-entities
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\htmlparser2\node_modules\entities
+│  └─ licenseFile: D:\dev\botium-core\node_modules\htmlparser2\node_modules\entities\LICENSE
+├─ entities@1.1.1
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/fb55/node-entities
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\entities
+│  └─ licenseFile: D:\dev\botium-core\node_modules\entities\LICENSE
+├─ error-ex@1.3.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/qix-/node-error-ex
+│  ├─ path: D:\dev\botium-core\node_modules\error-ex
+│  └─ licenseFile: D:\dev\botium-core\node_modules\error-ex\LICENSE
+├─ es6-promise@3.3.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/stefanpenner/es6-promise
+│  ├─ publisher: Yehuda Katz, Tom Dale, Stefan Penner and contributors
+│  ├─ url: Conversion to ES6 API by Jake Archibald
+│  ├─ path: D:\dev\botium-core\node_modules\json-schema-ref-parser\node_modules\es6-promise
+│  └─ licenseFile: D:\dev\botium-core\node_modules\json-schema-ref-parser\node_modules\es6-promise\LICENSE
+├─ es6-promise@4.2.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/stefanpenner/es6-promise
+│  ├─ publisher: Yehuda Katz, Tom Dale, Stefan Penner and contributors
+│  ├─ url: Conversion to ES6 API by Jake Archibald
+│  ├─ path: D:\dev\botium-core\node_modules\es6-promise
+│  └─ licenseFile: D:\dev\botium-core\node_modules\es6-promise\LICENSE
+├─ escape-html@1.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/component/escape-html
+│  ├─ path: D:\dev\botium-core\node_modules\escape-html
+│  └─ licenseFile: D:\dev\botium-core\node_modules\escape-html\LICENSE
+├─ escape-string-regexp@1.0.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/escape-string-regexp
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\escape-string-regexp
+│  └─ licenseFile: D:\dev\botium-core\node_modules\escape-string-regexp\license
+├─ escodegen@0.0.21
+│  ├─ licenses: BSD
+│  ├─ repository: https://github.com/Constellation/escodegen
+│  ├─ path: D:\dev\botium-core\node_modules\escodegen
+│  └─ licenseFile: D:\dev\botium-core\node_modules\escodegen\LICENSE.BSD
+├─ escodegen@1.9.1
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/estools/escodegen
+│  ├─ path: D:\dev\botium-core\node_modules\static-eval\node_modules\escodegen
+│  └─ licenseFile: D:\dev\botium-core\node_modules\static-eval\node_modules\escodegen\LICENSE.BSD
+├─ eslint-config-standard@12.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/standard/eslint-config-standard
+│  ├─ publisher: Feross Aboukhadijeh
+│  ├─ email: feross@feross.org
+│  ├─ url: https://feross.org
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-config-standard
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-config-standard\LICENSE
+├─ eslint-import-resolver-node@0.3.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/benmosher/eslint-plugin-import
+│  ├─ publisher: Ben Mosher
+│  ├─ url: me@benmosher.com
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-import-resolver-node
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-import-resolver-node\README.md
+├─ eslint-module-utils@2.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/benmosher/eslint-plugin-import
+│  ├─ publisher: Ben Mosher
+│  ├─ email: me@benmosher.com
+│  └─ path: D:\dev\botium-core\node_modules\eslint-module-utils
+├─ eslint-plugin-es@1.4.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mysticatea/eslint-plugin-es
+│  ├─ publisher: Toru Nagashima
+│  ├─ url: https://github.com/mysticatea
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-plugin-es
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-plugin-es\LICENSE
+├─ eslint-plugin-import@2.14.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/benmosher/eslint-plugin-import
+│  ├─ publisher: Ben Mosher
+│  ├─ email: me@benmosher.com
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-plugin-import
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-plugin-import\LICENSE
+├─ eslint-plugin-node@8.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mysticatea/eslint-plugin-node
+│  ├─ publisher: Toru Nagashima
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-plugin-node
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-plugin-node\LICENSE
+├─ eslint-plugin-promise@4.0.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/xjamundx/eslint-plugin-promise
+│  ├─ publisher: jden
+│  ├─ email: jason@denizac.org
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-plugin-promise
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-plugin-promise\README.md
+├─ eslint-plugin-standard@4.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/standard/eslint-plugin-standard
+│  ├─ publisher: Jamund Ferguson
+│  ├─ email: jamund@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-plugin-standard
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-plugin-standard\LICENSE
+├─ eslint-scope@4.0.0
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/eslint/eslint-scope
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-scope
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-scope\LICENSE
+├─ eslint-utils@1.3.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mysticatea/eslint-utils
+│  ├─ publisher: Toru Nagashima
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-utils
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-utils\LICENSE
+├─ eslint-visitor-keys@1.0.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/eslint/eslint-visitor-keys
+│  ├─ publisher: Toru Nagashima
+│  ├─ url: https://github.com/mysticatea
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-visitor-keys
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-visitor-keys\LICENSE
+├─ eslint@5.12.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/eslint/eslint
+│  ├─ publisher: Nicholas C. Zakas
+│  ├─ email: nicholas+npm@nczconsulting.com
+│  ├─ path: D:\dev\botium-core\node_modules\eslint
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint\LICENSE
+├─ espree@5.0.0
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/eslint/espree
+│  ├─ publisher: Nicholas C. Zakas
+│  ├─ email: nicholas+npm@nczconsulting.com
+│  ├─ path: D:\dev\botium-core\node_modules\espree
+│  └─ licenseFile: D:\dev\botium-core\node_modules\espree\LICENSE
+├─ esprima@1.0.4
+│  ├─ licenses: BSD
+│  ├─ repository: https://github.com/ariya/esprima
+│  ├─ path: D:\dev\botium-core\node_modules\escodegen\node_modules\esprima
+│  └─ licenseFile: D:\dev\botium-core\node_modules\escodegen\node_modules\esprima\README.md
+├─ esprima@1.2.2
+│  ├─ licenses: BSD
+│  ├─ repository: https://github.com/ariya/esprima
+│  ├─ publisher: Ariya Hidayat
+│  ├─ email: ariya.hidayat@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\esprima
+│  └─ licenseFile: D:\dev\botium-core\node_modules\esprima\README.md
+├─ esprima@3.1.3
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/jquery/esprima
+│  ├─ publisher: Ariya Hidayat
+│  ├─ email: ariya.hidayat@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\static-eval\node_modules\esprima
+│  └─ licenseFile: D:\dev\botium-core\node_modules\static-eval\node_modules\esprima\LICENSE.BSD
+├─ esprima@4.0.0
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/jquery/esprima
+│  ├─ publisher: Ariya Hidayat
+│  ├─ email: ariya.hidayat@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\js-yaml\node_modules\esprima
+│  └─ licenseFile: D:\dev\botium-core\node_modules\js-yaml\node_modules\esprima\LICENSE.BSD
+├─ esprima@4.0.1
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/jquery/esprima
+│  ├─ publisher: Ariya Hidayat
+│  ├─ email: ariya.hidayat@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\eslint\node_modules\esprima
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint\node_modules\esprima\LICENSE.BSD
+├─ esquery@1.0.1
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/jrfeenst/esquery
+│  ├─ publisher: Joel Feenstra
+│  ├─ email: jrfeenst+esquery@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\esquery
+│  └─ licenseFile: D:\dev\botium-core\node_modules\esquery\license.txt
+├─ esrecurse@4.2.1
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/estools/esrecurse
+│  ├─ path: D:\dev\botium-core\node_modules\esrecurse
+│  └─ licenseFile: D:\dev\botium-core\node_modules\esrecurse\README.md
+├─ estraverse@0.0.4
+│  ├─ licenses: BSD
+│  ├─ repository: https://github.com/Constellation/estraverse
+│  ├─ path: D:\dev\botium-core\node_modules\escodegen\node_modules\estraverse
+│  └─ licenseFile: D:\dev\botium-core\node_modules\escodegen\node_modules\estraverse\LICENSE.BSD
+├─ estraverse@4.2.0
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/estools/estraverse
+│  ├─ path: D:\dev\botium-core\node_modules\estraverse
+│  └─ licenseFile: D:\dev\botium-core\node_modules\estraverse\LICENSE.BSD
+├─ estree-walker@0.5.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Rich-Harris/estree-walker
+│  ├─ publisher: Rich Harris
+│  ├─ path: D:\dev\botium-core\node_modules\estree-walker
+│  └─ licenseFile: D:\dev\botium-core\node_modules\estree-walker\README.md
+├─ esutils@2.0.2
+│  ├─ licenses: BSD
+│  ├─ repository: https://github.com/estools/esutils
+│  ├─ path: D:\dev\botium-core\node_modules\esutils
+│  └─ licenseFile: D:\dev\botium-core\node_modules\esutils\LICENSE.BSD
+├─ etag@1.8.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/etag
+│  ├─ path: D:\dev\botium-core\node_modules\etag
+│  └─ licenseFile: D:\dev\botium-core\node_modules\etag\LICENSE
+├─ exit-on-epipe@1.0.1
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/SheetJS/node-exit-on-epipe
+│  ├─ publisher: sheetjs
+│  ├─ path: D:\dev\botium-core\node_modules\exit-on-epipe
+│  └─ licenseFile: D:\dev\botium-core\node_modules\exit-on-epipe\LICENSE
+├─ expand-brackets@0.1.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/expand-brackets
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\expand-brackets
+│  └─ licenseFile: D:\dev\botium-core\node_modules\expand-brackets\LICENSE
+├─ expand-range@1.8.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/expand-range
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\expand-range
+│  └─ licenseFile: D:\dev\botium-core\node_modules\expand-range\LICENSE
+├─ express@4.16.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/expressjs/express
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\express
+│  └─ licenseFile: D:\dev\botium-core\node_modules\express\LICENSE
+├─ extend-shallow@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/extend-shallow
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\extend-shallow
+│  └─ licenseFile: D:\dev\botium-core\node_modules\extend-shallow\LICENSE
+├─ extend@3.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/justmoon/node-extend
+│  ├─ publisher: Stefan Thomas
+│  ├─ email: justmoon@members.fsf.org
+│  ├─ url: http://www.justmoon.net
+│  ├─ path: D:\dev\botium-core\node_modules\extend
+│  └─ licenseFile: D:\dev\botium-core\node_modules\extend\LICENSE
+├─ external-editor@3.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mrkmg/node-external-editor
+│  ├─ publisher: Kevin Gravier
+│  ├─ email: kevin@mrkmg.com
+│  ├─ url: https://mrkmg.com
+│  ├─ path: D:\dev\botium-core\node_modules\external-editor
+│  └─ licenseFile: D:\dev\botium-core\node_modules\external-editor\LICENSE
+├─ extglob@0.3.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/extglob
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\extglob
+│  └─ licenseFile: D:\dev\botium-core\node_modules\extglob\LICENSE
+├─ extsprintf@1.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/davepacheco/node-extsprintf
+│  ├─ path: D:\dev\botium-core\node_modules\extsprintf
+│  └─ licenseFile: D:\dev\botium-core\node_modules\extsprintf\LICENSE
+├─ facebook-chat-api@1.6.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Schmavery/facebook-chat-api
+│  ├─ publisher: Avery, David, Maude, Benjamin
+│  ├─ path: D:\dev\botium-core\node_modules\facebook-chat-api
+│  └─ licenseFile: D:\dev\botium-core\node_modules\facebook-chat-api\LICENSE-MIT
+├─ fast-deep-equal@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/epoberezkin/fast-deep-equal
+│  ├─ publisher: Evgeny Poberezkin
+│  ├─ path: D:\dev\botium-core\node_modules\har-validator\node_modules\fast-deep-equal
+│  └─ licenseFile: D:\dev\botium-core\node_modules\har-validator\node_modules\fast-deep-equal\LICENSE
+├─ fast-json-stable-stringify@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/epoberezkin/fast-json-stable-stringify
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\fast-json-stable-stringify
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fast-json-stable-stringify\LICENSE
+├─ fast-levenshtein@2.0.6
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/hiddentao/fast-levenshtein
+│  ├─ publisher: Ramesh Nair
+│  ├─ email: ram@hiddentao.com
+│  ├─ url: http://www.hiddentao.com/
+│  ├─ path: D:\dev\botium-core\node_modules\fast-levenshtein
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fast-levenshtein\LICENSE.md
+├─ figures@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/figures
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\figures
+│  └─ licenseFile: D:\dev\botium-core\node_modules\figures\license
+├─ file-entry-cache@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/royriojas/file-entry-cache
+│  ├─ publisher: Roy Riojas
+│  ├─ url: http://royriojas.com
+│  ├─ path: D:\dev\botium-core\node_modules\file-entry-cache
+│  └─ licenseFile: D:\dev\botium-core\node_modules\file-entry-cache\LICENSE
+├─ filename-regex@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/regexhq/filename-regex
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\filename-regex
+│  └─ licenseFile: D:\dev\botium-core\node_modules\filename-regex\LICENSE
+├─ fill-range@2.2.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/fill-range
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\fill-range
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fill-range\LICENSE
+├─ finalhandler@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/pillarjs/finalhandler
+│  ├─ publisher: Douglas Christopher Wilson
+│  ├─ email: doug@somethingdoug.com
+│  ├─ path: D:\dev\botium-core\node_modules\finalhandler
+│  └─ licenseFile: D:\dev\botium-core\node_modules\finalhandler\LICENSE
+├─ find-root@1.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/js-n/find-root
+│  ├─ publisher: jsdnxx
+│  ├─ path: D:\dev\botium-core\node_modules\find-root
+│  └─ licenseFile: D:\dev\botium-core\node_modules\find-root\LICENSE.md
+├─ find-up@1.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/find-up
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\find-up
+│  └─ licenseFile: D:\dev\botium-core\node_modules\find-up\license
+├─ find-up@2.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/find-up
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\read-pkg-up\node_modules\find-up
+│  └─ licenseFile: D:\dev\botium-core\node_modules\read-pkg-up\node_modules\find-up\license
+├─ flat-cache@1.3.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/royriojas/flat-cache
+│  ├─ publisher: Roy Riojas
+│  ├─ url: http://royriojas.com
+│  ├─ path: D:\dev\botium-core\node_modules\flat-cache
+│  └─ licenseFile: D:\dev\botium-core\node_modules\flat-cache\LICENSE
+├─ for-in@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/for-in
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\for-in
+│  └─ licenseFile: D:\dev\botium-core\node_modules\for-in\LICENSE
+├─ for-own@0.1.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/for-own
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\for-own
+│  └─ licenseFile: D:\dev\botium-core\node_modules\for-own\LICENSE
+├─ forever-agent@0.6.1
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/mikeal/forever-agent
+│  ├─ publisher: Mikeal Rogers
+│  ├─ email: mikeal.rogers@gmail.com
+│  ├─ url: http://www.futurealoof.com
+│  ├─ path: D:\dev\botium-core\node_modules\forever-agent
+│  └─ licenseFile: D:\dev\botium-core\node_modules\forever-agent\LICENSE
+├─ form-data@2.3.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/form-data/form-data
+│  ├─ publisher: Felix Geisendörfer
+│  ├─ email: felix@debuggable.com
+│  ├─ url: http://debuggable.com/
+│  ├─ path: D:\dev\botium-core\node_modules\form-data
+│  └─ licenseFile: D:\dev\botium-core\node_modules\form-data\License
+├─ format-util@1.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/tmpfs/format-util
+│  ├─ publisher: muji
+│  ├─ email: noop@xpm.io
+│  ├─ path: D:\dev\botium-core\node_modules\format-util
+│  └─ licenseFile: D:\dev\botium-core\node_modules\format-util\LICENSE
+├─ forwarded@0.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/forwarded
+│  ├─ path: D:\dev\botium-core\node_modules\forwarded
+│  └─ licenseFile: D:\dev\botium-core\node_modules\forwarded\LICENSE
+├─ frac@1.1.2
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/SheetJS/frac
+│  ├─ publisher: SheetJS
+│  ├─ path: D:\dev\botium-core\node_modules\frac
+│  └─ licenseFile: D:\dev\botium-core\node_modules\frac\LICENSE
+├─ fresh@0.5.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/fresh
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ url: http://tjholowaychuk.com
+│  ├─ path: D:\dev\botium-core\node_modules\fresh
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fresh\LICENSE
+├─ fs-exists-sync@0.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/fs-exists-sync
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\fs-exists-sync
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fs-exists-sync\LICENSE
+├─ fs-minipass@1.2.5
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/fs-minipass
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\fs-minipass
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\fs-minipass\LICENSE
+├─ fs.realpath@1.0.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/fs.realpath
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fs.realpath
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fs.realpath\LICENSE
+├─ fsevents@1.2.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/strongloop/fsevents
+│  ├─ publisher: Philipp Dunkel
+│  ├─ email: pip@pipobscure.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\LICENSE
+├─ function-bind@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Raynos/function-bind
+│  ├─ publisher: Raynos
+│  ├─ email: raynos2@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\function-bind
+│  └─ licenseFile: D:\dev\botium-core\node_modules\function-bind\LICENSE
+├─ functional-red-black-tree@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mikolalysenko/functional-red-black-tree
+│  ├─ publisher: Mikola Lysenko
+│  ├─ path: D:\dev\botium-core\node_modules\functional-red-black-tree
+│  └─ licenseFile: D:\dev\botium-core\node_modules\functional-red-black-tree\LICENSE
+├─ gauge@1.2.7
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/iarna/gauge
+│  ├─ publisher: Rebecca Turner
+│  ├─ email: me@re-becca.org
+│  ├─ path: D:\dev\botium-core\node_modules\gauge
+│  └─ licenseFile: D:\dev\botium-core\node_modules\gauge\LICENSE
+├─ gauge@2.7.4
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/iarna/gauge
+│  ├─ publisher: Rebecca Turner
+│  ├─ email: me@re-becca.org
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\gauge
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\gauge\LICENSE
+├─ get-func-name@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chaijs/get-func-name
+│  ├─ publisher: Jake Luer
+│  ├─ email: jake@alogicalparadox.com
+│  ├─ url: http://alogicalparadox.com
+│  ├─ path: D:\dev\botium-core\node_modules\get-func-name
+│  └─ licenseFile: D:\dev\botium-core\node_modules\get-func-name\LICENSE
+├─ getpass@0.1.7
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/arekinath/node-getpass
+│  ├─ publisher: Alex Wilson
+│  ├─ email: alex.wilson@joyent.com
+│  ├─ path: D:\dev\botium-core\node_modules\getpass
+│  └─ licenseFile: D:\dev\botium-core\node_modules\getpass\LICENSE
+├─ glob-base@0.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/glob-base
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\glob-base
+│  └─ licenseFile: D:\dev\botium-core\node_modules\glob-base\LICENSE
+├─ glob-parent@2.0.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/es128/glob-parent
+│  ├─ publisher: Elan Shanker
+│  ├─ path: D:\dev\botium-core\node_modules\glob-parent
+│  └─ licenseFile: D:\dev\botium-core\node_modules\glob-parent\LICENSE
+├─ glob@7.1.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/node-glob
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\glob
+│  └─ licenseFile: D:\dev\botium-core\node_modules\glob\LICENSE
+├─ globals@11.10.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/globals
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\globals
+│  └─ licenseFile: D:\dev\botium-core\node_modules\globals\license
+├─ graceful-fs@4.1.11
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/node-graceful-fs
+│  ├─ path: D:\dev\botium-core\node_modules\graceful-fs
+│  └─ licenseFile: D:\dev\botium-core\node_modules\graceful-fs\LICENSE
+├─ growl@1.10.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/tj/node-growl
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\growl
+│  └─ licenseFile: D:\dev\botium-core\node_modules\growl\Readme.md
+├─ har-schema@2.0.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/ahmadnassri/har-schema
+│  ├─ publisher: Ahmad Nassri
+│  ├─ email: ahmad@ahmadnassri.com
+│  ├─ url: https://www.ahmadnassri.com/
+│  ├─ path: D:\dev\botium-core\node_modules\har-schema
+│  └─ licenseFile: D:\dev\botium-core\node_modules\har-schema\LICENSE
+├─ har-validator@5.1.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/ahmadnassri/node-har-validator
+│  ├─ publisher: Ahmad Nassri
+│  ├─ email: ahmad@ahmadnassri.com
+│  ├─ url: https://www.ahmadnassri.com/
+│  ├─ path: D:\dev\botium-core\node_modules\har-validator
+│  └─ licenseFile: D:\dev\botium-core\node_modules\har-validator\LICENSE
+├─ has-binary2@1.0.2
+│  ├─ licenses: MIT
+│  ├─ publisher: Kevin Roark
+│  ├─ path: D:\dev\botium-core\node_modules\has-binary2
+│  └─ licenseFile: D:\dev\botium-core\node_modules\has-binary2\LICENSE
+├─ has-cors@1.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/component/has-cors
+│  ├─ publisher: Nathan Rajlich
+│  ├─ email: nathan@tootallnate.net
+│  ├─ url: http://n8.io/
+│  ├─ path: D:\dev\botium-core\node_modules\has-cors
+│  └─ licenseFile: D:\dev\botium-core\node_modules\has-cors\Readme.md
+├─ has-flag@3.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/has-flag
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\has-flag
+│  └─ licenseFile: D:\dev\botium-core\node_modules\has-flag\license
+├─ has-unicode@2.0.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/iarna/has-unicode
+│  ├─ publisher: Rebecca Turner
+│  ├─ email: me@re-becca.org
+│  ├─ path: D:\dev\botium-core\node_modules\has-unicode
+│  └─ licenseFile: D:\dev\botium-core\node_modules\has-unicode\LICENSE
+├─ has@1.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/tarruda/has
+│  ├─ publisher: Thiago de Arruda
+│  ├─ email: tpadilha84@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\has
+│  └─ licenseFile: D:\dev\botium-core\node_modules\has\LICENSE-MIT
+├─ he@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mathiasbynens/he
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\he
+│  └─ licenseFile: D:\dev\botium-core\node_modules\he\LICENSE-MIT.txt
+├─ hosted-git-info@2.7.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/hosted-git-info
+│  ├─ publisher: Rebecca Turner
+│  ├─ email: me@re-becca.org
+│  ├─ url: http://re-becca.org
+│  ├─ path: D:\dev\botium-core\node_modules\hosted-git-info
+│  └─ licenseFile: D:\dev\botium-core\node_modules\hosted-git-info\LICENSE
+├─ htmlparser2@3.8.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/fb55/htmlparser2
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\htmlparser2
+│  └─ licenseFile: D:\dev\botium-core\node_modules\htmlparser2\LICENSE
+├─ http-errors@1.6.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/http-errors
+│  ├─ publisher: Jonathan Ong
+│  ├─ email: me@jongleberry.com
+│  ├─ url: http://jongleberry.com
+│  ├─ path: D:\dev\botium-core\node_modules\http-errors
+│  └─ licenseFile: D:\dev\botium-core\node_modules\http-errors\LICENSE
+├─ http-signature@1.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/joyent/node-http-signature
+│  ├─ publisher: Joyent, Inc
+│  ├─ path: D:\dev\botium-core\node_modules\http-signature
+│  └─ licenseFile: D:\dev\botium-core\node_modules\http-signature\LICENSE
+├─ iconv-lite@0.4.19
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/ashtuchkin/iconv-lite
+│  ├─ publisher: Alexander Shtuchkin
+│  ├─ email: ashtuchkin@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\iconv-lite
+│  └─ licenseFile: D:\dev\botium-core\node_modules\iconv-lite\LICENSE
+├─ iconv-lite@0.4.21
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/ashtuchkin/iconv-lite
+│  ├─ publisher: Alexander Shtuchkin
+│  ├─ email: ashtuchkin@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\iconv-lite
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\iconv-lite\LICENSE
+├─ iconv-lite@0.4.24
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/ashtuchkin/iconv-lite
+│  ├─ publisher: Alexander Shtuchkin
+│  ├─ email: ashtuchkin@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\external-editor\node_modules\iconv-lite
+│  └─ licenseFile: D:\dev\botium-core\node_modules\external-editor\node_modules\iconv-lite\LICENSE
+├─ ignore-walk@3.0.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/ignore-walk
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\ignore-walk
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\ignore-walk\LICENSE
+├─ ignore@4.0.6
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kaelzhang/node-ignore
+│  ├─ publisher: kael
+│  ├─ path: D:\dev\botium-core\node_modules\ignore
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ignore\LICENSE-MIT
+├─ ignore@5.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kaelzhang/node-ignore
+│  ├─ publisher: kael
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-plugin-node\node_modules\ignore
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-plugin-node\node_modules\ignore\LICENSE-MIT
+├─ import-fresh@3.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/import-fresh
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\import-fresh
+│  └─ licenseFile: D:\dev\botium-core\node_modules\import-fresh\license
+├─ imurmurhash@0.1.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jensyt/imurmurhash-js
+│  ├─ publisher: Jens Taylor
+│  ├─ email: jensyt@gmail.com
+│  ├─ url: https://github.com/homebrewing
+│  ├─ path: D:\dev\botium-core\node_modules\imurmurhash
+│  └─ licenseFile: D:\dev\botium-core\node_modules\imurmurhash\README.md
+├─ indexof@0.0.1
+│  ├─ licenses: MIT*
+│  ├─ path: D:\dev\botium-core\node_modules\indexof
+│  └─ licenseFile: D:\dev\botium-core\node_modules\indexof\Readme.md
+├─ inflight@1.0.6
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/inflight
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\inflight
+│  └─ licenseFile: D:\dev\botium-core\node_modules\inflight\LICENSE
+├─ inherits@2.0.3
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/inherits
+│  ├─ path: D:\dev\botium-core\node_modules\inherits
+│  └─ licenseFile: D:\dev\botium-core\node_modules\inherits\LICENSE
+├─ ini@1.3.5
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/ini
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\ini
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\ini\LICENSE
+├─ inquirer@6.2.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/SBoudrias/Inquirer.js
+│  ├─ publisher: Simon Boudrias
+│  ├─ email: admin@simonboudrias.com
+│  ├─ path: D:\dev\botium-core\node_modules\inquirer
+│  └─ licenseFile: D:\dev\botium-core\node_modules\inquirer\README.md
+├─ ip-regex@2.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/ip-regex
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\ip-regex
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ip-regex\license
+├─ ipaddr.js@1.6.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/whitequark/ipaddr.js
+│  ├─ publisher: whitequark
+│  ├─ email: whitequark@whitequark.org
+│  ├─ path: D:\dev\botium-core\node_modules\ipaddr.js
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ipaddr.js\LICENSE
+├─ is-arrayish@0.2.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/qix-/node-is-arrayish
+│  ├─ publisher: Qix
+│  ├─ url: http://github.com/qix-
+│  ├─ path: D:\dev\botium-core\node_modules\is-arrayish
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-arrayish\LICENSE
+├─ is-binary-path@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/is-binary-path
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\is-binary-path
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-binary-path\license
+├─ is-buffer@1.1.6
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/feross/is-buffer
+│  ├─ publisher: Feross Aboukhadijeh
+│  ├─ email: feross@feross.org
+│  ├─ url: http://feross.org/
+│  ├─ path: D:\dev\botium-core\node_modules\is-buffer
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-buffer\LICENSE
+├─ is-builtin-module@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/is-builtin-module
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\is-builtin-module
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-builtin-module\license
+├─ is-class@0.0.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/miguelmota/is-class
+│  ├─ publisher: Miguel Mota
+│  ├─ email: hello@miguelmota.com
+│  ├─ url: http://www.miguelmota.com/
+│  ├─ path: D:\dev\botium-core\node_modules\is-class
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-class\LICENSE.md
+├─ is-dotfile@1.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-dotfile
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\is-dotfile
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-dotfile\LICENSE
+├─ is-equal-shallow@0.1.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-equal-shallow
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\is-equal-shallow
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-equal-shallow\LICENSE
+├─ is-extendable@0.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-extendable
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\micromatch\node_modules\is-extendable
+│  └─ licenseFile: D:\dev\botium-core\node_modules\micromatch\node_modules\is-extendable\LICENSE
+├─ is-extglob@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-extglob
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\is-extglob
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-extglob\LICENSE
+├─ is-fullwidth-code-point@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/is-fullwidth-code-point
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\is-fullwidth-code-point
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\is-fullwidth-code-point\license
+├─ is-fullwidth-code-point@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/is-fullwidth-code-point
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\is-fullwidth-code-point
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-fullwidth-code-point\license
+├─ is-glob@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-glob
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\is-glob
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-glob\LICENSE
+├─ is-json@2.0.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/joaquimserafim/is-json
+│  ├─ publisher: @joaquimserafim
+│  ├─ path: D:\dev\botium-core\node_modules\is-json
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-json\LICENSE
+├─ is-module@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/component/is-module
+│  ├─ publisher: Jonathan Ong
+│  ├─ email: me@jongleberry.com
+│  ├─ url: http://jongleberry.com
+│  ├─ path: D:\dev\botium-core\node_modules\is-module
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-module\README.md
+├─ is-number@2.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-number
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\fill-range\node_modules\is-number
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fill-range\node_modules\is-number\LICENSE
+├─ is-number@4.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-number
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\is-number
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-number\LICENSE
+├─ is-posix-bracket@0.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-posix-bracket
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\is-posix-bracket
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-posix-bracket\LICENSE
+├─ is-primitive@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-primitive
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\is-primitive
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-primitive\LICENSE
+├─ is-promise@2.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/then/is-promise
+│  ├─ publisher: ForbesLindesay
+│  ├─ path: D:\dev\botium-core\node_modules\is-promise
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-promise\LICENSE
+├─ is-typedarray@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/hughsk/is-typedarray
+│  ├─ publisher: Hugh Kennedy
+│  ├─ email: hughskennedy@gmail.com
+│  ├─ url: http://hughsk.io/
+│  ├─ path: D:\dev\botium-core\node_modules\is-typedarray
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-typedarray\LICENSE.md
+├─ is-url@1.2.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/segmentio/is-url
+│  ├─ path: D:\dev\botium-core\node_modules\is-url
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-url\LICENSE-MIT
+├─ is-windows@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/is-windows
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\is-windows
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-windows\LICENSE
+├─ is-wsl@1.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/is-wsl
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\is-wsl
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is-wsl\license
+├─ is2@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/stdarg/is2
+│  ├─ publisher: Enrico Marino
+│  ├─ email: enrico.marino@email.com
+│  ├─ path: D:\dev\botium-core\node_modules\is2
+│  └─ licenseFile: D:\dev\botium-core\node_modules\is2\LICENSE
+├─ isarray@0.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/juliangruber/isarray
+│  ├─ publisher: Julian Gruber
+│  ├─ email: mail@juliangruber.com
+│  ├─ url: http://juliangruber.com
+│  ├─ path: D:\dev\botium-core\node_modules\htmlparser2\node_modules\isarray
+│  └─ licenseFile: D:\dev\botium-core\node_modules\htmlparser2\node_modules\isarray\README.md
+├─ isarray@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/juliangruber/isarray
+│  ├─ publisher: Julian Gruber
+│  ├─ email: mail@juliangruber.com
+│  ├─ url: http://juliangruber.com
+│  ├─ path: D:\dev\botium-core\node_modules\isarray
+│  └─ licenseFile: D:\dev\botium-core\node_modules\isarray\README.md
+├─ isarray@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/juliangruber/isarray
+│  ├─ publisher: Julian Gruber
+│  ├─ email: mail@juliangruber.com
+│  ├─ url: http://juliangruber.com
+│  ├─ path: D:\dev\botium-core\node_modules\has-binary2\node_modules\isarray
+│  └─ licenseFile: D:\dev\botium-core\node_modules\has-binary2\node_modules\isarray\README.md
+├─ isexe@2.0.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/isexe
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\isexe
+│  └─ licenseFile: D:\dev\botium-core\node_modules\isexe\LICENSE
+├─ isobject@2.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/isobject
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\fill-range\node_modules\isobject
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fill-range\node_modules\isobject\LICENSE
+├─ isstream@0.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rvagg/isstream
+│  ├─ publisher: Rod Vagg
+│  ├─ email: rod@vagg.org
+│  ├─ path: D:\dev\botium-core\node_modules\isstream
+│  └─ licenseFile: D:\dev\botium-core\node_modules\isstream\LICENSE.md
+├─ jison-lex@0.2.1
+│  ├─ licenses: MIT*
+│  ├─ repository: https://github.com/zaach/jison-lex
+│  ├─ publisher: Zach Carter
+│  ├─ email: zach@carter.name
+│  ├─ url: http://zaa.ch
+│  ├─ path: D:\dev\botium-core\node_modules\jison-lex
+│  └─ licenseFile: D:\dev\botium-core\node_modules\jison-lex\README.md
+├─ jison@0.4.13
+│  ├─ licenses: Custom: http://github.com/zaach/jison/issues
+│  ├─ repository: https://github.com/zaach/jison
+│  ├─ publisher: Zach Carter
+│  ├─ email: zach@carter.name
+│  ├─ url: http://zaa.ch
+│  ├─ path: D:\dev\botium-core\node_modules\jison
+│  └─ licenseFile: D:\dev\botium-core\node_modules\jison\README.md
+├─ js-tokens@4.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/lydell/js-tokens
+│  ├─ publisher: Simon Lydell
+│  ├─ path: D:\dev\botium-core\node_modules\js-tokens
+│  └─ licenseFile: D:\dev\botium-core\node_modules\js-tokens\LICENSE
+├─ js-yaml@3.11.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/nodeca/js-yaml
+│  ├─ publisher: Vladimir Zapparov
+│  ├─ email: dervus.grim@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\js-yaml
+│  └─ licenseFile: D:\dev\botium-core\node_modules\js-yaml\LICENSE
+├─ js-yaml@3.12.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/nodeca/js-yaml
+│  ├─ publisher: Vladimir Zapparov
+│  ├─ email: dervus.grim@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\eslint\node_modules\js-yaml
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint\node_modules\js-yaml\LICENSE
+├─ jsbn@0.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/andyperlitch/jsbn
+│  ├─ publisher: Tom Wu
+│  ├─ path: D:\dev\botium-core\node_modules\jsbn
+│  └─ licenseFile: D:\dev\botium-core\node_modules\jsbn\LICENSE
+├─ jsesc@0.5.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mathiasbynens/jsesc
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: http://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\jsesc
+│  └─ licenseFile: D:\dev\botium-core\node_modules\jsesc\LICENSE-MIT.txt
+├─ json-parse-better-errors@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/zkat/json-parse-better-errors
+│  ├─ publisher: Kat Marchán
+│  ├─ email: kzm@zkat.tech
+│  ├─ path: D:\dev\botium-core\node_modules\json-parse-better-errors
+│  └─ licenseFile: D:\dev\botium-core\node_modules\json-parse-better-errors\LICENSE.md
+├─ json-schema-ref-parser@1.4.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/BigstickCarpet/json-schema-ref-parser
+│  ├─ publisher: James Messinger
+│  ├─ url: http://jamesmessinger.com
+│  ├─ path: D:\dev\botium-core\node_modules\json-schema-ref-parser
+│  └─ licenseFile: D:\dev\botium-core\node_modules\json-schema-ref-parser\LICENSE
+├─ json-schema-traverse@0.4.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/epoberezkin/json-schema-traverse
+│  ├─ publisher: Evgeny Poberezkin
+│  ├─ path: D:\dev\botium-core\node_modules\har-validator\node_modules\json-schema-traverse
+│  └─ licenseFile: D:\dev\botium-core\node_modules\har-validator\node_modules\json-schema-traverse\LICENSE
+├─ json-schema@0.2.3
+│  ├─ licenses
+│  │  ├─ 0: AFLv2.1
+│  │  └─ 1: BSD
+│  ├─ repository: https://github.com/kriszyp/json-schema
+│  ├─ publisher: Kris Zyp
+│  ├─ path: D:\dev\botium-core\node_modules\json-schema
+│  └─ licenseFile: D:\dev\botium-core\node_modules\json-schema\README.md
+├─ json-stable-stringify-without-jsonify@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/samn/json-stable-stringify
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\json-stable-stringify-without-jsonify
+│  └─ licenseFile: D:\dev\botium-core\node_modules\json-stable-stringify-without-jsonify\LICENSE
+├─ json-stringify-safe@5.0.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/json-stringify-safe
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me
+│  ├─ path: D:\dev\botium-core\node_modules\json-stringify-safe
+│  └─ licenseFile: D:\dev\botium-core\node_modules\json-stringify-safe\LICENSE
+├─ jsonpath@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/dchester/jsonpath
+│  ├─ publisher: david@fmail.co.uk
+│  ├─ path: D:\dev\botium-core\node_modules\jsonpath
+│  └─ licenseFile: D:\dev\botium-core\node_modules\jsonpath\LICENSE
+├─ jsprim@1.4.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/joyent/node-jsprim
+│  ├─ path: D:\dev\botium-core\node_modules\jsprim
+│  └─ licenseFile: D:\dev\botium-core\node_modules\jsprim\LICENSE
+├─ kind-of@3.2.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/kind-of
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\fill-range\node_modules\kind-of
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fill-range\node_modules\kind-of\LICENSE
+├─ kind-of@6.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/kind-of
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\kind-of
+│  └─ licenseFile: D:\dev\botium-core\node_modules\kind-of\LICENSE
+├─ levn@0.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/gkz/levn
+│  ├─ publisher: George Zahariev
+│  ├─ email: z@georgezahariev.com
+│  ├─ path: D:\dev\botium-core\node_modules\levn
+│  └─ licenseFile: D:\dev\botium-core\node_modules\levn\LICENSE
+├─ lex-parser@0.1.4
+│  ├─ licenses: MIT
+│  ├─ publisher: Zach Carter
+│  ├─ path: D:\dev\botium-core\node_modules\lex-parser
+│  └─ licenseFile: D:\dev\botium-core\node_modules\lex-parser\README.md
+├─ license-checker@25.0.1
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/davglass/license-checker
+│  ├─ publisher: Dav Glass
+│  ├─ email: davglass@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\license-checker
+│  └─ licenseFile: D:\dev\botium-core\node_modules\license-checker\LICENSE
+├─ load-json-file@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/load-json-file
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\load-json-file
+│  └─ licenseFile: D:\dev\botium-core\node_modules\load-json-file\license
+├─ locate-path@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/locate-path
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\locate-path
+│  └─ licenseFile: D:\dev\botium-core\node_modules\locate-path\license
+├─ lodash.get@4.4.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/lodash/lodash
+│  ├─ publisher: John-David Dalton
+│  ├─ email: john.david.dalton@gmail.com
+│  ├─ url: http://allyoucanleet.com/
+│  ├─ path: D:\dev\botium-core\node_modules\lodash.get
+│  └─ licenseFile: D:\dev\botium-core\node_modules\lodash.get\LICENSE
+├─ lodash.isequal@4.5.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/lodash/lodash
+│  ├─ publisher: John-David Dalton
+│  ├─ email: john.david.dalton@gmail.com
+│  ├─ url: http://allyoucanleet.com/
+│  ├─ path: D:\dev\botium-core\node_modules\lodash.isequal
+│  └─ licenseFile: D:\dev\botium-core\node_modules\lodash.isequal\LICENSE
+├─ lodash.pad@4.5.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/lodash/lodash
+│  ├─ publisher: John-David Dalton
+│  ├─ email: john.david.dalton@gmail.com
+│  ├─ url: http://allyoucanleet.com/
+│  ├─ path: D:\dev\botium-core\node_modules\lodash.pad
+│  └─ licenseFile: D:\dev\botium-core\node_modules\lodash.pad\LICENSE
+├─ lodash.padend@4.6.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/lodash/lodash
+│  ├─ publisher: John-David Dalton
+│  ├─ email: john.david.dalton@gmail.com
+│  ├─ url: http://allyoucanleet.com/
+│  ├─ path: D:\dev\botium-core\node_modules\lodash.padend
+│  └─ licenseFile: D:\dev\botium-core\node_modules\lodash.padend\LICENSE
+├─ lodash.padstart@4.6.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/lodash/lodash
+│  ├─ publisher: John-David Dalton
+│  ├─ email: john.david.dalton@gmail.com
+│  ├─ url: http://allyoucanleet.com/
+│  ├─ path: D:\dev\botium-core\node_modules\lodash.padstart
+│  └─ licenseFile: D:\dev\botium-core\node_modules\lodash.padstart\LICENSE
+├─ lodash@3.10.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/lodash/lodash
+│  ├─ publisher: John-David Dalton
+│  ├─ email: john.david.dalton@gmail.com
+│  ├─ url: http://allyoucanleet.com/
+│  ├─ path: D:\dev\botium-core\node_modules\cheerio\node_modules\lodash
+│  └─ licenseFile: D:\dev\botium-core\node_modules\cheerio\node_modules\lodash\LICENSE
+├─ lodash@4.17.11
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/lodash/lodash
+│  ├─ publisher: John-David Dalton
+│  ├─ email: john.david.dalton@gmail.com
+│  ├─ url: http://allyoucanleet.com/
+│  ├─ path: D:\dev\botium-core\node_modules\inquirer\node_modules\lodash
+│  └─ licenseFile: D:\dev\botium-core\node_modules\inquirer\node_modules\lodash\LICENSE
+├─ lodash@4.17.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/lodash/lodash
+│  ├─ publisher: John-David Dalton
+│  ├─ email: john.david.dalton@gmail.com
+│  ├─ url: http://allyoucanleet.com/
+│  ├─ path: D:\dev\botium-core\node_modules\lodash
+│  └─ licenseFile: D:\dev\botium-core\node_modules\lodash\LICENSE
+├─ lru-cache@4.1.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/node-lru-cache
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ path: D:\dev\botium-core\node_modules\lru-cache
+│  └─ licenseFile: D:\dev\botium-core\node_modules\lru-cache\LICENSE
+├─ magic-string@0.25.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rich-harris/magic-string
+│  ├─ publisher: Rich Harris
+│  ├─ path: D:\dev\botium-core\node_modules\magic-string
+│  └─ licenseFile: D:\dev\botium-core\node_modules\magic-string\README.md
+├─ math-random@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/michaelrhodes/math-random
+│  ├─ publisher: Michael Rhodes
+│  ├─ path: D:\dev\botium-core\node_modules\math-random
+│  └─ licenseFile: D:\dev\botium-core\node_modules\math-random\readme.md
+├─ media-typer@0.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/media-typer
+│  ├─ publisher: Douglas Christopher Wilson
+│  ├─ email: doug@somethingdoug.com
+│  ├─ path: D:\dev\botium-core\node_modules\media-typer
+│  └─ licenseFile: D:\dev\botium-core\node_modules\media-typer\LICENSE
+├─ merge-descriptors@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/component/merge-descriptors
+│  ├─ publisher: Jonathan Ong
+│  ├─ email: me@jongleberry.com
+│  ├─ url: http://jongleberry.com
+│  ├─ path: D:\dev\botium-core\node_modules\merge-descriptors
+│  └─ licenseFile: D:\dev\botium-core\node_modules\merge-descriptors\LICENSE
+├─ methods@1.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/methods
+│  ├─ path: D:\dev\botium-core\node_modules\methods
+│  └─ licenseFile: D:\dev\botium-core\node_modules\methods\LICENSE
+├─ micromatch@2.3.11
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/micromatch
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\micromatch
+│  └─ licenseFile: D:\dev\botium-core\node_modules\micromatch\LICENSE
+├─ mime-db@1.36.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/mime-db
+│  ├─ path: D:\dev\botium-core\node_modules\mime-db
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mime-db\LICENSE
+├─ mime-types@2.1.20
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/mime-types
+│  ├─ path: D:\dev\botium-core\node_modules\mime-types
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mime-types\LICENSE
+├─ mime@1.4.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/broofa/node-mime
+│  ├─ publisher: Robert Kieffer
+│  ├─ email: robert@broofa.com
+│  ├─ url: http://github.com/broofa
+│  ├─ path: D:\dev\botium-core\node_modules\send\node_modules\mime
+│  └─ licenseFile: D:\dev\botium-core\node_modules\send\node_modules\mime\LICENSE
+├─ mimic-fn@1.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/mimic-fn
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\mimic-fn
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mimic-fn\license
+├─ minimatch@3.0.4
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/minimatch
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me
+│  ├─ path: D:\dev\botium-core\node_modules\minimatch
+│  └─ licenseFile: D:\dev\botium-core\node_modules\minimatch\LICENSE
+├─ minimist@0.0.8
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/substack/minimist
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\minimist
+│  └─ licenseFile: D:\dev\botium-core\node_modules\minimist\LICENSE
+├─ minimist@1.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/substack/minimist
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\buble\node_modules\minimist
+│  └─ licenseFile: D:\dev\botium-core\node_modules\buble\node_modules\minimist\LICENSE
+├─ minipass@2.2.4
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/minipass
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\minipass
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\minipass\README.md
+├─ minizlib@1.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/isaacs/minizlib
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\minizlib
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\minizlib\LICENSE
+├─ mkdir-p@0.0.7
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/pillys/mkdir-p
+│  ├─ publisher: pillys
+│  ├─ email: pillys@163.com
+│  ├─ url: http://www.calljs.com
+│  ├─ path: D:\dev\botium-core\node_modules\mkdir-p
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mkdir-p\LICENSE
+├─ mkdirp@0.5.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/substack/node-mkdirp
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\mkdirp
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mkdirp\LICENSE
+├─ mocha@5.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mochajs/mocha
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\mocha
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mocha\LICENSE
+├─ moment@2.21.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/moment/moment
+│  ├─ publisher: Iskren Ivov Chernev
+│  ├─ email: iskren.chernev@gmail.com
+│  ├─ url: https://github.com/ichernev
+│  ├─ path: D:\dev\botium-core\node_modules\moment
+│  └─ licenseFile: D:\dev\botium-core\node_modules\moment\LICENSE
+├─ ms@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/zeit/ms
+│  ├─ path: D:\dev\botium-core\node_modules\ms
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ms\license.md
+├─ ms@2.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/zeit/ms
+│  ├─ path: D:\dev\botium-core\node_modules\eslint\node_modules\ms
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint\node_modules\ms\license.md
+├─ mustache@2.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/janl/mustache.js
+│  ├─ publisher: mustache.js Authors
+│  ├─ email: http://github.com/janl/mustache.js
+│  ├─ path: D:\dev\botium-core\node_modules\mustache
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mustache\LICENSE
+├─ mute-stream@0.0.7
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/mute-stream
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\mute-stream
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mute-stream\LICENSE
+├─ nan@2.12.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/nodejs/nan
+│  ├─ path: D:\dev\botium-core\node_modules\nan
+│  └─ licenseFile: D:\dev\botium-core\node_modules\nan\LICENSE.md
+├─ natural-compare@1.4.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/litejs/natural-compare-lite
+│  ├─ publisher: Lauri Rooden
+│  ├─ url: https://github.com/litejs/natural-compare-lite
+│  ├─ path: D:\dev\botium-core\node_modules\natural-compare
+│  └─ licenseFile: D:\dev\botium-core\node_modules\natural-compare\README.md
+├─ needle@2.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/tomas/needle
+│  ├─ publisher: Tomás Pollak
+│  ├─ email: tomas@forkhq.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\needle
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\needle\license.txt
+├─ negotiator@0.6.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/negotiator
+│  ├─ path: D:\dev\botium-core\node_modules\negotiator
+│  └─ licenseFile: D:\dev\botium-core\node_modules\negotiator\LICENSE
+├─ nice-try@1.0.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/electerious/nice-try
+│  ├─ path: D:\dev\botium-core\node_modules\nice-try
+│  └─ licenseFile: D:\dev\botium-core\node_modules\nice-try\LICENSE
+├─ node-pre-gyp@0.10.0
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/mapbox/node-pre-gyp
+│  ├─ publisher: Dane Springmeyer
+│  ├─ email: dane@mapbox.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\node-pre-gyp
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\node-pre-gyp\LICENSE
+├─ nomnom@1.5.2
+│  ├─ licenses: Custom: http://nodejs.org/
+│  ├─ repository: https://github.com/harthur/nomnom
+│  ├─ publisher: Heather Arthur
+│  ├─ email: fayearthur@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\nomnom
+│  └─ licenseFile: D:\dev\botium-core\node_modules\nomnom\README.md
+├─ nopt@4.0.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/nopt
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\nopt
+│  └─ licenseFile: D:\dev\botium-core\node_modules\nopt\LICENSE
+├─ normalize-package-data@2.4.0
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/npm/normalize-package-data
+│  ├─ publisher: Meryn Stol
+│  ├─ email: merynstol@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\normalize-package-data
+│  └─ licenseFile: D:\dev\botium-core\node_modules\normalize-package-data\LICENSE
+├─ normalize-path@2.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/normalize-path
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\normalize-path
+│  └─ licenseFile: D:\dev\botium-core\node_modules\normalize-path\LICENSE
+├─ npm-bundled@1.0.3
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/npm-bundled
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\npm-bundled
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\npm-bundled\README.md
+├─ npm-packlist@1.1.10
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/npm-packlist
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\npm-packlist
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\npm-packlist\LICENSE
+├─ npmlog@1.2.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/npmlog
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\npmlog
+│  └─ licenseFile: D:\dev\botium-core\node_modules\npmlog\LICENSE
+├─ npmlog@4.1.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/npmlog
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\npmlog
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\npmlog\LICENSE
+├─ nth-check@1.0.1
+│  ├─ licenses: BSD*
+│  ├─ repository: https://github.com/fb55/nth-check
+│  ├─ publisher: Felix Boehm
+│  ├─ email: me@feedic.com
+│  ├─ path: D:\dev\botium-core\node_modules\nth-check
+│  └─ licenseFile: D:\dev\botium-core\node_modules\nth-check\README.md
+├─ number-is-nan@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/number-is-nan
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\number-is-nan
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\number-is-nan\license
+├─ oauth-sign@0.9.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/mikeal/oauth-sign
+│  ├─ publisher: Mikeal Rogers
+│  ├─ email: mikeal.rogers@gmail.com
+│  ├─ url: http://www.futurealoof.com
+│  ├─ path: D:\dev\botium-core\node_modules\oauth-sign
+│  └─ licenseFile: D:\dev\botium-core\node_modules\oauth-sign\LICENSE
+├─ object-assign@4.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/object-assign
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\object-assign
+│  └─ licenseFile: D:\dev\botium-core\node_modules\object-assign\license
+├─ object-component@0.0.3
+│  ├─ licenses: MIT*
+│  ├─ path: D:\dev\botium-core\node_modules\object-component
+│  └─ licenseFile: D:\dev\botium-core\node_modules\object-component\Readme.md
+├─ object.omit@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/object.omit
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\micromatch\node_modules\object.omit
+│  └─ licenseFile: D:\dev\botium-core\node_modules\micromatch\node_modules\object.omit\LICENSE
+├─ on-finished@2.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/on-finished
+│  ├─ path: D:\dev\botium-core\node_modules\on-finished
+│  └─ licenseFile: D:\dev\botium-core\node_modules\on-finished\LICENSE
+├─ once@1.4.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/once
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\once
+│  └─ licenseFile: D:\dev\botium-core\node_modules\once\LICENSE
+├─ onetime@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/onetime
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\onetime
+│  └─ licenseFile: D:\dev\botium-core\node_modules\onetime\license
+├─ ono@2.2.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/bigstickcarpet/ono
+│  ├─ publisher: James Messinger
+│  ├─ url: http://jamesmessinger.com
+│  ├─ path: D:\dev\botium-core\node_modules\json-schema-ref-parser\node_modules\ono
+│  └─ licenseFile: D:\dev\botium-core\node_modules\json-schema-ref-parser\node_modules\ono\LICENSE
+├─ ono@4.0.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/bigstickcarpet/ono
+│  ├─ publisher: James Messinger
+│  ├─ url: http://bigstickcarpet.com
+│  ├─ path: D:\dev\botium-core\node_modules\ono
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ono\LICENSE
+├─ opn@5.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/opn
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\opn
+│  └─ licenseFile: D:\dev\botium-core\node_modules\opn\license
+├─ optionator@0.8.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/gkz/optionator
+│  ├─ publisher: George Zahariev
+│  ├─ email: z@georgezahariev.com
+│  ├─ path: D:\dev\botium-core\node_modules\optionator
+│  └─ licenseFile: D:\dev\botium-core\node_modules\optionator\LICENSE
+├─ os-homedir@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/os-homedir
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\os-homedir
+│  └─ licenseFile: D:\dev\botium-core\node_modules\os-homedir\license
+├─ os-tmpdir@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/os-tmpdir
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\os-tmpdir
+│  └─ licenseFile: D:\dev\botium-core\node_modules\os-tmpdir\license
+├─ osenv@0.1.5
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/osenv
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\osenv
+│  └─ licenseFile: D:\dev\botium-core\node_modules\osenv\LICENSE
+├─ p-limit@1.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/p-limit
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\p-limit
+│  └─ licenseFile: D:\dev\botium-core\node_modules\p-limit\license
+├─ p-locate@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/p-locate
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\p-locate
+│  └─ licenseFile: D:\dev\botium-core\node_modules\p-locate\license
+├─ p-try@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/p-try
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\p-try
+│  └─ licenseFile: D:\dev\botium-core\node_modules\p-try\license
+├─ parent-module@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/parent-module
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\parent-module
+│  └─ licenseFile: D:\dev\botium-core\node_modules\parent-module\license
+├─ parse-glob@3.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/parse-glob
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\parse-glob
+│  └─ licenseFile: D:\dev\botium-core\node_modules\parse-glob\LICENSE
+├─ parse-json@2.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/parse-json
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\parse-json
+│  └─ licenseFile: D:\dev\botium-core\node_modules\parse-json\license
+├─ parseqs@0.0.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/get/querystring
+│  ├─ publisher: Gal Koren
+│  ├─ path: D:\dev\botium-core\node_modules\parseqs
+│  └─ licenseFile: D:\dev\botium-core\node_modules\parseqs\LICENSE
+├─ parseuri@0.0.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/get/parseuri
+│  ├─ path: D:\dev\botium-core\node_modules\parseuri
+│  └─ licenseFile: D:\dev\botium-core\node_modules\parseuri\LICENSE
+├─ parseurl@1.3.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/pillarjs/parseurl
+│  ├─ path: D:\dev\botium-core\node_modules\parseurl
+│  └─ licenseFile: D:\dev\botium-core\node_modules\parseurl\LICENSE
+├─ path-exists@2.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/path-exists
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\path-exists
+│  └─ licenseFile: D:\dev\botium-core\node_modules\path-exists\license
+├─ path-exists@3.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/path-exists
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\locate-path\node_modules\path-exists
+│  └─ licenseFile: D:\dev\botium-core\node_modules\locate-path\node_modules\path-exists\license
+├─ path-is-absolute@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/path-is-absolute
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\path-is-absolute
+│  └─ licenseFile: D:\dev\botium-core\node_modules\path-is-absolute\license
+├─ path-is-inside@1.0.2
+│  ├─ licenses: (WTFPL OR MIT)
+│  ├─ repository: https://github.com/domenic/path-is-inside
+│  ├─ publisher: Domenic Denicola
+│  ├─ email: d@domenic.me
+│  ├─ url: https://domenic.me
+│  ├─ path: D:\dev\botium-core\node_modules\path-is-inside
+│  └─ licenseFile: D:\dev\botium-core\node_modules\path-is-inside\LICENSE.txt
+├─ path-key@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/path-key
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\path-key
+│  └─ licenseFile: D:\dev\botium-core\node_modules\path-key\license
+├─ path-parse@1.0.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jbgutierrez/path-parse
+│  ├─ publisher: Javier Blanco
+│  ├─ email: http://jbgutierrez.info
+│  ├─ path: D:\dev\botium-core\node_modules\path-parse
+│  └─ licenseFile: D:\dev\botium-core\node_modules\path-parse\README.md
+├─ path-parse@1.0.6
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jbgutierrez/path-parse
+│  ├─ publisher: Javier Blanco
+│  ├─ email: http://jbgutierrez.info
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-plugin-import\node_modules\path-parse
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-plugin-import\node_modules\path-parse\LICENSE
+├─ path-to-regexp@0.1.7
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/component/path-to-regexp
+│  ├─ path: D:\dev\botium-core\node_modules\path-to-regexp
+│  └─ licenseFile: D:\dev\botium-core\node_modules\path-to-regexp\LICENSE
+├─ path-type@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/path-type
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\path-type
+│  └─ licenseFile: D:\dev\botium-core\node_modules\path-type\license
+├─ pathval@1.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chaijs/pathval
+│  ├─ publisher: Veselin Todorov
+│  ├─ email: hi@vesln.com
+│  ├─ path: D:\dev\botium-core\node_modules\pathval
+│  └─ licenseFile: D:\dev\botium-core\node_modules\pathval\LICENSE
+├─ performance-now@2.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/braveg1rl/performance-now
+│  ├─ publisher: Braveg1rl
+│  ├─ email: braveg1rl@outlook.com
+│  ├─ path: D:\dev\botium-core\node_modules\performance-now
+│  └─ licenseFile: D:\dev\botium-core\node_modules\performance-now\license.txt
+├─ pify@2.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/pify
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\pify
+│  └─ licenseFile: D:\dev\botium-core\node_modules\pify\license
+├─ pinkie-promise@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/floatdrop/pinkie-promise
+│  ├─ publisher: Vsevolod Strukchinsky
+│  ├─ email: floatdrop@gmail.com
+│  ├─ url: github.com/floatdrop
+│  ├─ path: D:\dev\botium-core\node_modules\pinkie-promise
+│  └─ licenseFile: D:\dev\botium-core\node_modules\pinkie-promise\license
+├─ pinkie@2.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/floatdrop/pinkie
+│  ├─ publisher: Vsevolod Strukchinsky
+│  ├─ email: floatdrop@gmail.com
+│  ├─ url: github.com/floatdrop
+│  ├─ path: D:\dev\botium-core\node_modules\pinkie
+│  └─ licenseFile: D:\dev\botium-core\node_modules\pinkie\license
+├─ pkg-dir@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/pkg-dir
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\pkg-dir
+│  └─ licenseFile: D:\dev\botium-core\node_modules\pkg-dir\license
+├─ pluralize@7.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/blakeembrey/pluralize
+│  ├─ publisher: Blake Embrey
+│  ├─ email: hello@blakeembrey.com
+│  ├─ url: http://blakeembrey.me
+│  ├─ path: D:\dev\botium-core\node_modules\pluralize
+│  └─ licenseFile: D:\dev\botium-core\node_modules\pluralize\LICENSE
+├─ prelude-ls@1.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/gkz/prelude-ls
+│  ├─ publisher: George Zahariev
+│  ├─ email: z@georgezahariev.com
+│  ├─ path: D:\dev\botium-core\node_modules\prelude-ls
+│  └─ licenseFile: D:\dev\botium-core\node_modules\prelude-ls\LICENSE
+├─ preserve@0.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/preserve
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\preserve
+│  └─ licenseFile: D:\dev\botium-core\node_modules\preserve\LICENSE
+├─ printj@1.1.2
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/SheetJS/printj
+│  ├─ publisher: sheetjs
+│  ├─ path: D:\dev\botium-core\node_modules\printj
+│  └─ licenseFile: D:\dev\botium-core\node_modules\printj\LICENSE
+├─ process-nextick-args@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/calvinmetcalf/process-nextick-args
+│  ├─ path: D:\dev\botium-core\node_modules\process-nextick-args
+│  └─ licenseFile: D:\dev\botium-core\node_modules\process-nextick-args\license.md
+├─ progress@2.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/visionmedia/node-progress
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\progress
+│  └─ licenseFile: D:\dev\botium-core\node_modules\progress\LICENSE
+├─ proxy-addr@2.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/proxy-addr
+│  ├─ publisher: Douglas Christopher Wilson
+│  ├─ email: doug@somethingdoug.com
+│  ├─ path: D:\dev\botium-core\node_modules\proxy-addr
+│  └─ licenseFile: D:\dev\botium-core\node_modules\proxy-addr\LICENSE
+├─ pseudomap@1.0.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/pseudomap
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\pseudomap
+│  └─ licenseFile: D:\dev\botium-core\node_modules\pseudomap\LICENSE
+├─ psl@1.1.31
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/wrangr/psl
+│  ├─ publisher: Lupo Montero
+│  ├─ path: D:\dev\botium-core\node_modules\psl
+│  └─ licenseFile: D:\dev\botium-core\node_modules\psl\LICENSE
+├─ punycode@1.4.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/bestiejs/punycode.js
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\tough-cookie\node_modules\punycode
+│  └─ licenseFile: D:\dev\botium-core\node_modules\tough-cookie\node_modules\punycode\LICENSE-MIT.txt
+├─ punycode@2.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/bestiejs/punycode.js
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\punycode
+│  └─ licenseFile: D:\dev\botium-core\node_modules\punycode\LICENSE-MIT.txt
+├─ qs@6.5.1
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/ljharb/qs
+│  ├─ path: D:\dev\botium-core\node_modules\qs
+│  └─ licenseFile: D:\dev\botium-core\node_modules\qs\LICENSE
+├─ qs@6.5.2
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/ljharb/qs
+│  ├─ path: D:\dev\botium-core\node_modules\request\node_modules\qs
+│  └─ licenseFile: D:\dev\botium-core\node_modules\request\node_modules\qs\LICENSE
+├─ randomatic@3.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/randomatic
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\randomatic
+│  └─ licenseFile: D:\dev\botium-core\node_modules\randomatic\LICENSE
+├─ range-parser@1.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/range-parser
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ url: http://tjholowaychuk.com
+│  ├─ path: D:\dev\botium-core\node_modules\range-parser
+│  └─ licenseFile: D:\dev\botium-core\node_modules\range-parser\LICENSE
+├─ raw-body@2.3.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/stream-utils/raw-body
+│  ├─ publisher: Jonathan Ong
+│  ├─ email: me@jongleberry.com
+│  ├─ url: http://jongleberry.com
+│  ├─ path: D:\dev\botium-core\node_modules\raw-body
+│  └─ licenseFile: D:\dev\botium-core\node_modules\raw-body\LICENSE
+├─ rc@1.2.7
+│  ├─ licenses: (BSD-2-Clause OR MIT OR Apache-2.0)
+│  ├─ repository: https://github.com/dominictarr/rc
+│  ├─ publisher: Dominic Tarr
+│  ├─ email: dominic.tarr@gmail.com
+│  ├─ url: dominictarr.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\rc
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\rc\LICENSE.APACHE2
+├─ read-installed@4.0.3
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/read-installed
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\read-installed
+│  └─ licenseFile: D:\dev\botium-core\node_modules\read-installed\LICENSE
+├─ read-package-json@2.0.13
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/read-package-json
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\read-package-json
+│  └─ licenseFile: D:\dev\botium-core\node_modules\read-package-json\LICENSE
+├─ read-pkg-up@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/read-pkg-up
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\read-pkg-up
+│  └─ licenseFile: D:\dev\botium-core\node_modules\read-pkg-up\license
+├─ read-pkg@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/read-pkg
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\read-pkg
+│  └─ licenseFile: D:\dev\botium-core\node_modules\read-pkg\license
+├─ readable-stream@1.1.14
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/isaacs/readable-stream
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\htmlparser2\node_modules\readable-stream
+│  └─ licenseFile: D:\dev\botium-core\node_modules\htmlparser2\node_modules\readable-stream\LICENSE
+├─ readable-stream@2.3.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/nodejs/readable-stream
+│  ├─ path: D:\dev\botium-core\node_modules\readable-stream
+│  └─ licenseFile: D:\dev\botium-core\node_modules\readable-stream\LICENSE
+├─ readable-stream@2.3.6
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/nodejs/readable-stream
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\readable-stream
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\readable-stream\LICENSE
+├─ readdir-scoped-modules@1.0.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/readdir-scoped-modules
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\readdir-scoped-modules
+│  └─ licenseFile: D:\dev\botium-core\node_modules\readdir-scoped-modules\LICENSE
+├─ readdirp@2.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/thlorenz/readdirp
+│  ├─ publisher: Thorsten Lorenz
+│  ├─ email: thlorenz@gmx.de
+│  ├─ url: thlorenz.com
+│  ├─ path: D:\dev\botium-core\node_modules\readdirp
+│  └─ licenseFile: D:\dev\botium-core\node_modules\readdirp\LICENSE
+├─ recursive-iterator@2.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/nervgh/recursive-iterator
+│  ├─ publisher: nerv
+│  ├─ url: https://github.com/nervgh
+│  ├─ path: D:\dev\botium-core\node_modules\recursive-iterator
+│  └─ licenseFile: D:\dev\botium-core\node_modules\recursive-iterator\LICENSE
+├─ regenerate-unicode-properties@7.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mathiasbynens/regenerate-unicode-properties
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\regenerate-unicode-properties
+│  └─ licenseFile: D:\dev\botium-core\node_modules\regenerate-unicode-properties\LICENSE-MIT.txt
+├─ regenerate@1.4.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mathiasbynens/regenerate
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\regenerate
+│  └─ licenseFile: D:\dev\botium-core\node_modules\regenerate\LICENSE-MIT.txt
+├─ regex-cache@0.4.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/regex-cache
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\regex-cache
+│  └─ licenseFile: D:\dev\botium-core\node_modules\regex-cache\LICENSE
+├─ regexpp@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mysticatea/regexpp
+│  ├─ publisher: Toru Nagashima
+│  ├─ url: https://github.com/mysticatea
+│  ├─ path: D:\dev\botium-core\node_modules\regexpp
+│  └─ licenseFile: D:\dev\botium-core\node_modules\regexpp\LICENSE
+├─ regexpu-core@4.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mathiasbynens/regexpu-core
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\regexpu-core
+│  └─ licenseFile: D:\dev\botium-core\node_modules\regexpu-core\LICENSE-MIT.txt
+├─ regjsgen@0.4.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/bnjmnt4n/regjsgen
+│  ├─ publisher: Benjamin Tan
+│  ├─ url: https://bnjmnt4n.now.sh/
+│  ├─ path: D:\dev\botium-core\node_modules\regjsgen
+│  └─ licenseFile: D:\dev\botium-core\node_modules\regjsgen\LICENSE
+├─ regjsparser@0.3.0
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/jviereck/regjsparser
+│  ├─ publisher: 'Julian Viereck'
+│  ├─ email: julian.viereck@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\regjsparser
+│  └─ licenseFile: D:\dev\botium-core\node_modules\regjsparser\LICENSE.BSD
+├─ remove-trailing-separator@1.1.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/darsain/remove-trailing-separator
+│  ├─ publisher: darsain
+│  ├─ path: D:\dev\botium-core\node_modules\remove-trailing-separator
+│  └─ licenseFile: D:\dev\botium-core\node_modules\remove-trailing-separator\license
+├─ repeat-element@1.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/repeat-element
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\repeat-element
+│  └─ licenseFile: D:\dev\botium-core\node_modules\repeat-element\LICENSE
+├─ repeat-string@1.6.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/repeat-string
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: http://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\repeat-string
+│  └─ licenseFile: D:\dev\botium-core\node_modules\repeat-string\LICENSE
+├─ request@2.88.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/request/request
+│  ├─ publisher: Mikeal Rogers
+│  ├─ email: mikeal.rogers@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\request
+│  └─ licenseFile: D:\dev\botium-core\node_modules\request\LICENSE
+├─ resolve-from@4.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/resolve-from
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\resolve-from
+│  └─ licenseFile: D:\dev\botium-core\node_modules\resolve-from\license
+├─ resolve@1.5.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/browserify/node-resolve
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\resolve
+│  └─ licenseFile: D:\dev\botium-core\node_modules\resolve\LICENSE
+├─ resolve@1.8.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/browserify/resolve
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\rollup-plugin-commonjs\node_modules\resolve
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rollup-plugin-commonjs\node_modules\resolve\LICENSE
+├─ resolve@1.9.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/browserify/resolve
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\eslint-plugin-import\node_modules\resolve
+│  └─ licenseFile: D:\dev\botium-core\node_modules\eslint-plugin-import\node_modules\resolve\LICENSE
+├─ restore-cursor@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/restore-cursor
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\restore-cursor
+│  └─ licenseFile: D:\dev\botium-core\node_modules\restore-cursor\license
+├─ rimraf@2.6.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/rimraf
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\rimraf
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rimraf\LICENSE
+├─ rollup-plugin-buble@0.19.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rollup/rollup-plugin-buble
+│  ├─ publisher: Rich Harris
+│  ├─ path: D:\dev\botium-core\node_modules\rollup-plugin-buble
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rollup-plugin-buble\README.md
+├─ rollup-plugin-commonjs@9.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rollup/rollup-plugin-commonjs
+│  ├─ publisher: Rich Harris
+│  ├─ path: D:\dev\botium-core\node_modules\rollup-plugin-commonjs
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rollup-plugin-commonjs\LICENSE
+├─ rollup-plugin-json@3.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rollup/rollup-plugin-json
+│  ├─ path: D:\dev\botium-core\node_modules\rollup-plugin-json
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rollup-plugin-json\README.md
+├─ rollup-plugin-node-resolve@3.4.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rollup/rollup-plugin-node-resolve
+│  ├─ publisher: Rich Harris
+│  ├─ email: richard.a.harris@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\rollup-plugin-node-resolve
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rollup-plugin-node-resolve\README.md
+├─ rollup-pluginutils@2.3.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rollup/rollup-pluginutils
+│  ├─ publisher: Rich Harris
+│  ├─ email: richard.a.harris@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\rollup-pluginutils
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rollup-pluginutils\README.md
+├─ rollup@0.67.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rollup/rollup
+│  ├─ publisher: Rich Harris
+│  ├─ path: D:\dev\botium-core\node_modules\rollup
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rollup\LICENSE.md
+├─ run-async@2.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/SBoudrias/run-async
+│  ├─ publisher: Simon Boudrias
+│  ├─ email: admin@simonboudrias.com
+│  ├─ path: D:\dev\botium-core\node_modules\run-async
+│  └─ licenseFile: D:\dev\botium-core\node_modules\run-async\LICENSE
+├─ rxjs@6.3.3
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/reactivex/rxjs
+│  ├─ publisher: Ben Lesh
+│  ├─ email: ben@benlesh.com
+│  ├─ path: D:\dev\botium-core\node_modules\rxjs
+│  └─ licenseFile: D:\dev\botium-core\node_modules\rxjs\LICENSE.txt
+├─ safe-buffer@5.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/feross/safe-buffer
+│  ├─ publisher: Feross Aboukhadijeh
+│  ├─ email: feross@feross.org
+│  ├─ url: http://feross.org
+│  ├─ path: D:\dev\botium-core\node_modules\safe-buffer
+│  └─ licenseFile: D:\dev\botium-core\node_modules\safe-buffer\LICENSE
+├─ safe-buffer@5.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/feross/safe-buffer
+│  ├─ publisher: Feross Aboukhadijeh
+│  ├─ email: feross@feross.org
+│  ├─ url: http://feross.org
+│  ├─ path: D:\dev\botium-core\node_modules\request\node_modules\safe-buffer
+│  └─ licenseFile: D:\dev\botium-core\node_modules\request\node_modules\safe-buffer\LICENSE
+├─ safer-buffer@2.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/ChALkeR/safer-buffer
+│  ├─ publisher: Nikita Skovoroda
+│  ├─ email: chalkerx@gmail.com
+│  ├─ url: https://github.com/ChALkeR
+│  ├─ path: D:\dev\botium-core\node_modules\safer-buffer
+│  └─ licenseFile: D:\dev\botium-core\node_modules\safer-buffer\LICENSE
+├─ sax@1.2.4
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/sax-js
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\sax
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\sax\LICENSE
+├─ semver@5.5.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/node-semver
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\semver
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\semver\LICENSE
+├─ semver@5.6.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/node-semver
+│  ├─ path: D:\dev\botium-core\node_modules\semver
+│  └─ licenseFile: D:\dev\botium-core\node_modules\semver\LICENSE
+├─ send@0.16.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/pillarjs/send
+│  ├─ publisher: TJ Holowaychuk
+│  ├─ email: tj@vision-media.ca
+│  ├─ path: D:\dev\botium-core\node_modules\send
+│  └─ licenseFile: D:\dev\botium-core\node_modules\send\LICENSE
+├─ serve-static@1.13.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/expressjs/serve-static
+│  ├─ publisher: Douglas Christopher Wilson
+│  ├─ email: doug@somethingdoug.com
+│  ├─ path: D:\dev\botium-core\node_modules\serve-static
+│  └─ licenseFile: D:\dev\botium-core\node_modules\serve-static\LICENSE
+├─ set-blocking@2.0.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/yargs/set-blocking
+│  ├─ publisher: Ben Coe
+│  ├─ email: ben@npmjs.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\set-blocking
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\set-blocking\LICENSE.txt
+├─ set-immediate-shim@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/set-immediate-shim
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\set-immediate-shim
+│  └─ licenseFile: D:\dev\botium-core\node_modules\set-immediate-shim\readme.md
+├─ setprototypeof@1.0.3
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/wesleytodd/setprototypeof
+│  ├─ publisher: Wes Todd
+│  ├─ path: D:\dev\botium-core\node_modules\setprototypeof
+│  └─ licenseFile: D:\dev\botium-core\node_modules\setprototypeof\LICENSE
+├─ setprototypeof@1.1.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/wesleytodd/setprototypeof
+│  ├─ publisher: Wes Todd
+│  ├─ path: D:\dev\botium-core\node_modules\express\node_modules\setprototypeof
+│  └─ licenseFile: D:\dev\botium-core\node_modules\express\node_modules\setprototypeof\LICENSE
+├─ shebang-command@1.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kevva/shebang-command
+│  ├─ publisher: Kevin Martensson
+│  ├─ email: kevinmartensson@gmail.com
+│  ├─ url: github.com/kevva
+│  ├─ path: D:\dev\botium-core\node_modules\shebang-command
+│  └─ licenseFile: D:\dev\botium-core\node_modules\shebang-command\license
+├─ shebang-regex@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/shebang-regex
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\shebang-regex
+│  └─ licenseFile: D:\dev\botium-core\node_modules\shebang-regex\license
+├─ signal-exit@3.0.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/tapjs/signal-exit
+│  ├─ publisher: Ben Coe
+│  ├─ email: ben@npmjs.com
+│  ├─ path: D:\dev\botium-core\node_modules\signal-exit
+│  └─ licenseFile: D:\dev\botium-core\node_modules\signal-exit\LICENSE.txt
+├─ slash@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/slash
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: http://sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\slash
+│  └─ licenseFile: D:\dev\botium-core\node_modules\slash\readme.md
+├─ slice-ansi@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/slice-ansi
+│  ├─ path: D:\dev\botium-core\node_modules\slice-ansi
+│  └─ licenseFile: D:\dev\botium-core\node_modules\slice-ansi\license
+├─ slide@1.1.6
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/slide-flow-control
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\slide
+│  └─ licenseFile: D:\dev\botium-core\node_modules\slide\LICENSE
+├─ slugify@1.3.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/simov/slugify
+│  ├─ publisher: Simeon Velichkov
+│  ├─ email: simeonvelichkov@gmail.com
+│  ├─ url: https://simov.github.io
+│  ├─ path: D:\dev\botium-core\node_modules\slugify
+│  └─ licenseFile: D:\dev\botium-core\node_modules\slugify\LICENSE
+├─ socket.io-adapter@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/socketio/socket.io-adapter
+│  ├─ path: D:\dev\botium-core\node_modules\socket.io-adapter
+│  └─ licenseFile: D:\dev\botium-core\node_modules\socket.io-adapter\LICENSE
+├─ socket.io-client@2.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Automattic/socket.io-client
+│  ├─ path: D:\dev\botium-core\node_modules\socket.io-client
+│  └─ licenseFile: D:\dev\botium-core\node_modules\socket.io-client\LICENSE
+├─ socket.io-parser@3.1.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Automattic/socket.io-parser
+│  ├─ path: D:\dev\botium-core\node_modules\socket.io-parser
+│  └─ licenseFile: D:\dev\botium-core\node_modules\socket.io-parser\LICENSE
+├─ socket.io@2.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/socketio/socket.io
+│  ├─ path: D:\dev\botium-core\node_modules\socket.io
+│  └─ licenseFile: D:\dev\botium-core\node_modules\socket.io\LICENSE
+├─ socketio-auth@0.1.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/facundoolano/socketio-auth
+│  ├─ publisher: Facundo Olano and Martín Paulucci
+│  ├─ path: D:\dev\botium-core\node_modules\socketio-auth
+│  └─ licenseFile: D:\dev\botium-core\node_modules\socketio-auth\README.md
+├─ source-map@0.6.1
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/mozilla/source-map
+│  ├─ publisher: Nick Fitzgerald
+│  ├─ email: nfitzgerald@mozilla.com
+│  ├─ path: D:\dev\botium-core\node_modules\static-eval\node_modules\source-map
+│  └─ licenseFile: D:\dev\botium-core\node_modules\static-eval\node_modules\source-map\LICENSE
+├─ source-map@0.7.2
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/mozilla/source-map
+│  ├─ publisher: Nick Fitzgerald
+│  ├─ email: nfitzgerald@mozilla.com
+│  ├─ path: D:\dev\botium-core\node_modules\source-map
+│  └─ licenseFile: D:\dev\botium-core\node_modules\source-map\LICENSE
+├─ sourcemap-codec@1.4.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Rich-Harris/sourcemap-codec
+│  ├─ publisher: Rich Harris
+│  ├─ path: D:\dev\botium-core\node_modules\sourcemap-codec
+│  └─ licenseFile: D:\dev\botium-core\node_modules\sourcemap-codec\LICENSE
+├─ spdx-compare@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kemitchell/spdx-compare.js
+│  ├─ publisher: Kyle E. Mitchell
+│  ├─ email: kyle@kemitchell.com
+│  ├─ url: https://kemitchell.com
+│  ├─ path: D:\dev\botium-core\node_modules\spdx-compare
+│  └─ licenseFile: D:\dev\botium-core\node_modules\spdx-compare\LICENSE.md
+├─ spdx-correct@3.1.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/jslicense/spdx-correct.js
+│  ├─ publisher: Kyle E. Mitchell
+│  ├─ email: kyle@kemitchell.com
+│  ├─ url: https://kemitchell.com
+│  ├─ path: D:\dev\botium-core\node_modules\spdx-correct
+│  └─ licenseFile: D:\dev\botium-core\node_modules\spdx-correct\LICENSE
+├─ spdx-exceptions@2.2.0
+│  ├─ licenses: CC-BY-3.0
+│  ├─ repository: https://github.com/kemitchell/spdx-exceptions.json
+│  ├─ publisher: The Linux Foundation
+│  ├─ path: D:\dev\botium-core\node_modules\spdx-exceptions
+│  └─ licenseFile: D:\dev\botium-core\node_modules\spdx-exceptions\README.md
+├─ spdx-expression-parse@3.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jslicense/spdx-expression-parse.js
+│  ├─ publisher: Kyle E. Mitchell
+│  ├─ email: kyle@kemitchell.com
+│  ├─ url: http://kemitchell.com
+│  ├─ path: D:\dev\botium-core\node_modules\spdx-expression-parse
+│  └─ licenseFile: D:\dev\botium-core\node_modules\spdx-expression-parse\LICENSE
+├─ spdx-license-ids@3.0.3
+│  ├─ licenses: CC0-1.0
+│  ├─ repository: https://github.com/shinnn/spdx-license-ids
+│  ├─ publisher: Shinnosuke Watanabe
+│  ├─ url: https://github.com/shinnn
+│  ├─ path: D:\dev\botium-core\node_modules\spdx-license-ids
+│  └─ licenseFile: D:\dev\botium-core\node_modules\spdx-license-ids\README.md
+├─ spdx-ranges@2.0.0
+│  ├─ licenses: CC-BY-3.0
+│  ├─ repository: https://github.com/kemitchell/spdx-ranges.js
+│  ├─ publisher: The Linux Foundation
+│  ├─ path: D:\dev\botium-core\node_modules\spdx-ranges
+│  └─ licenseFile: D:\dev\botium-core\node_modules\spdx-ranges\LICENSE.md
+├─ spdx-satisfies@4.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kemitchell/spdx-satisfies.js
+│  ├─ publisher: Kyle E. Mitchell
+│  ├─ email: kyle@kemitchell.com
+│  ├─ url: https://kemitchell.com
+│  ├─ path: D:\dev\botium-core\node_modules\spdx-satisfies
+│  └─ licenseFile: D:\dev\botium-core\node_modules\spdx-satisfies\LICENSE
+├─ sprintf-js@1.0.3
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/alexei/sprintf.js
+│  ├─ publisher: Alexandru Marasteanu
+│  ├─ email: hello@alexei.ro
+│  ├─ url: http://alexei.ro/
+│  ├─ path: D:\dev\botium-core\node_modules\sprintf-js
+│  └─ licenseFile: D:\dev\botium-core\node_modules\sprintf-js\LICENSE
+├─ ssf@0.10.2
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/SheetJS/ssf
+│  ├─ publisher: sheetjs
+│  ├─ path: D:\dev\botium-core\node_modules\ssf
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ssf\LICENSE
+├─ sshpk@1.16.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/joyent/node-sshpk
+│  ├─ publisher: Joyent, Inc
+│  ├─ path: D:\dev\botium-core\node_modules\sshpk
+│  └─ licenseFile: D:\dev\botium-core\node_modules\sshpk\LICENSE
+├─ static-eval@2.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/substack/static-eval
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\static-eval
+│  └─ licenseFile: D:\dev\botium-core\node_modules\static-eval\LICENSE
+├─ statuses@1.4.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/statuses
+│  ├─ path: D:\dev\botium-core\node_modules\statuses
+│  └─ licenseFile: D:\dev\botium-core\node_modules\statuses\LICENSE
+├─ string-width@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/string-width
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\string-width
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\string-width\license
+├─ string-width@2.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/string-width
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\string-width
+│  └─ licenseFile: D:\dev\botium-core\node_modules\string-width\license
+├─ string_decoder@0.10.31
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rvagg/string_decoder
+│  ├─ path: D:\dev\botium-core\node_modules\htmlparser2\node_modules\string_decoder
+│  └─ licenseFile: D:\dev\botium-core\node_modules\htmlparser2\node_modules\string_decoder\LICENSE
+├─ string_decoder@1.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/rvagg/string_decoder
+│  ├─ path: D:\dev\botium-core\node_modules\string_decoder
+│  └─ licenseFile: D:\dev\botium-core\node_modules\string_decoder\LICENSE
+├─ string_decoder@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/nodejs/string_decoder
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\string_decoder
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\string_decoder\LICENSE
+├─ strip-ansi@3.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/strip-ansi
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\strip-ansi
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\strip-ansi\license
+├─ strip-ansi@4.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/strip-ansi
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\strip-ansi
+│  └─ licenseFile: D:\dev\botium-core\node_modules\strip-ansi\license
+├─ strip-ansi@5.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/strip-ansi
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\inquirer\node_modules\strip-ansi
+│  └─ licenseFile: D:\dev\botium-core\node_modules\inquirer\node_modules\strip-ansi\license
+├─ strip-bom@3.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/strip-bom
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\strip-bom
+│  └─ licenseFile: D:\dev\botium-core\node_modules\strip-bom\license
+├─ strip-json-comments@2.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/sindresorhus/strip-json-comments
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\strip-json-comments
+│  └─ licenseFile: D:\dev\botium-core\node_modules\strip-json-comments\license
+├─ supports-color@5.4.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/supports-color
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\mocha\node_modules\supports-color
+│  └─ licenseFile: D:\dev\botium-core\node_modules\mocha\node_modules\supports-color\license
+├─ supports-color@5.5.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chalk/supports-color
+│  ├─ publisher: Sindre Sorhus
+│  ├─ email: sindresorhus@gmail.com
+│  ├─ url: sindresorhus.com
+│  ├─ path: D:\dev\botium-core\node_modules\supports-color
+│  └─ licenseFile: D:\dev\botium-core\node_modules\supports-color\license
+├─ swagger-jsdoc@1.9.7
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Surnet/swagger-jsdoc
+│  ├─ publisher: https://github.com/Surnet/swagger-jsdoc/graphs/contributors
+│  ├─ path: D:\dev\botium-core\node_modules\swagger-jsdoc
+│  └─ licenseFile: D:\dev\botium-core\node_modules\swagger-jsdoc\LICENSE
+├─ swagger-methods@1.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/bigstickcarpet/swagger-methods
+│  ├─ publisher: James Messinger
+│  ├─ url: http://jamesmessinger.com
+│  ├─ path: D:\dev\botium-core\node_modules\swagger-methods
+│  └─ licenseFile: D:\dev\botium-core\node_modules\swagger-methods\LICENSE
+├─ swagger-parser@3.4.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/BigstickCarpet/swagger-parser
+│  ├─ publisher: James Messinger
+│  ├─ url: http://jamesmessinger.com
+│  ├─ path: D:\dev\botium-core\node_modules\swagger-parser
+│  └─ licenseFile: D:\dev\botium-core\node_modules\swagger-parser\LICENSE
+├─ swagger-schema-official@2.0.0-bab6bed
+│  ├─ licenses: ISC
+│  ├─ path: D:\dev\botium-core\node_modules\swagger-schema-official
+│  └─ licenseFile: D:\dev\botium-core\node_modules\swagger-schema-official\README.md
+├─ swagger-ui-express@3.0.9
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/scottie1984/swagger-ui-express
+│  ├─ publisher: Stephen Scott
+│  ├─ email: scottie1984@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\swagger-ui-express
+│  └─ licenseFile: D:\dev\botium-core\node_modules\swagger-ui-express\LICENSE
+├─ table@5.2.1
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/gajus/table
+│  ├─ publisher: Gajus Kuizinas
+│  ├─ email: gajus@gajus.com
+│  ├─ url: http://gajus.com
+│  ├─ path: D:\dev\botium-core\node_modules\table
+│  └─ licenseFile: D:\dev\botium-core\node_modules\table\LICENSE
+├─ tar@4.4.1
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/node-tar
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\tar
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\tar\LICENSE
+├─ tcp-port-used@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/stdarg/tcp-port-used
+│  ├─ publisher: Edmond Meinfelder
+│  ├─ path: D:\dev\botium-core\node_modules\tcp-port-used
+│  └─ licenseFile: D:\dev\botium-core\node_modules\tcp-port-used\LICENSE
+├─ text-table@0.2.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/substack/text-table
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\text-table
+│  └─ licenseFile: D:\dev\botium-core\node_modules\text-table\LICENSE
+├─ through@2.3.8
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/dominictarr/through
+│  ├─ publisher: Dominic Tarr
+│  ├─ email: dominic.tarr@gmail.com
+│  ├─ url: dominictarr.com
+│  ├─ path: D:\dev\botium-core\node_modules\through
+│  └─ licenseFile: D:\dev\botium-core\node_modules\through\LICENSE.APACHE2
+├─ tiny-server@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/zbinlin/tiny-server
+│  ├─ publisher: zbinlin
+│  ├─ path: D:\dev\botium-core\node_modules\tiny-server
+│  └─ licenseFile: D:\dev\botium-core\node_modules\tiny-server\README.md
+├─ tmp@0.0.33
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/raszi/node-tmp
+│  ├─ publisher: KARASZI István
+│  ├─ email: github@spam.raszi.hu
+│  ├─ url: http://raszi.hu/
+│  ├─ path: D:\dev\botium-core\node_modules\tmp
+│  └─ licenseFile: D:\dev\botium-core\node_modules\tmp\LICENSE
+├─ to-array@0.1.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Raynos/to-array
+│  ├─ publisher: Raynos
+│  ├─ email: raynos2@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\to-array
+│  └─ licenseFile: D:\dev\botium-core\node_modules\to-array\LICENCE
+├─ tough-cookie@2.4.3
+│  ├─ licenses: BSD-3-Clause
+│  ├─ repository: https://github.com/salesforce/tough-cookie
+│  ├─ publisher: Jeremy Stashewsky
+│  ├─ email: jstash@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\tough-cookie
+│  └─ licenseFile: D:\dev\botium-core\node_modules\tough-cookie\LICENSE
+├─ treeify@1.1.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/notatestuser/treeify
+│  ├─ publisher: Luke Plaster
+│  ├─ email: notatestuser@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\treeify
+│  └─ licenseFile: D:\dev\botium-core\node_modules\treeify\LICENSE
+├─ tslib@1.9.3
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/Microsoft/tslib
+│  ├─ publisher: Microsoft Corp.
+│  ├─ path: D:\dev\botium-core\node_modules\tslib
+│  └─ licenseFile: D:\dev\botium-core\node_modules\tslib\LICENSE.txt
+├─ tunnel-agent@0.6.0
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/mikeal/tunnel-agent
+│  ├─ publisher: Mikeal Rogers
+│  ├─ email: mikeal.rogers@gmail.com
+│  ├─ url: http://www.futurealoof.com
+│  ├─ path: D:\dev\botium-core\node_modules\tunnel-agent
+│  └─ licenseFile: D:\dev\botium-core\node_modules\tunnel-agent\LICENSE
+├─ tweetnacl@0.14.5
+│  ├─ licenses: Unlicense
+│  ├─ repository: https://github.com/dchest/tweetnacl-js
+│  ├─ publisher: TweetNaCl-js contributors
+│  ├─ path: D:\dev\botium-core\node_modules\tweetnacl
+│  └─ licenseFile: D:\dev\botium-core\node_modules\tweetnacl\LICENSE
+├─ type-check@0.3.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/gkz/type-check
+│  ├─ publisher: George Zahariev
+│  ├─ email: z@georgezahariev.com
+│  ├─ path: D:\dev\botium-core\node_modules\type-check
+│  └─ licenseFile: D:\dev\botium-core\node_modules\type-check\LICENSE
+├─ type-detect@4.0.8
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chaijs/type-detect
+│  ├─ publisher: Jake Luer
+│  ├─ email: jake@alogicalparadox.com
+│  ├─ url: http://alogicalparadox.com
+│  ├─ path: D:\dev\botium-core\node_modules\type-detect
+│  └─ licenseFile: D:\dev\botium-core\node_modules\type-detect\LICENSE
+├─ type-is@1.6.16
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/type-is
+│  ├─ path: D:\dev\botium-core\node_modules\type-is
+│  └─ licenseFile: D:\dev\botium-core\node_modules\type-is\LICENSE
+├─ ultron@1.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/unshiftio/ultron
+│  ├─ publisher: Arnout Kazemier
+│  ├─ path: D:\dev\botium-core\node_modules\ultron
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ultron\LICENSE
+├─ underscore@1.1.7
+│  ├─ licenses: MIT*
+│  ├─ repository: https://github.com/documentcloud/underscore
+│  ├─ publisher: Jeremy Ashkenas
+│  ├─ email: jeremy@documentcloud.org
+│  ├─ path: D:\dev\botium-core\node_modules\nomnom\node_modules\underscore
+│  └─ licenseFile: D:\dev\botium-core\node_modules\nomnom\node_modules\underscore\LICENSE
+├─ underscore@1.7.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jashkenas/underscore
+│  ├─ publisher: Jeremy Ashkenas
+│  ├─ email: jeremy@documentcloud.org
+│  ├─ path: D:\dev\botium-core\node_modules\underscore
+│  └─ licenseFile: D:\dev\botium-core\node_modules\underscore\LICENSE
+├─ unicode-canonical-property-names-ecmascript@1.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mathiasbynens/unicode-canonical-property-names-ecmascript
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\unicode-canonical-property-names-ecmascript
+│  └─ licenseFile: D:\dev\botium-core\node_modules\unicode-canonical-property-names-ecmascript\LICENSE-MIT.txt
+├─ unicode-match-property-ecmascript@1.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mathiasbynens/unicode-match-property-ecmascript
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\unicode-match-property-ecmascript
+│  └─ licenseFile: D:\dev\botium-core\node_modules\unicode-match-property-ecmascript\LICENSE-MIT.txt
+├─ unicode-match-property-value-ecmascript@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mathiasbynens/unicode-match-property-value-ecmascript
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\unicode-match-property-value-ecmascript
+│  └─ licenseFile: D:\dev\botium-core\node_modules\unicode-match-property-value-ecmascript\LICENSE-MIT.txt
+├─ unicode-property-aliases-ecmascript@1.0.4
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mathiasbynens/unicode-property-aliases-ecmascript
+│  ├─ publisher: Mathias Bynens
+│  ├─ url: https://mathiasbynens.be/
+│  ├─ path: D:\dev\botium-core\node_modules\unicode-property-aliases-ecmascript
+│  └─ licenseFile: D:\dev\botium-core\node_modules\unicode-property-aliases-ecmascript\LICENSE-MIT.txt
+├─ unpipe@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/stream-utils/unpipe
+│  ├─ publisher: Douglas Christopher Wilson
+│  ├─ email: doug@somethingdoug.com
+│  ├─ path: D:\dev\botium-core\node_modules\unpipe
+│  └─ licenseFile: D:\dev\botium-core\node_modules\unpipe\LICENSE
+├─ uri-js@4.2.2
+│  ├─ licenses: BSD-2-Clause
+│  ├─ repository: https://github.com/garycourt/uri-js
+│  ├─ publisher: Gary Court
+│  ├─ email: gary.court@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\uri-js
+│  └─ licenseFile: D:\dev\botium-core\node_modules\uri-js\README.md
+├─ util-deprecate@1.0.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/TooTallNate/util-deprecate
+│  ├─ publisher: Nathan Rajlich
+│  ├─ email: nathan@tootallnate.net
+│  ├─ url: http://n8.io/
+│  ├─ path: D:\dev\botium-core\node_modules\util-deprecate
+│  └─ licenseFile: D:\dev\botium-core\node_modules\util-deprecate\LICENSE
+├─ util-extend@1.0.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/isaacs/util-extend
+│  ├─ path: D:\dev\botium-core\node_modules\util-extend
+│  └─ licenseFile: D:\dev\botium-core\node_modules\util-extend\LICENSE
+├─ utils-merge@1.0.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jaredhanson/utils-merge
+│  ├─ publisher: Jared Hanson
+│  ├─ email: jaredhanson@gmail.com
+│  ├─ url: http://www.jaredhanson.net/
+│  ├─ path: D:\dev\botium-core\node_modules\utils-merge
+│  └─ licenseFile: D:\dev\botium-core\node_modules\utils-merge\LICENSE
+├─ uuid@3.2.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kelektiv/node-uuid
+│  ├─ path: D:\dev\botium-core\node_modules\uuid
+│  └─ licenseFile: D:\dev\botium-core\node_modules\uuid\LICENSE.md
+├─ uuid@3.3.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/kelektiv/node-uuid
+│  ├─ path: D:\dev\botium-core\node_modules\request\node_modules\uuid
+│  └─ licenseFile: D:\dev\botium-core\node_modules\request\node_modules\uuid\LICENSE.md
+├─ uws@9.14.0
+│  ├─ licenses: Zlib
+│  ├─ repository: https://github.com/uWebSockets/uWebSockets
+│  ├─ publisher: Alex Hultman
+│  ├─ email: alexhultman@gmail.com
+│  ├─ url: https://github.com/alexhultman
+│  ├─ path: D:\dev\botium-core\node_modules\uws
+│  └─ licenseFile: D:\dev\botium-core\node_modules\uws\LICENSE
+├─ validate-npm-package-license@3.0.4
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/kemitchell/validate-npm-package-license.js
+│  ├─ publisher: Kyle E. Mitchell
+│  ├─ email: kyle@kemitchell.com
+│  ├─ url: https://kemitchell.com
+│  ├─ path: D:\dev\botium-core\node_modules\validate-npm-package-license
+│  └─ licenseFile: D:\dev\botium-core\node_modules\validate-npm-package-license\LICENSE
+├─ validator@10.3.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/chriso/validator.js
+│  ├─ publisher: Chris O'Hara
+│  ├─ email: cohara87@gmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\validator
+│  └─ licenseFile: D:\dev\botium-core\node_modules\validator\LICENSE
+├─ vary@1.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jshttp/vary
+│  ├─ publisher: Douglas Christopher Wilson
+│  ├─ email: doug@somethingdoug.com
+│  ├─ path: D:\dev\botium-core\node_modules\vary
+│  └─ licenseFile: D:\dev\botium-core\node_modules\vary\LICENSE
+├─ verror@1.10.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/davepacheco/node-verror
+│  ├─ path: D:\dev\botium-core\node_modules\verror
+│  └─ licenseFile: D:\dev\botium-core\node_modules\verror\LICENSE
+├─ vlq@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/Rich-Harris/vlq
+│  ├─ publisher: Rich Harris
+│  ├─ path: D:\dev\botium-core\node_modules\vlq
+│  └─ licenseFile: D:\dev\botium-core\node_modules\vlq\LICENSE
+├─ which@1.3.0
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/node-which
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me
+│  ├─ path: D:\dev\botium-core\node_modules\which
+│  └─ licenseFile: D:\dev\botium-core\node_modules\which\LICENSE
+├─ wide-align@1.1.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/iarna/wide-align
+│  ├─ publisher: Rebecca Turner
+│  ├─ email: me@re-becca.org
+│  ├─ url: http://re-becca.org/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\wide-align
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\wide-align\LICENSE
+├─ wordwrap@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/substack/node-wordwrap
+│  ├─ publisher: James Halliday
+│  ├─ email: mail@substack.net
+│  ├─ url: http://substack.net
+│  ├─ path: D:\dev\botium-core\node_modules\wordwrap
+│  └─ licenseFile: D:\dev\botium-core\node_modules\wordwrap\LICENSE
+├─ wrappy@1.0.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/npm/wrappy
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\wrappy
+│  └─ licenseFile: D:\dev\botium-core\node_modules\wrappy\LICENSE
+├─ write-yaml@1.0.0
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/write-yaml
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\write-yaml
+│  └─ licenseFile: D:\dev\botium-core\node_modules\write-yaml\LICENSE
+├─ write@0.2.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/write
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\flat-cache\node_modules\write
+│  └─ licenseFile: D:\dev\botium-core\node_modules\flat-cache\node_modules\write\LICENSE
+├─ write@0.3.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/jonschlinkert/write
+│  ├─ publisher: Jon Schlinkert
+│  ├─ url: https://github.com/jonschlinkert
+│  ├─ path: D:\dev\botium-core\node_modules\write
+│  └─ licenseFile: D:\dev\botium-core\node_modules\write\LICENSE
+├─ ws@3.3.3
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/websockets/ws
+│  ├─ publisher: Einar Otto Stangvik
+│  ├─ email: einaros@gmail.com
+│  ├─ url: http://2x.io
+│  ├─ path: D:\dev\botium-core\node_modules\ws
+│  └─ licenseFile: D:\dev\botium-core\node_modules\ws\LICENSE
+├─ xlsx@0.11.19
+│  ├─ licenses: Apache-2.0
+│  ├─ repository: https://github.com/SheetJS/js-xlsx
+│  ├─ publisher: sheetjs
+│  ├─ path: D:\dev\botium-core\node_modules\xlsx
+│  └─ licenseFile: D:\dev\botium-core\node_modules\xlsx\LICENSE
+├─ xmlhttprequest-ssl@1.5.5
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/mjwwit/node-XMLHttpRequest
+│  ├─ publisher: Michael de Wit
+│  ├─ path: D:\dev\botium-core\node_modules\xmlhttprequest-ssl
+│  └─ licenseFile: D:\dev\botium-core\node_modules\xmlhttprequest-ssl\LICENSE
+├─ xregexp@4.1.1
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/slevithan/xregexp
+│  ├─ publisher: Steven Levithan
+│  ├─ email: steves_list@hotmail.com
+│  ├─ path: D:\dev\botium-core\node_modules\xregexp
+│  └─ licenseFile: D:\dev\botium-core\node_modules\xregexp\LICENSE
+├─ yallist@2.1.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/yallist
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\yallist
+│  └─ licenseFile: D:\dev\botium-core\node_modules\yallist\LICENSE
+├─ yallist@3.0.2
+│  ├─ licenses: ISC
+│  ├─ repository: https://github.com/isaacs/yallist
+│  ├─ publisher: Isaac Z. Schlueter
+│  ├─ email: i@izs.me
+│  ├─ url: http://blog.izs.me/
+│  ├─ path: D:\dev\botium-core\node_modules\fsevents\node_modules\yallist
+│  └─ licenseFile: D:\dev\botium-core\node_modules\fsevents\node_modules\yallist\LICENSE
+├─ yeast@0.1.2
+│  ├─ licenses: MIT
+│  ├─ repository: https://github.com/unshiftio/yeast
+│  ├─ publisher: Arnout Kazemier
+│  ├─ path: D:\dev\botium-core\node_modules\yeast
+│  └─ licenseFile: D:\dev\botium-core\node_modules\yeast\LICENSE
+└─ z-schema@3.22.0
+   ├─ licenses: MIT
+   ├─ repository: https://github.com/zaggino/z-schema
+   ├─ path: D:\dev\botium-core\node_modules\z-schema
+   └─ licenseFile: D:\dev\botium-core\node_modules\z-schema\LICENSE
+
