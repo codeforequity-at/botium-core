@@ -258,18 +258,22 @@ module.exports = class ScriptingProvider {
       })
     }
 
-    const tagAndCleanupUtterances = (utteranceFiles, filename) => {
-      return utteranceFiles.map((fileUtt) => {
-        fileUtt.sourceTag = { filename }
-        fileUtt.utterances = fileUtt.utterances
-          .filter(u => u)
-      })
-    }
-
     if (fileUtterances) {
-      this.fileUtterances = tagAndCleanupUtterances(fileUtterances, filename)
+      this.fileUtterances = this._tagAndCleanupUtterances(fileUtterances, filename)
     }
     return { convos: fileConvos, utterances: fileUtterances }
+  }
+
+  _tagAndCleanupUtterances (utteranceFiles, filename) {
+    let utterances = []
+    utteranceFiles.map((fileUtt) => {
+      let utterance = fileUtt
+      utterance.sourceTag = { filename }
+      utterance.utterances = fileUtt.utterances
+        .filter(u => u)
+      utterances.push(utterance)
+    })
+    return utterances
   }
 
   ExpandUtterancesToConvos () {
