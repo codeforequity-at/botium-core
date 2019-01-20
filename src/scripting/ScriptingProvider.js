@@ -265,15 +265,12 @@ module.exports = class ScriptingProvider {
   }
 
   _tagAndCleanupUtterances (utteranceFiles, filename) {
-    let utterances = []
     utteranceFiles.map((fileUtt) => {
-      let utterance = fileUtt
-      utterance.sourceTag = { filename }
-      utterance.utterances = fileUtt.utterances
+      fileUtt.sourceTag = { filename }
+      fileUtt.utterances = fileUtt.utterances
         .filter(u => u)
-      utterances.push(utterance)
     })
-    return utterances
+    return Object.assign({}, utteranceFiles)
   }
 
   ExpandUtterancesToConvos () {
