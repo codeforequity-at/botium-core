@@ -265,12 +265,12 @@ module.exports = class ScriptingProvider {
   }
 
   _tagAndCleanupUtterances (utteranceFiles, filename) {
-    utteranceFiles.map((fileUtt) => {
+    return utteranceFiles.map((fileUtt) => {
       fileUtt.sourceTag = { filename }
       fileUtt.utterances = fileUtt.utterances
         .filter(u => u)
+      return fileUtt
     })
-    return Object.assign({}, utteranceFiles)
   }
 
   ExpandUtterancesToConvos () {
