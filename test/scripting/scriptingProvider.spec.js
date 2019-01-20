@@ -1,4 +1,5 @@
 const assert = require('chai').assert
+const expect = require('chai').expect
 const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 
@@ -75,7 +76,7 @@ describe('scriptingProvider._addScriptingMemoryToArgs', function () {
       'args': [
         'dbUrl',
         '$count',
-        "INSERT INTO dummy(name, birthday) VALUES ('Max Mustermann', 1991-03-26);"
+        'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
       ]
     }
     let scriptingMemory = {
@@ -90,7 +91,7 @@ describe('scriptingProvider._addScriptingMemoryToArgs', function () {
       'args': [
         'dbUrl',
         '$ount',
-        "INSERT INTO dummy(name, birthday) VALUES ('Max Mustermann', 1991-03-26);"
+        'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
       ]
     }
     let scriptingMemory = {
@@ -105,12 +106,22 @@ describe('scriptingProvider._addScriptingMemoryToArgs', function () {
       'args': [
         'dbUrl',
         '$count',
-        "INSERT INTO dummy(name, birthday) VALUES ('Max Mustermann', 1991-03-26);"
+        'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
       ]
     }
     let scriptingMemory = {
       '$count': '4'
     }
     assert.notEqual(scriptingProvider._addScriptingMemoryToArgs(asserter, scriptingMemory).args[1], 5)
+  })
+})
+
+describe('scriptingProvider._tagAndCleanupUtterances', function () {
+  it('positive case remove empty String from utterances', async function () {
+    let scriptingProvider = new ScriptingProvider()
+    let utterances = ['don\'t understand', 'sorry', '']
+    const fileUtterances = [{ name: 'INCOMPREHENSION', utterances: utterances }]
+    let actualResult = scriptingProvider._tagAndCleanupUtterances(fileUtterances, 'incomprehension.utterances.txt')
+    expect(actualResult[0].utterances).to.eql(utterances.slice(0, 2))
   })
 })
