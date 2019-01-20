@@ -135,4 +135,51 @@ describe('convo.scriptingMemory.api', function () {
     assert.equal(tomatch[0], 'i am 2 months old')
     assert.equal(tomatch[1], 'i am $years years old')
   })
+  it('should accept special regexp characters in utterance when replace utterances from scripting memory in regexp matching mode', async function () {
+    this.containerStub.caps[Capabilities.SCRIPTING_MATCHING_MODE] = 'regexp'
+
+    const scriptingMemory = {}
+    this.convo._fillScriptingMemory(this.containerStub, scriptingMemory, '*test sentence 1*', '.* sentence $num')
+    assert.equal(scriptingMemory['$num'], '1')
+    const tomatch = this.convo._resolveUtterancesToMatch(this.containerStub, scriptingMemory, '.* sentence $num')
+    assert.isArray(tomatch)
+    assert.equal(tomatch[0], '.* sentence 1')
+  })
+  it('should accept special regexp characters in utterances when replace utterances from scripting memory in regexp matching mode', async function () {
+    this.containerStub.caps[Capabilities.SCRIPTING_MATCHING_MODE] = 'regexp'
+    this.scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['.* sentence $num']
+    })
+
+    const scriptingMemory = {}
+    this.convo._fillScriptingMemory(this.containerStub, scriptingMemory, '*test sentence 1*', 'utt1')
+    assert.equal(scriptingMemory['$num'], '1')
+    const tomatch = this.convo._resolveUtterancesToMatch(this.containerStub, scriptingMemory, 'utt1')
+    assert.isArray(tomatch)
+    assert.equal(tomatch[0], '.* sentence 1')
+  })
+  it('should accept special regexp characters in utterance when filling scripting memory', async function () {
+    const scriptingMemory = {}
+    this.convo._fillScriptingMemory(this.containerStub, scriptingMemory, '*test sentence 1*', '*test sentence $num*')
+    assert.equal(scriptingMemory['$num'], '1')
+
+    const scriptingMemory1 = {}
+    this.convo._fillScriptingMemory(this.containerStub, scriptingMemory1, 'Hier sind deine Erinnerungen: Notiz: 104 | This is a test reminder', 'Hier sind deine Erinnerungen: Notiz: $id | This is a test reminder')
+    assert.equal(scriptingMemory1['$id'], '104')
+  })
+  it('should accept special regexp characters in utterances when filling scripting memory', async function () {
+    this.scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['[\'I am $months months old.\']', '[\'I am $years years old.\']']
+    })
+    const scriptingMemory = {}
+    this.convo._fillScriptingMemory(this.containerStub, scriptingMemory, '[\'I am 2 years old.\']', 'utt1')
+    assert.equal(scriptingMemory['$years'], '2')
+  })
+  it('should accept newline characters in utterances when filling scripting memory', async function () {
+    const scriptingMemory = {}
+    this.convo._fillScriptingMemory(this.containerStub, scriptingMemory, 'test sentence header\n\ntest sentence 1', 'test sentence header\n\ntest sentence $num')
+    assert.equal(scriptingMemory['$num'], '1')
+  })
 })

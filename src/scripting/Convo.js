@@ -352,6 +352,9 @@ class Convo {
       const utterances = this.scriptingEvents.resolveUtterance({ utterance })
       utterances.forEach(expected => {
         let reExpected = expected
+        if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
+          reExpected = expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&')
+        }
         const varMatches = expected.match(/\$\w+/g) || []
         for (let i = 0; i < varMatches.length; i++) {
           reExpected = reExpected.replace(varMatches[i], '(\\w+)')
