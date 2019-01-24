@@ -257,12 +257,20 @@ module.exports = class ScriptingProvider {
         }
       })
     }
+
     if (fileUtterances) {
-      fileUtterances.forEach((fileUtt) => {
-        fileUtt.sourceTag = { filename }
-      })
+      this.fileUtterances = this._tagAndCleanupUtterances(fileUtterances, filename)
     }
     return { convos: fileConvos, utterances: fileUtterances }
+  }
+
+  _tagAndCleanupUtterances (utteranceFiles, filename) {
+    return utteranceFiles.map((fileUtt) => {
+      fileUtt.sourceTag = { filename }
+      fileUtt.utterances = fileUtt.utterances
+        .filter(u => u)
+      return fileUtt
+    })
   }
 
   ExpandUtterancesToConvos () {

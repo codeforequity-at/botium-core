@@ -3,6 +3,46 @@ const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 
+describe('driver.fetchConfigFromFiles', function () {
+  it('fetch capabilities from files', function () {
+    const driver = new BotDriver()
+    const result = driver._fetchConfigFromFiles(['test/driver/configFiles/config1.json'])
+    assert.isArray(result)
+    assert.lengthOf(result, 1)
+  })
+  it('fetch capabilities from non existing files', function () {
+    const driver = new BotDriver()
+    const result = driver._fetchConfigFromFiles(['test/driver/configFiles/configNotExists.json'])
+    assert.isArray(result)
+    assert.lengthOf(result, 0)
+  })
+  it('fetch capabilities from multiple files', function () {
+    const driver = new BotDriver()
+    const result = driver._fetchConfigFromFiles(['test/driver/configFiles/config1.json', 'test/driver/configFiles/config2.json'])
+    assert.isArray(result)
+    assert.lengthOf(result, 2)
+  })
+  it('fetch capabilities from multiple files and check if overwritten', function () {
+    const driver = new BotDriver()
+    driver._fetchConfigFromFiles(['test/driver/configFiles/config1.json', 'test/driver/configFiles/config2.json'])
+    assert.equal(driver.caps['PROJECTNAME'], 'Botium Example 2')
+    assert.equal(driver.sources['GITURL'], 'https://github.com/codeforequity-at/botium-bindings')
+    assert.equal(driver.envs['IS_BOTIUM_CONTAINER'], true)
+  })
+})
+
+describe('driver.loadConfigFile', function () {
+  it('load Config from file', function () {
+    const driver = new BotDriver()
+    const result = driver._loadConfigFile('test/driver/configFiles/config1.json')
+    assert.isTrue(result)
+  })
+  it('load Config from non existing file', function () {
+    const driver = new BotDriver()
+    assert.throws(() => driver._loadConfigFile('test/driver/configFiles/configNonExisting.json'))
+  })
+})
+
 describe('driver.capabilities', function () {
   it('should merge boolean caps', function () {
     const myCaps = {

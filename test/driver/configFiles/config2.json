@@ -1,0 +1,13 @@
+{
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "Botium Example 2"
+    },
+    "Sources": {
+      "GITURL": "https://github.com/codeforequity-at/botium-bindings"
+    },
+    "ENVS": {
+      "IS_BOTIUM_CONTAINER": true
+    }
+  }
+}
