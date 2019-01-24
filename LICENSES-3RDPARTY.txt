@@ -355,7 +355,7 @@
 │  ├─ repository: https://github.com/thenativeweb/boolean
 │  ├─ path: D:\dev\botium-core\node_modules\boolean
 │  └─ licenseFile: D:\dev\botium-core\node_modules\boolean\README.md
-├─ botium-core@1.4.3
+├─ botium-core@1.4.4
 │  ├─ licenses: MIT
 │  ├─ repository: https://github.com/codeforequity-at/botium-core
 │  ├─ publisher: Florian Treml
