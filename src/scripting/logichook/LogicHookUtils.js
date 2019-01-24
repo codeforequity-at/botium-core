@@ -82,6 +82,24 @@ module.exports = class LogicHookUtils {
       throw Error(`Unknown hookType ${hookType}`)
     }
 
+    // gives possibility to use default filters as global filter
+    if (hookType === 'asserter') {
+      switch (src) {
+        case 'ButtonsAsserter':
+          return new ButtonsAsserter(this.buildScriptContext, this.caps, args)
+        case 'MediaAsserter':
+          return new MediaAsserter(this.buildScriptContext, this.caps, args)
+        case 'PauseAsserter':
+          return new PauseAsserter(this.buildScriptContext, this.caps, args)
+      }
+    } else {
+      switch (src) {
+        case 'PauseLogicHook':
+          return new PauseLogicHook(this.buildScriptContext, this.caps, args)
+        case 'WaitForBotLogicHook':
+          return new WaitForBotLogicHook(this.buildScriptContext, this.caps, args)
+      }
+    }
     if (!src) {
       let packageName = `botium-${hookType}-${ref}`
       debug(`Trying to load ${ref} ${hookType} from ${packageName}`)
