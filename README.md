@@ -41,6 +41,7 @@ Botium Core provides the core functionality. For attaching Botium to your chatbo
 * [Facebook Messenger](https://github.com/codeforequity-at/botium-connector-fbpagereceiver)
 * [Microsoft Bot Framework](https://github.com/codeforequity-at/botium-connector-directline3)
 * [Google Dialogflow](https://github.com/codeforequity-at/botium-connector-dialogflow)
+* [Action on Google / Google Assistant](https://github.com/codeforequity-at/botium-connector-google-assistant)
 * [Botpress](https://github.com/codeforequity-at/botium-connector-botpress)
 * [Botkit](https://github.com/codeforequity-at/botium-connector-botkit)
 * [Kore.ai](https://github.com/codeforequity-at/botium-connector-koreai-webhook)
