@@ -26,31 +26,11 @@ module.exports = class BotDriver {
     this.sources = Object.assign({}, Defaults.Sources)
     this.envs = Object.assign({}, Defaults.Envs)
 
-    const loadConfigFile = (filename) => {
-      try {
-        let configJson = JSON.parse(fs.readFileSync(filename))
-        if (configJson.botium) {
-          if (configJson.botium.Capabilities) this._mergeCaps(this.caps, configJson.botium.Capabilities)
-          if (configJson.botium.Sources) this._mergeCaps(this.sources, configJson.botium.Sources)
-          if (configJson.botium.Envs) this.envs = Object.assign(this.envs, configJson.botium.Envs)
-          debug(`Loaded Botium configuration file ${filename}`)
-        } else {
-          debug(`Botium configuration file ${filename} contains no botium configuration. Ignored.`)
-        }
-      } catch (err) {
-        throw new Error(`FAILED: loading Botium configuration file ${filename}: ${util.inspect(err)}`)
-      }
-    }
-
-    if (fs.existsSync('./botium.json')) {
-      loadConfigFile('./botium.json')
-    }
+    this._fetchConfigFromFiles(['./botium.json', './botium.local.json'])
 
     let botiumConfigEnv = process.env['BOTIUM_CONFIG']
     if (botiumConfigEnv) {
-      if (fs.existsSync(botiumConfigEnv)) {
-        loadConfigFile(botiumConfigEnv)
-      } else {
+      if (!this._fetchConfigFromFiles([botiumConfigEnv])) {
         throw new Error(`FAILED: Botium configuration file ${botiumConfigEnv} not available`)
       }
     }
@@ -187,6 +167,35 @@ module.exports = class BotDriver {
   }
 
   /* Private Functions */
+
+  // loadConfig from files
+  _loadConfigFile (filename) {
+    try {
+      let configJson = JSON.parse(fs.readFileSync(filename))
+      if (configJson.botium) {
+        if (configJson.botium.Capabilities) this._mergeCaps(this.caps, configJson.botium.Capabilities)
+        if (configJson.botium.Sources) this._mergeCaps(this.sources, configJson.botium.Sources)
+        if (configJson.botium.Envs) this.envs = this._mergeCaps(this.envs, configJson.botium.Envs)
+        debug(`Loaded Botium configuration file ${filename}`)
+        return true
+      } else {
+        debug(`Botium configuration file ${filename} contains no botium configuration. Ignored.`)
+        return false
+      }
+    } catch (err) {
+      throw new Error(`FAILED: loading Botium configuration file ${filename}: ${util.inspect(err)}`)
+    }
+  }
+
+  // fetches config from files ordered by priority later files overwrite previous
+  _fetchConfigFromFiles (files) {
+    return files
+      .filter(file => fs.existsSync(file))
+      .map(file => {
+        this._loadConfigFile(file)
+        return file
+      })
+  }
 
   _findKeyProperty (obj) {
     const lookup = ['id', 'ID', 'Id', 'ref', 'REF', 'Ref', 'name', 'NAME', 'Name']
