@@ -12,7 +12,7 @@
     "agent-jsdoc": "swagger-jsdoc -d ./src/grid/agent/swaggerDef.json -o ./src/grid/agent/swagger.json ./src/grid/agent/routes.js",
     "link": "npm link botium-connector-dialogflow botium-connector-webdriverio botium-connector-directline3 botium-connector-watson botium-connector-alexa-smapi botium-connector-echo",
     "test": "mocha \"./test/**/*.spec.js\"",
-    "postinstall": "license-checker > LICENSES-3RDPARTY.txt"
+    "license-checker": "license-checker > LICENSES-3RDPARTY.txt"
   },
   "repository": {
     "type": "git",
