@@ -94,9 +94,9 @@ const _assert = (expected, found, diff) => {
         return 0
       }
     )
-    promised.should.eventually.to.be.rejectedWith(Error, `${steptag}: Wrong number of entities. The difference is ${util.inspect(diffAsArray)}`)
+    promised.should.be.rejectedWith(Error, `${steptag}: Wrong number of entities. The difference is ${util.inspect(diffAsArray)}`)
   } else {
-    promised.should.eventually.equal()
+    promised.should.to.be.fulfilled.and.eventually.equal(undefined)
   }
 }
 
