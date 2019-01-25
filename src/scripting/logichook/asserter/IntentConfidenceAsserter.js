@@ -5,12 +5,12 @@ const _ = require('lodash')
  * @type {module.IntentConfidenceAsserter}
  */
 module.exports = class IntentConfidenceAsserter {
-  constructor (context, caps = {}, globalArgs) {
+  constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
-    this.hasGlobalExpectedMinimum = typeof globalArgs.expectedMinimum !== 'undefined'
+    this.hasGlobalExpectedMinimum = typeof globalArgs.EXPECTED_MINIMUM !== 'undefined'
     if (this.hasGlobalExpectedMinimum) {
-      this.globalExpectedMinimum = Number(globalArgs.expectedMinimum)
+      this.globalExpectedMinimum = Number(globalArgs.EXPECTED_MINIMUM)
       if (Number.isNaN(this.globalExpectedMinimum)) {
         throw Error(`IntentConfidenceAsserter Excepted minimum is not valid ${this.globalExpectedMinimum}`)
       }
@@ -47,8 +47,8 @@ module.exports = class IntentConfidenceAsserter {
       return Promise.reject(new Error(`${convoStep.stepTag}: Config error. Cant recognize as intent: "${botMsg.nlp.intent.confidence}"`))
     }
 
-    if (confidence < expectedMinimum) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: Confidence expected minimum ${expectedMinimum} current "${confidence}"`))
+    if (confidence * 100 < expectedMinimum) {
+      return Promise.reject(new Error(`${convoStep.stepTag}: Confidence expected minimum ${expectedMinimum} current "${confidence * 100}"`))
     }
 
     return Promise.resolve()
