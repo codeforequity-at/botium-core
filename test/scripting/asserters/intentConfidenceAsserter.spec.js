@@ -4,7 +4,7 @@ chai.use(require('chai-as-promised'))
 const util = require('util')
 
 const IntentConfidenceAsserter = require('../../../src/scripting/logichook/asserter/IntentConfidenceAsserter')
-const asserterWithGlobal = new IntentConfidenceAsserter(null, null, { EXPECTED_MINIMUM: 70 })
+const asserterWithGlobal = new IntentConfidenceAsserter(null, null, { expectedMinimum: 70 })
 const asserterWithoutGlobal = new IntentConfidenceAsserter(null)
 
 describe('IntentAsserter', function () {

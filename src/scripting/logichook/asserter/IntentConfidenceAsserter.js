@@ -8,9 +8,9 @@ module.exports = class IntentConfidenceAsserter {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
-    this.hasGlobalExpectedMinimum = !isNaN(globalArgs.EXPECTED_MINIMUM)
+    this.hasGlobalExpectedMinimum = !isNaN(globalArgs.expectedMinimum)
     if (this.hasGlobalExpectedMinimum) {
-      this.globalExpectedMinimum = Number(globalArgs.EXPECTED_MINIMUM)
+      this.globalExpectedMinimum = Number(globalArgs.expectedMinimum)
       if (Number.isNaN(this.globalExpectedMinimum)) {
         throw Error(`IntentConfidenceAsserter Excepted minimum is not valid ${this.globalExpectedMinimum}`)
       }
