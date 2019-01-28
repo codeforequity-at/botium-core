@@ -100,11 +100,12 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         args: a.args,
+        isGlobal: false,
         ...rest
       })))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
-      .map(a => p(() => a[asserterType]({ convo, convoStep, args: [], ...rest })))
+      .map(a => p(() => a[asserterType]({ convo, convoStep, args: [], isGlobal: true, ...rest })))
     const allPromises = [...convoAsserter, ...globalAsserter]
     return Promise.all(allPromises)
   }
@@ -117,11 +118,11 @@ module.exports = class ScriptingProvider {
     const convoStepPromises = (convoStep.logicHooks || [])
       .filter(l => this.logicHooks[l.name][hookType])
       .map(l => this._addScriptingMemoryToArgs(l, eventArgs.scriptingMemory))
-      .map(l => p(() => this.logicHooks[l.name][hookType]({ convoStep, args: l.args, ...eventArgs })))
+      .map(l => p(() => this.logicHooks[l.name][hookType]({ convoStep, args: l.args, isGlobal: false, ...eventArgs })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
-      .map(l => p(() => l[hookType]({ convoStep, args: [], ...eventArgs })))
+      .map(l => p(() => l[hookType]({ convoStep, args: [], isGlobal: true, ...eventArgs })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)
