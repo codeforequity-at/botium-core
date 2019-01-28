@@ -53,8 +53,8 @@ module.exports = class SimpleRestContainer extends BaseContainer {
 
         (contextInitComplete) => {
           this.view = {
-            context: { },
-            msg: { },
+            context: {},
+            msg: {},
             botium: {
               conversationId: uuidv4(),
               stepId: null
@@ -72,7 +72,21 @@ module.exports = class SimpleRestContainer extends BaseContainer {
 
         (pingComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
-            this._waitForPingUrl(this.caps[Capabilities.SIMPLEREST_PING_URL]).then(() => pingComplete()).catch(pingComplete)
+            const uri = this.caps[Capabilities.SIMPLEREST_PING_URL]
+            const verb = this.caps[Capabilities.SIMPLEREST_PING_VERB]
+            const timeout = this.caps[Capabilities.SIMPLEREST_PING_TIMEOUT]
+            try {
+              let body = JSON.stringify(this.caps[Capabilities.SIMPLEREST_PING_BODY] || {})
+              const pingConfig = {
+                method: verb,
+                uri: uri,
+                body: body,
+                timeout: timeout
+              }
+              this._waitForPingUrl(pingConfig).then(() => pingComplete()).catch(pingComplete)
+            } catch (err) {
+              return reject(new Error(`SIMPLEREST_PING_BODY is not a valid json ${util.inspect(err)}`))
+            }
           } else {
             pingComplete()
           }
@@ -193,7 +207,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
                   const jsonPath = this.caps[key]
                   const responseMedia = jp.query(body, jsonPath)
                   if (responseMedia) {
-                    (_.isArray(responseMedia) ? responseMedia : [ responseMedia ]).forEach(m =>
+                    (_.isArray(responseMedia) ? responseMedia : [responseMedia]).forEach(m =>
                       media.push({
                         mediaUri: m,
                         mimeType: mime.lookup(m) || 'application/unknown'
@@ -209,7 +223,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
                   const jsonPath = this.caps[key]
                   const responseButtons = jp.query(body, jsonPath)
                   if (responseButtons) {
-                    (_.isArray(responseButtons) ? responseButtons : [ responseButtons ]).forEach(b =>
+                    (_.isArray(responseButtons) ? responseButtons : [responseButtons]).forEach(b =>
                       buttons.push({
                         text: b
                       })
@@ -229,7 +243,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
                   const responseTexts = jp.query(body, jsonPath)
                   debug(`found response texts: ${util.inspect(responseTexts)}`)
 
-                  const messageTexts = (_.isArray(responseTexts) ? responseTexts : [ responseTexts ])
+                  const messageTexts = (_.isArray(responseTexts) ? responseTexts : [responseTexts])
                   messageTexts.forEach((messageText) => {
                     if (!messageText) return
 
@@ -289,34 +303,38 @@ module.exports = class SimpleRestContainer extends BaseContainer {
     return requestOptions
   }
 
-  _waitForPingUrl (pingUrl) {
+  _waitForPingUrl (pingConfig) {
     return new Promise((resolve, reject) => {
-      let online = false
+      let finished = false
+      let tries = 0
+      const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES]
       async.until(
-        () => online,
+        () => finished,
         (callback) => {
-          debug(`_waitForPingUrl checking url ${pingUrl} before proceed`)
-
-          request({
-            uri: pingUrl,
-            method: 'GET'
-          }, (err, response, body) => {
+          debug(`_waitForPingUrl checking url ${pingConfig.uri} before proceed`)
+          if (tries > retries) {
+            finished = true
+            callback(new Error(`Failed to ping bot after ${retries} retries`))
+            return
+          }
+          tries++
+          request(pingConfig, (err, response, body) => {
             if (err) {
-              debug(`_waitForPingUrl error on url check ${pingUrl}: ${err}`)
-              setTimeout(callback, 2000)
+              debug(`_waitForPingUrl error on url check ${pingConfig.uri}: ${err}`)
+              setTimeout(callback, pingConfig.timeout)
             } else if (response.statusCode >= 400) {
-              debug(`_waitForPingUrl on url check ${pingUrl} got error response: ${response.statusCode}/${response.statusMessage}`)
-              setTimeout(callback, 2000)
+              debug(`_waitForPingUrl on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
+              setTimeout(callback, pingConfig.timeout)
             } else {
-              debug(`_waitForPingUrl success on url check ${pingUrl}: ${err}`)
-              online = true
-              callback()
+              debug(`_waitForPingUrl success on url check ${pingConfig.uri}: ${err}`)
+              finished = true
+              callback(null, response)
             }
           })
         },
-        (err) => {
+        (err, response) => {
           if (err) return reject(err)
-          resolve()
+          return resolve(response)
         })
     })
   }
