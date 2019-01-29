@@ -1,4 +1,5 @@
 const util = require('util')
+const botiumUtils = require('../helpers/Utils')
 const async = require('async')
 const request = require('request')
 const Mustache = require('mustache')
@@ -75,18 +76,15 @@ module.exports = class SimpleRestContainer extends BaseContainer {
             const uri = this.caps[Capabilities.SIMPLEREST_PING_URL]
             const verb = this.caps[Capabilities.SIMPLEREST_PING_VERB]
             const timeout = this.caps[Capabilities.SIMPLEREST_PING_TIMEOUT]
-            try {
-              let body = JSON.stringify(this.caps[Capabilities.SIMPLEREST_PING_BODY] || {})
-              const pingConfig = {
-                method: verb,
-                uri: uri,
-                body: body,
-                timeout: timeout
-              }
-              this._waitForPingUrl(pingConfig).then(() => pingComplete()).catch(pingComplete)
-            } catch (err) {
-              return reject(new Error(`SIMPLEREST_PING_BODY is not a valid json ${util.inspect(err)}`))
+            const { body } = botiumUtils.optionalJson(this.caps[Capabilities.SIMPLEREST_PING_BODY])
+            const pingConfig = {
+              method: verb,
+              uri: uri,
+              body: body,
+              timeout: timeout
             }
+            const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES]
+            this._waitForPingUrl(pingConfig, retries).then(() => pingComplete()).catch(pingComplete)
           } else {
             pingComplete()
           }
@@ -303,11 +301,10 @@ module.exports = class SimpleRestContainer extends BaseContainer {
     return requestOptions
   }
 
-  _waitForPingUrl (pingConfig) {
+  _waitForPingUrl (pingConfig, retries) {
     return new Promise((resolve, reject) => {
       let finished = false
       let tries = 0
-      const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES]
       async.until(
         () => finished,
         (callback) => {

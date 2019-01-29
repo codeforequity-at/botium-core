@@ -33,11 +33,12 @@ describe('connectors.simplerest', function () {
       [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$',
       [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/ping'
     }
-    nock('https://mock.com')
+    const scope = nock('https://mock.com')
       .get('/ping')
       .reply(200, {
         status: 'ok'
       })
+      .persist()
     const driver = new BotDriver(caps)
     const container = await driver.Build()
     const body = JSON.stringify({})
@@ -49,6 +50,36 @@ describe('connectors.simplerest', function () {
     }
     const response = await container._waitForPingUrl(pingConfig)
     assert.equal(response.body, '{"status":"ok"}')
+    scope.persist(false)
+  })
+  it(`post ping endpoint`, async () => {
+    const caps = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
+      [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$',
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/ping',
+      [Capabilities.SIMPLEREST_PING_RETRIES]: 2
+
+    }
+    const scope = nock('https://mock.com')
+      .post('/ping', { status: 'ok?' }, null)
+      .reply(200, {
+        status: 'ok'
+      })
+      .persist()
+    const driver = new BotDriver(caps)
+    const container = await driver.Build()
+    const body = JSON.stringify({ status: 'ok?' })
+    const pingConfig = {
+      method: 'POST',
+      uri: 'https://mock.com/ping',
+      body: body,
+      timeout: 100
+    }
+    const response = await container._waitForPingUrl(pingConfig)
+    assert.equal(response.body, '{"status":"ok"}')
+    scope.persist(false)
   })
   it(`error case can't connect`, async () => {
     const caps = {
@@ -60,7 +91,7 @@ describe('connectors.simplerest', function () {
       [Capabilities.SIMPLEREST_PING_RETRIES]: 2
 
     }
-    nock('https://mock.com')
+    const scope = nock('https://mock.com')
       .get('/ping')
       .reply(404, {
         error: 'notOk'
@@ -76,6 +107,7 @@ describe('connectors.simplerest', function () {
       timeout: 100
     }
     assert.isRejected(container._waitForPingUrl(pingConfig))
+    scope.persist(false)
   })
 })
 
