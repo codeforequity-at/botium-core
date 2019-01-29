@@ -71,6 +71,7 @@
     "eslint-plugin-standard": "^4.0.0",
     "license-checker": "^25.0.1",
     "mocha": "^5.2.0",
+    "nock": "^10.0.6",
     "rollup": "^0.67.4",
     "rollup-plugin-buble": "^0.19.4",
     "rollup-plugin-commonjs": "^9.2.0",
