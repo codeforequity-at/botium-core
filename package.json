@@ -5,7 +5,7 @@
   "main": "index.js",
   "module": "dist/botium-es.js",
   "scripts": {
-    "build": "nyc check-coverage --lines 50 --functions 50 --branches 35 npm test && npm run eslint && rollup -c && nyc report",
+    "build": "npm run eslint && nyc npm test && nyc check-coverage --lines 50 --functions 50 --branches 35 && rollup -c",
     "eslint": "eslint \"./src/**/*.js\" \"./test/**/*.js\"",
     "newpatch": "npm version patch",
     "agent": "node ./src/grid/agent/agent.js",
