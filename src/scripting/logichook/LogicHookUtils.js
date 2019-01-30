@@ -2,11 +2,29 @@ const util = require('util')
 const path = require('path')
 const isClass = require('is-class')
 const debug = require('debug')('botium-asserterUtils')
-const ButtonsAsserter = require('./asserter/ButtonsAsserter')
-const MediaAsserter = require('./asserter/MediaAsserter')
-const PauseAsserter = require('./asserter/PauseAsserter')
-const PauseLogicHook = require('./PauseLogicHook')
-const WaitForBotLogicHook = require('./WaitForBotLogicHook')
+
+const DEFAULT_ASSERTERS = [
+  { name: 'BUTTONS', className: 'ButtonsAsserter' },
+  { name: 'MEDIA', className: 'MediaAsserter' },
+  { name: 'PAUSE_ASSERTER', className: 'PauseAsserter' },
+  { name: 'ENTITIES', className: 'EntitiesAsserter' },
+  { name: 'ENTITY_VALUES', className: 'EntityValuesAsserter' },
+  { name: 'INTENT', className: 'IntentAsserter' },
+  { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' }
+]
+DEFAULT_ASSERTERS.forEach((asserter) => {
+  asserter.Class = require(`./asserter/${asserter.className}`)
+})
+
+const DEFAULT_LOGIC_HOOKS = [
+  { name: 'PAUSE', className: 'PauseLogicHook' },
+  { name: 'WAITFORBOT', className: 'WaitForBotLogicHook' }
+]
+
+DEFAULT_LOGIC_HOOKS.forEach((logicHook) => {
+  logicHook.Class = require(`./${logicHook.className}`)
+})
+
 const Capabilities = require('../../Capabilities')
 const _ = require('lodash')
 
@@ -25,15 +43,17 @@ module.exports = class LogicHookUtils {
   }
 
   _setDefaultAsserters () {
-    this.asserters['BUTTONS'] = new ButtonsAsserter(this.buildScriptContext, this.caps)
-    this.asserters['MEDIA'] = new MediaAsserter(this.buildScriptContext, this.caps)
-    this.asserters['PAUSE_ASSERTER'] = new PauseAsserter(this.buildScriptContext, this.caps)
+    DEFAULT_ASSERTERS.forEach((asserter) => {
+      this.asserters[asserter.name] = new (asserter.Class)(this.buildScriptContext, this.caps)
+    })
+
     debug(`Loaded Default asserter - ${util.inspect(Object.keys(this.asserters))}`)
   }
 
   _setDefaultLogicHooks () {
-    this.logicHooks['PAUSE'] = new PauseLogicHook(this.buildScriptContext, this.caps)
-    this.logicHooks['WAITFORBOT'] = new WaitForBotLogicHook(this.buildScriptContext, this.caps)
+    DEFAULT_LOGIC_HOOKS.forEach((lh) => {
+      this.logicHooks[lh.name] = new (lh.Class)(this.buildScriptContext, this.caps)
+    })
     debug(`Loaded Default logic hook - ${util.inspect(Object.keys(this.logicHooks))}`)
   }
 
@@ -84,20 +104,18 @@ module.exports = class LogicHookUtils {
 
     // gives possibility to use default filters as global filter
     if (hookType === 'asserter') {
-      switch (src) {
-        case 'ButtonsAsserter':
-          return new ButtonsAsserter(this.buildScriptContext, this.caps, args)
-        case 'MediaAsserter':
-          return new MediaAsserter(this.buildScriptContext, this.caps, args)
-        case 'PauseAsserter':
-          return new PauseAsserter(this.buildScriptContext, this.caps, args)
+      for (let i = 0; i < DEFAULT_ASSERTERS.length; i++) {
+        const asserter = DEFAULT_ASSERTERS[i]
+        if (src === asserter.className) {
+          return new (asserter.Class)(this.buildScriptContext, this.caps, args)
+        }
       }
     } else {
-      switch (src) {
-        case 'PauseLogicHook':
-          return new PauseLogicHook(this.buildScriptContext, this.caps, args)
-        case 'WaitForBotLogicHook':
-          return new WaitForBotLogicHook(this.buildScriptContext, this.caps, args)
+      for (let i = 0; i < DEFAULT_LOGIC_HOOKS.length; i++) {
+        const lh = DEFAULT_LOGIC_HOOKS[i]
+        if (src === lh.className) {
+          return new (lh.Class)(this.buildScriptContext, this.caps, args)
+        }
       }
     }
     if (!src) {
