@@ -5,7 +5,7 @@ const Capabilities = require('../../').Capabilities
 const debug = require('debug')('botium-test-logichooks-waitforbot')
 const util = require('util')
 
-const echoConnector = ({ queueBotSays, caps }) => {
+const createEchoConnector = () => ({ queueBotSays, caps }) => {
   return {
     UserSays (msg) {
       const prefix = `Testcase "${caps[Capabilities.PROJECTNAME]}"`
@@ -23,7 +23,7 @@ describe('logichooks.waitforbot', function () {
   it('should waitforbot', async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'logichooks.waitforbot should waitforbot',
-      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.CONTAINERMODE]: createEchoConnector(),
       [Capabilities.WAITFORBOTTIMEOUT]: 0,
       WAITECHO: 500
     }
@@ -40,7 +40,7 @@ describe('logichooks.waitforbot', function () {
   it('should fail on waitforbot timeout', async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'logichooks.waitforbot should fail on waitforbot timeout',
-      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.CONTAINERMODE]: createEchoConnector(),
       [Capabilities.WAITFORBOTTIMEOUT]: 0,
       WAITECHO: 2000
     }
@@ -61,7 +61,7 @@ describe('logichooks.waitforbot', function () {
   it('should waitforbot infinite timeout', async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'logichooks.waitforbot should waitforbot infinite timeout',
-      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.CONTAINERMODE]: createEchoConnector(),
       [Capabilities.WAITFORBOTTIMEOUT]: 0,
       WAITECHO: 1000
     }
