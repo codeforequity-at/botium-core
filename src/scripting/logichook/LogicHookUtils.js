@@ -21,19 +21,10 @@ const DEFAULT_LOGIC_HOOKS = [
   { name: 'WAITFORBOT', className: 'WaitForBotLogicHook' }
 ]
 
-DEFAULT_LOGIC_HOOKS.forEach((asserter) => {
-  asserter.Class = require(`./${asserter.className}`)
+DEFAULT_LOGIC_HOOKS.forEach((logicHook) => {
+  logicHook.Class = require(`./${logicHook.className}`)
 })
 
-const ButtonsAsserter = require('./asserter/ButtonsAsserter')
-const MediaAsserter = require('./asserter/MediaAsserter')
-const PauseAsserter = require('./asserter/PauseAsserter')
-const EntitiesAsserter = require('./asserter/EntitiesAsserter')
-const EntityValuesAsserter = require('./asserter/EntityValuesAsserter')
-const IntentAsserter = require('./asserter/IntentAsserter')
-const IntentConfidenceAsserter = require('./asserter/IntentConfidenceAsserter')
-const PauseLogicHook = require('./PauseLogicHook')
-const WaitForBotLogicHook = require('./WaitForBotLogicHook')
 const Capabilities = require('../../Capabilities')
 const _ = require('lodash')
 
@@ -61,7 +52,7 @@ module.exports = class LogicHookUtils {
 
   _setDefaultLogicHooks () {
     DEFAULT_LOGIC_HOOKS.forEach((lh) => {
-      this.asserters[lh.name] = new (lh.Class)(this.buildScriptContext, this.caps)
+      this.logicHooks[lh.name] = new (lh.Class)(this.buildScriptContext, this.caps)
     })
     debug(`Loaded Default logic hook - ${util.inspect(Object.keys(this.logicHooks))}`)
   }
