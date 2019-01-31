@@ -243,7 +243,7 @@ class Convo {
               transcriptStep.actual = new BotiumMockMessage(saysmsg)
 
               debug(`${this.header.name}: bot says ${JSON.stringify(saysmsg, null, 2)}`)
-              if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData)) {
+              if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData && !saysmsg.nlp)) {
                 const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
                 debug(failErr)
                 try {

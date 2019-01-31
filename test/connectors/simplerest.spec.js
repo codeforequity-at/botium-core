@@ -1,6 +1,10 @@
-const assert = require('chai').assert
+const chai = require('chai')
+const chaiAsPromised = require('chai-as-promised')
+chai.use(chaiAsPromised)
+const assert = chai.assert
 const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
+const nock = require('nock')
 
 const myCapsGet = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -21,7 +25,97 @@ const msg = {
   token: 'myToken'
 }
 
-describe('connectors.simplerest', function () {
+describe('connectors.simplerest.nock', function () {
+  it('should build JSON GET url', async () => {
+    const caps = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
+      [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$',
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingget'
+    }
+    const scope = nock('https://mock.com')
+      .get('/pingget')
+      .reply(200, {
+        status: 'ok'
+      })
+      .persist()
+    const driver = new BotDriver(caps)
+    const container = await driver.Build()
+    const body = JSON.stringify({})
+    const pingConfig = {
+      method: 'GET',
+      uri: 'https://mock.com/pingget',
+      body: body,
+      timeout: 10000
+    }
+    const response = await container._waitForPingUrl(pingConfig, 2)
+    assert.equal(response.body, '{"status":"ok"}')
+    scope.persist(false)
+  })
+  it(`post ping endpoint`, async () => {
+    const caps = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
+      [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$',
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingpost',
+      [Capabilities.SIMPLEREST_PING_RETRIES]: 2
+
+    }
+    const scope = nock('https://mock.com')
+      .post('/pingpost', { status: 'ok?' }, null)
+      .reply(200, {
+        status: 'ok'
+      })
+      .persist()
+    const driver = new BotDriver(caps)
+    const container = await driver.Build()
+    const body = JSON.stringify({ status: 'ok?' })
+    const pingConfig = {
+      method: 'POST',
+      uri: 'https://mock.com/pingpost',
+      body: body,
+      timeout: 100
+    }
+    const response = await container._waitForPingUrl(pingConfig, 2)
+    assert.equal(response.body, '{"status":"ok"}')
+    scope.persist(false)
+  })
+  it(`error case can't connect`, async () => {
+    const caps = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
+      [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$',
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingfail',
+      [Capabilities.SIMPLEREST_PING_RETRIES]: 2
+    }
+    const scope = nock('https://mock.com')
+      .get('/pingfail')
+      .reply(404, {
+        error: 'notOk'
+      })
+      .persist()
+    const driver = new BotDriver(caps)
+    const container = await driver.Build()
+    const body = JSON.stringify({})
+    const pingConfig = {
+      method: 'GET',
+      uri: 'https://mock.com/pingfail',
+      body: body,
+      timeout: 100
+    }
+    try {
+      await container._waitForPingUrl(pingConfig, 2)
+      assert.fail(`expected ping error`)
+    } catch (err) {
+    }
+    scope.persist(false)
+  })
+})
+
+describe('connectors.simplerest.build', function () {
   it('should build JSON GET url', async function () {
     const myCaps = Object.assign({}, myCapsGet)
     const driver = new BotDriver(myCaps)

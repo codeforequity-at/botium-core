@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const PauseLogic = require('../../../../src/scripting/logichook/PauseLogic')
+const PauseLogic = require('../../../src/scripting/logichook/PauseLogic')
 
 describe('PauseLogic.pause', function () {
   it('positive case for pause logic', async function () {

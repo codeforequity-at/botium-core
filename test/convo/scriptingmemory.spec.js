@@ -58,7 +58,7 @@ describe('convo.scriptingmemory.convos', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected convo to fail')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected bot response (on Line 12: #me - show var VARVALUE  ) "show var VARVALUE" to match one of "show var VARVALUEINVALID"') > 0)
+      assert.isTrue(err.message.indexOf('Expected bot response (on Line 9: #me - show var VARVALUE  ) "show var VARVALUE" to match one of "show var VARVALUEINVALID"') > 0)
     }
   })
 })

@@ -2,12 +2,19 @@ const path = require('path')
 const assert = require('chai').assert
 const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
+const debug = require('debug')('botium-test-logichooks-waitforbot')
+const util = require('util')
 
-const echoConnector = ({ queueBotSays, caps: { WAITECHO } }) => {
+const createEchoConnector = () => ({ queueBotSays, caps }) => {
   return {
     UserSays (msg) {
+      const prefix = `Testcase "${caps[Capabilities.PROJECTNAME]}"`
+      debug(`${prefix} Connector got message ${util.inspect(msg)}`)
       const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: msg.messageText }
-      setTimeout(() => queueBotSays(botMsg), WAITECHO)
+      setTimeout(() => {
+        debug(`${prefix} Connector send message ${util.inspect(botMsg)}`)
+        return queueBotSays(botMsg)
+      }, caps.WAITECHO)
     }
   }
 }
@@ -15,8 +22,8 @@ const echoConnector = ({ queueBotSays, caps: { WAITECHO } }) => {
 describe('logichooks.waitforbot', function () {
   it('should waitforbot', async function () {
     const myCaps = {
-      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot',
-      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot should waitforbot',
+      [Capabilities.CONTAINERMODE]: createEchoConnector(),
       [Capabilities.WAITFORBOTTIMEOUT]: 0,
       WAITECHO: 500
     }
@@ -32,8 +39,8 @@ describe('logichooks.waitforbot', function () {
   }).timeout(3000)
   it('should fail on waitforbot timeout', async function () {
     const myCaps = {
-      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot',
-      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot should fail on waitforbot timeout',
+      [Capabilities.CONTAINERMODE]: createEchoConnector(),
       [Capabilities.WAITFORBOTTIMEOUT]: 0,
       WAITECHO: 2000
     }
@@ -53,8 +60,8 @@ describe('logichooks.waitforbot', function () {
   }).timeout(3000)
   it('should waitforbot infinite timeout', async function () {
     const myCaps = {
-      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot',
-      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot should waitforbot infinite timeout',
+      [Capabilities.CONTAINERMODE]: createEchoConnector(),
       [Capabilities.WAITFORBOTTIMEOUT]: 0,
       WAITECHO: 1000
     }

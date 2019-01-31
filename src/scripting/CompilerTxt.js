@@ -54,8 +54,9 @@ module.exports = class CompilerTxt extends CompilerBase {
 
     let currentLineIndex = 0
     let currentLines = []
-    let currentSender = null
-    let currentChannel = null
+    let convoStepSender = null
+    let convoStepChannel = null
+    let convoStepLineIndex = null
 
     const parseMsg = (lines) => {
       lines = lines || []
@@ -93,15 +94,15 @@ module.exports = class CompilerTxt extends CompilerBase {
     }
 
     let pushPrev = () => {
-      if (currentSender && currentLines) {
+      if (convoStepSender && currentLines) {
         const convoStep = {
-          sender: currentSender,
-          channel: currentChannel,
-          stepTag: 'Line ' + currentLineIndex
+          sender: convoStepSender,
+          channel: convoStepChannel,
+          stepTag: 'Line ' + convoStepLineIndex
         }
         Object.assign(convoStep, parseMsg(currentLines))
         convo.conversation.push(convoStep)
-      } else if (!currentSender && currentLines) {
+      } else if (!convoStepSender && currentLines) {
         convo.header.name = currentLines[0]
         if (currentLines.length > 1) {
           convo.header.description = currentLines.slice(1).join(this.eol)
@@ -115,11 +116,12 @@ module.exports = class CompilerTxt extends CompilerBase {
       if (line && line.startsWith('#')) {
         pushPrev()
 
-        currentSender = line.substr(1)
-        currentChannel = null
-        if (currentSender.indexOf(' ') > 0) {
-          currentChannel = currentSender.substr(currentSender.indexOf(' ') + 1).trim()
-          currentSender = currentSender.substr(0, currentSender.indexOf(' ')).trim()
+        convoStepSender = line.substr(1)
+        convoStepChannel = null
+        convoStepLineIndex = currentLineIndex
+        if (convoStepSender.indexOf(' ') > 0) {
+          convoStepChannel = convoStepSender.substr(convoStepSender.indexOf(' ') + 1).trim()
+          convoStepSender = convoStepSender.substr(0, convoStepSender.indexOf(' ')).trim()
         }
         currentLines = []
       } else if (line && line.length > 0) {

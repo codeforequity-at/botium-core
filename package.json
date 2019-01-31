@@ -1,17 +1,18 @@
 {
   "name": "botium-core",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "module": "dist/botium-es.js",
   "scripts": {
-    "build": "npm test && npm run eslint && rollup -c",
+    "build": "npm run eslint && nyc npm test && nyc check-coverage --lines 50 --functions 50 --branches 35 && rollup -c",
     "eslint": "eslint \"./src/**/*.js\" \"./test/**/*.js\"",
     "newpatch": "npm version patch",
     "agent": "node ./src/grid/agent/agent.js",
     "agent-jsdoc": "swagger-jsdoc -d ./src/grid/agent/swaggerDef.json -o ./src/grid/agent/swagger.json ./src/grid/agent/routes.js",
     "link": "npm link botium-connector-dialogflow botium-connector-webdriverio botium-connector-directline3 botium-connector-watson botium-connector-alexa-smapi botium-connector-echo",
     "test": "mocha \"./test/**/*.spec.js\"",
+    "coverage:report": "nyc report --reporter=lcov npm test",
     "license-checker": "license-checker > LICENSES-3RDPARTY.txt"
   },
   "repository": {
@@ -28,6 +29,7 @@
     "async": "^2.6.0",
     "body-parser": "^1.18.2",
     "boolean": "^0.2.0",
+    "chai-as-promised": "^7.1.1",
     "copy-dir": "^0.3.0",
     "debug": "^3.1.0",
     "express": "^4.16.2",
@@ -70,6 +72,8 @@
     "eslint-plugin-standard": "^4.0.0",
     "license-checker": "^25.0.1",
     "mocha": "^5.2.0",
+    "nock": "^10.0.6",
+    "nyc": "^13.1.0",
     "rollup": "^0.67.4",
     "rollup-plugin-buble": "^0.19.4",
     "rollup-plugin-commonjs": "^9.2.0",
