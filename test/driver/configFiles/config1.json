@@ -6,7 +6,7 @@
     "Sources": {
       "GITURL": "https://github.com/codeforequity-at/botium-core"
     },
-    "ENVS": {
+    "Envs": {
       "IS_BOTIUM_CONTAINER": false
     }
   }

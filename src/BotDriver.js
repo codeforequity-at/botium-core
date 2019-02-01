@@ -175,7 +175,7 @@ module.exports = class BotDriver {
       if (configJson.botium) {
         if (configJson.botium.Capabilities) this._mergeCaps(this.caps, configJson.botium.Capabilities)
         if (configJson.botium.Sources) this._mergeCaps(this.sources, configJson.botium.Sources)
-        if (configJson.botium.Envs) this.envs = this._mergeCaps(this.envs, configJson.botium.Envs)
+        if (configJson.botium.Envs) this._mergeCaps(this.envs, configJson.botium.Envs)
         debug(`Loaded Botium configuration file ${filename}`)
         return true
       } else {
@@ -205,6 +205,7 @@ module.exports = class BotDriver {
   }
 
   _mergeCaps (caps, newCaps) {
+    if (!caps) return
     Object.keys(newCaps).forEach(capKey => {
       if (!caps.hasOwnProperty(capKey)) {
         if (_.isString(newCaps[capKey])) {
