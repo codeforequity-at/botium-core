@@ -87,6 +87,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
             } else if (this.context.IsLogicHookValid(name)) {
               const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
               convoStep.logicHooks.push({ name, args })
+            } else if (this.context.IsUserInputValid(name)) {
+              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+              convoStep.userInputs.push({ name, args })
             } else {
               textLines.push(l)
             }

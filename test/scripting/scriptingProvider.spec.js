@@ -68,7 +68,7 @@ describe('scriptingProvider._isValidAsserterType', function () {
   })
 })
 
-describe('scriptingProvider._addScriptingMemoryToArgs', function () {
+describe('scriptingProvider._applyScriptingMemoryToArgs', function () {
   it('exchange var with real value', async function () {
     let scriptingProvider = new ScriptingProvider()
     let asserter = {
@@ -82,7 +82,7 @@ describe('scriptingProvider._addScriptingMemoryToArgs', function () {
     let scriptingMemory = {
       '$count': '5'
     }
-    assert.equal(scriptingProvider._addScriptingMemoryToArgs(asserter, scriptingMemory).args[1], 5)
+    assert.equal(scriptingProvider._applyScriptingMemoryToArgs(asserter.args, scriptingMemory)[1], 5)
   })
   it('typo of reference', async function () {
     let scriptingProvider = new ScriptingProvider()
@@ -97,7 +97,7 @@ describe('scriptingProvider._addScriptingMemoryToArgs', function () {
     let scriptingMemory = {
       '$count': '5'
     }
-    assert.notEqual(scriptingProvider._addScriptingMemoryToArgs(asserter, scriptingMemory).args[1], 5)
+    assert.notEqual(scriptingProvider._applyScriptingMemoryToArgs(asserter.args, scriptingMemory)[1], 5)
   })
   it('different value', async function () {
     let scriptingProvider = new ScriptingProvider()
@@ -112,7 +112,7 @@ describe('scriptingProvider._addScriptingMemoryToArgs', function () {
     let scriptingMemory = {
       '$count': '4'
     }
-    assert.notEqual(scriptingProvider._addScriptingMemoryToArgs(asserter, scriptingMemory).args[1], 5)
+    assert.notEqual(scriptingProvider._applyScriptingMemoryToArgs(asserter.args, scriptingMemory)[1], 5)
   })
 })
 
