@@ -1,0 +1,10 @@
+button
+
+#me
+hello world
+
+#bot
+$hello $world
+
+#me
+BUTTON Button: $hello $world

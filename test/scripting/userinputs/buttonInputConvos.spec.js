@@ -52,4 +52,14 @@ describe('scripting.userinputs.buttonInputConvos', function () {
     assert.equal(transcript.steps[0].actual.buttons.length, 1)
     assert.equal(transcript.steps[0].actual.buttons[0].text, 'ButtonText')
   })
+
+  it('should replace scripting variable button text in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'buttonScript.convo.txt')
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 3)
+    assert.equal(transcript.steps[2].actual.messageText, 'Button: hello world')
+    assert.equal(transcript.steps[2].actual.buttons.length, 1)
+    assert.equal(transcript.steps[2].actual.buttons[0].text, 'Button: hello world')
+  })
 })
