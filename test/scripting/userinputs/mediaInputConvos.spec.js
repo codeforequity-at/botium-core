@@ -52,4 +52,16 @@ describe('scripting.userinputs.mediaInputConvos', function () {
     assert.equal(transcript.steps[0].actual.media[0].mediaUri, 'test.jpg')
     assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/jpeg')
   })
+
+  it('should add multi media in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'medias.convo.txt')
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 2)
+    assert.equal(transcript.steps[0].actual.media[0].mediaUri, 'test1.jpg')
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/jpeg')
+    assert.equal(transcript.steps[0].actual.media[1].mediaUri, 'test2.jpg')
+    assert.equal(transcript.steps[0].actual.media[1].mimeType, 'image/jpeg')
+  })
 })
