@@ -70,7 +70,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       debug(`evaluating sheet name for ${scriptType}: ${util.inspect(sheetname)}, rowindex ${rowindex}, colindex ${colindex}`)
 
       if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-        const parseCell = (content) => {
+        const parseCell = (sender, content) => {
           if (!content) return { messageText: '' }
 
           if (!_.isString(content)) content = '' + content
@@ -81,9 +81,12 @@ module.exports = class CompilerXlsx extends CompilerBase {
           const textLines = []
           lines.forEach(l => {
             const name = l.split(' ')[0]
-            if (this.context.IsAsserterValid(name)) {
+            if (sender !== 'me' && this.context.IsAsserterValid(name)) {
               const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
               convoStep.asserters.push({ name, args })
+            } else if (sender === 'me' && this.context.IsUserInputValid(name)) {
+              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+              convoStep.userInputs.push({ name, args })
             } else if (this.context.IsLogicHookValid(name)) {
               const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
               convoStep.logicHooks.push({ name, args })
@@ -118,14 +121,14 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (sheet[meCell] && sheet[meCell].v) {
             currentConvo.push(Object.assign(
               { sender: 'me', stepTag: 'Cell ' + meCell },
-              parseCell(sheet[meCell].v)
+              parseCell('me', sheet[meCell].v)
             ))
             if (!startcell) startcell = meCell
             emptylines = 0
           } else if (sheet[botCell] && sheet[botCell].v) {
             currentConvo.push(Object.assign(
               { sender: 'bot', stepTag: 'Cell ' + botCell },
-              parseCell(sheet[botCell].v)
+              parseCell('bot', sheet[botCell].v)
             ))
             if (!startcell) startcell = botCell
             emptylines = 0

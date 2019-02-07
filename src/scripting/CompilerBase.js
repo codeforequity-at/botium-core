@@ -1,10 +1,11 @@
 module.exports = class CompilerBase {
-  constructor ({ AddConvos, AddUtterances, IsAsserterValid, IsLogicHookValid, scriptingEvents }, caps = {}) {
+  constructor ({ AddConvos, AddUtterances, IsAsserterValid, IsLogicHookValid, IsUserInputValid, scriptingEvents }, caps = {}) {
     this.context = {
       AddConvos,
       AddUtterances,
       IsAsserterValid,
       IsLogicHookValid,
+      IsUserInputValid,
       scriptingEvents
     }
     this.caps = caps

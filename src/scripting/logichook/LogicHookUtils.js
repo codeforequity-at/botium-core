@@ -22,7 +22,16 @@ const DEFAULT_LOGIC_HOOKS = [
 ]
 
 DEFAULT_LOGIC_HOOKS.forEach((logicHook) => {
-  logicHook.Class = require(`./${logicHook.className}`)
+  logicHook.Class = require(`./logichooks/${logicHook.className}`)
+})
+
+const DEFAULT_USER_INPUTS = [
+  { name: 'BUTTON', className: 'ButtonInput' },
+  { name: 'MEDIA', className: 'MediaInput' }
+]
+
+DEFAULT_USER_INPUTS.forEach((userInput) => {
+  userInput.Class = require(`./userinput/${userInput.className}`)
 })
 
 const Capabilities = require('../../Capabilities')
@@ -34,12 +43,15 @@ module.exports = class LogicHookUtils {
     this.globalAsserters = []
     this.logicHooks = {}
     this.globalLogicHooks = []
+    this.userInputs = {}
     this.buildScriptContext = buildScriptContext
     this.caps = caps
     this._setDefaultAsserters()
     this._setDefaultLogicHooks()
+    this._setDefaultUserInputs()
     this._fetchAsserters()
     this._fetchLogicHooks()
+    this._fetchUserInputs()
   }
 
   _setDefaultAsserters () {
@@ -55,6 +67,13 @@ module.exports = class LogicHookUtils {
       this.logicHooks[lh.name] = new (lh.Class)(this.buildScriptContext, this.caps)
     })
     debug(`Loaded Default logic hook - ${util.inspect(Object.keys(this.logicHooks))}`)
+  }
+
+  _setDefaultUserInputs () {
+    DEFAULT_USER_INPUTS.forEach((ui) => {
+      this.userInputs[ui.name] = new (ui.Class)(this.buildScriptContext, this.caps)
+    })
+    debug(`Loaded Default user input - ${util.inspect(Object.keys(this.userInputs))}`)
   }
 
   _fetchAsserters () {
@@ -87,6 +106,17 @@ module.exports = class LogicHookUtils {
       })
   }
 
+  _fetchUserInputs () {
+    this.caps[Capabilities.USER_INPUTS]
+      .map(userInput => {
+        if (this.userInputs[userInput.ref]) {
+          debug(`${userInput.ref} userinput already exists, overwriting.`)
+        }
+        this.userInputs[userInput.ref] = this._loadClass(userInput, 'user-input')
+        debug(`Loaded ${userInput.ref} SUCCESSFULLY - ${util.inspect(userInput)}`)
+      })
+  }
+
   getGlobalAsserter () {
     return this.globalAsserters
       .map(name => this.asserters[name])
@@ -98,7 +128,7 @@ module.exports = class LogicHookUtils {
   }
 
   _loadClass ({ src, ref, args }, hookType) {
-    if (hookType !== 'asserter' && hookType !== 'logic-hook') {
+    if (hookType !== 'asserter' && hookType !== 'logic-hook' && hookType !== 'user-input') {
       throw Error(`Unknown hookType ${hookType}`)
     }
 
@@ -110,11 +140,20 @@ module.exports = class LogicHookUtils {
           return new (asserter.Class)(this.buildScriptContext, this.caps, args)
         }
       }
-    } else {
+    }
+    if (hookType === 'logic-hook') {
       for (let i = 0; i < DEFAULT_LOGIC_HOOKS.length; i++) {
         const lh = DEFAULT_LOGIC_HOOKS[i]
         if (src === lh.className) {
           return new (lh.Class)(this.buildScriptContext, this.caps, args)
+        }
+      }
+    }
+    if (hookType === 'user-input') {
+      for (let i = 0; i < DEFAULT_USER_INPUTS.length; i++) {
+        const ui = DEFAULT_USER_INPUTS[i]
+        if (src === ui.className) {
+          return new (ui.Class)(this.buildScriptContext, this.caps, args)
         }
       }
     }

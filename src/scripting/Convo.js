@@ -41,6 +41,17 @@ class ConvoStepLogicHook {
   }
 }
 
+class ConvoStepUserInput {
+  constructor (fromJson = {}) {
+    this.name = fromJson.name
+    this.args = fromJson.args
+  }
+
+  toString () {
+    return this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
+  }
+}
+
 class ConvoStep {
   constructor (fromJson = {}) {
     this.sender = fromJson.sender
@@ -51,6 +62,7 @@ class ConvoStep {
     this.not = fromJson.not
     this.asserters = _.map(fromJson.asserters, (asserter) => new ConvoStepAssert(asserter))
     this.logicHooks = _.map(fromJson.logicHooks, (logicHook) => new ConvoStepLogicHook(logicHook))
+    this.userInputs = _.map(fromJson.userInputs, (userInput) => new ConvoStepUserInput(userInput))
   }
 
   toString () {
@@ -58,8 +70,9 @@ class ConvoStep {
       ': #' + this.sender +
       ' - ' + (this.not ? '!' : '') +
       this.messageText +
-      (this.asserters ? ' ' + this.asserters.map(a => a.toString()).join(' ASS: ') : '') +
-      (this.logicHooks ? ' ' + this.logicHooks.map(l => l.toString()).join(' ASS: ') : '')
+      (this.asserters && this.asserters.length > 0 ? ' ' + this.asserters.map(a => a.toString()).join(' ASS: ') : '') +
+      (this.logicHooks && this.logicHooks.length > 0 ? ' ' + this.logicHooks.map(l => l.toString()).join(' LH: ') : '') +
+      (this.userInputs && this.userInputs.length > 0 ? ' ' + this.userInputs.map(u => u.toString()).join(' UI: ') : '')
   }
 }
 
@@ -198,9 +211,10 @@ class Convo {
         } else if (convoStep.sender === 'me') {
           convoStep.messageText = this._checkNormalizeText(container, convoStep.messageText)
           convoStep.messageText = this._applyScriptingMemory(container, scriptingMemory, convoStep.messageText)
-          debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`)
 
-          return this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory })
+          return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg: convoStep })
+            .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`))
+            .then(() => this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory }))
             .then(() => {
               return new Promise(resolve => {
                 if (container.caps.SIMULATE_WRITING_SPEED && convoStep.messageText && convoStep.messageText.length) {

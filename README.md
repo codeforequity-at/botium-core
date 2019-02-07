@@ -40,6 +40,7 @@ Botium Core provides the core functionality. For attaching Botium to your chatbo
 * [Alexa Skill Management API](https://github.com/codeforequity-at/botium-connector-alexa-smapi)
 * [Facebook Messenger](https://github.com/codeforequity-at/botium-connector-fbpagereceiver)
 * [Microsoft Bot Framework](https://github.com/codeforequity-at/botium-connector-directline3)
+* [Microsoft LUIS](https://github.com/codeforequity-at/botium-connector-luis)
 * [Google Dialogflow](https://github.com/codeforequity-at/botium-connector-dialogflow)
 * [Action on Google / Google Assistant](https://github.com/codeforequity-at/botium-connector-google-assistant)
 * [Botpress](https://github.com/codeforequity-at/botium-connector-botpress)
