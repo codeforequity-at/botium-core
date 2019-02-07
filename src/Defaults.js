@@ -41,7 +41,8 @@ module.exports = {
     [Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]: 1,
     [Capabilities.SCRIPTING_UTTEXPANSION_INCOMPREHENSION]: 'INCOMPREHENSION',
     [Capabilities.ASSERTERS]: [],
-    [Capabilities.LOGIC_HOOKS]: []
+    [Capabilities.LOGIC_HOOKS]: [],
+    [Capabilities.USER_INPUTS]: []
   },
   Sources: {
     [Source.LOCALPATH]: '.',

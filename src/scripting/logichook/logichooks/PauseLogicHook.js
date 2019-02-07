@@ -1,4 +1,4 @@
-const pause = require('./PauseLogic').pause
+const pause = require('../PauseLogic').pause
 module.exports = class PauseLogicHook {
   constructor (context, caps = {}) {
     this.context = context

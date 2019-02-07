@@ -30,6 +30,7 @@ module.exports = class ScriptingProvider {
     this.globalAsserter = {}
     this.logicHooks = {}
     this.globalLogicHook = {}
+    this.userInputs = {}
 
     this.scriptingEvents = {
       onMeStart: ({ convoStep, ...rest }) => {
@@ -52,6 +53,9 @@ module.exports = class ScriptingProvider {
       },
       assertConvoEnd: ({ convo, convoStep, ...rest }) => {
         return this._createAsserterPromises((convo.endAsserter || []), convoStep, rest, convo, 'assertConvoEnd')
+      },
+      setUserInput: ({ convoStep, ...rest }) => {
+        return this._createUserInputPromises(convoStep, rest)
       },
       resolveUtterance: ({ utterance }) => {
         if (this.utterances[utterance]) {
@@ -95,17 +99,17 @@ module.exports = class ScriptingProvider {
     }
     const convoAsserter = asserters
       .filter(a => this.asserters[a.name][asserterType])
-      .map(a => this._addScriptingMemoryToArgs(a, rest.scriptingMemory))
       .map(a => p(() => this.asserters[a.name][asserterType]({
         convo,
         convoStep,
-        args: a.args,
+        args: this._applyScriptingMemoryToArgs(a.args, rest.scriptingMemory),
         isGlobal: false,
         ...rest
       })))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
       .map(a => p(() => a[asserterType]({ convo, convoStep, args: [], isGlobal: true, ...rest })))
+
     const allPromises = [...convoAsserter, ...globalAsserter]
     return Promise.all(allPromises)
   }
@@ -117,8 +121,11 @@ module.exports = class ScriptingProvider {
 
     const convoStepPromises = (convoStep.logicHooks || [])
       .filter(l => this.logicHooks[l.name][hookType])
-      .map(l => this._addScriptingMemoryToArgs(l, eventArgs.scriptingMemory))
-      .map(l => p(() => this.logicHooks[l.name][hookType]({ convoStep, args: l.args, isGlobal: false, ...eventArgs })))
+      .map(l => p(() => this.logicHooks[l.name][hookType]({
+        convoStep,
+        args: this._applyScriptingMemoryToArgs(l.args, eventArgs.scriptingMemory),
+        isGlobal: false,
+        ...eventArgs })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
@@ -128,16 +135,28 @@ module.exports = class ScriptingProvider {
     return Promise.all(allPromises)
   }
 
+  _createUserInputPromises (convoStep, eventArgs) {
+    const convoStepPromises = (convoStep.userInputs || [])
+      .filter(ui => this.userInputs[ui.name])
+      .map(ui => p(() => this.userInputs[ui.name].setUserInput({
+        convoStep,
+        args: this._applyScriptingMemoryToArgs(ui.args, eventArgs.scriptingMemory),
+        ...eventArgs })))
+
+    return Promise.all(convoStepPromises)
+  }
+
   _isValidAsserterType (asserterType) {
     return ['assertConvoBegin', 'assertConvoStep', 'assertConvoEnd'].some(t => asserterType === t)
   }
 
-  _addScriptingMemoryToArgs (asserter, scriptingMemory) {
-    let args = asserter.args
-    _.forOwn(scriptingMemory, (value, key) => {
-      asserter.args = args.map(arg => arg.replace(key, value))
+  _applyScriptingMemoryToArgs (args, scriptingMemory) {
+    return (args || []).map(arg => {
+      _.forOwn(scriptingMemory, (value, key) => {
+        arg = arg.replace(key, value)
+      })
+      return arg
     })
-    return asserter
   }
 
   _buildScriptContext () {
@@ -147,6 +166,7 @@ module.exports = class ScriptingProvider {
       Match: this.Match.bind(this),
       IsAsserterValid: this.IsAsserterValid.bind(this),
       IsLogicHookValid: this.IsLogicHookValid.bind(this),
+      IsUserInputValid: this.IsUserInputValid.bind(this),
       scriptingEvents: {
         assertConvoBegin: this.scriptingEvents.assertConvoBegin.bind(this),
         assertConvoStep: this.scriptingEvents.assertConvoStep.bind(this),
@@ -158,6 +178,7 @@ module.exports = class ScriptingProvider {
         onMeEnd: this.scriptingEvents.onMeEnd.bind(this),
         onBotStart: this.scriptingEvents.onBotStart.bind(this),
         onBotEnd: this.scriptingEvents.onBotEnd.bind(this),
+        setUserInput: this.scriptingEvents.setUserInput.bind(this),
         fail: this.scriptingEvents.fail && this.scriptingEvents.fail.bind(this)
       }
     }
@@ -186,6 +207,7 @@ module.exports = class ScriptingProvider {
     this.globalAsserter = logicHookUtils.getGlobalAsserter()
     this.logicHooks = logicHookUtils.logicHooks
     this.globalLogicHook = logicHookUtils.getGlobalLogicHook()
+    this.userInputs = logicHookUtils.userInputs
   }
 
   IsAsserterValid (name) {
@@ -194,6 +216,10 @@ module.exports = class ScriptingProvider {
 
   IsLogicHookValid (name) {
     return this.logicHooks[name] || false
+  }
+
+  IsUserInputValid (name) {
+    return this.userInputs[name] || false
   }
 
   Match (botresponse, utterance) {
