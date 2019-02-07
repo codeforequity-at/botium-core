@@ -99,7 +99,6 @@ module.exports = class ScriptingProvider {
     }
     const convoAsserter = asserters
       .filter(a => this.asserters[a.name][asserterType])
-      .map(a => this._addScriptingMemoryToArgs(a, rest.scriptingMemory))
       .map(a => p(() => this.asserters[a.name][asserterType]({
         convo,
         convoStep,
