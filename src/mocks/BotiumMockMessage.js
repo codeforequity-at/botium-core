@@ -2,7 +2,7 @@ const BotiumMockAttachment = require('./BotiumMockAttachment')
 const { BotiumMockMedia, BotiumMockButton, BotiumMockCard } = require('./BotiumMockRichMessageTypes')
 
 module.exports = class BotiumMockMessage {
-  constructor (fromJson = {}) {
+  constructor (fromJson = {}, expectedBotAnswerConvoStep = {}) {
     this.sender = fromJson.sender
     this.channel = fromJson.channel
     this.messageText = fromJson.messageText
@@ -12,5 +12,6 @@ module.exports = class BotiumMockMessage {
     this.sourceData = fromJson.sourceData
     this.sourceAction = fromJson.sourceAction
     this.attachments = (fromJson.attachments ? fromJson.attachments.map((a) => new BotiumMockAttachment(a)) : null)
+    this.expectedAnswer = expectedBotAnswerConvoStep.messageText
   }
 }

@@ -186,7 +186,15 @@ class Convo {
       convoEnd: null,
       err: null
     })
-
+    const meToBotConvoStep = new Map()
+    let lastMeConvoStep = null
+    this.conversation.forEach((convoStep) => {
+      if (convoStep.sender === 'me') {
+        lastMeConvoStep = convoStep
+      } else if (convoStep.sender === 'bot' && lastMeConvoStep) {
+        meToBotConvoStep.set(lastMeConvoStep, convoStep)
+      }
+    })
     let lastMeMsg = null
     return async.mapSeries(this.conversation,
       (convoStep, convoStepDoneCb) => {
@@ -226,7 +234,7 @@ class Convo {
             })
             .then(() => {
               transcriptStep.botBegin = new Date()
-              transcriptStep.actual = new BotiumMockMessage(convoStep)
+              transcriptStep.actual = new BotiumMockMessage(convoStep, meToBotConvoStep.get(convoStep))
               lastMeMsg = convoStep
               return container.UserSays(transcriptStep.actual)
                 .then(() => {
