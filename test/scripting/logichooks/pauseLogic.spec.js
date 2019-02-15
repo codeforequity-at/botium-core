@@ -1,4 +1,5 @@
 const assert = require('chai').assert
+const moment = require('moment')
 const PauseLogic = require('../../../src/scripting/logichook/PauseLogic')
 
 describe('PauseLogic.pause', function () {
@@ -8,7 +9,7 @@ describe('PauseLogic.pause', function () {
     return pause('test', ['1000'])
       .then(resolve => {
         const finishedDate = new Date()
-        assert.equal(currentDate.getSeconds() + 1, finishedDate.getSeconds())
+        assert.isTrue(moment(finishedDate).diff(currentDate) >= 1000, 'pause should at least diff 1000')
       })
   })
   it('negative case for pause logic', async function () {
@@ -17,7 +18,7 @@ describe('PauseLogic.pause', function () {
     return pause('test', ['500'])
       .then(resolve => {
         const finishedDate = new Date()
-        assert.notEqual(currentDate.getSeconds() + 2, finishedDate.getSeconds())
+        assert.isTrue(moment(finishedDate).diff(currentDate) < 1000, 'pause should max diff 1000')
       })
   })
   it('wrong number of args', async function () {
