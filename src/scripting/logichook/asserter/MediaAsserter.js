@@ -13,6 +13,7 @@ module.exports = class MediaAsserter {
         }
         if (botMsg.cards) {
           if (botMsg.cards.findIndex(mc => mc.image && this.context.Match(mc.image.mediaUri, args[i])) >= 0) continue
+          if (botMsg.cards.findIndex(mc => mc.media && mc.media.findIndex(mcm => this.context.Match(mcm.mediaUri, args[i])) >= 0) >= 0) continue
         }
         mediaNotFound.push(args[i])
       }
