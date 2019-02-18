@@ -51,7 +51,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
         sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES])
       } else {
-        sheetnames = workbook.SheetNames || []
+        sheetnames = []
       }
     }
     debug(`sheet names for ${scriptType}: ${util.inspect(sheetnames)}`)
@@ -76,7 +76,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (!_.isString(content)) content = '' + content
           const lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
 
-          const convoStep = { asserters: [], logicHooks: [], not: false }
+          const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false }
 
           const textLines = []
           lines.forEach(l => {
