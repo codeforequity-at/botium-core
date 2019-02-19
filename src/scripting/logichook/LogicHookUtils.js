@@ -83,7 +83,7 @@ module.exports = class LogicHookUtils {
           debug(`${asserter.ref} asserter already exists, overwriting.`)
         }
         this.asserters[asserter.ref] = this._loadClass(asserter, 'asserter')
-        debug(`Loaded ${asserter.ref} SUCCESSFULLY - ${util.inspect(asserter)}`)
+        debug(`Loaded ${asserter.ref} SUCCESSFULLY`)
         if (asserter.global) {
           this.globalAsserters.push(asserter.ref)
           debug(`global asserter: ${asserter.ref} was set and will be executed in every convo`)
@@ -98,7 +98,7 @@ module.exports = class LogicHookUtils {
           debug(`${logicHook.ref} logic hook already exists, overwriting.`)
         }
         this.logicHooks[logicHook.ref] = this._loadClass(logicHook, 'logic-hook')
-        debug(`Loaded ${logicHook.ref} SUCCESSFULLY - ${util.inspect(logicHook)}`)
+        debug(`Loaded ${logicHook.ref} SUCCESSFULLY`)
         if (logicHook.global) {
           this.globalLogicHooks.push(logicHook.ref)
           debug(`global logic hook: ${logicHook.ref} was set and will be executed in every convo`)
@@ -113,7 +113,7 @@ module.exports = class LogicHookUtils {
           debug(`${userInput.ref} userinput already exists, overwriting.`)
         }
         this.userInputs[userInput.ref] = this._loadClass(userInput, 'user-input')
-        debug(`Loaded ${userInput.ref} SUCCESSFULLY - ${util.inspect(userInput)}`)
+        debug(`Loaded ${userInput.ref} SUCCESSFULLY`)
       })
   }
 
@@ -188,6 +188,9 @@ module.exports = class LogicHookUtils {
         throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
       }
     }
+
+    const loadErr = []
+
     const tryLoadPackage = src
     debug(`Trying to load ${ref} ${hookType} from ${tryLoadPackage}`)
     try {
@@ -200,7 +203,7 @@ module.exports = class LogicHookUtils {
         throw new Error(`${tryLoadPackage} class or function expected`)
       }
     } catch (err) {
-      debug(`Failed to fetch ${ref} ${hookType} from ${tryLoadPackage} - ${util.inspect(err)} `)
+      loadErr.push(`Failed to fetch ${ref} ${hookType} from ${tryLoadPackage} - ${util.inspect(err)}`)
     }
 
     const tryLoadFile = path.resolve(process.cwd(), src)
@@ -215,9 +218,9 @@ module.exports = class LogicHookUtils {
         throw new Error(`${tryLoadFile} class or function expected`)
       }
     } catch (err) {
-      debug(`Failed to fetch ${ref} ${hookType} from ${tryLoadFile} - ${util.inspect(err)} `)
+      loadErr.push(`Failed to fetch ${ref} ${hookType} from ${tryLoadFile} - ${util.inspect(err)} `)
     }
-
+    loadErr.forEach(debug)
     throw new Error(`Failed to fetch ${ref} ${hookType}, no idea how to load ...`)
   }
 }
