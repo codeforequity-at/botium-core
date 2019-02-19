@@ -333,7 +333,8 @@ module.exports = class ScriptingProvider {
             : {
               sender: 'bot',
               messageText: '',
-              stepTag: 'Step 2 - check bot response'
+              stepTag: 'Step 2 - check bot response',
+              not: false
             }
         ],
         sourceTag: utt.sourceTag

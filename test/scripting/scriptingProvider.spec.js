@@ -180,6 +180,32 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
     assert.equal(scriptingProvider.convos[1].conversation[1].messageText, 'INCOMPREHENSION')
     assert.equal(scriptingProvider.convos[1].conversation[1].not, true)
   })
+  it('should build check-only convos for utterance', async function () {
+    const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+
+    scriptingProvider.ExpandUtterancesToConvos()
+    assert.lengthOf(scriptingProvider.convos, 1)
+    assert.lengthOf(scriptingProvider.convos[0].conversation, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'utt1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].messageText, '')
+    assert.isFalse(scriptingProvider.convos[0].conversation[1].not)
+
+    scriptingProvider.ExpandConvos()
+    assert.lengthOf(scriptingProvider.convos, 2)
+    assert.lengthOf(scriptingProvider.convos[0].conversation, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].messageText, '')
+    assert.isFalse(scriptingProvider.convos[0].conversation[1].not)
+    assert.lengthOf(scriptingProvider.convos[1].conversation, 2)
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+    assert.equal(scriptingProvider.convos[1].conversation[1].messageText, '')
+    assert.isFalse(scriptingProvider.convos[1].conversation[1].not)
+  })
   it('should fail incomprehension convos for utterance without incomprehension utt', async function () {
     const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { 'SCRIPTING_UTTEXPANSION_INCOMPREHENSION': 'INCOMPREHENSION' }))
     await scriptingProvider.Build()
