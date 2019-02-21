@@ -11,6 +11,8 @@ const boolean = require('boolean')
 const EventEmitter = require('events')
 const debug = require('debug')('botium-BotDriver')
 
+const { version } = require('../package.json')
+
 const Defaults = require('./Defaults')
 const Capabilities = require('./Capabilities')
 const Source = require('./Source')
@@ -99,6 +101,7 @@ module.exports = class BotDriver {
   }
 
   Build () {
+    debug(`Build - Botium Core Version: ${version}`)
     debug(`Build - Capabilites: ${util.inspect(this.caps)}`)
     debug(`Build - Sources : ${util.inspect(this.sources)}`)
     debug(`Build - Envs : ${util.inspect(this.envs)}`)

@@ -303,10 +303,12 @@ module.exports = class ScriptingProvider {
   ExpandUtterancesToConvos () {
     const expandedConvos = []
     const incomprehensionUtt = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_INCOMPREHENSION]
-    if (!this.utterances[incomprehensionUtt]) {
+    if (incomprehensionUtt && !this.utterances[incomprehensionUtt]) {
       throw new Error(`ExpandUtterancesToConvos - incomprehension utterance '${incomprehensionUtt}' undefined`)
     }
-    debug(`ExpandUtterancesToConvos - Using incomprehension utterance expansion mode: ${incomprehensionUtt}`)
+    if (incomprehensionUtt) {
+      debug(`ExpandUtterancesToConvos - Using incomprehension utterance expansion mode: ${incomprehensionUtt}`)
+    }
 
     _.keys(this.utterances).filter(u => u !== incomprehensionUtt).forEach(uttName => {
       const utt = this.utterances[uttName]
@@ -321,12 +323,19 @@ module.exports = class ScriptingProvider {
             messageText: utt.name,
             stepTag: 'Step 1 - tell utterance'
           },
-          {
-            sender: 'bot',
-            messageText: incomprehensionUtt,
-            stepTag: 'Step 2 - check incomprehension',
-            not: true
-          }
+          incomprehensionUtt
+            ? {
+              sender: 'bot',
+              messageText: incomprehensionUtt,
+              stepTag: 'Step 2 - check incomprehension',
+              not: true
+            }
+            : {
+              sender: 'bot',
+              messageText: '',
+              stepTag: 'Step 2 - check bot response',
+              not: false
+            }
         ],
         sourceTag: utt.sourceTag
       }))

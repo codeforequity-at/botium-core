@@ -20,9 +20,9 @@ export default {
     commonjs({
       exclude: 'node_modules/**'
     }),
+    json(),
     buble({
       objectAssign: 'Object.assign'
-    }),
-    json()
+    })
   ]
 }

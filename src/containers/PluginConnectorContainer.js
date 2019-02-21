@@ -12,6 +12,8 @@ const tryLoadPlugin = (containermode, args) => {
     debug(`Botium plugin loaded from function call`)
     return pluginInstance
   }
+  const loadErr = []
+
   try {
     const plugin = require(containermode)
     if (!plugin.PluginVersion || !plugin.PluginClass) {
@@ -22,7 +24,7 @@ const tryLoadPlugin = (containermode, args) => {
       return pluginInstance
     }
   } catch (err) {
-    debug(`Loading Botium plugin from ${containermode} failed - ${util.inspect(err)}`)
+    loadErr.push(`Loading Botium plugin from ${containermode} failed - ${util.inspect(err)}`)
   }
   const tryLoadPackage = `botium-connector-${containermode}`
   try {
@@ -35,8 +37,9 @@ const tryLoadPlugin = (containermode, args) => {
       return pluginInstance
     }
   } catch (err) {
-    debug(`Loading Botium plugin ${tryLoadPackage} failed, try "npm install ${tryLoadPackage}" - ${util.inspect(err)}`)
+    loadErr.push(`Loading Botium plugin ${tryLoadPackage} failed, try "npm install ${tryLoadPackage}" - ${util.inspect(err)}`)
   }
+  loadErr.forEach(debug)
 }
 
 module.exports = class PluginConnectorContainer extends BaseContainer {

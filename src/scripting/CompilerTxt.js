@@ -171,32 +171,41 @@ module.exports = class CompilerTxt extends CompilerBase {
       }
       script += this.eol
 
-      if (set.messageText) {
-        if (set.not) {
-          script += '!'
+      if (set.sender === 'me') {
+        if (set.buttons && set.buttons.length > 0) {
+          script += 'BUTTON ' + (set.buttons[0].payload || set.buttons[0].text) + this.eol
+        } else if (set.media && set.media.length > 0) {
+          script += 'MEDIA ' + set.media[0].mediaUri + this.eol
+        } else {
+          script += set.messageText + this.eol
         }
-        script += set.messageText + this.eol
-      } else if (set.sourceData) {
-        if (set.not) {
-          script += '!'
+      } else {
+        if (set.messageText) {
+          if (set.not) {
+            script += '!'
+          }
+          script += set.messageText + this.eol
+        } else if (set.sourceData) {
+          if (set.not) {
+            script += '!'
+          }
+          script += JSON.stringify(set.sourceData, null, 2) + this.eol
         }
-        script += JSON.stringify(set.sourceData, null, 2) + this.eol
-      }
-
-      if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
-      if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
-      if (set.cards && set.cards.length > 0) {
-        set.cards.forEach(c => {
-          if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
-          if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
+        if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
+        if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
+        if (set.cards && set.cards.length > 0) {
+          set.cards.forEach(c => {
+            if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
+            if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
+          })
+        }
+        set.asserters && set.asserters.map((asserter) => {
+          script += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + this.eol
+        })
+        set.logicHooks && set.logicHooks.map((logicHook) => {
+          script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
         })
       }
-      set.asserters && set.asserters.map((asserter) => {
-        script += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + this.eol
-      })
-      set.logicHooks && set.logicHooks.map((logicHook) => {
-        script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
-      })
     })
     return script
   }

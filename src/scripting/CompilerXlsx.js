@@ -51,7 +51,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
         sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES])
       } else {
-        sheetnames = workbook.SheetNames || []
+        sheetnames = []
       }
     }
     debug(`sheet names for ${scriptType}: ${util.inspect(sheetnames)}`)
@@ -76,7 +76,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (!_.isString(content)) content = '' + content
           const lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
 
-          const convoStep = { asserters: [], logicHooks: [], not: false }
+          const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false }
 
           const textLines = []
           lines.forEach(l => {
@@ -200,33 +200,42 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
         convo.conversation.forEach((set) => {
           let cellContent = ''
-          if (set.messageText) {
-            if (set.not) {
-              cellContent += '!'
-            }
-            cellContent += set.messageText + eol
-          } else if (set.sourceData) {
-            if (set.not) {
-              cellContent += '!'
-            }
-            cellContent += JSON.stringify(set.sourceData, null, 2) + eol
-          }
 
-          if (set.buttons && set.buttons.length > 0) cellContent += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + eol
-          if (set.media && set.media.length > 0) cellContent += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + eol
-          if (set.cards && set.cards.length > 0) {
-            set.cards.forEach(c => {
-              if (c.buttons && c.buttons.length > 0) cellContent += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + eol
-              if (c.image) cellContent += 'MEDIA ' + c.image.mediaUri + eol
+          if (set.sender === 'me') {
+            if (set.buttons && set.buttons.length > 0) {
+              cellContent += 'BUTTON ' + (set.buttons[0].payload || set.buttons[0].text) + eol
+            } else if (set.media && set.media.length > 0) {
+              cellContent += 'MEDIA ' + set.media[0].mediaUri + eol
+            } else {
+              cellContent += set.messageText + eol
+            }
+          } else {
+            if (set.messageText) {
+              if (set.not) {
+                cellContent += '!'
+              }
+              cellContent += set.messageText + eol
+            } else if (set.sourceData) {
+              if (set.not) {
+                cellContent += '!'
+              }
+              cellContent += JSON.stringify(set.sourceData, null, 2) + eol
+            }
+            if (set.buttons && set.buttons.length > 0) cellContent += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + eol
+            if (set.media && set.media.length > 0) cellContent += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + eol
+            if (set.cards && set.cards.length > 0) {
+              set.cards.forEach(c => {
+                if (c.buttons && c.buttons.length > 0) cellContent += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + eol
+                if (c.image) cellContent += 'MEDIA ' + c.image.mediaUri + eol
+              })
+            }
+            set.asserters && set.asserters.map((asserter) => {
+              cellContent += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + eol
+            })
+            set.logicHooks && set.logicHooks.map((logicHook) => {
+              cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
             })
           }
-          set.asserters && set.asserters.map((asserter) => {
-            cellContent += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + eol
-          })
-          set.logicHooks && set.logicHooks.map((logicHook) => {
-            cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
-          })
-
           data.push({ [set.sender]: cellContent })
         })
         data.push({})
