@@ -443,7 +443,8 @@ module.exports = class ScriptingProvider {
 
   AddPartialConvos (convos) {
     if (convos && _.isArray(convos)) {
-      for (const convo of convos) {
+      for (let i = 0; i < convos.length; i++) {
+        const convo = convos[i]
         this.AddPartialConvos(convo)
       }
     } else if (convos) {
