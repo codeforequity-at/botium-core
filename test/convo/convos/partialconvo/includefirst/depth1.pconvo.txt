@@ -1,0 +1,13 @@
+depth1
+
+#begin
+INCLUDE depth2
+
+#bot
+in depth1
+
+#me
+ok
+
+
+#end

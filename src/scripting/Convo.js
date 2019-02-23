@@ -7,6 +7,8 @@ const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 
+const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
+
 class ConvoHeader {
   constructor (fromJson = {}) {
     this.name = fromJson.name
@@ -109,8 +111,9 @@ class TranscriptError extends Error {
 }
 
 class Convo {
-  constructor ({ scriptingEvents }, fromJson = {}) {
-    this.scriptingEvents = scriptingEvents
+  constructor (context, fromJson = {}) {
+    this.scriptingEvents = context.scriptingEvents
+    this.context = context
     this.header = new ConvoHeader(fromJson.header)
     if (fromJson.conversation && _.isArray(fromJson.conversation)) {
       this.conversation = _.map(fromJson.conversation, (step) => new ConvoStep(step))
@@ -121,6 +124,7 @@ class Convo {
     let { beginAsserter, endAsserter } = this.setConvoBeginAndEndAsserter(fromJson)
     this.beginAsserter = beginAsserter
     this.endAsserter = endAsserter
+    this.effectiveConversation = null
   }
 
   setConvoBeginAndEndAsserter (fromJson) {
@@ -188,7 +192,17 @@ class Convo {
     })
 
     let lastMeMsg = null
-    return async.mapSeries(this.conversation,
+    let effectiveConversation
+    try {
+      effectiveConversation = this._getEffectiveConversation()
+    } catch (err) {
+      transcript.err = err
+      transcript.scriptingMemory = scriptingMemory
+      transcript.convoEnd = new Date()
+      cb(transcript)
+      return
+    }
+    return async.mapSeries(effectiveConversation,
       (convoStep, convoStepDoneCb) => {
         const transcriptStep = new TranscriptStep({
           expected: new BotiumMockMessage(convoStep),
@@ -433,6 +447,66 @@ class Convo {
       str = str.trim()
     }
     return str
+  }
+
+  _getEffectiveConversation () {
+    if (this.effectiveConversation) {
+      return this.effectiveConversation
+    }
+
+    const _getIncludeLogicHookName = (convoStep) => {
+      if (!convoStep.logicHooks) {
+        return
+      }
+
+      let result
+      for (const logicHook of convoStep.logicHooks) {
+        if (logicHook.name === LOGIC_HOOK_INCLUDE) {
+          if (result) {
+            throw Error('Duplicate include logic hook found!')
+          }
+          if (logicHook.args.length !== 1) {
+            throw Error('Wrong argument for include logic hook!')
+          }
+          result = logicHook
+        }
+      }
+
+      return result ? result.args[0] : null
+    }
+
+    const _getEffectiveConversationRecursive = (conversation, parentPConvos = [], result = []) => {
+      for (const convoStep of conversation) {
+        // dont put convo name for ConvoSteps on the root.
+        const steptagPath = parentPConvos.length === 0 ? '' : parentPConvos.join('/') + '/'
+        result.push(Object.assign(new ConvoStep(), convoStep, { stepTag: `${steptagPath}${convoStep.stepTag}` }))
+        const includeLogicHook = _getIncludeLogicHookName(convoStep)
+
+        const alreadyThereAt = parentPConvos.indexOf(includeLogicHook)
+        if (alreadyThereAt >= 0) {
+          throw new Error(`Partial convos are included circular. "${includeLogicHook}" is referenced by "/${parentPConvos.slice(0, alreadyThereAt).join('/')}" and by "/${parentPConvos.join('/')}" `)
+        }
+        if (includeLogicHook) {
+          const partialConvos = this.context.GetPartialConvos()
+          if (!partialConvos) {
+            throw new Error(`Cant find partial convo with name ${includeLogicHook} (There are no partial convos)`)
+          }
+          const partialConvo = this.context.GetPartialConvos()[includeLogicHook]
+          if (!partialConvo) {
+            throw Error(`Cant find partial convo with name ${includeLogicHook}`)
+          }
+
+          _getEffectiveConversationRecursive(partialConvo.conversation, [...parentPConvos, includeLogicHook], result)
+          debug(`Partial convo ${includeLogicHook} included`)
+        }
+      }
+
+      return result
+    }
+
+    this.effectiveConversation = _getEffectiveConversationRecursive(this.conversation)
+
+    return this.effectiveConversation
   }
 }
 

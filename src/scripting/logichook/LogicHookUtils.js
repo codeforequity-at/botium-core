@@ -2,6 +2,7 @@ const util = require('util')
 const path = require('path')
 const isClass = require('is-class')
 const debug = require('debug')('botium-asserterUtils')
+const {LOGIC_HOOK_INCLUDE} = require('./LogicHookConsts')
 
 const DEFAULT_ASSERTERS = [
   { name: 'BUTTONS', className: 'ButtonsAsserter' },
@@ -18,7 +19,8 @@ DEFAULT_ASSERTERS.forEach((asserter) => {
 
 const DEFAULT_LOGIC_HOOKS = [
   { name: 'PAUSE', className: 'PauseLogicHook' },
-  { name: 'WAITFORBOT', className: 'WaitForBotLogicHook' }
+  { name: 'WAITFORBOT', className: 'WaitForBotLogicHook' },
+  { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
 ]
 
 DEFAULT_LOGIC_HOOKS.forEach((logicHook) => {

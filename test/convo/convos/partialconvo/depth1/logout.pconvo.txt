@@ -1,0 +1,12 @@
+Logout
+
+#begin
+
+#bot
+Are you sure?
+
+#me
+Yes
+
+#end
+

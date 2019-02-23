@@ -33,20 +33,20 @@ module.exports = class CompilerTxt extends CompilerBase {
     return new ConvoHeader(header)
   }
 
-  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
+  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO, isPartial = false) {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
     let lines = _.map(scriptData.split(this.eol), (line) => line.trim())
 
     if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-      return this._compileConvo(lines)
+      return this._compileConvo(lines, isPartial)
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       return this._compileUtterances(lines)
     }
   }
 
-  _compileConvo (lines) {
+  _compileConvo (lines, isPartial = false) {
     let convo = {
       header: {},
       conversation: []
@@ -134,7 +134,11 @@ module.exports = class CompilerTxt extends CompilerBase {
     pushPrev()
 
     let result = [ new Convo(this.context, convo) ]
-    this.context.AddConvos(result)
+    if (isPartial) {
+      this.context.AddPartialConvos(result)
+    } else {
+      this.context.AddConvos(result)
+    }
     return result
   }
 

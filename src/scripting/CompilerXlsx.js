@@ -33,7 +33,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
     }
   }
 
-  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
+  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO, isPartial = false) {
     const workbook = XLSX.read(scriptBuffer, { type: 'buffer' })
     if (!workbook) throw new Error(`Workbook not readable`)
 
@@ -178,7 +178,11 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
     if (scriptResults && scriptResults.length > 0) {
       if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-        this.context.AddConvos(scriptResults)
+        if (!isPartial) {
+          this.context.AddConvos(scriptResults)
+        } else {
+          this.context.AddPartialConvos(scriptResults)
+        }
       } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
         this.context.AddUtterances(scriptResults)
       }
