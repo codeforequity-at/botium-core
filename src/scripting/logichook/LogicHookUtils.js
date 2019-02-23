@@ -2,7 +2,7 @@ const util = require('util')
 const path = require('path')
 const isClass = require('is-class')
 const debug = require('debug')('botium-asserterUtils')
-const {LOGIC_HOOK_INCLUDE} = require('./LogicHookConsts')
+const { LOGIC_HOOK_INCLUDE } = require('./LogicHookConsts')
 
 const DEFAULT_ASSERTERS = [
   { name: 'BUTTONS', className: 'ButtonsAsserter' },
