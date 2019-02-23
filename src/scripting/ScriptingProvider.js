@@ -451,6 +451,9 @@ module.exports = class ScriptingProvider {
       if (!convos.header || !convos.header.name) {
         throw Error(`Invalid convo header: ${convos.header}`)
       }
+      if (convos.header.name.indexOf('|') >= 0) {
+        throw Error(`Invalid partial convo name: ${convos.header.name}`)
+      }
       const name = convos.header.name
       if (this.partialConvos[name]) {
         throw Error(`Duplicate partial convo: ${name}`)

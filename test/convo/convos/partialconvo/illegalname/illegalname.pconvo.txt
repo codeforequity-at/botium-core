@@ -1,4 +1,4 @@
-sub
+illegal|name
 
 #bot
 in sub!

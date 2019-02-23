@@ -454,39 +454,36 @@ class Convo {
       return this.effectiveConversation
     }
 
-    const _getIncludeLogicHookName = (convoStep) => {
+    const _getIncludeLogicHookNames = (convoStep) => {
       if (!convoStep.logicHooks) {
         return
       }
 
-      let result
-      for (const logicHook of convoStep.logicHooks) {
+      let result = []
+      convoStep.logicHooks.forEach((logicHook) => {
         if (logicHook.name === LOGIC_HOOK_INCLUDE) {
-          if (result) {
-            throw Error('Duplicate include logic hook found!')
-          }
           if (logicHook.args.length !== 1) {
             throw Error('Wrong argument for include logic hook!')
           }
-          result = logicHook
+          result.push(logicHook)
         }
-      }
+      })
 
-      return result ? result.args[0] : null
+      return result.map((hook) => hook.args[0])
     }
 
     const _getEffectiveConversationRecursive = (conversation, parentPConvos = [], result = []) => {
-      for (const convoStep of conversation) {
+      conversation.forEach((convoStep) => {
         // dont put convo name for ConvoSteps on the root.
         const steptagPath = parentPConvos.length === 0 ? '' : parentPConvos.join('/') + '/'
         result.push(Object.assign(new ConvoStep(), convoStep, { stepTag: `${steptagPath}${convoStep.stepTag}` }))
-        const includeLogicHook = _getIncludeLogicHookName(convoStep)
+        const includeLogicHooks = _getIncludeLogicHookNames(convoStep)
 
-        const alreadyThereAt = parentPConvos.indexOf(includeLogicHook)
-        if (alreadyThereAt >= 0) {
-          throw new Error(`Partial convos are included circular. "${includeLogicHook}" is referenced by "/${parentPConvos.slice(0, alreadyThereAt).join('/')}" and by "/${parentPConvos.join('/')}" `)
-        }
-        if (includeLogicHook) {
+        includeLogicHooks.forEach((includeLogicHook) => {
+          const alreadyThereAt = parentPConvos.indexOf(includeLogicHook)
+          if (alreadyThereAt >= 0) {
+            throw new Error(`Partial convos are included circular. "${includeLogicHook}" is referenced by "/${parentPConvos.slice(0, alreadyThereAt).join('/')}" and by "/${parentPConvos.join('/')}" `)
+          }
           const partialConvos = this.context.GetPartialConvos()
           if (!partialConvos) {
             throw new Error(`Cant find partial convo with name ${includeLogicHook} (There are no partial convos)`)
@@ -498,8 +495,8 @@ class Convo {
 
           _getEffectiveConversationRecursive(partialConvo.conversation, [...parentPConvos, includeLogicHook], result)
           debug(`Partial convo ${includeLogicHook} included`)
-        }
-      }
+        })
+      })
 
       return result
     }

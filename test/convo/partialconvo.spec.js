@@ -17,7 +17,7 @@ const scriptedConnector = (script) => ({ queueBotSays }) => {
 }
 const _initIt = async (script, dir, _this) => {
   const myCaps = {
-    [Capabilities.PROJECTNAME]: 'convo.partialvonvo',
+    [Capabilities.PROJECTNAME]: 'convo.partialconvo',
     [Capabilities.CONTAINERMODE]: scriptedConnector(script)
   }
   const driver = new BotDriver(myCaps)
@@ -97,6 +97,14 @@ describe('convo.partialconvo.usecases', function () {
     return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
   })
 
+  it('It is possible to include more partial convos in one convostep', async function () {
+    await _initIt([
+      'in sub!',
+      'in sub!'
+    ], 'convos/partialconvo/includedmoretimes', this)
+    return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
+  })
+
   afterEach(async function () {
     this.container && await this.container.Clean()
   })
@@ -118,7 +126,16 @@ describe('convo.partialconvo.wrongconvos', function () {
   })
 
   it('Partial convo name duplicated', async function () {
-    return assert.isRejected(_initIt([], 'convos/partialconvo/duplicate', this), 'Duplicate partial convo: pconvo')
+    return assert.isRejected(_initIt([], 'convos/partialconvo/duplicatepconvo', this), 'Duplicate partial convo: pconvo')
+  })
+
+  it('Wrong arguments', async function () {
+    await _initIt([], 'convos/partialconvo/wrongarg', this)
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Wrong argument for include logic hook!')
+  })
+
+  it('Illegal partial convo name', async function () {
+    return assert.isRejected(_initIt([], 'convos/partialconvo/illegalname', this), 'Invalid partial convo name: illegal|name')
   })
 
   afterEach(async function () {

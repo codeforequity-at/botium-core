@@ -2,6 +2,3 @@ sub
 
 #bot
 in sub!
-
-#me
-ok
