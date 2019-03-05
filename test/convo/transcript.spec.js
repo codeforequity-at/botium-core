@@ -139,8 +139,7 @@ describe('convo.transcript', function () {
     assert.equal(this.compiler.convos.length, 1)
 
     let transcript = null
-    let container = null
-    this.driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { container = container; transcript = transcriptEv })
+    this.driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { transcript = transcriptEv })
 
     await this.compiler.convos[0].Run(this.container).then(() => {
       assert.fail('expected error')
