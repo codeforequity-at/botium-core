@@ -1,0 +1,6 @@
+first
+
+#bot
+first
+
+INCLUDE second

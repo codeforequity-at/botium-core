@@ -9,7 +9,8 @@ describe('PauseLogic.pause', function () {
     return pause('test', ['1000'])
       .then(resolve => {
         const finishedDate = new Date()
-        assert.isTrue(moment(finishedDate).diff(currentDate) >= 1000, 'pause should at least diff 1000')
+        const time = moment(finishedDate).diff(currentDate)
+        assert.isTrue(time >= 1000, `pause should at least diff 1000 but it is ${time}`)
       })
   })
   it('negative case for pause logic', async function () {
@@ -18,7 +19,8 @@ describe('PauseLogic.pause', function () {
     return pause('test', ['500'])
       .then(resolve => {
         const finishedDate = new Date()
-        assert.isTrue(moment(finishedDate).diff(currentDate) < 1000, 'pause should max diff 1000')
+        const time = moment(finishedDate).diff(currentDate)
+        assert.isTrue(time < 1000, `pause should max diff 1000 but it is ${time}`)
       })
   })
   it('wrong number of args', async function () {

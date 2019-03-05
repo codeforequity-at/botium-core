@@ -9,7 +9,7 @@ const debug = require('debug')('botium-ScriptingProvider')
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx|*.pconvo.txt)'
 
 const p = (fn) => new Promise((resolve, reject) => {
   try {
@@ -31,6 +31,7 @@ module.exports = class ScriptingProvider {
     this.logicHooks = {}
     this.globalLogicHook = {}
     this.userInputs = {}
+    this.partialConvos = {}
 
     this.scriptingEvents = {
       onMeStart: ({ convoStep, ...rest }) => {
@@ -163,10 +164,12 @@ module.exports = class ScriptingProvider {
     return {
       AddConvos: this.AddConvos.bind(this),
       AddUtterances: this.AddUtterances.bind(this),
+      AddPartialConvos: this.AddPartialConvos.bind(this),
       Match: this.Match.bind(this),
       IsAsserterValid: this.IsAsserterValid.bind(this),
       IsLogicHookValid: this.IsLogicHookValid.bind(this),
       IsUserInputValid: this.IsUserInputValid.bind(this),
+      GetPartialConvos: this.GetPartialConvos.bind(this),
       scriptingEvents: {
         assertConvoBegin: this.scriptingEvents.assertConvoBegin.bind(this),
         assertConvoStep: this.scriptingEvents.assertConvoStep.bind(this),
@@ -252,27 +255,34 @@ module.exports = class ScriptingProvider {
 
     const dirConvos = []
     const dirUtterances = []
+    const dirPartialConvos = []
     filelist.forEach((filename) => {
-      const { convos, utterances } = this.ReadScript(convoDir, filename)
+      const { convos, utterances, pconvos } = this.ReadScript(convoDir, filename)
       if (convos) dirConvos.push(...convos)
       if (utterances) dirUtterances.push(...utterances)
+      if (pconvos) dirPartialConvos.push(...pconvos)
     })
-    debug(`ReadConvosFromDirectory(${convoDir}) found convos:\n ${dirConvos ? dirConvos.join('\n') : 'none'}`)
-    debug(`ReadConvosFromDirectory(${convoDir}) found utterances:\n ${dirUtterances ? _.map(dirUtterances, (u) => u).join('\n') : 'none'}`)
-    return { convos: dirConvos, utterances: dirUtterances }
+    debug(`ReadConvosFromDirectory(${convoDir}) found convos:\n ${dirConvos.length ? dirConvos.join('\n') : 'none'}`)
+    debug(`ReadConvosFromDirectory(${convoDir}) found utterances:\n ${dirUtterances.length ? _.map(dirUtterances, (u) => u).join('\n') : 'none'}`)
+    debug(`ReadConvosFromDirectory(${convoDir}) found partial convos:\n ${dirPartialConvos.length ? dirPartialConvos.join('\n') : 'none'}`)
+    return { convos: dirConvos, utterances: dirUtterances, pconvos: dirPartialConvos }
   }
 
   ReadScript (convoDir, filename) {
     let fileConvos = []
     let fileUtterances = []
+    let filePartialConvos = []
 
     const scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
 
     if (filename.endsWith('.xlsx')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
+      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
     } else if (filename.endsWith('.convo.txt')) {
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
+    } else if (filename.endsWith('.pconvo.txt')) {
+      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
     } else if (filename.endsWith('.utterances.txt')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
     }
@@ -284,11 +294,19 @@ module.exports = class ScriptingProvider {
         }
       })
     }
+    if (filePartialConvos) {
+      filePartialConvos.forEach((filePartialConvo) => {
+        filePartialConvo.sourceTag = { filename }
+        if (!filePartialConvo.header.name) {
+          filePartialConvo.header.name = filename
+        }
+      })
+    }
 
     if (fileUtterances) {
       this.fileUtterances = this._tagAndCleanupUtterances(fileUtterances, filename)
     }
-    return { convos: fileConvos, utterances: fileUtterances }
+    return { convos: fileConvos, utterances: fileUtterances, pconvos: filePartialConvos }
   }
 
   _tagAndCleanupUtterances (utteranceFiles, filename) {
@@ -430,5 +448,31 @@ module.exports = class ScriptingProvider {
         }
       })
     }
+  }
+
+  AddPartialConvos (convos) {
+    if (convos && _.isArray(convos)) {
+      for (let i = 0; i < convos.length; i++) {
+        const convo = convos[i]
+        this.AddPartialConvos(convo)
+      }
+    } else if (convos) {
+      if (!convos.header || !convos.header.name) {
+        throw Error(`Invalid convo header: ${convos.header}`)
+      }
+      if (convos.header.name.indexOf('|') >= 0) {
+        throw Error(`Invalid partial convo name: ${convos.header.name}`)
+      }
+      const name = convos.header.name
+      if (this.partialConvos[name]) {
+        throw Error(`Duplicate partial convo: ${name}`)
+      }
+
+      this.partialConvos[name] = convos
+    }
+  }
+
+  GetPartialConvos () {
+    return this.partialConvos
   }
 }

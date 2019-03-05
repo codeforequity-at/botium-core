@@ -1,0 +1,9 @@
+Main
+
+#bot
+hi
+
+INCLUDE first
+
+#me
+ok
