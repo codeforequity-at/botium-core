@@ -143,7 +143,7 @@ describe('convo.transcript', function () {
 
     await this.compiler.convos[0].Run(this.container).then(() => {
       assert.fail('expected error')
-    }, error => {
+    }, () => {
       assert.isDefined(transcript)
     })
   })
@@ -156,7 +156,7 @@ describe('convo.transcript', function () {
 
     await this.compiler.convos[0].Run(this.container).then(() => {
       assert.fail('expected error')
-    }, err => {
+    }, () => {
       assert.isDefined(transcript)
     })
   })
