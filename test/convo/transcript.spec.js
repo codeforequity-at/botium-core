@@ -121,4 +121,44 @@ describe('convo.transcript', function () {
       assert.isDefined(transcript)
     }
   })
+  it('should handle expected JSON response', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'json-matching-key-and-value.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    let transcript = null
+    this.driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { transcript = transcriptEv })
+
+    await this.compiler.convos[0].Run(this.container).then(() => {
+      assert.isDefined(transcript)
+    }, error => {
+      assert.fail('unexpected error', error)
+    })
+  })
+  it('should handle fail with mismatching key in JSON response', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'json-mismatching-key.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    let transcript = null
+    let container = null
+    this.driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { container = container; transcript = transcriptEv })
+
+    await this.compiler.convos[0].Run(this.container).then(() => {
+      assert.fail('expected error')
+    }, error => {
+      assert.isDefined(transcript)
+    })
+  })
+  it('should handle fail with mismatching value in JSON response', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'json-mismatching-value.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    let transcript = null
+    this.driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { transcript = transcriptEv })
+
+    await this.compiler.convos[0].Run(this.container).then(() => {
+      assert.fail('expected error')
+    }, err => {
+      assert.isDefined(transcript)
+    })
+  })
 })

@@ -343,12 +343,12 @@ class Convo {
         throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
       }
       for (var i = 0; i < expected.length; i++) {
-        this._compareObject(container, convoStep, result[i], expected[i])
+        this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i])
       }
     } else if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
         if (result.hasOwnProperty(key)) {
-          this._compareObject(container, convoStep, result[key], expected[key])
+          this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key])
         } else {
           throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
         }
