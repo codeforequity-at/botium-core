@@ -186,18 +186,11 @@ class Convo {
       convoEnd: null,
       err: null
     })
-    const meToBotConvoStep = new Map()
-    let lastMeConvoStep = null
-    this.conversation.forEach((convoStep) => {
-      if (convoStep.sender === 'me') {
-        lastMeConvoStep = convoStep
-      } else if (convoStep.sender === 'bot' && lastMeConvoStep) {
-        meToBotConvoStep.set(lastMeConvoStep, convoStep)
-      }
-    })
+
     let lastMeMsg = null
     return async.mapSeries(this.conversation,
       (convoStep, convoStepDoneCb) => {
+        const currentStepIndex = this.conversation.indexOf(convoStep)
         const transcriptStep = new TranscriptStep({
           expected: new BotiumMockMessage(convoStep),
           not: convoStep.not,
@@ -234,9 +227,9 @@ class Convo {
             })
             .then(() => {
               transcriptStep.botBegin = new Date()
-              transcriptStep.actual = new BotiumMockMessage(convoStep, meToBotConvoStep.get(convoStep))
+              transcriptStep.actual = new BotiumMockMessage(convoStep)
               lastMeMsg = convoStep
-              return container.UserSays(transcriptStep.actual)
+              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex }, transcriptStep.actual))
                 .then(() => {
                   transcriptStep.botEnd = new Date()
                   return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory })
