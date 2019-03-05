@@ -229,9 +229,9 @@ module.exports = class ScriptingProvider {
     return this.matchFn(botresponse, utterance)
   }
 
-  Compile (scriptBuffer, scriptFormat, scriptType, isPartial = false) {
+  Compile (scriptBuffer, scriptFormat, scriptType) {
     let compiler = this.GetCompiler(scriptFormat)
-    return compiler.Compile(scriptBuffer, scriptType, isPartial)
+    return compiler.Compile(scriptBuffer, scriptType)
   }
 
   Decompile (convos, scriptFormat) {
@@ -277,11 +277,12 @@ module.exports = class ScriptingProvider {
 
     if (filename.endsWith('.xlsx')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
+      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
     } else if (filename.endsWith('.convo.txt')) {
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
     } else if (filename.endsWith('.pconvo.txt')) {
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO, true)
+      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
     } else if (filename.endsWith('.utterances.txt')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
     }
@@ -290,6 +291,14 @@ module.exports = class ScriptingProvider {
         fileConvo.sourceTag = { filename }
         if (!fileConvo.header.name) {
           fileConvo.header.name = filename
+        }
+      })
+    }
+    if (filePartialConvos) {
+      filePartialConvos.forEach((filePartialConvo) => {
+        filePartialConvo.sourceTag = { filename }
+        if (!filePartialConvo.header.name) {
+          filePartialConvo.header.name = filename
         }
       })
     }

@@ -18,7 +18,9 @@ const scriptedConnector = (script) => ({ queueBotSays }) => {
 const _initIt = async (script, dir, _this) => {
   const myCaps = {
     [Capabilities.PROJECTNAME]: 'convo.partialconvo',
-    [Capabilities.CONTAINERMODE]: scriptedConnector(script)
+    [Capabilities.CONTAINERMODE]: scriptedConnector(script),
+    [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
+    [Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS]: 'PConvos'
   }
   const driver = new BotDriver(myCaps)
   _this.compiler = driver.BuildCompiler()
@@ -27,7 +29,7 @@ const _initIt = async (script, dir, _this) => {
 }
 
 describe('convo.partialconvo.usecases', function () {
-  it('Depth1, everything ok', async function () {
+  it('Depth1 txt, everything ok', async function () {
     await _initIt([
       'Password please!',
       'You are logged in!',
@@ -38,9 +40,55 @@ describe('convo.partialconvo.usecases', function () {
     assert.equal(this.compiler.convos.length, 1)
     assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
 
-    const result = await this.compiler.convos[0].Run(this.container)
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.lengthOf(transcript.steps, 8)
+    assert.equal(transcript.steps[0].actual.sender, 'me')
+    assert.equal(transcript.steps[0].actual.messageText, 'Login please')
+    assert.equal(transcript.steps[1].actual.sender, 'bot')
+    assert.equal(transcript.steps[1].actual.messageText, 'Password please!')
+    assert.equal(transcript.steps[2].actual.sender, 'me')
+    assert.equal(transcript.steps[2].actual.messageText, '123456')
+    assert.equal(transcript.steps[3].actual.sender, 'bot')
+    assert.equal(transcript.steps[3].actual.messageText, 'You are logged in!')
+    assert.equal(transcript.steps[4].actual.sender, 'me')
+    assert.equal(transcript.steps[4].actual.messageText, 'Logout please!')
+    assert.equal(transcript.steps[5].actual.sender, 'bot')
+    assert.equal(transcript.steps[5].actual.messageText, 'Are you sure?')
+    assert.equal(transcript.steps[6].actual.sender, 'me')
+    assert.equal(transcript.steps[6].actual.messageText, 'Yes')
+    assert.equal(transcript.steps[7].actual.sender, 'bot')
+    assert.equal(transcript.steps[7].actual.messageText, 'You are logged out!')
+  })
 
-    console.log(result)
+  it('Depth1 xls, everything ok', async function () {
+    await _initIt([
+      'Password please!',
+      'You are logged in!',
+      'Are you sure?',
+      'You are logged out!'
+    ], 'convos/partialconvo/excel', this)
+
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.lengthOf(transcript.steps, 8)
+    assert.equal(transcript.steps[0].actual.sender, 'me')
+    assert.equal(transcript.steps[0].actual.messageText, 'Login please')
+    assert.equal(transcript.steps[1].actual.sender, 'bot')
+    assert.equal(transcript.steps[1].actual.messageText, 'Password please!')
+    assert.equal(transcript.steps[2].actual.sender, 'me')
+    assert.equal(transcript.steps[2].actual.messageText, '123456')
+    assert.equal(transcript.steps[3].actual.sender, 'bot')
+    assert.equal(transcript.steps[3].actual.messageText, 'You are logged in!')
+    assert.equal(transcript.steps[4].actual.sender, 'me')
+    assert.equal(transcript.steps[4].actual.messageText, 'Logout please!')
+    assert.equal(transcript.steps[5].actual.sender, 'bot')
+    assert.equal(transcript.steps[5].actual.messageText, 'Are you sure?')
+    assert.equal(transcript.steps[6].actual.sender, 'me')
+    assert.equal(transcript.steps[6].actual.messageText, 'Yes')
+    assert.equal(transcript.steps[7].actual.sender, 'bot')
+    assert.equal(transcript.steps[7].actual.messageText, 'You are logged out!')
   })
 
   it('Wrong botsays in main convo', async function () {
@@ -140,5 +188,60 @@ describe('convo.partialconvo.wrongconvos', function () {
 
   afterEach(async function () {
     this.container && await this.container.Clean()
+  })
+})
+
+describe('convo.partialconvo.decompile', function () {
+  it('Depth1 txt, everything ok', async function () {
+    await _initIt([
+      'Password please!',
+      'You are logged in!',
+      'Are you sure?',
+      'You are logged out!'
+    ], 'convos/partialconvo/depth1', this)
+
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
+
+    const convoTxt = this.compiler.Decompile(this.compiler.convos, 'SCRIPTING_FORMAT_TXT')
+    assert.equal(convoTxt, `Main
+
+#begin
+
+#me
+Login please
+INCLUDE Login
+
+#bot
+You are logged in!
+
+#me
+Logout please!
+INCLUDE Logout
+
+#bot
+You are logged out!
+
+#end
+`)
+  })
+
+  it('Depth1 excel, everything ok', async function () {
+    await _initIt([
+      'Password please!',
+      'You are logged in!',
+      'Are you sure?',
+      'You are logged out!'
+    ], 'convos/partialconvo/excel', this)
+
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
+
+    const convoXslx = this.compiler.Decompile(this.compiler.convos, 'SCRIPTING_FORMAT_XSLX')
+
+    this.compiler.convos = []
+    this.compiler.partialConvos = {}
+    this.compiler.Compile(convoXslx, 'SCRIPTING_FORMAT_XSLX', 'SCRIPTING_TYPE_CONVO')
+    assert.equal(this.compiler.convos.length, 1)
   })
 })

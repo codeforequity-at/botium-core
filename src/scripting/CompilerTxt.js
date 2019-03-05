@@ -33,14 +33,16 @@ module.exports = class CompilerTxt extends CompilerBase {
     return new ConvoHeader(header)
   }
 
-  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO, isPartial = false) {
+  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
     let lines = _.map(scriptData.split(this.eol), (line) => line.trim())
 
     if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-      return this._compileConvo(lines, isPartial)
+      return this._compileConvo(lines, false)
+    } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
+      return this._compileConvo(lines, true)
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       return this._compileUtterances(lines)
     }
@@ -183,6 +185,9 @@ module.exports = class CompilerTxt extends CompilerBase {
         } else {
           script += set.messageText + this.eol
         }
+        set.logicHooks && set.logicHooks.map((logicHook) => {
+          script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
+        })
       } else {
         if (set.messageText) {
           if (set.not) {

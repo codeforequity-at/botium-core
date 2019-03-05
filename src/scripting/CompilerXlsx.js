@@ -33,7 +33,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
     }
   }
 
-  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO, isPartial = false) {
+  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
     const workbook = XLSX.read(scriptBuffer, { type: 'buffer' })
     if (!workbook) throw new Error(`Workbook not readable`)
 
@@ -46,6 +46,12 @@ module.exports = class CompilerXlsx extends CompilerBase {
         sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES])
       } else {
         sheetnames = workbook.SheetNames || []
+      }
+    } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
+      if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS]) {
+        sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS])
+      } else {
+        sheetnames = []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
@@ -69,7 +75,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       }
       debug(`evaluating sheet name for ${scriptType}: ${util.inspect(sheetname)}, rowindex ${rowindex}, colindex ${colindex}`)
 
-      if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
+      if (scriptType === Constants.SCRIPTING_TYPE_CONVO || scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
         const parseCell = (sender, content) => {
           if (!content) return { messageText: '' }
 
@@ -178,11 +184,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
     if (scriptResults && scriptResults.length > 0) {
       if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-        if (!isPartial) {
-          this.context.AddConvos(scriptResults)
-        } else {
-          this.context.AddPartialConvos(scriptResults)
-        }
+        this.context.AddConvos(scriptResults)
+      } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
+        this.context.AddPartialConvos(scriptResults)
       } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
         this.context.AddUtterances(scriptResults)
       }
@@ -213,6 +217,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
             } else {
               cellContent += set.messageText + eol
             }
+            set.logicHooks && set.logicHooks.map((logicHook) => {
+              cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
+            })
           } else {
             if (set.messageText) {
               if (set.not) {
