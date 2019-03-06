@@ -204,6 +204,7 @@ class Convo {
     }
     return async.mapSeries(effectiveConversation,
       (convoStep, convoStepDoneCb) => {
+        const currentStepIndex = this.conversation.indexOf(convoStep)
         const transcriptStep = new TranscriptStep({
           expected: new BotiumMockMessage(convoStep),
           not: convoStep.not,
@@ -242,7 +243,7 @@ class Convo {
               transcriptStep.botBegin = new Date()
               transcriptStep.actual = new BotiumMockMessage(convoStep)
               lastMeMsg = convoStep
-              return container.UserSays(transcriptStep.actual)
+              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex }, transcriptStep.actual))
                 .then(() => {
                   transcriptStep.botEnd = new Date()
                   return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory })
