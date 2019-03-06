@@ -1,0 +1,15 @@
+JSON
+
+#begin
+
+#me
+{
+  "message": "Success!"
+}
+
+#bot
+{
+  "Xmessage": "Success!"
+}
+
+#end
