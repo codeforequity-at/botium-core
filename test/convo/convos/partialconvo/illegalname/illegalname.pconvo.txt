@@ -1,0 +1,7 @@
+illegal|name
+
+#bot
+in sub!
+
+#me
+ok

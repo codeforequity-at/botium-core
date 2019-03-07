@@ -7,6 +7,8 @@ const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 
+const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
+
 class ConvoHeader {
   constructor (fromJson = {}) {
     this.name = fromJson.name
@@ -109,8 +111,9 @@ class TranscriptError extends Error {
 }
 
 class Convo {
-  constructor ({ scriptingEvents }, fromJson = {}) {
-    this.scriptingEvents = scriptingEvents
+  constructor (context, fromJson = {}) {
+    this.scriptingEvents = context.scriptingEvents
+    this.context = context
     this.header = new ConvoHeader(fromJson.header)
     if (fromJson.conversation && _.isArray(fromJson.conversation)) {
       this.conversation = _.map(fromJson.conversation, (step) => new ConvoStep(step))
@@ -121,6 +124,7 @@ class Convo {
     let { beginAsserter, endAsserter } = this.setConvoBeginAndEndAsserter(fromJson)
     this.beginAsserter = beginAsserter
     this.endAsserter = endAsserter
+    this.effectiveConversation = null
   }
 
   setConvoBeginAndEndAsserter (fromJson) {
@@ -188,8 +192,19 @@ class Convo {
     })
 
     let lastMeMsg = null
-    return async.mapSeries(this.conversation,
+    let effectiveConversation
+    try {
+      effectiveConversation = this._getEffectiveConversation()
+    } catch (err) {
+      transcript.err = err
+      transcript.scriptingMemory = scriptingMemory
+      transcript.convoEnd = new Date()
+      cb(transcript)
+      return
+    }
+    return async.mapSeries(effectiveConversation,
       (convoStep, convoStepDoneCb) => {
+        const currentStepIndex = this.conversation.indexOf(convoStep)
         const transcriptStep = new TranscriptStep({
           expected: new BotiumMockMessage(convoStep),
           not: convoStep.not,
@@ -228,7 +243,7 @@ class Convo {
               transcriptStep.botBegin = new Date()
               transcriptStep.actual = new BotiumMockMessage(convoStep)
               lastMeMsg = convoStep
-              return container.UserSays(transcriptStep.actual)
+              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex }, transcriptStep.actual))
                 .then(() => {
                   transcriptStep.botEnd = new Date()
                   return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory })
@@ -343,12 +358,12 @@ class Convo {
         throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
       }
       for (var i = 0; i < expected.length; i++) {
-        this._compareObject(container, convoStep, result[i], expected[i])
+        this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i])
       }
     } else if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
         if (result.hasOwnProperty(key)) {
-          this._compareObject(container, convoStep, result[key], expected[key])
+          this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key])
         } else {
           throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
         }
@@ -433,6 +448,63 @@ class Convo {
       str = str.trim()
     }
     return str
+  }
+
+  _getEffectiveConversation () {
+    if (this.effectiveConversation) {
+      return this.effectiveConversation
+    }
+
+    const _getIncludeLogicHookNames = (convoStep) => {
+      if (!convoStep.logicHooks) {
+        return
+      }
+
+      let result = []
+      convoStep.logicHooks.forEach((logicHook) => {
+        if (logicHook.name === LOGIC_HOOK_INCLUDE) {
+          if (logicHook.args.length !== 1) {
+            throw Error('Wrong argument for include logic hook!')
+          }
+          result.push(logicHook)
+        }
+      })
+
+      return result.map((hook) => hook.args[0])
+    }
+
+    const _getEffectiveConversationRecursive = (conversation, parentPConvos = [], result = []) => {
+      conversation.forEach((convoStep) => {
+        // dont put convo name for ConvoSteps on the root.
+        const steptagPath = parentPConvos.length === 0 ? '' : parentPConvos.join('/') + '/'
+        result.push(Object.assign(new ConvoStep(), convoStep, { stepTag: `${steptagPath}${convoStep.stepTag}` }))
+        const includeLogicHooks = _getIncludeLogicHookNames(convoStep)
+
+        includeLogicHooks.forEach((includeLogicHook) => {
+          const alreadyThereAt = parentPConvos.indexOf(includeLogicHook)
+          if (alreadyThereAt >= 0) {
+            throw new Error(`Partial convos are included circular. "${includeLogicHook}" is referenced by "/${parentPConvos.slice(0, alreadyThereAt).join('/')}" and by "/${parentPConvos.join('/')}" `)
+          }
+          const partialConvos = this.context.GetPartialConvos()
+          if (!partialConvos) {
+            throw new Error(`Cant find partial convo with name ${includeLogicHook} (There are no partial convos)`)
+          }
+          const partialConvo = this.context.GetPartialConvos()[includeLogicHook]
+          if (!partialConvo) {
+            throw Error(`Cant find partial convo with name ${includeLogicHook}`)
+          }
+
+          _getEffectiveConversationRecursive(partialConvo.conversation, [...parentPConvos, includeLogicHook], result)
+          debug(`Partial convo ${includeLogicHook} included`)
+        })
+      })
+
+      return result
+    }
+
+    this.effectiveConversation = _getEffectiveConversationRecursive(this.conversation)
+
+    return this.effectiveConversation
   }
 }
 

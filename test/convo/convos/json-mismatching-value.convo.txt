@@ -1,0 +1,15 @@
+JSON
+
+#begin
+
+#me
+{
+  "message": "Hello"
+}
+
+#bot
+{
+  "message": "ZHello"
+}
+
+#end

@@ -1,0 +1,13 @@
+Main
+
+#begin
+
+#me
+include after bot!
+
+#bot
+ok
+
+INCLUDE afterbot
+
+#end

@@ -40,13 +40,15 @@ module.exports = class CompilerTxt extends CompilerBase {
     let lines = _.map(scriptData.split(this.eol), (line) => line.trim())
 
     if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
-      return this._compileConvo(lines)
+      return this._compileConvo(lines, false)
+    } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
+      return this._compileConvo(lines, true)
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       return this._compileUtterances(lines)
     }
   }
 
-  _compileConvo (lines) {
+  _compileConvo (lines, isPartial = false) {
     let convo = {
       header: {},
       conversation: []
@@ -134,7 +136,11 @@ module.exports = class CompilerTxt extends CompilerBase {
     pushPrev()
 
     let result = [ new Convo(this.context, convo) ]
-    this.context.AddConvos(result)
+    if (isPartial) {
+      this.context.AddPartialConvos(result)
+    } else {
+      this.context.AddConvos(result)
+    }
     return result
   }
 
@@ -179,6 +185,9 @@ module.exports = class CompilerTxt extends CompilerBase {
         } else {
           script += set.messageText + this.eol
         }
+        set.logicHooks && set.logicHooks.map((logicHook) => {
+          script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
+        })
       } else {
         if (set.messageText) {
           if (set.not) {
