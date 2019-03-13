@@ -124,6 +124,9 @@ class Convo {
     let { beginAsserter, endAsserter } = this.setConvoBeginAndEndAsserter(fromJson)
     this.beginAsserter = beginAsserter
     this.endAsserter = endAsserter
+    let { beginLogicHook, endLogicHook } = this.setConvoBeginAndEndLogicHook(fromJson)
+    this.beginLogicHook = beginLogicHook
+    this.endLogicHook = endLogicHook
     this.effectiveConversation = null
   }
 
@@ -141,6 +144,20 @@ class Convo {
     return { beginAsserter, endAsserter }
   }
 
+  setConvoBeginAndEndLogicHook (fromJson) {
+    const beginLogicHook = fromJson.conversation
+      .filter(s => s.sender === 'begin' && s.logicHooks && s.logicHooks.length > 0)
+      .map(s => s.logicHooks)
+      .reduce((acc, val) => acc.concat(val), [])
+
+    const endLogicHook = fromJson.conversation
+      .filter(s => s.sender === 'end' && s.logicHooks && s.logicHooks.length > 0)
+      .map(s => s.logicHooks)
+      .reduce((acc, val) => acc.concat(val), [])
+
+    return { beginLogicHook, endLogicHook }
+  }
+
   toString () {
     return this.header.toString() + (this.sourceTag ? ` (${util.inspect(this.sourceTag)})` : '') + ': ' + this.conversation.map((c) => c.toString()).join(' | ')
   }
@@ -150,10 +167,16 @@ class Convo {
       const scriptingMemory = {}
 
       async.waterfall([
+        // onConvoBegin first or assertConvoBegin? If onConvoBegin, then it is possible to assert it too
         (cb) => {
-          this.scriptingEvents.assertConvoBegin({ convo: this, container })
+          this.scriptingEvents.onConvoBegin({ convo: this, container, scriptingMemory })
             .then(() => cb())
-            .catch((err) => cb(new Error(`${this.header.name}: error begin asserter ${util.inspect(err)}`)))
+            .catch((err) => cb(new Error(`${this.header.name}: error begin handler ${util.inspect(err)}`)))
+        },
+        (cb) => {
+          this.scriptingEvents.assertConvoBegin({ convo: this, container, scriptingMemory })
+            .then(() => cb())
+            .catch((err) => cb(new Error(`${this.header.name}: error begin handler ${util.inspect(err)}`)))
         },
         (cb) => {
           this.runConversation(container, scriptingMemory, (transcript) => {
@@ -163,6 +186,12 @@ class Convo {
               cb(null, transcript)
             }
           })
+        },
+        // onConvoEnd first or assertConvoEnd? If onConvoEnd, then it is possible to assert it too
+        (transcript, cb) => {
+          this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
+            .then(() => cb(null, transcript))
+            .catch((err) => cb(new Error(`${this.header.name}: error end handler ${util.inspect(err)}`), transcript))
         },
         (transcript, cb) => {
           this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })

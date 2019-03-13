@@ -20,6 +20,8 @@ DEFAULT_ASSERTERS.forEach((asserter) => {
 const DEFAULT_LOGIC_HOOKS = [
   { name: 'PAUSE', className: 'PauseLogicHook' },
   { name: 'WAITFORBOT', className: 'WaitForBotLogicHook' },
+  { name: 'SET_SCRIPTING_MEMORY', className: 'SetScriptingMemoryLogicHook' },
+  { name: 'CLEAR_SCRIPTING_MEMORY', className: 'ClearScriptingMemoryLogicHook' },
   { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
 ]
 

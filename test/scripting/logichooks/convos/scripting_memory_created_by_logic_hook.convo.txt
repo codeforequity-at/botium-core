@@ -1,0 +1,4 @@
+created_by_logic_hook
+
+#me
+SET_SCRIPTING_MEMORY created_by_logic_hook|created_by_logic_hook_from_logic_hook

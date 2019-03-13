@@ -1,0 +1,6 @@
+cleared_by_logic_hook
+#begin
+SET_SCRIPTING_MEMORY cleared_by_logic_hook|cleared_by_logic_hook_from_begin
+
+#me
+CLEAR_SCRIPTING_MEMORY cleared_by_logic_hook
