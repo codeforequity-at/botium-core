@@ -47,6 +47,7 @@ Botium Core provides the core functionality. For attaching Botium to your chatbo
 * [Action on Google / Google Assistant](https://github.com/codeforequity-at/botium-connector-google-assistant)
 * [Botpress](https://github.com/codeforequity-at/botium-connector-botpress)
 * [Botkit](https://github.com/codeforequity-at/botium-connector-botkit)
+* [Wechat](https://github.com/codeforequity-at/botium-connector-wechat)
 * [Kore.ai](https://github.com/codeforequity-at/botium-connector-koreai-webhook)
 * [Webdriver](https://github.com/codeforequity-at/botium-connector-webdriverio) - for testing on user interface level
 * [Generic HTTP(s)/JSON Endpoints](https://github.com/codeforequity-at/botium-core/wiki/operation-mode-simplerest)
