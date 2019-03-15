@@ -1,0 +1,9 @@
+buy without variables
+#begin
+SET_SCRIPTING_MEMORY productName|productNameFormBegin
+
+#me
+buy without variables
+
+#bot
+you want to buy $productName

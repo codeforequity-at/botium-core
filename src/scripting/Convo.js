@@ -405,6 +405,24 @@ class Convo {
     }
   }
 
+  GetScriptingMemoryAllVariables (container) {
+    return this.conversation.reduce((acc, convoStep) => {
+      return acc.concat(this.GetScriptingMemoryVariables(container, convoStep.messageText))
+    }, [])
+  }
+
+  GetScriptingMemoryVariables (container, utterance) {
+    if (!utterance || !container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+      return []
+    }
+
+    const utterances = this.scriptingEvents.resolveUtterance({ utterance })
+
+    return utterances.reduce((acc, expected) => {
+      return acc.concat(expected.match(/\$\w+/g) || [])
+    }, [])
+  }
+
   _fillScriptingMemory (container, scriptingMemory, result, utterance) {
     if (result && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
       const utterances = this.scriptingEvents.resolveUtterance({ utterance })

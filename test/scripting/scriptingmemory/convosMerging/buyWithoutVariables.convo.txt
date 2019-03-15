@@ -1,0 +1,7 @@
+buy without variables
+
+#me
+buy
+
+#bot
+you want to buy $productName as $customerName?

@@ -9,7 +9,7 @@ const debug = require('debug')('botium-ScriptingProvider')
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx|*.pconvo.txt|*.scriptingmemory.xlsx)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx|*.pconvo.txt)'
 
 const p = (fn) => new Promise((resolve, reject) => {
   try {
@@ -32,9 +32,9 @@ module.exports = class ScriptingProvider {
     this.globalLogicHook = {}
     this.userInputs = {}
     this.partialConvos = {}
-    // this is array because this is filled by compiler. Compiler see just the content of the file.
-    // and for scriptingMemory files only the filename is unique
     this.scriptingMemories = []
+    this.scriptingMemoryVariableToFile = {}
+    this.scriptingMemoryFileToScriptingMemories = {}
 
     this.scriptingEvents = {
       onConvoBegin: ({ convo, convoStep, ...rest }) => {
@@ -284,7 +284,7 @@ module.exports = class ScriptingProvider {
     debug(`ReadConvosFromDirectory(${convoDir}) found convos:\n ${dirConvos.length ? dirConvos.join('\n') : 'none'}`)
     debug(`ReadConvosFromDirectory(${convoDir}) found utterances:\n ${dirUtterances.length ? _.map(dirUtterances, (u) => u).join('\n') : 'none'}`)
     debug(`ReadConvosFromDirectory(${convoDir}) found partial convos:\n ${dirPartialConvos.length ? dirPartialConvos.join('\n') : 'none'}`)
-    debug(`ReadConvosFromDirectory(${convoDir}) scripting memories:\n ${dirScriptingMemories.length ? dirScriptingMemories.join('\n') : 'none'}`)
+    debug(`ReadConvosFromDirectory(${convoDir}) scripting memories:\n ${dirScriptingMemories.length ? dirScriptingMemories.map((dirScriptingMemory) => util.inspect(dirScriptingMemory)).join('\n') : 'none'}`)
     return { convos: dirConvos, utterances: dirUtterances, pconvos: dirPartialConvos, scriptingMemories: dirScriptingMemories }
   }
 
@@ -300,14 +300,13 @@ module.exports = class ScriptingProvider {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
+      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
     } else if (filename.endsWith('.convo.txt')) {
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
     } else if (filename.endsWith('.pconvo.txt')) {
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
     } else if (filename.endsWith('.utterances.txt')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
-    } else if (filename.endsWith('.scriptingmemory.xlsx')) {
-      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
     }
     // Compilers saved the convos, and we alter here the saved version too
     if (fileConvos) {
@@ -326,10 +325,21 @@ module.exports = class ScriptingProvider {
         }
       })
     }
-    if (fileScriptingMemories) {
+    if (fileScriptingMemories && fileScriptingMemories.length) {
       fileScriptingMemories.forEach((scriptingMemory) => {
         scriptingMemory.sourceTag = { filename }
       })
+
+      // it is enough to iterate just the fist entry. All entries has to have the same fields.
+      Object.keys(fileScriptingMemories[0].values).forEach((variableName) => {
+        if (this.scriptingMemoryVariableToFile[variableName]) {
+          throw Error(`Variable name defined in multiple scripting memory files: ${this.scriptingMemoryVariableToFile[variableName]} and ${filename}`)
+        }
+
+        this.scriptingMemoryVariableToFile[variableName] = filename
+      })
+
+      this.scriptingMemoryFileToScriptingMemories[filename] = fileScriptingMemories
     }
 
     if (fileUtterances) {
@@ -344,6 +354,44 @@ module.exports = class ScriptingProvider {
       fileUtt.utterances = fileUtt.utterances
         .filter(u => u)
       return fileUtt
+    })
+  }
+
+  ExpandScriptingMemoryToConvos () {
+    const expandedConvos = []
+    this.convos.forEach((convo) => {
+      const variables = convo.GetScriptingMemoryAllVariables(this)
+      const fileToVariables = {}
+      variables.forEach((variable) => {
+        const file = this.scriptingMemoryVariableToFile[variable]
+
+        const alreadyUsedVariable = convo.beginLogicHook.filter((logicHook) => {
+          // .substring(1): cut the $ because logichooks
+          return (logicHook.name === 'SET_SCRIPTING_MEMORY' || logicHook.name === 'CLEAR_SCRIPTING_MEMORY') &&
+            logicHook.args.indexOf(variable.substring(1)) >= 0
+        })
+        // name args
+
+        if (alreadyUsedVariable) {
+          // result is not cleared yet. I suppose in original convo will the logicHook won, in cloned the value from file
+          debug(`Scripting memory variable defined in file "${file}", and in logicHook(s) ${util.inspect(alreadyUsedVariable)}`)
+        }
+
+        if (file) {
+          if (!fileToVariables[file]) {
+            fileToVariables[file] = []
+          }
+          fileToVariables[file].push(variable)
+        }
+      })
+
+      // just user info. if times is [2,3], then we will add 2*3 extra convo
+      const multipliers = Object.keys(fileToVariables).map((file) => this.scriptingMemoryFileToScriptingMemories[file].length)
+      debug(`ExpandScriptingMemoryToConvos - Expanding convo "${convo.header.name}" for scripting memory ${util.inspect(fileToVariables)} multipiers: ${multipliers} `)
+
+      _.forOwn(fileToVariables, (file, variables) => {
+        console.log(variables)
+      })
     })
   }
 

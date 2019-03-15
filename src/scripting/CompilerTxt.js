@@ -45,6 +45,8 @@ module.exports = class CompilerTxt extends CompilerBase {
       return this._compileConvo(lines, true)
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       return this._compileUtterances(lines)
+    } else {
+      throw Error(`Invalid script type ${scriptType}`)
     }
   }
 

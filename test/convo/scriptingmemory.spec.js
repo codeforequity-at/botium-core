@@ -182,4 +182,17 @@ describe('convo.scriptingMemory.api', function () {
     this.convo._fillScriptingMemory(this.containerStub, scriptingMemory, 'test sentence header\n\ntest sentence 1', 'test sentence header\n\ntest sentence $num')
     assert.equal(scriptingMemory['$num'], '1')
   })
+  it('should accept variable name case sensitive', async function () {
+    const scriptingMemory = {}
+    this.convo._fillScriptingMemory(this.containerStub, scriptingMemory, 'test sentence 1', 'test sentence $Num')
+    assert.equal(scriptingMemory['$num'], undefined)
+    assert.equal(scriptingMemory['$Num'], '1')
+  })
+  it('should accept variable name as postfix', async function () {
+    const scriptingMemory = {}
+    this.convo._fillScriptingMemory(this.containerStub, scriptingMemory, 'test sentence a1', 'test sentence a$Num')
+    assert.equal(scriptingMemory['$num'], undefined)
+    assert.equal(scriptingMemory['$Num'], '1')
+  })
+
 })
