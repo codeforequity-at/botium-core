@@ -196,7 +196,10 @@ module.exports = class LogicHookUtils {
     const tryLoadPackage = src
     debug(`Trying to load ${ref} ${hookType} from ${tryLoadPackage}`)
     try {
-      const CheckClass = require(tryLoadPackage)
+      let CheckClass = require(tryLoadPackage)
+      if (CheckClass.default) {
+        CheckClass = CheckClass.default
+      }
       if (isClass(CheckClass)) {
         return new CheckClass(this.buildScriptContext, this.caps, args)
       } else if (_.isFunction(CheckClass)) {
@@ -211,7 +214,10 @@ module.exports = class LogicHookUtils {
     const tryLoadFile = path.resolve(process.cwd(), src)
     debug(`Trying to load ${ref} ${hookType} from ${tryLoadFile}`)
     try {
-      const CheckClass = require(tryLoadFile)
+      let CheckClass = require(tryLoadFile)
+      if (CheckClass.default) {
+        CheckClass = CheckClass.default
+      }
       if (isClass(CheckClass)) {
         return new CheckClass(this.buildScriptContext, this.caps, args)
       } else if (_.isFunction(CheckClass)) {
