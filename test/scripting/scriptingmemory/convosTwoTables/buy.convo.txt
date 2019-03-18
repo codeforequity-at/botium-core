@@ -4,4 +4,3 @@ buy with variables
 buy $productName as $customerName
 
 #bot
-you want to buy $productName as $customerName?

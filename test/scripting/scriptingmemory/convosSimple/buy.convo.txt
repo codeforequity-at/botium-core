@@ -1,0 +1,7 @@
+logic hook collision
+#begin
+
+#me
+$productName
+
+#bot

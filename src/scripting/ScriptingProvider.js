@@ -362,6 +362,7 @@ module.exports = class ScriptingProvider {
     let convosOriginalAll = []
     this.convos.forEach((convo) => {
       const variables = convo.GetScriptingMemoryAllVariables(this)
+      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, all: "${util.inspect(variables)}"`)
       if (!variables.length) {
         debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - skipped, no variable found to replace`)
       }
@@ -377,7 +378,7 @@ module.exports = class ScriptingProvider {
         })
         // name args
 
-        if (alreadyUsedVariable) {
+        if (alreadyUsedVariable.length) {
           debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory variable "${variable}" defined in file "${file}", and in logicHook(s) "${util.inspect(alreadyUsedVariable)}"`)
         }
 
@@ -388,6 +389,7 @@ module.exports = class ScriptingProvider {
           fileToVariables[file].push(variable)
         }
       })
+      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, by file: "${util.inspect(fileToVariables)}"`)
 
       let convosToExpand = [convo]
       let convosExpandedConvo = []
@@ -399,10 +401,15 @@ module.exports = class ScriptingProvider {
         this.scriptingMemoryFileToScriptingMemories[file].forEach((scriptingMemory) => {
           // Appending the case name to name
           for (let convoToExpand of convosToExpand) {
-            const convoExpanded = _.cloneDeep(convo)
+            const convoExpanded = _.cloneDeep(convoToExpand)
             convoExpanded.header.name = convoToExpand.header.name + '.' + scriptingMemory.header.name
             variableNames.forEach((name) => {
-              convoExpanded.beginLogicHook.push({ name: 'SET_SCRIPTING_MEMORY', args: [name.substring(1), scriptingMemory.values[name]] })
+              const value = scriptingMemory.values[name]
+              if (value) {
+                convoExpanded.beginLogicHook.push({ name: 'SET_SCRIPTING_MEMORY', args: [name.substring(1), scriptingMemory.values[name]] })
+              } else {
+                convoExpanded.beginLogicHook.push({ name: 'CLEAR_SCRIPTING_MEMORY', args: [name.substring(1)] })
+              }
             })
             convosExpandedVariable.push(convoExpanded)
           }
@@ -413,7 +420,7 @@ module.exports = class ScriptingProvider {
         convosToExpand = convosExpandedVariable
         convosExpandedConvo = convosExpandedVariable
       })
-      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Expanding convo "${convo.header.name}" Expanded ${convosExpandedConvo.length} convo. (Details: ${convosExpandedConvo.length} = ${multipliers.join('*')})`)
+      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Expanding convo "${convo.header.name}" Expanded ${convosExpandedConvo.length} convo. (Details: ${convosExpandedConvo.length} = ${multipliers ? multipliers.join('*') : 0})`)
 
       if (convosExpandedConvo.length) {
         convosExpandedAll = convosExpandedAll.concat(convosExpandedConvo)
