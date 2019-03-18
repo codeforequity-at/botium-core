@@ -358,10 +358,15 @@ module.exports = class ScriptingProvider {
   }
 
   ExpandScriptingMemoryToConvos () {
-    const expandedConvos = []
+    let convosExpandedAll = []
+    let convosOriginalAll = []
     this.convos.forEach((convo) => {
       const variables = convo.GetScriptingMemoryAllVariables(this)
+      if (!variables.length) {
+        debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - skipped, no variable found to replace`)
+      }
       const fileToVariables = {}
+      // debug output, & filling fileToVariables
       variables.forEach((variable) => {
         const file = this.scriptingMemoryVariableToFile[variable]
 
@@ -373,8 +378,7 @@ module.exports = class ScriptingProvider {
         // name args
 
         if (alreadyUsedVariable) {
-          // result is not cleared yet. I suppose in original convo will the logicHook won, in cloned the value from file
-          debug(`Scripting memory variable defined in file "${file}", and in logicHook(s) ${util.inspect(alreadyUsedVariable)}`)
+          debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory variable "${variable}" defined in file "${file}", and in logicHook(s) "${util.inspect(alreadyUsedVariable)}"`)
         }
 
         if (file) {
@@ -385,14 +389,45 @@ module.exports = class ScriptingProvider {
         }
       })
 
-      // just user info. if times is [2,3], then we will add 2*3 extra convo
-      const multipliers = Object.keys(fileToVariables).map((file) => this.scriptingMemoryFileToScriptingMemories[file].length)
-      debug(`ExpandScriptingMemoryToConvos - Expanding convo "${convo.header.name}" for scripting memory ${util.inspect(fileToVariables)} multipiers: ${multipliers} `)
+      let convosToExpand = [convo]
+      let convosExpandedConvo = []
+      // just for debug output. If we got 6 expanded convo, then this array can be for example [2, 3]
+      let multipliers = []
+      Object.entries(fileToVariables).forEach(([file, variableNames]) => {
+        const convosExpandedVariable = []
+        multipliers.push(this.scriptingMemoryFileToScriptingMemories[file].length)
+        this.scriptingMemoryFileToScriptingMemories[file].forEach((scriptingMemory) => {
+          // Appending the case name to name
+          for (let convoToExpand of convosToExpand) {
+            const convoExpanded = _.cloneDeep(convo)
+            convoExpanded.header.name = convoToExpand.header.name + '.' + scriptingMemory.header.name
+            variableNames.forEach((name) => {
+              convoExpanded.beginLogicHook.push({ name: 'SET_SCRIPTING_MEMORY', args: [name.substring(1), scriptingMemory.values[name]] })
+            })
+            convosExpandedVariable.push(convoExpanded)
+          }
+        })
 
-      _.forOwn(fileToVariables, (file, variables) => {
-        console.log(variables)
+        // This is a bit tricky. If the loop is done, then convosExpandedConvo will be used,
+        // otherwise convosToExpand. They could be one variable
+        convosToExpand = convosExpandedVariable
+        convosExpandedConvo = convosExpandedVariable
       })
+      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Expanding convo "${convo.header.name}" Expanded ${convosExpandedConvo.length} convo. (Details: ${convosExpandedConvo.length} = ${multipliers.join('*')})`)
+
+      if (convosExpandedConvo.length) {
+        convosExpandedAll = convosExpandedAll.concat(convosExpandedConvo)
+        convosOriginalAll.push(convo)
+      }
     })
+
+    if (this.caps[Capabilities.SCRIPTING_MEMORYEXPANSION_DELORIG]) {
+      debug(`ExpandScriptingMemoryToConvos - Deleting ${convosOriginalAll.length} original convo`)
+      this.convos = this.convos.filter((convo) => convosOriginalAll.indexOf(convo) === -1)
+    }
+
+    debug(`ExpandScriptingMemoryToConvos - ${convosExpandedAll.length} convo expanded, added to convos (${this.convos.length}). Result ${convosExpandedAll.length + this.convos.length} convo`)
+    this.convos = this.convos.concat(convosExpandedAll)
   }
 
   ExpandUtterancesToConvos () {

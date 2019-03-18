@@ -1,9 +1,9 @@
-buy without variables
+logic hook collision
 #begin
 SET_SCRIPTING_MEMORY productName|productNameFormBegin
 
 #me
-buy without variables
+$productName
 
 #bot
-you want to buy $productName
+You said: Wiener Schnitzel

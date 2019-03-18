@@ -424,6 +424,7 @@ class Convo {
   }
 
   _fillScriptingMemory (container, scriptingMemory, result, utterance) {
+    debug(`_fillScriptingMemory scriptingMemory start: ${util.inspect(scriptingMemory)}`)
     if (result && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
       const utterances = this.scriptingEvents.resolveUtterance({ utterance })
       utterances.forEach(expected => {
@@ -442,7 +443,7 @@ class Convo {
           }
         }
       })
-      debug(`_fillScriptingMemory scriptingMemory: ${util.inspect(scriptingMemory)}`)
+      debug(`_fillScriptingMemory scriptingMemory end: ${util.inspect(scriptingMemory)}`)
     }
   }
 
