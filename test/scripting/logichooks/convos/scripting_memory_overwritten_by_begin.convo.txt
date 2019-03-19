@@ -1,0 +1,6 @@
+overwritten_by_begin
+
+This is overwritten just if global defines it
+
+#begin
+SET_SCRIPTING_MEMORY created_by_global|created_by_global_from_begin

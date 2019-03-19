@@ -1,0 +1,7 @@
+no scripting memory
+
+#begin
+hello
+
+#me
+hello
