@@ -9,7 +9,7 @@ const debug = require('debug')('botium-ScriptingProvider')
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx|*.pconvo.txt)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx|*.pconvo.txt|*.scriptingmemory.txt)'
 
 const p = (fn) => new Promise((resolve, reject) => {
   try {
@@ -307,6 +307,8 @@ module.exports = class ScriptingProvider {
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
     } else if (filename.endsWith('.utterances.txt')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
+    } else if (filename.endsWith('.scriptingmemory.txt')) {
+      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
     }
     // Compilers saved the convos, and we alter here the saved version too
     if (fileConvos) {

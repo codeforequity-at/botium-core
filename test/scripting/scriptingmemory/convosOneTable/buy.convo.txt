@@ -1,4 +1,4 @@
-buy with variables
+one table
 
 #me
 buy $productName as $customerName

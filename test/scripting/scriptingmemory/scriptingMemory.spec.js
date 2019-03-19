@@ -4,90 +4,20 @@ const assert = require('chai').assert
 const BotDriver = require('../../../').BotDriver
 const Capabilities = require('../../../').Capabilities
 
-const answers = [
-  {
-    input: ['buy without variables'],
-    output: 'you want to buy productNameFormBegin'
-  }
-]
-
-const scriptedConnector = ({ queueBotSays }) => {
+const echoConnector = ({ queueBotSays }) => {
   return {
     UserSays (msg) {
-      let response
-      const answer = answers.find((a) => a.input.indexOf(msg.messageText) >= 0)
-      if (answer) {
-        response = answer.output
-      } else {
-        response = `You said: ${msg.messageText}`
-      }
-
-      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: response }
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: `You said: ${msg.messageText}` }
       queueBotSays(botMsg)
     }
   }
 }
 
-describe('scripting.scriptingmemory.memoryenabled.originalkept', function () {
-  beforeEach(async function () {
-    const myCaps = {
-      [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',
-      [Capabilities.CONTAINERMODE]: scriptedConnector,
-      [Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]: 'ScriptingMemory',
-      [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
-      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-      [Capabilities.SCRIPTING_MEMORYEXPANSION_DELORIG]: false
-
-    }
-    const driver = new BotDriver(myCaps)
-    this.compiler = driver.BuildCompiler()
-    this.container = await driver.Build()
-  })
-  afterEach(async function () {
-    this.container && await this.container.Clean()
-  })
-
-  it('Original convo kept', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosSimple'))
-    this.compiler.ExpandScriptingMemoryToConvos()
-    assert.equal(this.compiler.convos.length, 2)
-  })
-})
-
-describe('scripting.scriptingmemory.memorydisabled', function () {
-  beforeEach(async function () {
-    const myCaps = {
-      [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',
-      [Capabilities.CONTAINERMODE]: scriptedConnector,
-      [Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]: 'ScriptingMemory',
-      [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
-      [Capabilities.SCRIPTING_ENABLE_MEMORY]: false
-
-    }
-    const driver = new BotDriver(myCaps)
-    this.compiler = driver.BuildCompiler()
-    this.container = await driver.Build()
-  })
-  afterEach(async function () {
-    this.container && await this.container.Clean()
-  })
-
-  it('scripting disabled, variable not replaced', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosSimple'))
-    this.compiler.ExpandScriptingMemoryToConvos()
-    assert.equal(this.compiler.convos.length, 1)
-
-    const transcript = await this.compiler.convos[0].Run(this.container)
-    assert.isObject(transcript.scriptingMemory)
-    assert.notExists(transcript.scriptingMemory['$productName'])
-  })
-})
-
 describe('scripting.scriptingmemory.memoryenabled.originaldeleted', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',
-      [Capabilities.CONTAINERMODE]: scriptedConnector,
+      [Capabilities.CONTAINERMODE]: echoConnector,
       [Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]: 'ScriptingMemory',
       [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
       [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
@@ -150,6 +80,7 @@ describe('scripting.scriptingmemory.memoryenabled.originaldeleted', function () 
     assert.isDefined(transcript.scriptingMemory['$productName'])
     assert.notExists(transcript.scriptingMemory['$customerName'])
   })
+
   it('Same variable in more files -> error', async function () {
     try {
       // assert.throws did not worked to me
@@ -158,5 +89,73 @@ describe('scripting.scriptingmemory.memoryenabled.originaldeleted', function () 
     } catch (ex) {
       assert.equal(ex.toString(), 'Error: Variable name defined in multiple scripting memory files: productGroup1.xlsx and productGroup2.xlsx')
     }
+  })
+
+  it('Using text file', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosSimpleText'))
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    assert.isDefined(transcript.scriptingMemory['$productName'])
+    assert.equal(transcript.scriptingMemory['$productName'], 'Wiener Schnitzel')
+    assert.isDefined(transcript.scriptingMemory['$customer'])
+    assert.equal(transcript.scriptingMemory['$customer'], 'Joe')
+  })
+})
+
+describe('scripting.scriptingmemory.memoryenabled.originalkept', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]: 'ScriptingMemory',
+      [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.SCRIPTING_MEMORYEXPANSION_DELORIG]: false
+
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('Original convo kept', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosSimple'))
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 2)
+  })
+})
+
+describe('scripting.scriptingmemory.memorydisabled', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]: 'ScriptingMemory',
+      [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: false
+
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('scripting disabled, variable not replaced', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosSimple'))
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    assert.notExists(transcript.scriptingMemory['$productName'])
   })
 })

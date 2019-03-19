@@ -1,4 +1,4 @@
-buy with variables
+value optional
 
 #me
 buy $productName as $customerName

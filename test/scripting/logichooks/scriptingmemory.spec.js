@@ -12,64 +12,6 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('scripting.logichooks.global', function () {
-  beforeEach(async function () {
-    const myCaps = {
-      [Capabilities.PROJECTNAME]: 'scripting.logichooks',
-      [Capabilities.CONTAINERMODE]: echoConnector,
-      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-      [Capabilities.LOGIC_HOOKS]: [
-        {
-          src: 'SetScriptingMemoryLogicHook',
-          ref: 'created_by_global',
-          global: true,
-          args: {
-            name: 'created_by_global',
-            value: 'created_by_global_from_global'
-          }
-        },
-        {
-          src: 'SetScriptingMemoryLogicHook',
-          ref: 'created_by_begin',
-          global: true,
-          args: {
-            name: 'created_by_begin',
-            value: 'created_by_begin_from_global'
-          }
-        }
-
-      ]
-    }
-    const driver = new BotDriver(myCaps)
-    this.compiler = driver.BuildCompiler()
-    this.container = await driver.Build()
-  })
-  afterEach(async function () {
-    this.container && await this.container.Clean()
-  })
-
-  it('should be created by global', async function () {
-    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'no_scripting_memory.convo.txt')
-    assert.equal(this.compiler.convos.length, 1)
-
-    const transcript = await this.compiler.convos[0].Run(this.container)
-    assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$created_by_global'])
-    assert.equal(transcript.scriptingMemory['$created_by_global'], 'created_by_global_from_global')
-  })
-
-  // It must be just an accident that the global is overwritten by begin. feel free to change this test
-  it('should be overwritten by global', async function () {
-    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_created_by_begin.convo.txt')
-    assert.equal(this.compiler.convos.length, 1)
-
-    const transcript = await this.compiler.convos[0].Run(this.container)
-    assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$created_by_begin'])
-    assert.equal(transcript.scriptingMemory['$created_by_begin'], 'created_by_begin_from_global')
-  })
-})
-
 describe('scripting.logichooks.cases', function () {
   beforeEach(async function () {
     const myCaps = {
@@ -81,6 +23,7 @@ describe('scripting.logichooks.cases', function () {
     this.compiler = driver.BuildCompiler()
     this.container = await driver.Build()
   })
+
   afterEach(async function () {
     this.container && await this.container.Clean()
   })
@@ -144,5 +87,64 @@ describe('scripting.logichooks.cases', function () {
     assert.isObject(transcript.scriptingMemory)
     assert.isDefined(transcript.scriptingMemory['$overwritten_by_logic_hook'])
     assert.equal(transcript.scriptingMemory['$overwritten_by_logic_hook'], 'overwritten_by_logic_hook_from_logic_hook')
+  })
+})
+
+describe('scripting.logichooks.global', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.logichooks',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.LOGIC_HOOKS]: [
+        {
+          src: 'SetScriptingMemoryLogicHook',
+          ref: 'created_by_global',
+          global: true,
+          args: {
+            name: 'created_by_global',
+            value: 'created_by_global_from_global'
+          }
+        },
+        {
+          src: 'SetScriptingMemoryLogicHook',
+          ref: 'created_by_begin',
+          global: true,
+          args: {
+            name: 'created_by_begin',
+            value: 'created_by_begin_from_global'
+          }
+        }
+
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should be created by global', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'no_scripting_memory.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    assert.isDefined(transcript.scriptingMemory['$created_by_global'])
+    assert.equal(transcript.scriptingMemory['$created_by_global'], 'created_by_global_from_global')
+  })
+
+  // It must be just an accident that the global is overwritten by begin. feel free to change this test
+  it('should be overwritten by global', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_created_by_begin.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    assert.isDefined(transcript.scriptingMemory['$created_by_begin'])
+    assert.equal(transcript.scriptingMemory['$created_by_begin'], 'created_by_begin_from_global')
   })
 })

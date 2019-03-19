@@ -1,4 +1,5 @@
 logic hook collision
+
 #begin
 SET_SCRIPTING_MEMORY productName|productNameFormBegin
 
