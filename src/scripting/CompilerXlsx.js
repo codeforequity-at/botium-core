@@ -213,7 +213,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
             for (let i = 0; i < variableNames.length; i++) {
               const variableValueCell = this.colnames[colindex + 1 + i] + rowindex
               if (sheet[variableValueCell] && sheet[variableValueCell].v) {
-                values[variableNames[i]] = sheet[variableValueCell].v
+                values[variableNames[i]] = sheet[variableValueCell].v.toString()
               } else {
                 values[variableNames[i]] = null
               }
