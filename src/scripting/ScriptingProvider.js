@@ -326,6 +326,9 @@ module.exports = class ScriptingProvider {
 
       // it is enough to iterate just the fist entry. All entries has to have the same fields.
       Object.keys(fileScriptingMemories[0].values).forEach((variableName) => {
+        if (ScriptingMemory.RESERVED_WORDS.indexOf(variableName) >= 0) {
+          debug(`Script - Reserved word "${variableName}" used as variable`)
+        }
         if (this.scriptingMemoryVariableToFile[variableName]) {
           throw Error(`Variable name defined in multiple scripting memory files: ${this.scriptingMemoryVariableToFile[variableName]} and ${filename}`)
         }

@@ -1,6 +1,5 @@
 const path = require('path')
 const assert = require('chai').assert
-
 const BotDriver = require('../../../').BotDriver
 const Capabilities = require('../../../').Capabilities
 
@@ -102,6 +101,11 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     assert.equal(transcript.scriptingMemory['$productName'], 'Wiener Schnitzel')
     assert.isDefined(transcript.scriptingMemory['$customer'])
     assert.equal(transcript.scriptingMemory['$customer'], 'Joe')
+  })
+
+  // nothing to test here, this case is just a debug log.
+  it('Reserved word', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosReservedWord'))
   })
 })
 

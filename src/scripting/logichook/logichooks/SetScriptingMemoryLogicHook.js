@@ -1,11 +1,16 @@
 const debug = require('debug')('botium-SetScriptingMemoryLogicHook')
 const util = require('util')
 
+const { RESERVED_WORDS } = require('../../ScriptingMemory')
+
 module.exports = class SetScriptingMemoryLogicHook {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
     this.globalArgs = globalArgs
+    if (globalArgs && globalArgs.name && (RESERVED_WORDS.indexOf(globalArgs.name) >= 0)) {
+      debug(`Reserved word "${globalArgs.name}" used as variable`)
+    }
   }
 
   onConvoBegin ({ scriptingMemory, convoStep, args, isGlobal }) {
@@ -23,6 +28,9 @@ module.exports = class SetScriptingMemoryLogicHook {
   _setScriptingMemory (scriptingMemory, convoStep, args, isGlobal, type) {
     if (args && args.length > 2) {
       return Promise.reject(new Error(`${convoStep.stepTag}: SetScriptingMemoryLogicHook Too much argument ${util.inspect(args)}`))
+    }
+    if (args && args.length > 0 && (RESERVED_WORDS.indexOf('$' + args[0]) >= 0)) {
+      debug(`Reserved word "${args[0]}" used as variable`)
     }
 
     let name = args[0] || this.globalArgs.name

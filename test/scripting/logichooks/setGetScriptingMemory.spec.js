@@ -88,6 +88,12 @@ describe('scripting.logichooks.cases', function () {
     assert.isDefined(transcript.scriptingMemory['$overwritten_by_logic_hook'])
     assert.equal(transcript.scriptingMemory['$overwritten_by_logic_hook'], 'overwritten_by_logic_hook_from_logic_hook')
   })
+
+  it('reserved word, just a log on console', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_reserved_word.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+    await this.compiler.convos[0].Run(this.container)
+  })
 })
 
 describe('scripting.logichooks.global', function () {

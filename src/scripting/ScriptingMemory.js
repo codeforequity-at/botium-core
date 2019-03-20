@@ -40,6 +40,8 @@ const SCRIPTING_FUNCTIONS = {
   }
 }
 
+const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)
+
 const apply = (container, scriptingMemory, str) => {
   if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
     _.forOwn(scriptingMemory, (value, key) => {
@@ -85,5 +87,6 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
 module.exports = {
   apply,
   applyToArgs,
-  fill
+  fill,
+  RESERVED_WORDS
 }
