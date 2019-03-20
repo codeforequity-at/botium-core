@@ -198,6 +198,53 @@ describe('convo.scriptingMemory.api', function () {
     })
   })
 
+  describe('convo.scriptingMemory.api.apply', function () {
+    it('should apply on exact match', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { '$num': 1 },
+        'test sentence $num'
+      )
+      assert.equal(result, 'test sentence 1')
+    })
+
+    it('should apply on prefix match', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { '$num': 1 },
+        'test sentence $numPc'
+      )
+      assert.equal(result, 'test sentence 1Pc')
+    })
+
+    it('should apply on postfix match', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { '$num': 1 },
+        'test sentence Number$num'
+      )
+      assert.equal(result, 'test sentence Number1')
+    })
+
+    it('should apply on middle match', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { '$num': 1 },
+        'test sentence Number$numPc'
+      )
+      assert.equal(result, 'test sentence Number1Pc')
+    })
+
+    it('should not apply if name is wrong', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { '$um': 1 },
+        'test sentence $num'
+      )
+      assert.equal(result, 'test sentence $num')
+    })
+  })
+
   describe('convo.scriptingMemory.api.applyToArgs', function () {
     it('exchange var with real value', async function () {
       let asserter = {
