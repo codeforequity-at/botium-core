@@ -13,7 +13,7 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('scripting.scriptingmemory.memoryenabled.originaldeleted', function () {
+describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',
