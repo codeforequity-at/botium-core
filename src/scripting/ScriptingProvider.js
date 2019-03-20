@@ -9,6 +9,7 @@ const debug = require('debug')('botium-ScriptingProvider')
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
+const ScriptingMemory = require('./ScriptingMemory')
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx|*.pconvo.txt|*.scriptingmemory.txt)'
 
 const p = (fn) => new Promise((resolve, reject) => {
@@ -112,7 +113,7 @@ module.exports = class ScriptingProvider {
       .map(a => p(() => this.asserters[a.name][asserterType]({
         convo,
         convoStep,
-        args: this._applyScriptingMemoryToArgs(a.args, rest.scriptingMemory),
+        args: ScriptingMemory.applyToArgs(a.args, rest.scriptingMemory),
         scriptingMemory: rest.scriptingMemory,
         isGlobal: false,
         ...rest
@@ -136,7 +137,7 @@ module.exports = class ScriptingProvider {
       .filter(l => this.logicHooks[l.name][hookType])
       .map(l => p(() => this.logicHooks[l.name][hookType]({
         convoStep,
-        args: this._applyScriptingMemoryToArgs(l.args, eventArgs.scriptingMemory),
+        args: ScriptingMemory.applyToArgs(l.args, eventArgs.scriptingMemory),
         scriptingMemory: eventArgs.scriptingMemory,
         isGlobal: false,
         ...eventArgs })))
@@ -154,7 +155,7 @@ module.exports = class ScriptingProvider {
       .filter(ui => this.userInputs[ui.name])
       .map(ui => p(() => this.userInputs[ui.name].setUserInput({
         convoStep,
-        args: this._applyScriptingMemoryToArgs(ui.args, eventArgs.scriptingMemory),
+        args: ScriptingMemory.applyToArgs(ui.args, eventArgs.scriptingMemory),
         scriptingMemory: eventArgs.scriptingMemory,
         ...eventArgs })))
 
@@ -163,15 +164,6 @@ module.exports = class ScriptingProvider {
 
   _isValidAsserterType (asserterType) {
     return ['assertConvoBegin', 'assertConvoStep', 'assertConvoEnd'].some(t => asserterType === t)
-  }
-
-  _applyScriptingMemoryToArgs (args, scriptingMemory) {
-    return (args || []).map(arg => {
-      _.forOwn(scriptingMemory, (value, key) => {
-        arg = arg.replace(key, value)
-      })
-      return arg
-    })
   }
 
   _buildScriptContext () {

@@ -6,6 +6,7 @@ const debug = require('debug')('botium-Convo')
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
+const ScriptingMemory = require('./ScriptingMemory')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -254,7 +255,7 @@ class Convo {
           convoStepDoneCb()
         } else if (convoStep.sender === 'me') {
           convoStep.messageText = this._checkNormalizeText(container, convoStep.messageText)
-          convoStep.messageText = this._applyScriptingMemory(container, scriptingMemory, convoStep.messageText)
+          convoStep.messageText = ScriptingMemory.apply(container, scriptingMemory, convoStep.messageText)
 
           return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg: convoStep })
             .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`))
@@ -311,7 +312,7 @@ class Convo {
                 return convoStepDone(failErr)
               }
               if (convoStep.messageText) {
-                this._fillScriptingMemory(container, scriptingMemory, saysmsg.messageText, convoStep.messageText)
+                ScriptingMemory.fill(container, scriptingMemory, saysmsg.messageText, convoStep.messageText, this.scriptingEvents)
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
                 const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, convoStep.messageText)
                 if (convoStep.not) {
@@ -398,7 +399,7 @@ class Convo {
         }
       })
     } else {
-      this._fillScriptingMemory(container, scriptingMemory, result, expected)
+      ScriptingMemory.fill(container, scriptingMemory, result, expected, this.scriptingEvents)
       const response = this._checkNormalizeText(container, result)
       const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, expected)
       this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
@@ -423,44 +424,11 @@ class Convo {
     }, [])
   }
 
-  _fillScriptingMemory (container, scriptingMemory, result, utterance) {
-    debug(`_fillScriptingMemory scriptingMemory start: ${util.inspect(scriptingMemory)}`)
-    if (result && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      const utterances = this.scriptingEvents.resolveUtterance({ utterance })
-      utterances.forEach(expected => {
-        let reExpected = expected
-        if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
-          reExpected = expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&')
-        }
-        const varMatches = expected.match(/\$\w+/g) || []
-        for (let i = 0; i < varMatches.length; i++) {
-          reExpected = reExpected.replace(varMatches[i], '(\\w+)')
-        }
-        const resultMatches = result.match(reExpected) || []
-        for (let i = 1; i < resultMatches.length; i++) {
-          if (i <= varMatches.length) {
-            scriptingMemory[varMatches[i - 1]] = resultMatches[i]
-          }
-        }
-      })
-      debug(`_fillScriptingMemory scriptingMemory end: ${util.inspect(scriptingMemory)}`)
-    }
-  }
-
   _resolveUtterancesToMatch (container, scriptingMemory, utterance) {
     const utterances = this.scriptingEvents.resolveUtterance({ utterance })
     const normalizedUtterances = utterances.map(str => this._checkNormalizeText(container, str))
-    const tomatch = normalizedUtterances.map(str => this._applyScriptingMemory(container, scriptingMemory, str))
+    const tomatch = normalizedUtterances.map(str => ScriptingMemory.apply(container, scriptingMemory, str))
     return tomatch
-  }
-
-  _applyScriptingMemory (container, scriptingMemory, str) {
-    if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      _.forOwn(scriptingMemory, (value, key) => {
-        str = str.replace(key, value)
-      })
-    }
-    return str
   }
 
   _checkNormalizeText (container, str) {
