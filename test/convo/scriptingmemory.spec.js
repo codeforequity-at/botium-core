@@ -125,9 +125,10 @@ describe('convo.scriptingMemory.api', function () {
       assert.isUndefined(scriptingMemory['$years'])
     })
     it('should replace utterances from scripting memory', async function () {
+      // $Years instead of $years to avoid collision with $year embedded variable
       this.scriptingProvider.AddUtterances({
         name: 'utt1',
-        utterances: ['i am $months months old', 'i am $years years old']
+        utterances: ['i am $months months old', 'i am $Years years old']
       })
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'i am 2 months old', 'utt1', this.convo.scriptingEvents)
@@ -135,7 +136,7 @@ describe('convo.scriptingMemory.api', function () {
       const tomatch = this.convo._resolveUtterancesToMatch(this.containerStub, scriptingMemory, 'utt1')
       assert.isArray(tomatch)
       assert.equal(tomatch[0], 'i am 2 months old')
-      assert.equal(tomatch[1], 'i am $years years old')
+      assert.equal(tomatch[1], 'i am $Years years old')
     })
     it('should accept special regexp characters in utterance when replace utterances from scripting memory in regexp matching mode', async function () {
       this.containerStub.caps[Capabilities.SCRIPTING_MATCHING_MODE] = 'regexp'
@@ -243,6 +244,35 @@ describe('convo.scriptingMemory.api', function () {
       )
       assert.equal(result, 'test sentence $num')
     })
+
+    it('should not be confused on overlapping names 1', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { '$num': '1', '$number': '2' },
+        'test sentence $num $number'
+      )
+      assert.equal(result, 'test sentence 1 2')
+    })
+
+    it('should not be confused on overlapping names 2', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { '$number': '2', '$num': '1' },
+        'test sentence $num $number'
+      )
+      assert.equal(result, 'test sentence 1 2')
+    })
+
+    it('scripting memory functions', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$year'
+      )
+
+      const year = parseInt(result)
+      assert(year >= 2019 && year <= 2219, '$year invalid')
+    })
   })
 
   describe('convo.scriptingMemory.api.applyToArgs', function () {
@@ -279,14 +309,14 @@ describe('convo.scriptingMemory.api', function () {
         'name': 'DUMMY',
         'args': [
           'dbUrl',
-          'aa$count',
+          'prefix$count',
           'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
         ]
       }
       let scriptingMemory = {
         '$count': '5'
       }
-      assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
+      assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 'prefix5')
     })
     it('as prefix', async function () {
       let asserter = {
@@ -300,7 +330,7 @@ describe('convo.scriptingMemory.api', function () {
       let scriptingMemory = {
         '$count': '5'
       }
-      assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
+      assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], '5er')
     })
     it('different value', async function () {
       let asserter = {
@@ -316,5 +346,140 @@ describe('convo.scriptingMemory.api', function () {
       }
       assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
     })
+
+    it('different value', async function () {
+      let asserter = {
+        'name': 'DUMMY',
+        'args': [
+          'dbUrl',
+          '$count',
+          'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
+        ]
+      }
+      let scriptingMemory = {
+        '$count': '4'
+      }
+      assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
+    })
+
+    it('scripting memory functions', async function () {
+      let asserter = {
+        'name': 'DUMMY',
+        'args': [
+          'dbUrl',
+          '$year',
+          'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
+        ]
+      }
+      let scriptingMemory = {}
+
+      const year = ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1]
+      assert(year >= 2019 && year <= 2219, '$year invalid')
+    })
+  })
+
+  // if a function is working with apply, then it has to work with applyToArgs too
+  describe('convo.scriptingMemory.api.functions', function () {
+    it('now', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$now'
+      )
+
+      assert.equal(result, new Date().toLocaleString())
+    })
+
+    it('date', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$date'
+      )
+
+      assert.equal(result, new Date().toLocaleDateString())
+    })
+
+    it('year', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$year'
+      )
+
+      const year = parseInt(result)
+      assert(year >= 2019 && year <= 2219, '$year invalid')
+    })
+
+    it('month', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$month'
+      )
+
+      assert(result.length >= 2 && result.length <= 10, '$month invalid')
+    })
+
+    it('day_of_month', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$day_of_month'
+      )
+
+      const dayOfMonth = parseInt(result)
+      assert(dayOfMonth >= 1 && dayOfMonth <= 35, 'day_of_month invalid')
+    })
+
+    it('day_of_week', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$day_of_week'
+      )
+
+      assert(result.length >= 2 && result.length <= 20, '$day_of_week invalid')
+    })
+
+    it('', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$now_ISO'
+      )
+
+      assert(result.length === 24, '$now_ISO invalid')
+    })
+  })
+
+  it('time', async function () {
+    const result = ScriptingMemory.apply(
+      { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+      { },
+      '$time'
+    )
+
+    assert(result.length >= 5 && result.length <= 10, '$time invalid')
+  })
+
+  it('random10', async function () {
+    const result = ScriptingMemory.apply(
+      { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+      { },
+      '$random10'
+    )
+
+    assert(result.length === 10, '$random10 invalid')
+  })
+
+  it('$uniqid', async function () {
+    const result = ScriptingMemory.apply(
+      { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+      { },
+      '$uniqid'
+    )
+
+    assert(result.length === 36, '$uniqid invalid')
   })
 })

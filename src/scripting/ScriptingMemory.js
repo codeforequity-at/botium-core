@@ -18,7 +18,7 @@ const SCRIPTING_FUNCTIONS = {
     return new Date().getFullYear()
   },
   '$month': () => {
-    return moment().format('mmmm')
+    return moment().format('MMMM')
   },
   '$day_of_month': () => {
     return new Date().getDate()
@@ -35,7 +35,7 @@ const SCRIPTING_FUNCTIONS = {
   '$random10': () => {
     return randomize('0', 10)
   },
-  '$uniqid ': () => {
+  '$uniqid': () => {
     return uuidv1()
   }
 }
@@ -43,21 +43,46 @@ const SCRIPTING_FUNCTIONS = {
 const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)
 
 const apply = (container, scriptingMemory, str) => {
-  if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-    _.forOwn(scriptingMemory, (value, key) => {
-      str = str.replace(key, value)
-    })
+  if (container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+    str = _apply(scriptingMemory, str)
   }
   return str
 }
 
 const applyToArgs = (args, scriptingMemory) => {
   return (args || []).map(arg => {
-    _.forOwn(scriptingMemory, (value, key) => {
-      arg = arg.replace(key, value)
-    })
-    return arg
+    return _apply(scriptingMemory, arg)
   })
+}
+
+const _apply = (scriptingMemory, str) => {
+  // we have two replace longer variable first. if there is $year, and $years, $years should not be found by $year
+  const longestFirst = (a, b) => b.length - a.length
+
+  if (str) {
+    Object.keys(SCRIPTING_FUNCTIONS).sort(longestFirst).forEach((key) => {
+      const stronger = Object.keys(scriptingMemory).filter((variableName) => variableName.startsWith(key))
+      if (stronger.length === 0) {
+        str = str.replace(key, SCRIPTING_FUNCTIONS[key]())
+      }
+    })
+    Object.keys(scriptingMemory).sort(longestFirst).forEach((key) => {
+      str = str.replace(key, scriptingMemory[key])
+    })
+
+    // _.forOwn(SCRIPTING_FUNCTIONS, (func, key) => {
+    //   const stronger = Object.keys(scriptingMemory).filter((variableName) => variableName.startsWith(key))
+    //   if (stronger.length === 0) {
+    //     str = str.replace(key, func())
+    //   }
+    // })
+    // // forOwn iterates first the longest names, what is good.
+    // // if we have two overlapping variables like year and years, years must be replaced first
+    // _.forOwn(scriptingMemory, (value, key) => {
+    //   str = str.replace(key, value)
+    // })
+  }
+  return str
 }
 
 const fill = (container, scriptingMemory, result, utterance, scriptingEvents) => {
@@ -76,7 +101,11 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       const resultMatches = result.match(reExpected) || []
       for (let i = 1; i < resultMatches.length; i++) {
         if (i <= varMatches.length) {
-          scriptingMemory[varMatches[i - 1]] = resultMatches[i]
+          const varName = varMatches[i - 1]
+          if (RESERVED_WORDS.indexOf(varName) >= 0) {
+            debug(`fill Reserved word "${varName}" used as variable`)
+          }
+          scriptingMemory[varName] = resultMatches[i]
         }
       }
     })
