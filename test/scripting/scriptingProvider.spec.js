@@ -1,7 +1,6 @@
 const assert = require('chai').assert
 const expect = require('chai').expect
 const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
-const ScriptingMemory = require('../../src/scripting/ScriptingMemory')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 
 describe('scriptingProvider._resolveUtterances', function () {

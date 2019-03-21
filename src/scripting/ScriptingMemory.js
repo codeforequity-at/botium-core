@@ -1,4 +1,3 @@
-const _ = require('lodash')
 const util = require('util')
 const debug = require('debug')('botium-ScriptingMemory')
 const randomize = require('randomatic')
