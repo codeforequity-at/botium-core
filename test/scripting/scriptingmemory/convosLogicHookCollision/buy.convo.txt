@@ -1,0 +1,10 @@
+logic hook collision
+
+#begin
+SET_SCRIPTING_MEMORY productName|productNameFormBegin
+
+#me
+$productName
+
+#bot
+You said: Wiener Schnitzel

@@ -1,0 +1,6 @@
+overwritten_by_logic_hook
+#begin
+SET_SCRIPTING_MEMORY overwritten_by_logic_hook|overwritten_by_logic_hook_from_begin
+
+#me
+SET_SCRIPTING_MEMORY overwritten_by_logic_hook|overwritten_by_logic_hook_from_logic_hook

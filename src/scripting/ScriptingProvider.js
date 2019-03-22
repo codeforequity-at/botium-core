@@ -9,7 +9,8 @@ const debug = require('debug')('botium-ScriptingProvider')
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx|*.pconvo.txt)'
+const ScriptingMemory = require('./ScriptingMemory')
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx|*.pconvo.txt|*.scriptingmemory.txt)'
 
 const p = (fn) => new Promise((resolve, reject) => {
   try {
@@ -32,31 +33,40 @@ module.exports = class ScriptingProvider {
     this.globalLogicHook = {}
     this.userInputs = {}
     this.partialConvos = {}
+    this.scriptingMemories = []
+    this.scriptingMemoryVariableToFile = {}
+    this.scriptingMemoryFileToScriptingMemories = {}
 
     this.scriptingEvents = {
-      onMeStart: ({ convoStep, ...rest }) => {
-        return this._createLogicHookPromises(convoStep, 'onMeStart', rest)
+      onConvoBegin: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onConvoBegin', logicHooks: (convo.beginLogicHook || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      onMeEnd: ({ convoStep, ...rest }) => {
-        return this._createLogicHookPromises(convoStep, 'onMeEnd', rest)
+      onConvoEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onConvoEnd', logicHooks: (convo.endLogicHook || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      onBotStart: ({ convoStep, ...rest }) => {
-        return this._createLogicHookPromises(convoStep, 'onBotStart', rest)
+      onMeStart: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onMeStart', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      onBotEnd: ({ convoStep, ...rest }) => {
-        return this._createLogicHookPromises(convoStep, 'onBotEnd', rest)
+      onMeEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onMeEnd', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      assertConvoBegin: ({ convo, convoStep, ...rest }) => {
-        return this._createAsserterPromises((convo.beginAsserter || []), convoStep, rest, convo, 'assertConvoBegin')
+      onBotStart: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onBotStart', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      assertConvoStep: ({ convo, convoStep, ...rest }) => {
-        return this._createAsserterPromises((convoStep.asserters || []), convoStep, rest, convo, 'assertConvoStep')
+      onBotEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onBotEnd', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      assertConvoEnd: ({ convo, convoStep, ...rest }) => {
-        return this._createAsserterPromises((convo.endAsserter || []), convoStep, rest, convo, 'assertConvoEnd')
+      assertConvoBegin: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createAsserterPromises({ asserterType: 'assertConvoBegin', asserters: (convo.beginAsserter || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      setUserInput: ({ convoStep, ...rest }) => {
-        return this._createUserInputPromises(convoStep, rest)
+      assertConvoStep: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createAsserterPromises({ asserterType: 'assertConvoStep', asserters: (convoStep.asserters || []), convo, convoStep, scriptingMemory, ...rest })
+      },
+      assertConvoEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createAsserterPromises({ asserterType: 'assertConvoEnd', asserters: (convo.endAsserter || []), convo, convoStep, scriptingMemory, ...rest })
+      },
+      setUserInput: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createUserInputPromises({ convo, convoStep, scriptingMemory, ...rest })
       },
       resolveUtterance: ({ utterance }) => {
         if (this.utterances[utterance]) {
@@ -94,7 +104,7 @@ module.exports = class ScriptingProvider {
     }
   }
 
-  _createAsserterPromises (asserters, convoStep, rest, convo, asserterType) {
+  _createAsserterPromises ({ asserterType, asserters, convo, convoStep, scriptingMemory, ...rest }) {
     if (!this._isValidAsserterType(asserterType)) {
       throw Error(`Unknown asserterType ${asserterType}`)
     }
@@ -103,46 +113,53 @@ module.exports = class ScriptingProvider {
       .map(a => p(() => this.asserters[a.name][asserterType]({
         convo,
         convoStep,
-        args: this._applyScriptingMemoryToArgs(a.args, rest.scriptingMemory),
+        scriptingMemory,
+        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory),
         isGlobal: false,
         ...rest
       })))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
-      .map(a => p(() => a[asserterType]({ convo, convoStep, args: [], isGlobal: true, ...rest })))
+      .map(a => p(() => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoAsserter, ...globalAsserter]
     return Promise.all(allPromises)
   }
 
-  _createLogicHookPromises (convoStep, hookType, eventArgs) {
-    if (hookType !== 'onMeStart' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' && hookType !== 'onBotEnd') {
+  _createLogicHookPromises ({ hookType, logicHooks, convo, convoStep, scriptingMemory, ...rest }) {
+    if (hookType !== 'onMeStart' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' && hookType !== 'onBotEnd' &&
+      hookType !== 'onConvoBegin' && hookType !== 'onConvoEnd'
+    ) {
       throw Error(`Unknown hookType ${hookType}`)
     }
 
-    const convoStepPromises = (convoStep.logicHooks || [])
+    const convoStepPromises = (logicHooks || [])
       .filter(l => this.logicHooks[l.name][hookType])
       .map(l => p(() => this.logicHooks[l.name][hookType]({
+        convo,
         convoStep,
-        args: this._applyScriptingMemoryToArgs(l.args, eventArgs.scriptingMemory),
+        scriptingMemory,
+        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory),
         isGlobal: false,
-        ...eventArgs })))
+        ...rest })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
-      .map(l => p(() => l[hookType]({ convoStep, args: [], isGlobal: true, ...eventArgs })))
+      .map(l => p(() => l[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)
   }
 
-  _createUserInputPromises (convoStep, eventArgs) {
+  _createUserInputPromises ({ convo, convoStep, scriptingMemory, ...rest }) {
     const convoStepPromises = (convoStep.userInputs || [])
       .filter(ui => this.userInputs[ui.name])
       .map(ui => p(() => this.userInputs[ui.name].setUserInput({
+        convo,
         convoStep,
-        args: this._applyScriptingMemoryToArgs(ui.args, eventArgs.scriptingMemory),
-        ...eventArgs })))
+        scriptingMemory,
+        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory),
+        ...rest })))
 
     return Promise.all(convoStepPromises)
   }
@@ -151,20 +168,12 @@ module.exports = class ScriptingProvider {
     return ['assertConvoBegin', 'assertConvoStep', 'assertConvoEnd'].some(t => asserterType === t)
   }
 
-  _applyScriptingMemoryToArgs (args, scriptingMemory) {
-    return (args || []).map(arg => {
-      _.forOwn(scriptingMemory, (value, key) => {
-        arg = arg.replace(key, value)
-      })
-      return arg
-    })
-  }
-
   _buildScriptContext () {
     return {
       AddConvos: this.AddConvos.bind(this),
       AddUtterances: this.AddUtterances.bind(this),
       AddPartialConvos: this.AddPartialConvos.bind(this),
+      AddScriptingMemories: this.AddScriptingMemories.bind(this),
       Match: this.Match.bind(this),
       IsAsserterValid: this.IsAsserterValid.bind(this),
       IsLogicHookValid: this.IsLogicHookValid.bind(this),
@@ -177,6 +186,8 @@ module.exports = class ScriptingProvider {
         resolveUtterance: this.scriptingEvents.resolveUtterance.bind(this),
         assertBotResponse: this.scriptingEvents.assertBotResponse.bind(this),
         assertBotNotResponse: this.scriptingEvents.assertBotNotResponse.bind(this),
+        onConvoBegin: this.scriptingEvents.onConvoBegin.bind(this),
+        onConvoEnd: this.scriptingEvents.onConvoEnd.bind(this),
         onMeStart: this.scriptingEvents.onMeStart.bind(this),
         onMeEnd: this.scriptingEvents.onMeEnd.bind(this),
         onBotStart: this.scriptingEvents.onBotStart.bind(this),
@@ -256,22 +267,26 @@ module.exports = class ScriptingProvider {
     const dirConvos = []
     const dirUtterances = []
     const dirPartialConvos = []
+    const dirScriptingMemories = []
     filelist.forEach((filename) => {
-      const { convos, utterances, pconvos } = this.ReadScript(convoDir, filename)
+      const { convos, utterances, pconvos, scriptingMemories } = this.ReadScript(convoDir, filename)
       if (convos) dirConvos.push(...convos)
       if (utterances) dirUtterances.push(...utterances)
       if (pconvos) dirPartialConvos.push(...pconvos)
+      if (scriptingMemories) dirScriptingMemories.push(...scriptingMemories)
     })
     debug(`ReadConvosFromDirectory(${convoDir}) found convos:\n ${dirConvos.length ? dirConvos.join('\n') : 'none'}`)
     debug(`ReadConvosFromDirectory(${convoDir}) found utterances:\n ${dirUtterances.length ? _.map(dirUtterances, (u) => u).join('\n') : 'none'}`)
     debug(`ReadConvosFromDirectory(${convoDir}) found partial convos:\n ${dirPartialConvos.length ? dirPartialConvos.join('\n') : 'none'}`)
-    return { convos: dirConvos, utterances: dirUtterances, pconvos: dirPartialConvos }
+    debug(`ReadConvosFromDirectory(${convoDir}) scripting memories:\n ${dirScriptingMemories.length ? dirScriptingMemories.map((dirScriptingMemory) => util.inspect(dirScriptingMemory)).join('\n') : 'none'}`)
+    return { convos: dirConvos, utterances: dirUtterances, pconvos: dirPartialConvos, scriptingMemories: dirScriptingMemories }
   }
 
   ReadScript (convoDir, filename) {
     let fileConvos = []
     let fileUtterances = []
     let filePartialConvos = []
+    let fileScriptingMemories = []
 
     const scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
 
@@ -279,13 +294,17 @@ module.exports = class ScriptingProvider {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
+      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
     } else if (filename.endsWith('.convo.txt')) {
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
     } else if (filename.endsWith('.pconvo.txt')) {
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
     } else if (filename.endsWith('.utterances.txt')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
+    } else if (filename.endsWith('.scriptingmemory.txt')) {
+      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
     }
+    // Compilers saved the convos, and we alter here the saved version too
     if (fileConvos) {
       fileConvos.forEach((fileConvo) => {
         fileConvo.sourceTag = { filename }
@@ -302,11 +321,30 @@ module.exports = class ScriptingProvider {
         }
       })
     }
+    if (fileScriptingMemories && fileScriptingMemories.length) {
+      fileScriptingMemories.forEach((scriptingMemory) => {
+        scriptingMemory.sourceTag = { filename }
+      })
+
+      // it is enough to iterate just the fist entry. All entries has to have the same fields.
+      Object.keys(fileScriptingMemories[0].values).forEach((variableName) => {
+        if (ScriptingMemory.RESERVED_WORDS.indexOf(variableName) >= 0) {
+          debug(`Script - Reserved word "${variableName}" used as variable`)
+        }
+        if (this.scriptingMemoryVariableToFile[variableName]) {
+          throw Error(`Variable name defined in multiple scripting memory files: ${this.scriptingMemoryVariableToFile[variableName]} and ${filename}`)
+        }
+
+        this.scriptingMemoryVariableToFile[variableName] = filename
+      })
+
+      this.scriptingMemoryFileToScriptingMemories[filename] = fileScriptingMemories
+    }
 
     if (fileUtterances) {
       this.fileUtterances = this._tagAndCleanupUtterances(fileUtterances, filename)
     }
-    return { convos: fileConvos, utterances: fileUtterances, pconvos: filePartialConvos }
+    return { convos: fileConvos, utterances: fileUtterances, pconvos: filePartialConvos, scriptingMemories: fileScriptingMemories }
   }
 
   _tagAndCleanupUtterances (utteranceFiles, filename) {
@@ -316,6 +354,86 @@ module.exports = class ScriptingProvider {
         .filter(u => u)
       return fileUtt
     })
+  }
+
+  ExpandScriptingMemoryToConvos () {
+    let convosExpandedAll = []
+    let convosOriginalAll = []
+    this.convos.forEach((convo) => {
+      const variables = convo.GetScriptingMemoryAllVariables(this)
+      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, all: "${util.inspect(variables)}"`)
+      if (!variables.length) {
+        debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - skipped, no variable found to replace`)
+      }
+      const fileToVariables = {}
+      // debug output, & filling fileToVariables
+      variables.forEach((variable) => {
+        const file = this.scriptingMemoryVariableToFile[variable]
+
+        const alreadyUsedVariable = convo.beginLogicHook.filter((logicHook) => {
+          // .substring(1): cut the $ because logichooks
+          return (logicHook.name === 'SET_SCRIPTING_MEMORY' || logicHook.name === 'CLEAR_SCRIPTING_MEMORY') &&
+            logicHook.args.indexOf(variable.substring(1)) >= 0
+        })
+        // name args
+
+        if (alreadyUsedVariable.length) {
+          debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory variable "${variable}" defined in file "${file}", and in logicHook(s) "${util.inspect(alreadyUsedVariable)}"`)
+        }
+
+        if (file) {
+          if (!fileToVariables[file]) {
+            fileToVariables[file] = []
+          }
+          fileToVariables[file].push(variable)
+        }
+      })
+      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, by file: "${util.inspect(fileToVariables)}"`)
+
+      let convosToExpand = [convo]
+      let convosExpandedConvo = []
+      // just for debug output. If we got 6 expanded convo, then this array can be for example [2, 3]
+      let multipliers = []
+      Object.entries(fileToVariables).forEach(([file, variableNames]) => {
+        const convosExpandedVariable = []
+        multipliers.push(this.scriptingMemoryFileToScriptingMemories[file].length)
+        this.scriptingMemoryFileToScriptingMemories[file].forEach((scriptingMemory) => {
+          // Appending the case name to name
+          for (let convoToExpand of convosToExpand) {
+            const convoExpanded = _.cloneDeep(convoToExpand)
+            convoExpanded.header.name = convoToExpand.header.name + '.' + scriptingMemory.header.name
+            variableNames.forEach((name) => {
+              const value = scriptingMemory.values[name]
+              if (value) {
+                convoExpanded.beginLogicHook.push({ name: 'SET_SCRIPTING_MEMORY', args: [name.substring(1), scriptingMemory.values[name]] })
+              } else {
+                convoExpanded.beginLogicHook.push({ name: 'CLEAR_SCRIPTING_MEMORY', args: [name.substring(1)] })
+              }
+            })
+            convosExpandedVariable.push(convoExpanded)
+          }
+        })
+
+        // This is a bit tricky. If the loop is done, then convosExpandedConvo will be used,
+        // otherwise convosToExpand. They could be one variable
+        convosToExpand = convosExpandedVariable
+        convosExpandedConvo = convosExpandedVariable
+      })
+      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Expanding convo "${convo.header.name}" Expanded ${convosExpandedConvo.length} convo. (Details: ${convosExpandedConvo.length} = ${multipliers ? multipliers.join('*') : 0})`)
+
+      if (convosExpandedConvo.length) {
+        convosExpandedAll = convosExpandedAll.concat(convosExpandedConvo)
+        convosOriginalAll.push(convo)
+      }
+    })
+
+    if (this.caps[Capabilities.SCRIPTING_MEMORYEXPANSION_DELORIG]) {
+      debug(`ExpandScriptingMemoryToConvos - Deleting ${convosOriginalAll.length} original convo`)
+      this.convos = this.convos.filter((convo) => convosOriginalAll.indexOf(convo) === -1)
+    }
+
+    debug(`ExpandScriptingMemoryToConvos - ${convosExpandedAll.length} convo expanded, added to convos (${this.convos.length}). Result ${convosExpandedAll.length + this.convos.length} convo`)
+    this.convos = this.convos.concat(convosExpandedAll)
   }
 
   ExpandUtterancesToConvos () {
@@ -474,5 +592,16 @@ module.exports = class ScriptingProvider {
 
   GetPartialConvos () {
     return this.partialConvos
+  }
+
+  AddScriptingMemories (scriptingMemories) {
+    if (scriptingMemories && _.isArray(scriptingMemories)) {
+      for (let i = 0; i < scriptingMemories.length; i++) {
+        const scriptingMemory = scriptingMemories[i]
+        this.AddScriptingMemories(scriptingMemory)
+      }
+    } else if (scriptingMemories) {
+      this.scriptingMemories.push(scriptingMemories)
+    }
   }
 }

@@ -6,6 +6,7 @@ const debug = require('debug')('botium-Convo')
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
+const ScriptingMemory = require('./ScriptingMemory')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -124,6 +125,9 @@ class Convo {
     let { beginAsserter, endAsserter } = this.setConvoBeginAndEndAsserter(fromJson)
     this.beginAsserter = beginAsserter
     this.endAsserter = endAsserter
+    let { beginLogicHook, endLogicHook } = this.setConvoBeginAndEndLogicHook(fromJson)
+    this.beginLogicHook = beginLogicHook
+    this.endLogicHook = endLogicHook
     this.effectiveConversation = null
   }
 
@@ -141,6 +145,20 @@ class Convo {
     return { beginAsserter, endAsserter }
   }
 
+  setConvoBeginAndEndLogicHook (fromJson) {
+    const beginLogicHook = fromJson.conversation
+      .filter(s => s.sender === 'begin' && s.logicHooks && s.logicHooks.length > 0)
+      .map(s => s.logicHooks)
+      .reduce((acc, val) => acc.concat(val), [])
+
+    const endLogicHook = fromJson.conversation
+      .filter(s => s.sender === 'end' && s.logicHooks && s.logicHooks.length > 0)
+      .map(s => s.logicHooks)
+      .reduce((acc, val) => acc.concat(val), [])
+
+    return { beginLogicHook, endLogicHook }
+  }
+
   toString () {
     return this.header.toString() + (this.sourceTag ? ` (${util.inspect(this.sourceTag)})` : '') + ': ' + this.conversation.map((c) => c.toString()).join(' | ')
   }
@@ -150,10 +168,16 @@ class Convo {
       const scriptingMemory = {}
 
       async.waterfall([
+        // onConvoBegin first or assertConvoBegin? If onConvoBegin, then it is possible to assert it too
         (cb) => {
-          this.scriptingEvents.assertConvoBegin({ convo: this, container })
+          this.scriptingEvents.onConvoBegin({ convo: this, container, scriptingMemory })
             .then(() => cb())
-            .catch((err) => cb(new Error(`${this.header.name}: error begin asserter ${util.inspect(err)}`)))
+            .catch((err) => cb(new Error(`${this.header.name}: error begin handler ${util.inspect(err)}`)))
+        },
+        (cb) => {
+          this.scriptingEvents.assertConvoBegin({ convo: this, container, scriptingMemory })
+            .then(() => cb())
+            .catch((err) => cb(new Error(`${this.header.name}: error begin handler ${util.inspect(err)}`)))
         },
         (cb) => {
           this.runConversation(container, scriptingMemory, (transcript) => {
@@ -163,6 +187,12 @@ class Convo {
               cb(null, transcript)
             }
           })
+        },
+        // onConvoEnd first or assertConvoEnd? If onConvoEnd, then it is possible to assert it too
+        (transcript, cb) => {
+          this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
+            .then(() => cb(null, transcript))
+            .catch((err) => cb(new Error(`${this.header.name}: error end handler ${util.inspect(err)}`), transcript))
         },
         (transcript, cb) => {
           this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
@@ -225,7 +255,7 @@ class Convo {
           convoStepDoneCb()
         } else if (convoStep.sender === 'me') {
           convoStep.messageText = this._checkNormalizeText(container, convoStep.messageText)
-          convoStep.messageText = this._applyScriptingMemory(container, scriptingMemory, convoStep.messageText)
+          convoStep.messageText = ScriptingMemory.apply(container, scriptingMemory, convoStep.messageText)
 
           return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg: convoStep })
             .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`))
@@ -282,7 +312,7 @@ class Convo {
                 return convoStepDone(failErr)
               }
               if (convoStep.messageText) {
-                this._fillScriptingMemory(container, scriptingMemory, saysmsg.messageText, convoStep.messageText)
+                ScriptingMemory.fill(container, scriptingMemory, saysmsg.messageText, convoStep.messageText, this.scriptingEvents)
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
                 const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, convoStep.messageText)
                 if (convoStep.not) {
@@ -369,50 +399,38 @@ class Convo {
         }
       })
     } else {
-      this._fillScriptingMemory(container, scriptingMemory, result, expected)
+      ScriptingMemory.fill(container, scriptingMemory, result, expected, this.scriptingEvents)
       const response = this._checkNormalizeText(container, result)
       const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, expected)
       this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
     }
   }
 
-  _fillScriptingMemory (container, scriptingMemory, result, utterance) {
-    if (result && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      const utterances = this.scriptingEvents.resolveUtterance({ utterance })
-      utterances.forEach(expected => {
-        let reExpected = expected
-        if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
-          reExpected = expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&')
-        }
-        const varMatches = expected.match(/\$\w+/g) || []
-        for (let i = 0; i < varMatches.length; i++) {
-          reExpected = reExpected.replace(varMatches[i], '(\\w+)')
-        }
-        const resultMatches = result.match(reExpected) || []
-        for (let i = 1; i < resultMatches.length; i++) {
-          if (i <= varMatches.length) {
-            scriptingMemory[varMatches[i - 1]] = resultMatches[i]
-          }
-        }
-      })
-      debug(`_fillScriptingMemory scriptingMemory: ${util.inspect(scriptingMemory)}`)
+  GetScriptingMemoryAllVariables (container) {
+    const result = this.conversation.reduce((acc, convoStep) => {
+      return acc.concat(this.GetScriptingMemoryVariables(container, convoStep.messageText))
+    }, [])
+
+    return [...new Set(result)]
+  }
+
+  GetScriptingMemoryVariables (container, utterance) {
+    if (!utterance || !container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+      return []
     }
+
+    const utterances = this.scriptingEvents.resolveUtterance({ utterance })
+
+    return utterances.reduce((acc, expected) => {
+      return acc.concat(expected.match(/\$\w+/g) || [])
+    }, [])
   }
 
   _resolveUtterancesToMatch (container, scriptingMemory, utterance) {
     const utterances = this.scriptingEvents.resolveUtterance({ utterance })
     const normalizedUtterances = utterances.map(str => this._checkNormalizeText(container, str))
-    const tomatch = normalizedUtterances.map(str => this._applyScriptingMemory(container, scriptingMemory, str))
+    const tomatch = normalizedUtterances.map(str => ScriptingMemory.apply(container, scriptingMemory, str))
     return tomatch
-  }
-
-  _applyScriptingMemory (container, scriptingMemory, str) {
-    if (str && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      _.forOwn(scriptingMemory, (value, key) => {
-        str = str.replace(key, value)
-      })
-    }
-    return str
   }
 
   _checkNormalizeText (container, str) {

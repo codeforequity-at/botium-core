@@ -59,7 +59,16 @@ module.exports = class CompilerXlsx extends CompilerBase {
       } else {
         sheetnames = []
       }
+    } else if (scriptType === Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY) {
+      if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]) {
+        sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY])
+      } else {
+        sheetnames = []
+      }
+    } else {
+      throw Error(`Invalid script type ${scriptType}`)
     }
+
     debug(`sheet names for ${scriptType}: ${util.inspect(sheetnames)}`)
 
     const scriptResults = []
@@ -180,6 +189,43 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (emptylines > 1) break
         }
       }
+
+      if (scriptType === Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY) {
+        const variableNames = []
+        let colindexTemp = colindex + 1
+        while (true) {
+          const variableNameCell = this.colnames[colindexTemp] + rowindex
+          if (sheet[variableNameCell] && sheet[variableNameCell].v) {
+            variableNames.push(sheet[variableNameCell].v)
+          } else {
+            break
+          }
+
+          colindexTemp++
+        }
+
+        rowindex += 1
+        while (true) {
+          const caseNameCell = this.colnames[colindex] + rowindex
+          if (sheet[caseNameCell] && sheet[caseNameCell].v) {
+            const caseName = sheet[caseNameCell].v
+            const values = {}
+            for (let i = 0; i < variableNames.length; i++) {
+              const variableValueCell = this.colnames[colindex + 1 + i] + rowindex
+              if (sheet[variableValueCell] && sheet[variableValueCell].v) {
+                values[variableNames[i]] = sheet[variableValueCell].v.toString()
+              } else {
+                values[variableNames[i]] = null
+              }
+            }
+            rowindex += 1
+
+            scriptResults.push({ header: { name: caseName }, values: values })
+          } else {
+            break
+          }
+        }
+      }
     })
 
     if (scriptResults && scriptResults.length > 0) {
@@ -189,6 +235,8 @@ module.exports = class CompilerXlsx extends CompilerBase {
         this.context.AddPartialConvos(scriptResults)
       } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
         this.context.AddUtterances(scriptResults)
+      } else if (scriptType === Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY) {
+        this.context.AddScriptingMemories(scriptResults)
       }
       return scriptResults
     }

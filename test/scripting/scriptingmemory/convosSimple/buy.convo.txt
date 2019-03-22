@@ -1,0 +1,8 @@
+simple
+
+#begin
+
+#me
+$productName
+
+#bot

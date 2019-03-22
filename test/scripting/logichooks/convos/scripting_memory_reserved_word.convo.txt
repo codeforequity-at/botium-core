@@ -1,0 +1,3 @@
+reserved_word
+#begin
+SET_SCRIPTING_MEMORY year|2012

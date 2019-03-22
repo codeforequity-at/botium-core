@@ -68,54 +68,6 @@ describe('scriptingProvider._isValidAsserterType', function () {
   })
 })
 
-describe('scriptingProvider._applyScriptingMemoryToArgs', function () {
-  it('exchange var with real value', async function () {
-    let scriptingProvider = new ScriptingProvider()
-    let asserter = {
-      'name': 'DUMMY',
-      'args': [
-        'dbUrl',
-        '$count',
-        'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
-      ]
-    }
-    let scriptingMemory = {
-      '$count': '5'
-    }
-    assert.equal(scriptingProvider._applyScriptingMemoryToArgs(asserter.args, scriptingMemory)[1], 5)
-  })
-  it('typo of reference', async function () {
-    let scriptingProvider = new ScriptingProvider()
-    let asserter = {
-      'name': 'DUMMY',
-      'args': [
-        'dbUrl',
-        '$ount',
-        'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
-      ]
-    }
-    let scriptingMemory = {
-      '$count': '5'
-    }
-    assert.notEqual(scriptingProvider._applyScriptingMemoryToArgs(asserter.args, scriptingMemory)[1], 5)
-  })
-  it('different value', async function () {
-    let scriptingProvider = new ScriptingProvider()
-    let asserter = {
-      'name': 'DUMMY',
-      'args': [
-        'dbUrl',
-        '$count',
-        'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
-      ]
-    }
-    let scriptingMemory = {
-      '$count': '4'
-    }
-    assert.notEqual(scriptingProvider._applyScriptingMemoryToArgs(asserter.args, scriptingMemory)[1], 5)
-  })
-})
-
 describe('scriptingProvider._tagAndCleanupUtterances', function () {
   it('positive case remove empty String from utterances', async function () {
     let scriptingProvider = new ScriptingProvider()

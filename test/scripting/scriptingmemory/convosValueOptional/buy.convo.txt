@@ -1,0 +1,6 @@
+value optional
+
+#me
+buy $productName as $customerName
+
+#bot

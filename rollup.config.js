@@ -1,4 +1,4 @@
-import buble from 'rollup-plugin-buble'
+import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
 import json from 'rollup-plugin-json'
 
@@ -21,8 +21,9 @@ export default {
       exclude: 'node_modules/**'
     }),
     json(),
-    buble({
-      objectAssign: 'Object.assign'
-    })
+    babel({
+      exclude: 'node_modules/**',
+      runtimeHelpers: true
+    }),
   ]
 }
