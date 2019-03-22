@@ -69,7 +69,7 @@ describe('UserInputs.defaults.mediaInput', function () {
     const mi = new MediaInput()
 
     const meMsg = {}
-    await mi.setUserInput({ convoStep, args: [ 'Test1' ], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: '' } } })
+    await mi.setUserInput({ convoStep, args: [ 'Test1' ], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
     assert.isArray(meMsg.media)
     assert.lengthOf(meMsg.media, 1)
     assert.equal(meMsg.media[0].mediaUri, `file://mydir/Test1`)
