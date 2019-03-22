@@ -136,27 +136,21 @@ module.exports = class LogicHookUtils {
 
     // gives possibility to use default filters as global filter
     if (hookType === 'asserter') {
-      for (let i = 0; i < DEFAULT_ASSERTERS.length; i++) {
-        const asserter = DEFAULT_ASSERTERS[i]
-        if (src === asserter.className) {
-          return new (asserter.Class)(this.buildScriptContext, this.caps, args)
-        }
+      const asserter = DEFAULT_ASSERTERS.find(asserter => src === asserter.className)
+      if (asserter) {
+        return new (asserter.Class)(this.buildScriptContext, this.caps, args)
       }
     }
     if (hookType === 'logic-hook') {
-      for (let i = 0; i < DEFAULT_LOGIC_HOOKS.length; i++) {
-        const lh = DEFAULT_LOGIC_HOOKS[i]
-        if (src === lh.className) {
-          return new (lh.Class)(this.buildScriptContext, this.caps, args)
-        }
+      const lh = DEFAULT_LOGIC_HOOKS.find(lh => src === lh.className)
+      if (lh) {
+        return new (lh.Class)(this.buildScriptContext, this.caps, args)
       }
     }
     if (hookType === 'user-input') {
-      for (let i = 0; i < DEFAULT_USER_INPUTS.length; i++) {
-        const ui = DEFAULT_USER_INPUTS[i]
-        if (src === ui.className) {
-          return new (ui.Class)(this.buildScriptContext, this.caps, args)
-        }
+      const ui = DEFAULT_USER_INPUTS.find(ui => src === ui.className)
+      if (ui) {
+        return new (ui.Class)(this.buildScriptContext, this.caps, args)
       }
     }
     if (!src) {

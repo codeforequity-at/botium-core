@@ -12,7 +12,7 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('scripting.userinputs.mediaInputConvos', function () {
+describe('scripting.userinputs.mediaInputConvos.relative', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.userinputs.mediaInputConvos',
@@ -49,7 +49,7 @@ describe('scripting.userinputs.mediaInputConvos', function () {
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.equal(transcript.steps.length, 1)
     assert.equal(transcript.steps[0].actual.media.length, 1)
-    assert.equal(transcript.steps[0].actual.media[0].mediaUri, `file://${process.cwd()}/spec/convo/test.jpg`)
+    assert.isTrue(transcript.steps[0].actual.media[0].mediaUri.endsWith('test/scripting/userinputs/convos/test.jpg'))
     assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/jpeg')
   })
 
@@ -59,9 +59,62 @@ describe('scripting.userinputs.mediaInputConvos', function () {
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.equal(transcript.steps.length, 1)
     assert.equal(transcript.steps[0].actual.media.length, 2)
-    assert.equal(transcript.steps[0].actual.media[0].mediaUri, `file://${process.cwd()}/spec/convo/test1.jpg`)
+    assert.isTrue(transcript.steps[0].actual.media[0].mediaUri.endsWith('test/scripting/userinputs/convos/test1.jpg'))
     assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/jpeg')
-    assert.equal(transcript.steps[0].actual.media[1].mediaUri, `file://${process.cwd()}/spec/convo/test2.jpg`)
+    assert.isTrue(transcript.steps[0].actual.media[1].mediaUri.endsWith('test/scripting/userinputs/convos/test2.jpg'))
+    assert.equal(transcript.steps[0].actual.media[1].mimeType, 'image/jpeg')
+  })
+})
+
+describe('scripting.userinputs.mediaInputConvos.baseUri', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.userinputs.mediaInputConvos',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.USER_INPUTS]: [
+        {
+          ref: 'MEDIA',
+          src: 'MediaInput',
+          args: {
+            baseUri: 'https://www.botium.at'
+          }
+        }
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should add media in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'media.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(this.compiler.convos[0].conversation.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].name, 'MEDIA')
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].args.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].args[0], 'test.jpg')
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 1)
+    assert.equal(transcript.steps[0].actual.media[0].mediaUri, 'https://www.botium.at/test.jpg')
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/jpeg')
+  })
+
+  it('should add multi media in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'medias.convo.txt')
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 2)
+    assert.equal(transcript.steps[0].actual.media[0].mediaUri, 'https://www.botium.at/test1.jpg')
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/jpeg')
+    assert.equal(transcript.steps[0].actual.media[1].mediaUri, 'https://www.botium.at/test2.jpg')
     assert.equal(transcript.steps[0].actual.media[1].mimeType, 'image/jpeg')
   })
 })
