@@ -307,7 +307,7 @@ module.exports = class ScriptingProvider {
     // Compilers saved the convos, and we alter here the saved version too
     if (fileConvos) {
       fileConvos.forEach((fileConvo) => {
-        fileConvo.sourceTag = { filename }
+        fileConvo.sourceTag = { convoDir, filename }
         if (!fileConvo.header.name) {
           fileConvo.header.name = filename
         }
@@ -315,7 +315,7 @@ module.exports = class ScriptingProvider {
     }
     if (filePartialConvos) {
       filePartialConvos.forEach((filePartialConvo) => {
-        filePartialConvo.sourceTag = { filename }
+        filePartialConvo.sourceTag = { convoDir, filename }
         if (!filePartialConvo.header.name) {
           filePartialConvo.header.name = filename
         }
@@ -342,14 +342,14 @@ module.exports = class ScriptingProvider {
     }
 
     if (fileUtterances) {
-      this.fileUtterances = this._tagAndCleanupUtterances(fileUtterances, filename)
+      this.fileUtterances = this._tagAndCleanupUtterances(fileUtterances, convoDir, filename)
     }
     return { convos: fileConvos, utterances: fileUtterances, pconvos: filePartialConvos, scriptingMemories: fileScriptingMemories }
   }
 
-  _tagAndCleanupUtterances (utteranceFiles, filename) {
+  _tagAndCleanupUtterances (utteranceFiles, convoDir, filename) {
     return utteranceFiles.map((fileUtt) => {
-      fileUtt.sourceTag = { filename }
+      fileUtt.sourceTag = { convoDir, filename }
       fileUtt.utterances = fileUtt.utterances
         .filter(u => u)
       return fileUtt

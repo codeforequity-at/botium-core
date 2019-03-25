@@ -73,7 +73,7 @@ describe('scriptingProvider._tagAndCleanupUtterances', function () {
     let scriptingProvider = new ScriptingProvider()
     let utterances = ['don\'t understand', 'sorry', '']
     const fileUtterances = [{ name: 'INCOMPREHENSION', utterances: utterances }]
-    let actualResult = scriptingProvider._tagAndCleanupUtterances(fileUtterances, 'incomprehension.utterances.txt')
+    let actualResult = scriptingProvider._tagAndCleanupUtterances(fileUtterances, 'mydir', 'incomprehension.utterances.txt')
     expect(actualResult[0].utterances).to.eql(utterances.slice(0, 2))
   })
 })
