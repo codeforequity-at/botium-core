@@ -20,7 +20,7 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
       [Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]: 'ScriptingMemory',
       [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
       [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-      [Capabilities.SCRIPTING_MEMORYEXPANSION_DELORIG]: true
+      [Capabilities.SCRIPTING_MEMORYEXPANSION_KEEP_ORIG]: false
     }
     const driver = new BotDriver(myCaps)
     this.compiler = driver.BuildCompiler()
@@ -117,7 +117,7 @@ describe('scripting.scriptingmemory.memoryenabled.originalkept', function () {
       [Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]: 'ScriptingMemory',
       [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
       [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-      [Capabilities.SCRIPTING_MEMORYEXPANSION_DELORIG]: false
+      [Capabilities.SCRIPTING_MEMORYEXPANSION_KEEP_ORIG]: true
 
     }
     const driver = new BotDriver(myCaps)

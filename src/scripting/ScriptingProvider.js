@@ -357,6 +357,10 @@ module.exports = class ScriptingProvider {
   }
 
   ExpandScriptingMemoryToConvos () {
+    if (!this.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+      debug(`ExpandScriptingMemoryToConvos - Scripting memory turned off, no convos expanded`)
+      return
+    }
     let convosExpandedAll = []
     let convosOriginalAll = []
     this.convos.forEach((convo) => {
@@ -427,7 +431,7 @@ module.exports = class ScriptingProvider {
       }
     })
 
-    if (this.caps[Capabilities.SCRIPTING_MEMORYEXPANSION_DELORIG]) {
+    if (this.caps[Capabilities.SCRIPTING_MEMORYEXPANSION_KEEP_ORIG] !== true) {
       debug(`ExpandScriptingMemoryToConvos - Deleting ${convosOriginalAll.length} original convo`)
       this.convos = this.convos.filter((convo) => convosOriginalAll.indexOf(convo) === -1)
     }
