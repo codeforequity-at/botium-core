@@ -1,0 +1,3 @@
+created_by_begin
+#begin
+SET_SCRIPTING_MEMORY created_by_begin|created_by_begin_from_begin

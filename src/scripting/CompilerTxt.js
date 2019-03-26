@@ -45,6 +45,10 @@ module.exports = class CompilerTxt extends CompilerBase {
       return this._compileConvo(lines, true)
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       return this._compileUtterances(lines)
+    } else if (scriptType === Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY) {
+      return this._compileScriptingMemory(lines)
+    } else {
+      throw Error(`Invalid script type ${scriptType}`)
     }
   }
 
@@ -149,6 +153,26 @@ module.exports = class CompilerTxt extends CompilerBase {
       let result = [ new Utterance({ name: lines[0], utterances: lines.slice(1) }) ]
       this.context.AddUtterances(result)
       return result
+    }
+  }
+
+  _compileScriptingMemory (lines) {
+    if (lines && lines.length > 1) {
+      const names = lines[0].split('|').map((name) => name.trim()).slice(1)
+      const scriptingMemories = []
+      for (let row = 1; row < lines.length; row++) {
+        const rawRow = lines[row].split('|').map((name) => name.trim())
+        const caseName = rawRow[0]
+        const values = rawRow.slice(1)
+        const json = {}
+        for (let col = 0; col < names.length; col++) {
+          json[names[col]] = values[col]
+        }
+        const scriptingMemory = { header: { name: caseName }, values: json }
+        scriptingMemories.push(scriptingMemory)
+      }
+      this.context.AddScriptingMemories(scriptingMemories)
+      return scriptingMemories
     }
   }
 

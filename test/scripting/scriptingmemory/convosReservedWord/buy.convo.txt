@@ -1,0 +1,7 @@
+value optional
+
+#me
+buy $productName as $customerName year $year
+
+#me
+buy $productName as $customerName year $year
