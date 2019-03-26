@@ -42,7 +42,7 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     assert.equal(transcript.scriptingMemory['$productName'], 'Wiener Schnitzel')
   })
 
-  it('one scritping memory file, two colums', async function () {
+  it('one scripting memory file, two colums', async function () {
     // variations are hardcoded into table
     this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosOneTable'))
     this.compiler.ExpandScriptingMemoryToConvos()
@@ -55,7 +55,7 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     }
   })
 
-  it('two scritping memory file, one colum each', async function () {
+  it('two scripting memory file, one colum each', async function () {
     // all variations are generated
     this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosTwoTables'))
     this.compiler.ExpandScriptingMemoryToConvos()

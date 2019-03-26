@@ -38,35 +38,35 @@ module.exports = class ScriptingProvider {
     this.scriptingMemoryFileToScriptingMemories = {}
 
     this.scriptingEvents = {
-      onConvoBegin: ({ convo, convoStep, ...rest }) => {
-        return this._createLogicHookPromises((convo.beginLogicHook || []), convoStep, 'onConvoBegin', rest)
+      onConvoBegin: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onConvoBegin', logicHooks: (convo.beginLogicHook || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      onConvoEnd: ({ convo, convoStep, ...rest }) => {
-        return this._createLogicHookPromises((convo.endLogicHook || []), convoStep, 'onConvoEnd', rest)
+      onConvoEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onConvoEnd', logicHooks: (convo.endLogicHook || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      onMeStart: ({ convoStep, ...rest }) => {
-        return this._createLogicHookPromises((convoStep.logicHooks || []), convoStep, 'onMeStart', rest)
+      onMeStart: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onMeStart', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      onMeEnd: ({ convoStep, ...rest }) => {
-        return this._createLogicHookPromises((convoStep.logicHooks || []), convoStep, 'onMeEnd', rest)
+      onMeEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onMeEnd', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      onBotStart: ({ convoStep, ...rest }) => {
-        return this._createLogicHookPromises((convoStep.logicHooks || []), convoStep, 'onBotStart', rest)
+      onBotStart: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onBotStart', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      onBotEnd: ({ convoStep, ...rest }) => {
-        return this._createLogicHookPromises((convoStep.logicHooks || []), convoStep, 'onBotEnd', rest)
+      onBotEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onBotEnd', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      assertConvoBegin: ({ convo, convoStep, ...rest }) => {
-        return this._createAsserterPromises((convo.beginAsserter || []), convoStep, rest, convo, 'assertConvoBegin')
+      assertConvoBegin: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createAsserterPromises({ asserterType: 'assertConvoBegin', asserters: (convo.beginAsserter || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      assertConvoStep: ({ convo, convoStep, ...rest }) => {
-        return this._createAsserterPromises((convoStep.asserters || []), convoStep, rest, convo, 'assertConvoStep')
+      assertConvoStep: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createAsserterPromises({ asserterType: 'assertConvoStep', asserters: (convoStep.asserters || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      assertConvoEnd: ({ convo, convoStep, ...rest }) => {
-        return this._createAsserterPromises((convo.endAsserter || []), convoStep, rest, convo, 'assertConvoEnd')
+      assertConvoEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createAsserterPromises({ asserterType: 'assertConvoEnd', asserters: (convo.endAsserter || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      setUserInput: ({ convoStep, ...rest }) => {
-        return this._createUserInputPromises(convoStep, rest)
+      setUserInput: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createUserInputPromises({ convo, convoStep, scriptingMemory, ...rest })
       },
       resolveUtterance: ({ utterance }) => {
         if (this.utterances[utterance]) {
@@ -104,7 +104,7 @@ module.exports = class ScriptingProvider {
     }
   }
 
-  _createAsserterPromises (asserters, convoStep, rest, convo, asserterType) {
+  _createAsserterPromises ({ asserterType, asserters, convo, convoStep, scriptingMemory, ...rest }) {
     if (!this._isValidAsserterType(asserterType)) {
       throw Error(`Unknown asserterType ${asserterType}`)
     }
@@ -113,20 +113,20 @@ module.exports = class ScriptingProvider {
       .map(a => p(() => this.asserters[a.name][asserterType]({
         convo,
         convoStep,
-        args: ScriptingMemory.applyToArgs(a.args, rest.scriptingMemory),
-        scriptingMemory: rest.scriptingMemory,
+        scriptingMemory,
+        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory),
         isGlobal: false,
         ...rest
       })))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
-      .map(a => p(() => a[asserterType]({ convo, convoStep, args: [], isGlobal: true, ...rest })))
+      .map(a => p(() => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoAsserter, ...globalAsserter]
     return Promise.all(allPromises)
   }
 
-  _createLogicHookPromises (logicHooks, convoStep, hookType, eventArgs) {
+  _createLogicHookPromises ({ hookType, logicHooks, convo, convoStep, scriptingMemory, ...rest }) {
     if (hookType !== 'onMeStart' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' && hookType !== 'onBotEnd' &&
       hookType !== 'onConvoBegin' && hookType !== 'onConvoEnd'
     ) {
@@ -136,28 +136,30 @@ module.exports = class ScriptingProvider {
     const convoStepPromises = (logicHooks || [])
       .filter(l => this.logicHooks[l.name][hookType])
       .map(l => p(() => this.logicHooks[l.name][hookType]({
+        convo,
         convoStep,
-        args: ScriptingMemory.applyToArgs(l.args, eventArgs.scriptingMemory),
-        scriptingMemory: eventArgs.scriptingMemory,
+        scriptingMemory,
+        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory),
         isGlobal: false,
-        ...eventArgs })))
+        ...rest })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
-      .map(l => p(() => l[hookType]({ convoStep, args: [], isGlobal: true, ...eventArgs })))
+      .map(l => p(() => l[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)
   }
 
-  _createUserInputPromises (convoStep, eventArgs) {
+  _createUserInputPromises ({ convo, convoStep, scriptingMemory, ...rest }) {
     const convoStepPromises = (convoStep.userInputs || [])
       .filter(ui => this.userInputs[ui.name])
       .map(ui => p(() => this.userInputs[ui.name].setUserInput({
+        convo,
         convoStep,
-        args: ScriptingMemory.applyToArgs(ui.args, eventArgs.scriptingMemory),
-        scriptingMemory: eventArgs.scriptingMemory,
-        ...eventArgs })))
+        scriptingMemory,
+        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory),
+        ...rest })))
 
     return Promise.all(convoStepPromises)
   }
