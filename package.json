@@ -53,7 +53,7 @@
     "socket.io": "^2.0.4",
     "socket.io-client": "^2.0.4",
     "socketio-auth": "^0.1.1",
-    "swagger-jsdoc": "^1.9.7",
+    "swagger-jsdoc": "^1.10.3",
     "swagger-ui-express": "^3.0.9",
     "tcp-port-used": "^1.0.0",
     "tiny-server": "^1.0.2",
