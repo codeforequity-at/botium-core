@@ -31,7 +31,8 @@ DEFAULT_LOGIC_HOOKS.forEach((logicHook) => {
 
 const DEFAULT_USER_INPUTS = [
   { name: 'BUTTON', className: 'ButtonInput' },
-  { name: 'MEDIA', className: 'MediaInput' }
+  { name: 'MEDIA', className: 'MediaInput' },
+  { name: 'FORM', className: 'FormInput' }
 ]
 
 DEFAULT_USER_INPUTS.forEach((userInput) => {
