@@ -62,6 +62,15 @@ describe('convo.scriptingmemory.convos', function () {
       assert.isTrue(err.message.indexOf('Expected bot response (on Line 9: #me - show var VARVALUE) "show var VARVALUE" to match one of "show var VARVALUEINVALID"') > 0)
     }
   })
+  it('should normalize bot response', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'memory_normalize.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    assert.isDefined(transcript.scriptingMemory['$state'])
+    assert.equal(transcript.scriptingMemory['$state'], 'Kentucky')
+  })
 })
 
 describe('convo.scriptingMemory.api', function () {
@@ -69,7 +78,8 @@ describe('convo.scriptingMemory.api', function () {
     beforeEach(async function () {
       this.containerStub = {
         caps: {
-          [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
+          [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+          [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true
         }
       }
       this.scriptingProvider = new ScriptingProvider(DefaultCapabilities)
@@ -196,6 +206,16 @@ describe('convo.scriptingMemory.api', function () {
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence a1', 'test sentence a$Num', this.convo.scriptingEvents)
       assert.equal(scriptingMemory['$num'], undefined)
       assert.equal(scriptingMemory['$Num'], '1')
+    })
+    it('should match normalized response', async function () {
+      let result = "<speak>Kentucky is the 15th state, admitted to the Union in 1792. The capital of Kentucky is Frankfort, and the abbreviation for Kentucky is <break strength='strong'/><say-as interpret-as='spell-out'>KY</say-as>. I've added Kentucky to your Alexa app. Which other state or capital would you like to know about?</speak>"
+      let expected = "$state is the 15th state, admitted to the Union in 1792. The capital of Kentucky is Frankfort, and the abbreviation for Kentucky is KY. I've added Kentucky to your Alexa app. Which other state or capital would you like to know about?"
+
+      result = this.convo._checkNormalizeText(this.containerStub, result)
+
+      const scriptingMemory = {}
+      ScriptingMemory.fill(this.containerStub, scriptingMemory, result, expected, this.convo.scriptingEvents)
+      assert.equal(scriptingMemory['$state'], 'Kentucky')
     })
   })
 
@@ -473,7 +493,7 @@ describe('convo.scriptingMemory.api', function () {
     assert(result.length === 10, '$random10 invalid')
   })
 
-  it('$uniqid', async function () {
+  it('uniqid', async function () {
     const result = ScriptingMemory.apply(
       { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
       { },

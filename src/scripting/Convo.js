@@ -312,8 +312,8 @@ class Convo {
                 return convoStepDone(failErr)
               }
               if (convoStep.messageText) {
-                ScriptingMemory.fill(container, scriptingMemory, saysmsg.messageText, convoStep.messageText, this.scriptingEvents)
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
+                ScriptingMemory.fill(container, scriptingMemory, response, convoStep.messageText, this.scriptingEvents)
                 const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, convoStep.messageText)
                 if (convoStep.not) {
                   try {
