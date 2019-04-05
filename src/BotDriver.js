@@ -24,9 +24,9 @@ module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, envs = {}) {
     this.eventEmitter = new EventEmitter()
 
-    this.caps = Object.assign({}, Defaults.Capabilities)
-    this.sources = Object.assign({}, Defaults.Sources)
-    this.envs = Object.assign({}, Defaults.Envs)
+    this.caps = _.cloneDeep(Defaults.Capabilities)
+    this.sources = _.cloneDeep(Defaults.Sources)
+    this.envs = _.cloneDeep(Defaults.Envs)
 
     this._fetchConfigFromFiles(['./botium.json', './botium.local.json'])
 
@@ -57,7 +57,7 @@ module.exports = class BotDriver {
 
     if (caps) this._mergeCaps(this.caps, caps)
     if (sources) this._mergeCaps(this.sources, sources)
-    if (envs) this.envs = Object.assign(this.envs, envs)
+    if (envs) this.envs = _.merge(this.envs, envs)
   }
 
   on (event, listener) {
@@ -86,7 +86,7 @@ module.exports = class BotDriver {
   }
 
   setEnvs (envs) {
-    this.envs = Object.assign(this.envs, envs)
+    this.envs = _.merge(this.envs, envs)
     return this
   }
 

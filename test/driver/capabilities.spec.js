@@ -118,3 +118,16 @@ describe('driver.capabilities', function () {
     assert.equal(driver.caps['MYCAP'], 'SIMPLESTRING')
   })
 })
+
+describe('driver.constructor', function () {
+  it('should deep copy caps', function () {
+    const myCaps = {
+      ASSERTERS: [ { name: 'ASSERTER1' } ]
+    }
+    const driver = new BotDriver(myCaps)
+    assert.isArray(driver.caps['ASSERTERS'])
+    assert.lengthOf(driver.caps['ASSERTERS'], 1)
+    assert.isArray(DefaultCapabilities['ASSERTERS'])
+    assert.lengthOf(DefaultCapabilities['ASSERTERS'], 0)
+  })
+})
