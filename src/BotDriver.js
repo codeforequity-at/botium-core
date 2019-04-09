@@ -247,8 +247,7 @@ module.exports = class BotDriver {
           return
         }
       }
-
-      if (_.isObject(caps[capKey])) {
+      if (!_.isArray(caps[capKey]) && _.isObject(caps[capKey])) {
         let newCapObject = newCaps[capKey]
         if (!_.isObject(newCapObject)) {
           try {
