@@ -22,7 +22,7 @@ describe('convo.retries', function () {
   beforeEach(async function () {
     this.init = async (numErrors, errorText, errorPatterns, numRetries) => {
       const myCaps = {
-        [Capabilities.PROJECTNAME]: 'convo.transcript',
+        [Capabilities.PROJECTNAME]: 'convo.retry',
         [Capabilities.CONTAINERMODE]: echoConnector(numErrors, errorText),
         [Capabilities.RETRY_USERSAYS_ONERROR_REGEXP]: errorPatterns,
         [Capabilities.RETRY_USERSAYS_MINTIMEOUT]: 10

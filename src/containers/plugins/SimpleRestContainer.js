@@ -10,7 +10,6 @@ const debug = require('debug')('botium-SimpleRestContainer')
 
 const botiumUtils = require('../../helpers/Utils')
 const Capabilities = require('../../Capabilities')
-const BotiumMockMessage = require('../../mocks/BotiumMockMessage')
 
 module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
@@ -186,13 +185,13 @@ module.exports = class SimpleRestContainer {
 
                     hasMessageText = true
                     const botMsg = { sourceData: body, messageText, media, buttons }
-                    this._QueueBotSays(new BotiumMockMessage(botMsg))
+                    this.queueBotSays(botMsg)
                   })
                 })
               }
               if (!hasMessageText && (media.length > 0 || buttons.length > 0)) {
                 const botMsg = { sourceData: body, media, buttons }
-                this._QueueBotSays(new BotiumMockMessage(botMsg))
+                this.queueBotSays(botMsg)
               }
             }
           }
