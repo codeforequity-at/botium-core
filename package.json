@@ -46,6 +46,7 @@
     "moment": "^2.19.4",
     "mustache": "^2.3.0",
     "opn": "^5.2.0",
+    "promise-retry": "^1.1.1",
     "randomatic": "^3.1.0",
     "request": "^2.88.0",
     "rimraf": "^2.6.2",

@@ -3,10 +3,11 @@
       "Capabilities": {
         "PROJECTNAME": "Simple Rest Sample",
         "CONTAINERMODE": "simplerest",
-        "SIMPLEREST_URL": "http://ec2-63-32-190-175.eu-west-1.compute.amazonaws.com:3002/reply",
+        "SIMPLEREST_URL": "http://ec2-63-32-190-175.eu-west-1.compute.amazonaws.com:3002/reply1",
         "SIMPLEREST_METHOD": "POST",
         "SIMPLEREST_RESPONSE_JSONPATH": "$.reply",
-        "SIMPLEREST_BODY_TEMPLATE": { "username": "botium", "message": "{{msg.messageText}}" }
+        "SIMPLEREST_BODY_TEMPLATE": { "username": "botium", "message": "{{msg.messageText}}" },
+        "RETRY_USERSAYS_ONERROR_REGEXP": ["Not"]
       }
     }
   }

@@ -1,5 +1,4 @@
 const util = require('util')
-const botiumUtils = require('../helpers/Utils')
 const async = require('async')
 const request = require('request')
 const Mustache = require('mustache')
@@ -9,49 +8,28 @@ const uuidv4 = require('uuid/v4')
 const _ = require('lodash')
 const debug = require('debug')('botium-SimpleRestContainer')
 
-const Events = require('../Events')
-const Capabilities = require('../Capabilities')
-const BaseContainer = require('./BaseContainer')
-const BotiumMockMessage = require('../mocks/BotiumMockMessage')
+const botiumUtils = require('../../helpers/Utils')
+const Capabilities = require('../../Capabilities')
+const BotiumMockMessage = require('../../mocks/BotiumMockMessage')
 
-module.exports = class SimpleRestContainer extends BaseContainer {
-  Validate () {
-    return super.Validate().then(() => {
-      this._AssertCapabilityExists(Capabilities.SIMPLEREST_URL)
-      this._AssertCapabilityExists(Capabilities.SIMPLEREST_METHOD)
-      this._AssertCapabilityExists(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
-
-      if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
-        _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
-      }
-    })
+module.exports = class SimpleRestContainer {
+  constructor ({ queueBotSays, caps }) {
+    this.queueBotSays = queueBotSays
+    this.caps = caps
   }
 
-  Build () {
-    return new Promise((resolve, reject) => {
-      async.series([
-        (baseComplete) => {
-          super.Build().then(() => baseComplete()).catch(baseComplete)
-        }
-
-      ], (err) => {
-        if (err) {
-          return reject(new Error(`Cannot build simplereset container: ${util.inspect(err)}`))
-        }
-        resolve(this)
-      })
-    })
+  Validate () {
+    if (!this.caps[Capabilities.SIMPLEREST_URL]) throw new Error('SIMPLEREST_URL capability required')
+    if (!this.caps[Capabilities.SIMPLEREST_METHOD]) throw new Error('SIMPLEREST_METHOD capability required')
+    if (!this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) throw new Error('SIMPLEREST_RESPONSE_JSONPATH capability required')
+    if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
+      _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
+    }
   }
 
   Start () {
-    this.eventEmitter.emit(Events.CONTAINER_STARTING, this)
-
     return new Promise((resolve, reject) => {
       async.series([
-        (baseComplete) => {
-          super.Start().then(() => baseComplete()).catch(baseComplete)
-        },
-
         (contextInitComplete) => {
           this.view = {
             context: {},
@@ -99,11 +77,9 @@ module.exports = class SimpleRestContainer extends BaseContainer {
         }
       ], (err) => {
         if (err) {
-          this.eventEmitter.emit(Events.CONTAINER_START_ERROR, this, err)
           return reject(new Error(`Start failed ${util.inspect(err)}`))
         }
-        this.eventEmitter.emit(Events.CONTAINER_STARTED, this)
-        resolve(this)
+        resolve()
       })
     })
   }
@@ -114,42 +90,7 @@ module.exports = class SimpleRestContainer extends BaseContainer {
   }
 
   Stop () {
-    this.eventEmitter.emit(Events.CONTAINER_STOPPING, this)
-
-    return new Promise((resolve, reject) => {
-      async.series([
-        (baseComplete) => {
-          super.Stop().then(() => baseComplete()).catch(baseComplete)
-        }
-      ], (err) => {
-        if (err) {
-          this.eventEmitter.emit(Events.CONTAINER_STOP_ERROR, this, err)
-          return reject(new Error(`Stop failed ${util.inspect(err)}`))
-        }
-        this.eventEmitter.emit(Events.CONTAINER_STOPPED, this)
-        resolve(this)
-      })
-    })
-  }
-
-  Clean () {
-    this.eventEmitter.emit(Events.CONTAINER_CLEANING, this)
-
-    return new Promise((resolve, reject) => {
-      async.series([
-        (baseComplete) => {
-          super.Clean().then(() => baseComplete()).catch(baseComplete)
-        }
-
-      ], (err) => {
-        if (err) {
-          this.eventEmitter.emit(Events.CONTAINER_CLEAN_ERROR, this, err)
-          return reject(new Error(`Cleanup failed ${util.inspect(err)}`))
-        }
-        this.eventEmitter.emit(Events.CONTAINER_CLEANED, this)
-        resolve(this)
-      })
-    })
+    this.view = {}
   }
 
   _doRequest (msg, isFromUser) {
@@ -161,8 +102,6 @@ module.exports = class SimpleRestContainer extends BaseContainer {
         if (err) {
           reject(new Error(`rest request failed: ${util.inspect(err)}`))
         } else {
-          isFromUser && this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, msg)
-
           if (response.statusCode >= 400) {
             debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
             return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))

@@ -1,12 +1,20 @@
 const util = require('util')
 const _ = require('lodash')
+const promiseRetry = require('promise-retry')
 const debug = require('debug')('botium-PluginConnectorContainer')
 
 const Events = require('../Events')
 const Capabilities = require('../Capabilities')
 const BaseContainer = require('./BaseContainer')
+const pluginResolver = require('./plugins/index')
+const RetryHelper = require('../helpers/RetryHelper')
 
 const tryLoadPlugin = (containermode, args) => {
+  if (pluginResolver(containermode)) {
+    const pluginInstance = new (pluginResolver(containermode))(args)
+    debug(`Botium plugin loaded from internal plugin resolver`)
+    return pluginInstance
+  }
   if (_.isFunction(containermode)) {
     const pluginInstance = containermode(args)
     debug(`Botium plugin loaded from function call`)
@@ -62,12 +70,25 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
         throw new Error(`Invalid Botium plugin, expected UserSays function`)
       }
       return this.pluginInstance.Validate ? (this.pluginInstance.Validate() || Promise.resolve()) : Promise.resolve()
+    }).then(() => {
+      this.retryHelper = new RetryHelper(this.caps)
     })
   }
 
   Build () {
     try {
-      return super.Build().then(() => this.pluginInstance.Build ? (this.pluginInstance.Build() || Promise.resolve()) : Promise.resolve()).then(() => this)
+      return super.Build().then(() => promiseRetry((retry, number) => {
+        return (this.pluginInstance.Build ? (this.pluginInstance.Build() || Promise.resolve()) : Promise.resolve())
+          .catch((err) => {
+            if (this.retryHelper.shouldRetryUserSays(err)) {
+              debug(`Build trial #${number} failed, retry activated`)
+              retry(err)
+            } else {
+              throw err
+            }
+          })
+      }, this.retryHelper.retrySettings))
+        .then(() => this)
     } catch (err) {
       return Promise.reject(new Error(`Build - Botium plugin failed: ${util.inspect(err)}`))
     }
@@ -77,13 +98,24 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
     this.eventEmitter.emit(Events.CONTAINER_STARTING, this)
 
     try {
-      return super.Start().then(() => this.pluginInstance.Start ? (this.pluginInstance.Start() || Promise.resolve()) : Promise.resolve()).then((context) => {
-        this.eventEmitter.emit(Events.CONTAINER_STARTED, this, context)
-        return this
-      }).catch((err) => {
-        this.eventEmitter.emit(Events.CONTAINER_START_ERROR, this, err)
-        throw err
-      })
+      return super.Start().then(() => promiseRetry((retry, number) => {
+        return (this.pluginInstance.Start ? (this.pluginInstance.Start() || Promise.resolve()) : Promise.resolve())
+          .catch((err) => {
+            if (this.retryHelper.shouldRetryUserSays(err)) {
+              debug(`Start trial #${number} failed, retry activated`)
+              retry(err)
+            } else {
+              throw err
+            }
+          })
+      }, this.retryHelper.retrySettings))
+        .then((context) => {
+          this.eventEmitter.emit(Events.CONTAINER_STARTED, this, context)
+          return this
+        }).catch((err) => {
+          this.eventEmitter.emit(Events.CONTAINER_START_ERROR, this, err)
+          throw err
+        })
     } catch (err) {
       this.eventEmitter.emit(Events.CONTAINER_START_ERROR, this, err)
       return Promise.reject(new Error(`Start - Botium plugin failed: ${util.inspect(err)}`))
@@ -92,10 +124,21 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
 
   UserSays (mockMsg) {
     try {
-      return (this.pluginInstance.UserSays(mockMsg) || Promise.resolve()).then(() => {
-        this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
-        return this
-      })
+      return promiseRetry((retry, number) => {
+        return (this.pluginInstance.UserSays(mockMsg) || Promise.resolve())
+          .catch((err) => {
+            if (this.retryHelper.shouldRetryUserSays(err)) {
+              debug(`UserSays trial #${number} failed, retry activated`)
+              retry(err)
+            } else {
+              throw err
+            }
+          })
+      }, this.retryHelper.retrySettings)
+        .then(() => {
+          this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
+          return this
+        })
     } catch (err) {
       return Promise.reject(new Error(`UserSays - Botium plugin failed: ${util.inspect(err)}`))
     }
@@ -105,13 +148,24 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
     this.eventEmitter.emit(Events.CONTAINER_STOPPING, this)
 
     try {
-      return super.Stop().then(() => this.pluginInstance.Stop ? (this.pluginInstance.Stop() || Promise.resolve()) : Promise.resolve()).then((context) => {
-        this.eventEmitter.emit(Events.CONTAINER_STOPPED, this, context)
-        return this
-      }).catch((err) => {
-        this.eventEmitter.emit(Events.CONTAINER_STOP_ERROR, this, err)
-        throw err
-      })
+      return super.Stop().then(() => promiseRetry((retry, number) => {
+        return (this.pluginInstance.Stop ? (this.pluginInstance.Stop() || Promise.resolve()) : Promise.resolve())
+          .catch((err) => {
+            if (this.retryHelper.shouldRetryUserSays(err)) {
+              debug(`Stop trial #${number} failed, retry activated`)
+              retry(err)
+            } else {
+              throw err
+            }
+          })
+      }, this.retryHelper.retrySettings))
+        .then((context) => {
+          this.eventEmitter.emit(Events.CONTAINER_STOPPED, this, context)
+          return this
+        }).catch((err) => {
+          this.eventEmitter.emit(Events.CONTAINER_STOP_ERROR, this, err)
+          throw err
+        })
     } catch (err) {
       this.eventEmitter.emit(Events.CONTAINER_STOP_ERROR, this, err)
       return Promise.reject(new Error(`Stop - Botium plugin failed: ${util.inspect(err)}`))
@@ -120,15 +174,25 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
 
   Clean () {
     this.eventEmitter.emit(Events.CONTAINER_CLEANING, this)
-
     try {
-      return (this.pluginInstance.Clean ? (this.pluginInstance.Clean() || Promise.resolve()) : Promise.resolve()).then(() => super.Clean()).then(() => {
-        this.eventEmitter.emit(Events.CONTAINER_CLEANED, this)
-        return this
-      }).catch((err) => {
-        this.eventEmitter.emit(Events.CONTAINER_CLEAN_ERROR, this, err)
-        throw err
-      })
+      return promiseRetry((retry, number) => {
+        return (this.pluginInstance.Clean ? (this.pluginInstance.Clean() || Promise.resolve()) : Promise.resolve())
+          .catch((err) => {
+            if (this.retryHelper.shouldRetryUserSays(err)) {
+              debug(`Clean trial #${number} failed, retry activated`)
+              retry(err)
+            } else {
+              throw err
+            }
+          })
+      }, this.retryHelper.retrySettings)
+        .then(() => super.Clean()).then(() => {
+          this.eventEmitter.emit(Events.CONTAINER_CLEANED, this)
+          return this
+        }).catch((err) => {
+          this.eventEmitter.emit(Events.CONTAINER_CLEAN_ERROR, this, err)
+          throw err
+        })
     } catch (err) {
       this.eventEmitter.emit(Events.CONTAINER_CLEAN_ERROR, this, err)
       return Promise.reject(new Error(`Clean - Botium plugin failed: ${util.inspect(err)}`))
