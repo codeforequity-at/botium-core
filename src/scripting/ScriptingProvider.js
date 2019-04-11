@@ -34,8 +34,6 @@ module.exports = class ScriptingProvider {
     this.userInputs = {}
     this.partialConvos = {}
     this.scriptingMemories = []
-    this.scriptingMemoryVariableToFile = {}
-    this.scriptingMemoryFileToScriptingMemories = {}
 
     this.scriptingEvents = {
       onConvoBegin: ({ convo, convoStep, scriptingMemory, ...rest }) => {
@@ -325,20 +323,6 @@ module.exports = class ScriptingProvider {
       fileScriptingMemories.forEach((scriptingMemory) => {
         scriptingMemory.sourceTag = { filename }
       })
-
-      // it is enough to iterate just the fist entry. All entries has to have the same fields.
-      Object.keys(fileScriptingMemories[0].values).forEach((variableName) => {
-        if (ScriptingMemory.RESERVED_WORDS.indexOf(variableName) >= 0) {
-          debug(`Script - Reserved word "${variableName}" used as variable`)
-        }
-        if (this.scriptingMemoryVariableToFile[variableName]) {
-          throw Error(`Variable name defined in multiple scripting memory files: ${this.scriptingMemoryVariableToFile[variableName]} and ${filename}`)
-        }
-
-        this.scriptingMemoryVariableToFile[variableName] = filename
-      })
-
-      this.scriptingMemoryFileToScriptingMemories[filename] = fileScriptingMemories
     }
 
     if (fileUtterances) {
@@ -372,8 +356,6 @@ module.exports = class ScriptingProvider {
       const fileToVariables = {}
       // debug output, & filling fileToVariables
       variables.forEach((variable) => {
-        const file = this.scriptingMemoryVariableToFile[variable]
-
         const alreadyUsedVariable = convo.beginLogicHook.filter((logicHook) => {
           // .substring(1): cut the $ because logichooks
           return (logicHook.name === 'SET_SCRIPTING_MEMORY' || logicHook.name === 'CLEAR_SCRIPTING_MEMORY') &&
@@ -382,26 +364,30 @@ module.exports = class ScriptingProvider {
         // name args
 
         if (alreadyUsedVariable.length) {
-          debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory variable "${variable}" defined in file "${file}", and in logicHook(s) "${util.inspect(alreadyUsedVariable)}"`)
-        }
-
-        if (file) {
-          if (!fileToVariables[file]) {
-            fileToVariables[file] = []
-          }
-          fileToVariables[file].push(variable)
+          debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory variable "${variable}" defined external (scripting memory file?), and in logicHook(s) "${util.inspect(alreadyUsedVariable)}"`)
         }
       })
       debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, by file: "${util.inspect(fileToVariables)}"`)
+
+      const variablesToScriptingMemory = new Map()
+      this.scriptingMemories.forEach((scriptinMemory) => {
+        const key = JSON.stringify(Object.keys(scriptinMemory.values).sort())
+        if (variablesToScriptingMemory.has(key)) {
+          variablesToScriptingMemory.get(key).push(scriptinMemory)
+        } else {
+          variablesToScriptingMemory.set(key, [scriptinMemory])
+        }
+      })
 
       let convosToExpand = [convo]
       let convosExpandedConvo = []
       // just for debug output. If we got 6 expanded convo, then this array can be for example [2, 3]
       let multipliers = []
-      Object.entries(fileToVariables).forEach(([file, variableNames]) => {
+      Object.entries(variablesToScriptingMemory).forEach(([key, scriptingMemories]) => {
+        const variableNames = JSON.parse(key)
         const convosExpandedVariable = []
-        multipliers.push(this.scriptingMemoryFileToScriptingMemories[file].length)
-        this.scriptingMemoryFileToScriptingMemories[file].forEach((scriptingMemory) => {
+        multipliers.push(scriptingMemories.length)
+        scriptingMemories.forEach((scriptingMemory) => {
           // Appending the case name to name
           for (let convoToExpand of convosToExpand) {
             const convoExpanded = _.cloneDeep(convoToExpand)
