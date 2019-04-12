@@ -75,6 +75,7 @@ const _apply = (scriptingMemory, str) => {
 
 const fill = (container, scriptingMemory, result, utterance, scriptingEvents) => {
   debug(`fill start: ${util.inspect(scriptingMemory)}`)
+  const varRegex = (container.caps[Capabilities.SCRIPTING_MEMORY_MATCHING_MODE] !== 'word') ? '(\\S+)' : '(\\w+)'
   if (result && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
     const utterances = scriptingEvents.resolveUtterance({ utterance })
     utterances.forEach(expected => {
@@ -84,7 +85,7 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       }
       const varMatches = (expected.match(/\$\w+/g) || []).sort(_longestFirst)
       for (let i = 0; i < varMatches.length; i++) {
-        reExpected = reExpected.replace(varMatches[i], '(\\S+)')
+        reExpected = reExpected.replace(varMatches[i], varRegex)
       }
       const resultMatches = result.match(reExpected) || []
       for (let i = 1; i < resultMatches.length; i++) {

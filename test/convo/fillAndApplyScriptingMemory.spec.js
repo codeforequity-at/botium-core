@@ -82,6 +82,13 @@ describe('convo.scriptingMemory.api', function () {
           [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true
         }
       }
+      this.containerStubMatchingModeWord = {
+        caps: {
+          [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+          [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true,
+          [Capabilities.SCRIPTING_MEMORY_MATCHING_MODE]: 'word'
+        }
+      }
       this.scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await this.scriptingProvider.Build()
       this.scriptingContext = this.scriptingProvider._buildScriptContext()
@@ -152,7 +159,7 @@ describe('convo.scriptingMemory.api', function () {
       this.containerStub.caps[Capabilities.SCRIPTING_MATCHING_MODE] = 'regexp'
 
       const scriptingMemory = {}
-      ScriptingMemory.fill(this.containerStub, scriptingMemory, '*test sentence 1*', '.* sentence $num', this.convo.scriptingEvents)
+      ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence 1 end', '.* sentence $num', this.convo.scriptingEvents)
       assert.equal(scriptingMemory['$num'], '1')
       const tomatch = this.convo._resolveUtterancesToMatch(this.containerStub, scriptingMemory, '.* sentence $num')
       assert.isArray(tomatch)
@@ -166,7 +173,7 @@ describe('convo.scriptingMemory.api', function () {
       })
 
       const scriptingMemory = {}
-      ScriptingMemory.fill(this.containerStub, scriptingMemory, '*test sentence 1*', 'utt1', this.convo.scriptingEvents)
+      ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence 1 end', 'utt1', this.convo.scriptingEvents)
       assert.equal(scriptingMemory['$num'], '1')
       const tomatch = this.convo._resolveUtterancesToMatch(this.containerStub, scriptingMemory, 'utt1')
       assert.isArray(tomatch)
@@ -222,16 +229,21 @@ describe('convo.scriptingMemory.api', function () {
       ScriptingMemory.fill(this.containerStub, scriptingMemory, result, expected, this.convo.scriptingEvents)
       assert.equal(scriptingMemory['$state'], 'Kentucky')
     })
-    it('should match not-whitespace', async function () {
+    it('should match not-whitespace (SCRIPTING_MEMORY_MATCHING_MODE == non_whitespace, default)', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'date: 28.01.2019', 'date: $somedate', this.convo.scriptingEvents)
       assert.equal(scriptingMemory['$somedate'], '28.01.2019')
     })
-    // this is not an expectation, nothing depends on this behaviour
-    it('should match $)', async function () {
+    it('should match not-whitespace (SCRIPTING_MEMORY_MATCHING_MODE == word)', async function () {
       const scriptingMemory = {}
-      ScriptingMemory.fill(this.containerStub, scriptingMemory, 'text: textwith$', 'text: $somedate', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$text'], '28.01.2019')
+      ScriptingMemory.fill(this.containerStubMatchingModeWord, scriptingMemory, 'my name is joe.', 'my name is $name', this.convo.scriptingEvents)
+      assert.equal(scriptingMemory['$name'], 'joe')
+    })
+    // this is not an expectation, nothing depends on this behaviour
+    it('should match $', async function () {
+      const scriptingMemory = {}
+      ScriptingMemory.fill(this.containerStub, scriptingMemory, 'text: textwith$', 'text: $sometext', this.convo.scriptingEvents)
+      assert.equal(scriptingMemory['$sometext'], 'textwith$')
     })
   })
 
