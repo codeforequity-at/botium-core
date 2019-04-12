@@ -207,6 +207,11 @@ describe('convo.scriptingMemory.api', function () {
       assert.equal(scriptingMemory['$num'], undefined)
       assert.equal(scriptingMemory['$Num'], '1')
     })
+    it('should not change scripting memory functions', async function () {
+      const scriptingMemory = {}
+      ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence a1', 'test sentence a$now', this.convo.scriptingEvents)
+      assert.notEqual(scriptingMemory['$now'], '1')
+    })
     it('should match normalized response', async function () {
       let result = "<speak>Kentucky is the 15th state, admitted to the Union in 1792. The capital of Kentucky is Frankfort, and the abbreviation for Kentucky is <break strength='strong'/><say-as interpret-as='spell-out'>KY</say-as>. I've added Kentucky to your Alexa app. Which other state or capital would you like to know about?</speak>"
       let expected = "$state is the 15th state, admitted to the Union in 1792. The capital of Kentucky is Frankfort, and the abbreviation for Kentucky is KY. I've added Kentucky to your Alexa app. Which other state or capital would you like to know about?"
@@ -216,6 +221,17 @@ describe('convo.scriptingMemory.api', function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, result, expected, this.convo.scriptingEvents)
       assert.equal(scriptingMemory['$state'], 'Kentucky')
+    })
+    it('should match not-whitespace', async function () {
+      const scriptingMemory = {}
+      ScriptingMemory.fill(this.containerStub, scriptingMemory, 'date: 28.01.2019', 'date: $somedate', this.convo.scriptingEvents)
+      assert.equal(scriptingMemory['$somedate'], '28.01.2019')
+    })
+    // this is not an expectation, nothing depends on this behaviour
+    it('should match $)', async function () {
+      const scriptingMemory = {}
+      ScriptingMemory.fill(this.containerStub, scriptingMemory, 'text: textwith$', 'text: $somedate', this.convo.scriptingEvents)
+      assert.equal(scriptingMemory['$text'], '28.01.2019')
     })
   })
 
@@ -462,7 +478,7 @@ describe('convo.scriptingMemory.api', function () {
       assert(result.length >= 2 && result.length <= 20, '$day_of_week invalid')
     })
 
-    it('', async function () {
+    it('now_ISO', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
         { },
@@ -471,35 +487,36 @@ describe('convo.scriptingMemory.api', function () {
 
       assert(result.length === 24, '$now_ISO invalid')
     })
-  })
 
-  it('time', async function () {
-    const result = ScriptingMemory.apply(
-      { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-      { },
-      '$time'
-    )
+    it('time', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$time'
+      )
 
-    assert(result.length >= 5 && result.length <= 10, '$time invalid')
-  })
+      assert(result.length >= 5 && result.length <= 10, '$time invalid')
+    })
 
-  it('random10', async function () {
-    const result = ScriptingMemory.apply(
-      { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-      { },
-      '$random10'
-    )
+    it('random10', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$random10'
+      )
 
-    assert(result.length === 10, '$random10 invalid')
-  })
+      assert(result.length === 10, '$random10 invalid')
+    })
 
-  it('uniqid', async function () {
-    const result = ScriptingMemory.apply(
-      { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-      { },
-      '$uniqid'
-    )
+    it('uniqid', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$uniqid'
+      )
 
-    assert(result.length === 36, '$uniqid invalid')
+      assert(result.length === 36, '$uniqid invalid')
+    })
+
   })
 })

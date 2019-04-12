@@ -54,32 +54,21 @@ const applyToArgs = (args, scriptingMemory) => {
   })
 }
 
+const _longestFirst = (a, b) => b.length - a.length
+
 const _apply = (scriptingMemory, str) => {
   // we have two replace longer variable first. if there is $year, and $years, $years should not be found by $year
-  const longestFirst = (a, b) => b.length - a.length
 
   if (str) {
-    Object.keys(SCRIPTING_FUNCTIONS).sort(longestFirst).forEach((key) => {
+    Object.keys(SCRIPTING_FUNCTIONS).sort(_longestFirst).forEach((key) => {
       const stronger = Object.keys(scriptingMemory).filter((variableName) => variableName.startsWith(key))
       if (stronger.length === 0) {
         str = str.replace(key, SCRIPTING_FUNCTIONS[key]())
       }
     })
-    Object.keys(scriptingMemory).sort(longestFirst).forEach((key) => {
+    Object.keys(scriptingMemory).sort(_longestFirst).forEach((key) => {
       str = str.replace(key, scriptingMemory[key])
     })
-
-    // _.forOwn(SCRIPTING_FUNCTIONS, (func, key) => {
-    //   const stronger = Object.keys(scriptingMemory).filter((variableName) => variableName.startsWith(key))
-    //   if (stronger.length === 0) {
-    //     str = str.replace(key, func())
-    //   }
-    // })
-    // // forOwn iterates first the longest names, what is good.
-    // // if we have two overlapping variables like year and years, years must be replaced first
-    // _.forOwn(scriptingMemory, (value, key) => {
-    //   str = str.replace(key, value)
-    // })
   }
   return str
 }
@@ -93,18 +82,19 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
         reExpected = expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&')
       }
-      const varMatches = expected.match(/\$\w+/g) || []
+      const varMatches = (expected.match(/\$\w+/g) || []).sort(_longestFirst)
       for (let i = 0; i < varMatches.length; i++) {
-        reExpected = reExpected.replace(varMatches[i], '(\\w+)')
+        reExpected = reExpected.replace(varMatches[i], '(\\S+)')
       }
       const resultMatches = result.match(reExpected) || []
       for (let i = 1; i < resultMatches.length; i++) {
         if (i <= varMatches.length) {
           const varName = varMatches[i - 1]
           if (RESERVED_WORDS.indexOf(varName) >= 0) {
-            debug(`fill Reserved word "${varName}" used as variable`)
+            debug(`fill Variable "${varName}" is not overwritten, because it is reserved word. `)
+          } else {
+            scriptingMemory[varName] = resultMatches[i]
           }
-          scriptingMemory[varName] = resultMatches[i]
         }
       }
     })
