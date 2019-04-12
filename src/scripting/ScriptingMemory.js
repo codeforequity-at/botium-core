@@ -10,14 +10,62 @@ const SCRIPTING_FUNCTIONS = {
   '$now': () => {
     return new Date().toLocaleString()
   },
+  '$now_EN': () => {
+    return new Date().toLocaleString('en-EN')
+  },
+  '$now_DE': () => {
+    return new Date().toLocaleString('de-DE')
+  },
+  '$now_ISO': () => {
+    return new Date().toISOString()
+  },
+
   '$date': () => {
     return new Date().toLocaleDateString()
   },
+  '$date_EN': () => {
+    return new Date().toLocaleDateString('en-EN')
+  },
+  '$date_DE': () => {
+    return new Date().toLocaleDateString('de-DE')
+  },
+  '$date_ISO': () => {
+    return moment().format('YYYY-MM-DD')
+  },
+
+  '$time': () => {
+    return new Date().toLocaleTimeString()
+  },
+  '$time_EN': () => {
+    return new Date().toLocaleTimeString('en-EN')
+  },
+  '$time_DE': () => {
+    return new Date().toLocaleTimeString('de-DE')
+  },
+  '$time_ISO': () => {
+    return moment().format('hh:mm:ss')
+  },
+  '$time_HH_MM': () => {
+    return moment().format('hh:mm')
+  },
+  '$time_HH': () => {
+    return moment().format('hh')
+  },
+  '$time_H_A': () => {
+    return moment().format('h a')
+  },
+  '$time_H_MM_A': () => {
+    return moment().format('h:mm a')
+  },
+
   '$year': () => {
     return new Date().getFullYear()
   },
   '$month': () => {
     return moment().format('MMMM')
+  },
+  '$month_MM': () => {
+    return moment().format('MM')
   },
   '$day_of_month': () => {
     return new Date().getDate()
@@ -25,12 +73,7 @@ const SCRIPTING_FUNCTIONS = {
   '$day_of_week': () => {
     return moment().format('dddd')
   },
-  '$now_ISO': () => {
-    return new Date().toISOString()
-  },
-  '$time': () => {
-    return new Date().toLocaleTimeString()
-  },
+
   '$random10': () => {
     return randomize('0', 10)
   },

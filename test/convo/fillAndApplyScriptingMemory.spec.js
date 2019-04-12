@@ -434,8 +434,36 @@ describe('convo.scriptingMemory.api', function () {
         { },
         '$now'
       )
-
       assert.equal(result, new Date().toLocaleString())
+    })
+    it('now_EN', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$now_EN'
+      )
+      assert(result.indexOf('/') < 3, 'wrong format')
+      assert(result.lastIndexOf(':') > 10, 'wrong format')
+      assert(result.lastIndexOf(':') > 10, 'wrong format')
+    })
+    it('now_DE', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$now_DE'
+      )
+      assert(result.indexOf('-') === 4)
+      assert(result.lastIndexOf(':') > 10)
+    })
+    it('now_ISO', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$now_ISO'
+      )
+      assert(result.length === 24)
+      assert.equal(result.indexOf('-'), 4)
+      assert.equal(result.lastIndexOf('.'), 19)
     })
 
     it('date', async function () {
@@ -444,8 +472,96 @@ describe('convo.scriptingMemory.api', function () {
         { },
         '$date'
       )
-
       assert.equal(result, new Date().toLocaleDateString())
+    })
+    it('date_EN', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$date_EN'
+      )
+      assert(result.length <= 10, 'wrong format')
+      assert(result.indexOf('/') <= 2, 'wrong format')
+      assert(result.lastIndexOf('/') <= 5, 'wrong format')
+    })
+    it('date_DE', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$date_DE'
+      )
+      assert(result.length <= 10, 'wrong format')
+      assert(result.indexOf('-') === 4, 'wrong format')
+      assert(result.lastIndexOf('-') > 5, 'wrong format')
+    })
+    it('date_ISO', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$date_ISO'
+      )
+      assert.equal(result.length, 10)
+      assert.equal(result.indexOf('-'), 4)
+      assert.equal(result.lastIndexOf('-'), 7)
+    })
+
+    it('time', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$time'
+      )
+      assert(result.length >= 5 && result.length <= 10)
+    })
+    it('time_EN', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$time_EN'
+      )
+      assert(result.indexOf(':') < 3)
+      assert(result.lastIndexOf(' ') < 9)
+    })
+    it('time_DE', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$time_DE'
+      )
+      assert(result.indexOf(':') !== result.lastIndexOf(':'))
+    })
+    it('time_ISO', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$time_ISO'
+      )
+      assert(result.indexOf(':') !== result.lastIndexOf(':'))
+    })
+    it('time_HH_MM', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$time_HH_MM'
+      )
+      assert(result.indexOf(':') === 2)
+    })
+    it('time_H_A', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$time_H_A'
+      )
+      assert(result.indexOf(' ') > 0)
+    })
+    it('time_H_MM_A', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$time_H_MM_A'
+      )
+      assert(result.indexOf(':') < 3)
+      assert(result.lastIndexOf(' ') < 6)
     })
 
     it('year', async function () {
@@ -468,6 +584,15 @@ describe('convo.scriptingMemory.api', function () {
 
       assert(result.length >= 2 && result.length <= 10, '$month invalid')
     })
+    it('month_MM', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$month_MM'
+      )
+
+      assert(result.length > 0 && result.length < 3, '$month invalid')
+    })
 
     it('day_of_month', async function () {
       const result = ScriptingMemory.apply(
@@ -488,26 +613,6 @@ describe('convo.scriptingMemory.api', function () {
       )
 
       assert(result.length >= 2 && result.length <= 20, '$day_of_week invalid')
-    })
-
-    it('now_ISO', async function () {
-      const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { },
-        '$now_ISO'
-      )
-
-      assert(result.length === 24, '$now_ISO invalid')
-    })
-
-    it('time', async function () {
-      const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { },
-        '$time'
-      )
-
-      assert(result.length >= 5 && result.length <= 10, '$time invalid')
     })
 
     it('random10', async function () {
