@@ -80,13 +80,15 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     assert.notExists(transcript.scriptingMemory['$customerName'])
   })
 
-  it('Same variable in more files -> error', async function () {
+  // Box can work without files, this eexception had no sense -> removed
+  it('Same variable in more files -> error (update: no error!)', async function () {
     try {
       // assert.throws did not worked to me
       this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMerging'))
       throw (new Error('ReadScriptsFromDirectory had to throw error'))
     } catch (ex) {
-      assert.equal(ex.toString(), 'Error: Variable name defined in multiple scripting memory files: productGroup1.xlsx and productGroup2.xlsx')
+      assert.equal(ex.toString(), 'Error: ReadScriptsFromDirectory had to throw error')
+      // assert.equal(ex.toString(), 'Error: Variable name defined in multiple scripting memory files: productGroup1.xlsx and productGroup2.xlsx')
     }
   })
 
@@ -106,6 +108,12 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
   // nothing to test here, this case is just a debug log.
   it('Reserved word', async function () {
     this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosReservedWord'))
+  })
+
+  it('No intersecion, no multiply', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosNoIntersection'))
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
   })
 })
 
