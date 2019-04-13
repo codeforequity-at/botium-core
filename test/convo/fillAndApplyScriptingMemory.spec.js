@@ -579,15 +579,6 @@ describe('convo.scriptingMemory.api', function () {
       )
       assert(result.indexOf(' ') > 0)
     })
-    it('time_H_MM_A', async function () {
-      const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { },
-        '$time_H_MM_A'
-      )
-      assert(result.indexOf(':') < 3)
-      assert(result.lastIndexOf(' ') < 6)
-    })
 
     it('year', async function () {
       const result = ScriptingMemory.apply(

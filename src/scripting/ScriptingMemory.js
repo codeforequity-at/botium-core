@@ -52,19 +52,16 @@ const SCRIPTING_FUNCTIONS = {
     return new Date().toLocaleTimeString('de-DE')
   },
   '$time_ISO': () => {
-    return moment().format('hh:mm:ss')
+    return moment().format('HH:mm:ss')
   },
   '$time_HH_MM': () => {
-    return moment().format('hh:mm')
+    return moment().format('HH:mm')
   },
   '$time_HH': () => {
-    return moment().format('hh')
+    return moment().format('HH')
   },
   '$time_H_A': () => {
-    return moment().format('h a')
-  },
-  '$time_H_MM_A': () => {
-    return moment().format('h:mm a')
+    return moment().format('h A')
   },
 
   '$year': () => {
