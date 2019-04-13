@@ -3,6 +3,7 @@ const debug = require('debug')('botium-ScriptingMemory')
 const randomize = require('randomatic')
 const uuidv1 = require('uuid/v1')
 const moment = require('moment')
+const vm = require('vm')
 
 const Capabilities = require('../Capabilities')
 
@@ -83,6 +84,9 @@ const SCRIPTING_FUNCTIONS = {
   },
 
   '$random': (length) => {
+    if (length == null) {
+      throw Error('random function used without args!')
+    }
     return randomize('0', length)
   },
   '$random10': () => {
@@ -91,7 +95,15 @@ const SCRIPTING_FUNCTIONS = {
 
   '$uniqid': () => {
     return uuidv1()
+  },
+
+  '$func': (code) => {
+    if (code == null) {
+      throw Error('func function used without args!')
+    }
+    return vm.runInNewContext(code, {})
   }
+
 }
 
 const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)

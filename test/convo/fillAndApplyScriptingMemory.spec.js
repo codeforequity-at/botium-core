@@ -661,5 +661,14 @@ describe('convo.scriptingMemory.api', function () {
       assert(result.length === 36, '$uniqid invalid')
     })
 
+    it('func', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$func(3*5)'
+      )
+
+      assert(result === '15', 'func invalid')
+    })
   })
 })
