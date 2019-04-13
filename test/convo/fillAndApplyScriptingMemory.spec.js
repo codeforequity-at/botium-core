@@ -428,6 +428,17 @@ describe('convo.scriptingMemory.api', function () {
 
   // if a function is working with apply, then it has to work with applyToArgs too
   describe('convo.scriptingMemory.api.functions', function () {
+    describe('convo.scriptingMemory.api.functions.withParameters', function () {
+      it('remove parameters even if the function does not need them', async function () {
+        const result = ScriptingMemory.apply(
+          { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+          { },
+          '$now(asd)'
+        )
+        assert.equal(result.indexOf('asd'), -1)
+      })
+    })
+
     it('now', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
@@ -615,6 +626,15 @@ describe('convo.scriptingMemory.api', function () {
       assert(result.length >= 2 && result.length <= 20, '$day_of_week invalid')
     })
 
+    it('random', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$random(19)'
+      )
+
+      assert(result.length === 19, '$random invalid')
+    })
     it('random10', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },

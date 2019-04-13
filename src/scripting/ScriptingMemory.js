@@ -6,6 +6,11 @@ const moment = require('moment')
 
 const Capabilities = require('../Capabilities')
 
+// If they got parameter, then it will be a string always.
+// the receiver can decide what to do with it,
+// convert to int,
+// split by ',' for multiple params,
+// or something else
 const SCRIPTING_FUNCTIONS = {
   '$now': () => {
     return new Date().toLocaleString()
@@ -74,9 +79,13 @@ const SCRIPTING_FUNCTIONS = {
     return moment().format('dddd')
   },
 
+  '$random': (length) => {
+    return randomize('0', length)
+  },
   '$random10': () => {
     return randomize('0', 10)
   },
+
   '$uniqid': () => {
     return uuidv1()
   }
@@ -97,21 +106,31 @@ const applyToArgs = (args, scriptingMemory) => {
   })
 }
 
+// we have two replace longer variable first. if there is $year, and $years, $years should not be found by $year
 const _longestFirst = (a, b) => b.length - a.length
 
 const _apply = (scriptingMemory, str) => {
-  // we have two replace longer variable first. if there is $year, and $years, $years should not be found by $year
-
   if (str) {
-    Object.keys(SCRIPTING_FUNCTIONS).sort(_longestFirst).forEach((key) => {
-      const stronger = Object.keys(scriptingMemory).filter((variableName) => variableName.startsWith(key))
-      if (stronger.length === 0) {
-        str = str.replace(key, SCRIPTING_FUNCTIONS[key]())
+    // merge all keys: longer is stronger, type does not matter
+    // Not clean: what if a variable references other variable/function?
+    const allKeys = Object.keys(SCRIPTING_FUNCTIONS).concat(Object.keys(scriptingMemory)).sort(_longestFirst)
+    for (const key of allKeys) {
+      // scripting memory is stronger
+      if (scriptingMemory[key]) {
+        str = str.replace(key, scriptingMemory[key])
+      } else {
+        const regex = `\\${key}(\\([^)]*\\))?`
+        const matches = str.match(new RegExp(regex, 'g')) || []
+        for (const match of matches) {
+          if (match.indexOf('(') > 0) {
+            const arg = match.substring(match.indexOf('(') + 1, match.indexOf(')'))
+            str = str.replace(match, SCRIPTING_FUNCTIONS[key](arg))
+          } else {
+            str = str.replace(match, SCRIPTING_FUNCTIONS[key]())
+          }
+        }
       }
-    })
-    Object.keys(scriptingMemory).sort(_longestFirst).forEach((key) => {
-      str = str.replace(key, scriptingMemory[key])
-    })
+    }
   }
   return str
 }
