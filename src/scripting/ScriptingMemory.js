@@ -25,7 +25,10 @@ const SCRIPTING_FUNCTIONS = {
     return new Date().toISOString()
   },
 
-  '$date': () => {
+  '$date': (pattern) => {
+    if (pattern) {
+      return moment().format(pattern)
+    }
     return new Date().toLocaleDateString()
   },
   '$date_EN': () => {

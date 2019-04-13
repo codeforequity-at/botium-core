@@ -428,15 +428,13 @@ describe('convo.scriptingMemory.api', function () {
 
   // if a function is working with apply, then it has to work with applyToArgs too
   describe('convo.scriptingMemory.api.functions', function () {
-    describe('convo.scriptingMemory.api.functions.withParameters', function () {
-      it('remove parameters even if the function does not need them', async function () {
-        const result = ScriptingMemory.apply(
-          { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-          { },
-          '$now(asd)'
-        )
-        assert.equal(result.indexOf('asd'), -1)
-      })
+    it('remove parameters even if the function does not need them', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$now(asd)'
+      )
+      assert.equal(result.indexOf('asd'), -1)
     })
 
     it('now', async function () {
@@ -484,6 +482,14 @@ describe('convo.scriptingMemory.api', function () {
         '$date'
       )
       assert.equal(result, new Date().toLocaleDateString())
+    })
+    it('date with param', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$date(YYYY)'
+      )
+      assert.equal(result.length, 4)
     })
     it('date_EN', async function () {
       const result = ScriptingMemory.apply(
