@@ -71,6 +71,14 @@ describe('convo.scriptingmemory.convos', function () {
     assert.isDefined(transcript.scriptingMemory['$state'])
     assert.equal(transcript.scriptingMemory['$state'], 'Kentucky')
   })
+  it('should normalize bot response', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'memory_dont_override_functions.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    assert.isUndefined(transcript.scriptingMemory['$year'])
+  })
 })
 
 describe('convo.scriptingMemory.api', function () {
