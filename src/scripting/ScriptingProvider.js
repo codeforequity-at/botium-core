@@ -481,12 +481,20 @@ module.exports = class ScriptingProvider {
     this._sortConvos()
   }
 
+  /**
+   *
+   * @param expandedConvos
+   * @param currentConvo
+   * @param convoStepIndex
+   * @param convoStepsStack list of ConvoSteps
+   * @private
+   */
   _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
     if (convoStepIndex < currentConvo.conversation.length) {
       const currentStep = currentConvo.conversation[convoStepIndex]
       if (currentStep.sender === 'bot' || currentStep.sender === 'begin' || currentStep.sender === 'end') {
         const currentStepsStack = convoStepsStack.slice()
-        currentStepsStack.push(Object.assign({}, currentStep))
+        currentStepsStack.push(_.cloneDeep(currentStep))
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       } else if (currentStep.sender === 'me') {
         if (currentStep.messageText) {
@@ -510,19 +518,19 @@ module.exports = class ScriptingProvider {
               if (uttArgs) {
                 utt = util.format(utt, ...uttArgs)
               }
-              currentStepsStack.push(Object.assign({}, currentStep, { messageText: utt }))
-              const currentConvoLabeled = Object.assign({}, currentConvo, { header: Object.assign({}, currentConvo.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) }) })
+              currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: utt }))
+              const currentConvoLabeled = Object.assign(_.cloneDeep(currentConvo), { header: Object.assign({}, currentConvo.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) }) })
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
             return
           }
         }
         const currentStepsStack = convoStepsStack.slice()
-        currentStepsStack.push(Object.assign({}, currentStep))
+        currentStepsStack.push(_.cloneDeep(currentStep))
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       }
     } else {
-      expandedConvos.push(new Convo(this._buildScriptContext(), Object.assign({}, currentConvo, { conversation: convoStepsStack })))
+      expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: convoStepsStack }))
     }
   }
 
