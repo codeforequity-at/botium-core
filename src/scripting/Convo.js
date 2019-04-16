@@ -114,11 +114,10 @@ class TranscriptError extends Error {
 class Convo {
   constructor (context, fromJson = {}) {
     if (fromJson instanceof Convo) {
-      throw new Error(`Illegal state, parameter should be a JSON, but it is a Convo`)
-    }
-    // beginAsserter is one of the fields which are lost
-    if (fromJson.beginAsserter) {
-      throw new Error(`Illegal state, parameter should be a native JSON, but looks as a Convo converted to JSON`)
+      debug(`Illegal state!!! Parameter should be a JSON, but it is a Convo`)
+    } else if (fromJson.beginAsserter) {
+      // beginAsserter is one of the fields which are lost
+      debug(`Illegal state!!! Parameter should be a native JSON, but looks as a Convo converted to JSON`)
     }
 
     this.scriptingEvents = context.scriptingEvents
