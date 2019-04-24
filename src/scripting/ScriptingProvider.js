@@ -34,8 +34,6 @@ module.exports = class ScriptingProvider {
     this.userInputs = {}
     this.partialConvos = {}
     this.scriptingMemories = []
-    this.scriptingMemoryVariableToFile = {}
-    this.scriptingMemoryFileToScriptingMemories = {}
 
     this.scriptingEvents = {
       onConvoBegin: ({ convo, convoStep, scriptingMemory, ...rest }) => {
@@ -325,20 +323,6 @@ module.exports = class ScriptingProvider {
       fileScriptingMemories.forEach((scriptingMemory) => {
         scriptingMemory.sourceTag = { filename }
       })
-
-      // it is enough to iterate just the fist entry. All entries has to have the same fields.
-      Object.keys(fileScriptingMemories[0].values).forEach((variableName) => {
-        if (ScriptingMemory.RESERVED_WORDS.indexOf(variableName) >= 0) {
-          debug(`Script - Reserved word "${variableName}" used as variable`)
-        }
-        if (this.scriptingMemoryVariableToFile[variableName]) {
-          throw Error(`Variable name defined in multiple scripting memory files: ${this.scriptingMemoryVariableToFile[variableName]} and ${filename}`)
-        }
-
-        this.scriptingMemoryVariableToFile[variableName] = filename
-      })
-
-      this.scriptingMemoryFileToScriptingMemories[filename] = fileScriptingMemories
     }
 
     if (fileUtterances) {
@@ -361,68 +345,71 @@ module.exports = class ScriptingProvider {
       debug(`ExpandScriptingMemoryToConvos - Scripting memory turned off, no convos expanded`)
       return
     }
+
+    const variablesToScriptingMemory = new Map()
+    this.scriptingMemories.forEach((scriptingMemory) => {
+      const key = JSON.stringify(Object.keys(scriptingMemory.values).sort())
+      if (variablesToScriptingMemory.has(key)) {
+        variablesToScriptingMemory.get(key).push(scriptingMemory)
+      } else {
+        variablesToScriptingMemory.set(key, [scriptingMemory])
+      }
+    })
+
     let convosExpandedAll = []
     let convosOriginalAll = []
     this.convos.forEach((convo) => {
-      const variables = convo.GetScriptingMemoryAllVariables(this)
-      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, all: "${util.inspect(variables)}"`)
-      if (!variables.length) {
+      const convoVariables = convo.GetScriptingMemoryAllVariables(this)
+      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, all: "${util.inspect(convoVariables)}"`)
+      if (!convoVariables.length) {
         debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - skipped, no variable found to replace`)
       }
-      const fileToVariables = {}
-      // debug output, & filling fileToVariables
-      variables.forEach((variable) => {
-        const file = this.scriptingMemoryVariableToFile[variable]
-
-        const alreadyUsedVariable = convo.beginLogicHook.filter((logicHook) => {
-          // .substring(1): cut the $ because logichooks
-          return (logicHook.name === 'SET_SCRIPTING_MEMORY' || logicHook.name === 'CLEAR_SCRIPTING_MEMORY') &&
-            logicHook.args.indexOf(variable.substring(1)) >= 0
-        })
-        // name args
-
-        if (alreadyUsedVariable.length) {
-          debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory variable "${variable}" defined in file "${file}", and in logicHook(s) "${util.inspect(alreadyUsedVariable)}"`)
-        }
-
-        if (file) {
-          if (!fileToVariables[file]) {
-            fileToVariables[file] = []
-          }
-          fileToVariables[file].push(variable)
-        }
-      })
-      debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, by file: "${util.inspect(fileToVariables)}"`)
+      // // debug output, & filling fileToVariables
+      // variables.forEach((variable) => {
+      //   const alreadyUsedVariable = convo.beginLogicHook.filter((logicHook) => {
+      //     // .substring(1): cut the $ because logichooks
+      //     return (logicHook.name === 'SET_SCRIPTING_MEMORY' || logicHook.name === 'CLEAR_SCRIPTING_MEMORY') &&
+      //       logicHook.args.indexOf(variable.substring(1)) >= 0
+      //   })
+      //
+      //   if (alreadyUsedVariable.length) {
+      //     debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory variable "${variable}" defined external (scripting memory file?), and in logicHook(s) "${util.inspect(alreadyUsedVariable)}"`)
+      //   }
+      // })
 
       let convosToExpand = [convo]
       let convosExpandedConvo = []
       // just for debug output. If we got 6 expanded convo, then this array can be for example [2, 3]
       let multipliers = []
-      Object.entries(fileToVariables).forEach(([file, variableNames]) => {
-        const convosExpandedVariable = []
-        multipliers.push(this.scriptingMemoryFileToScriptingMemories[file].length)
-        this.scriptingMemoryFileToScriptingMemories[file].forEach((scriptingMemory) => {
-          // Appending the case name to name
-          for (let convoToExpand of convosToExpand) {
-            const convoExpanded = _.cloneDeep(convoToExpand)
-            convoExpanded.header.name = convoToExpand.header.name + '.' + scriptingMemory.header.name
-            variableNames.forEach((name) => {
-              const value = scriptingMemory.values[name]
-              if (value) {
-                convoExpanded.beginLogicHook.push({ name: 'SET_SCRIPTING_MEMORY', args: [name.substring(1), scriptingMemory.values[name]] })
-              } else {
-                convoExpanded.beginLogicHook.push({ name: 'CLEAR_SCRIPTING_MEMORY', args: [name.substring(1)] })
-              }
-            })
-            convosExpandedVariable.push(convoExpanded)
-          }
-        })
-
-        // This is a bit tricky. If the loop is done, then convosExpandedConvo will be used,
-        // otherwise convosToExpand. They could be one variable
-        convosToExpand = convosExpandedVariable
-        convosExpandedConvo = convosExpandedVariable
-      })
+      for (const [key, scriptingMemories] of variablesToScriptingMemory.entries()) {
+        const variableNames = JSON.parse(key)
+        if (_.intersection(variableNames, convoVariables).length) {
+          const convosExpandedVariable = []
+          multipliers.push(scriptingMemories.length)
+          scriptingMemories.forEach((scriptingMemory) => {
+            // Appending the case name to name
+            for (let convoToExpand of convosToExpand) {
+              const convoExpanded = _.cloneDeep(convoToExpand)
+              convoExpanded.header.name = convoToExpand.header.name + '.' + scriptingMemory.header.name
+              variableNames.forEach((name) => {
+                const value = scriptingMemory.values[name]
+                if (value) {
+                  convoExpanded.beginLogicHook.push({ name: 'SET_SCRIPTING_MEMORY', args: [name.substring(1), scriptingMemory.values[name]] })
+                } else {
+                  convoExpanded.beginLogicHook.push({ name: 'CLEAR_SCRIPTING_MEMORY', args: [name.substring(1)] })
+                }
+              })
+              convosExpandedVariable.push(convoExpanded)
+            }
+          })
+          // This is a bit tricky. If the loop is done, then convosExpandedConvo will be used,
+          // otherwise convosToExpand. They could be one variable
+          convosToExpand = convosExpandedVariable
+          convosExpandedConvo = convosExpandedVariable
+        } else {
+          debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory ${key} ignored because there is no common variable with convo ${util.inspect(convoVariables)}`)
+        }
+      }
       debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Expanding convo "${convo.header.name}" Expanded ${convosExpandedConvo.length} convo. (Details: ${convosExpandedConvo.length} = ${multipliers ? multipliers.join('*') : 0})`)
 
       if (convosExpandedConvo.length) {
@@ -494,12 +481,20 @@ module.exports = class ScriptingProvider {
     this._sortConvos()
   }
 
+  /**
+   *
+   * @param expandedConvos
+   * @param currentConvo
+   * @param convoStepIndex
+   * @param convoStepsStack list of ConvoSteps
+   * @private
+   */
   _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
     if (convoStepIndex < currentConvo.conversation.length) {
       const currentStep = currentConvo.conversation[convoStepIndex]
       if (currentStep.sender === 'bot' || currentStep.sender === 'begin' || currentStep.sender === 'end') {
         const currentStepsStack = convoStepsStack.slice()
-        currentStepsStack.push(Object.assign({}, currentStep))
+        currentStepsStack.push(_.cloneDeep(currentStep))
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       } else if (currentStep.sender === 'me') {
         if (currentStep.messageText) {
@@ -523,19 +518,19 @@ module.exports = class ScriptingProvider {
               if (uttArgs) {
                 utt = util.format(utt, ...uttArgs)
               }
-              currentStepsStack.push(Object.assign({}, currentStep, { messageText: utt }))
-              const currentConvoLabeled = Object.assign({}, currentConvo, { header: Object.assign({}, currentConvo.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) }) })
+              currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: utt }))
+              const currentConvoLabeled = Object.assign(_.cloneDeep(currentConvo), { header: Object.assign({}, currentConvo.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) }) })
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
             return
           }
         }
         const currentStepsStack = convoStepsStack.slice()
-        currentStepsStack.push(Object.assign({}, currentStep))
+        currentStepsStack.push(_.cloneDeep(currentStep))
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       }
     } else {
-      expandedConvos.push(new Convo(this._buildScriptContext(), Object.assign({}, currentConvo, { conversation: convoStepsStack })))
+      expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: convoStepsStack }))
     }
   }
 

@@ -92,7 +92,10 @@ describe('scripting.logichooks.cases', function () {
   it('reserved word, just a log on console', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_reserved_word.convo.txt')
     assert.equal(this.compiler.convos.length, 1)
-    await this.compiler.convos[0].Run(this.container)
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    assert.isDefined(transcript.scriptingMemory['$year'])
+    assert.equal(transcript.scriptingMemory['$year'], '2012')
   })
 })
 

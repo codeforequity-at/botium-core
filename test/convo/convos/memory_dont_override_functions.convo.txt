@@ -1,0 +1,7 @@
+scripting memory
+
+#me
+2009
+
+#bot
+!$year

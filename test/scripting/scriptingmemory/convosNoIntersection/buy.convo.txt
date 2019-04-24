@@ -1,0 +1,9 @@
+no intersection
+If scripting memory has no variable from convo, then convo shold not multiplied
+
+#begin
+
+#me
+$notInScriptingMemory
+
+#bot
