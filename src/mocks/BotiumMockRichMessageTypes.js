@@ -25,8 +25,16 @@ class BotiumMockCard {
   }
 }
 
+class BotiumMockForm {
+  constructor (fromJson = {}) {
+    this.name = fromJson.name
+    this.value = fromJson.value
+  }
+}
+
 module.exports = {
   BotiumMockMedia,
   BotiumMockButton,
-  BotiumMockCard
+  BotiumMockCard,
+  BotiumMockForm
 }
