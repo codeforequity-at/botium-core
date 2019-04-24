@@ -247,8 +247,7 @@ module.exports = class BotDriver {
           return
         }
       }
-
-      if (_.isObject(caps[capKey])) {
+      if (!_.isArray(caps[capKey]) && _.isObject(caps[capKey])) {
         let newCapObject = newCaps[capKey]
         if (!_.isObject(newCapObject)) {
           try {
@@ -335,10 +334,6 @@ module.exports = class BotDriver {
     if (this.caps[Capabilities.CONTAINERMODE] === 'fbdirect') {
       const FbContainer = require('./containers/FbContainer')
       return new FbContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
-    }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'simplerest') {
-      const SimpleRestContainer = require('./containers/SimpleRestContainer')
-      return new SimpleRestContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
     if (this.caps[Capabilities.CONTAINERMODE] === 'webspeech') {
       const WebSpeechContainer = require('./containers/WebSpeechContainer')
