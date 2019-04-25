@@ -24,9 +24,9 @@ module.exports = class BotDriver {
   constructor (caps = {}, sources = {}, envs = {}) {
     this.eventEmitter = new EventEmitter()
 
-    this.caps = Object.assign({}, Defaults.Capabilities)
-    this.sources = Object.assign({}, Defaults.Sources)
-    this.envs = Object.assign({}, Defaults.Envs)
+    this.caps = _.cloneDeep(Defaults.Capabilities)
+    this.sources = _.cloneDeep(Defaults.Sources)
+    this.envs = _.cloneDeep(Defaults.Envs)
 
     this._fetchConfigFromFiles(['./botium.json', './botium.local.json'])
 
@@ -57,7 +57,7 @@ module.exports = class BotDriver {
 
     if (caps) this._mergeCaps(this.caps, caps)
     if (sources) this._mergeCaps(this.sources, sources)
-    if (envs) this.envs = Object.assign(this.envs, envs)
+    if (envs) this.envs = _.merge(this.envs, envs)
   }
 
   on (event, listener) {
@@ -86,7 +86,7 @@ module.exports = class BotDriver {
   }
 
   setEnvs (envs) {
-    this.envs = Object.assign(this.envs, envs)
+    this.envs = _.merge(this.envs, envs)
     return this
   }
 
@@ -247,8 +247,7 @@ module.exports = class BotDriver {
           return
         }
       }
-
-      if (_.isObject(caps[capKey])) {
+      if (!_.isArray(caps[capKey]) && _.isObject(caps[capKey])) {
         let newCapObject = newCaps[capKey]
         if (!_.isObject(newCapObject)) {
           try {
@@ -335,10 +334,6 @@ module.exports = class BotDriver {
     if (this.caps[Capabilities.CONTAINERMODE] === 'fbdirect') {
       const FbContainer = require('./containers/FbContainer')
       return new FbContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
-    }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'simplerest') {
-      const SimpleRestContainer = require('./containers/SimpleRestContainer')
-      return new SimpleRestContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
     if (this.caps[Capabilities.CONTAINERMODE] === 'webspeech') {
       const WebSpeechContainer = require('./containers/WebSpeechContainer')

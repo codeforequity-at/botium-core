@@ -113,6 +113,13 @@ class TranscriptError extends Error {
 
 class Convo {
   constructor (context, fromJson = {}) {
+    if (fromJson instanceof Convo) {
+      debug(`Illegal state!!! Parameter should be a JSON, but it is a Convo`)
+    } else if (fromJson.beginAsserter) {
+      // beginAsserter is one of the fields which are lost
+      debug(`Illegal state!!! Parameter should be a native JSON, but looks as a Convo converted to JSON`)
+    }
+
     this.scriptingEvents = context.scriptingEvents
     this.context = context
     this.header = new ConvoHeader(fromJson.header)
@@ -270,9 +277,9 @@ class Convo {
               })
             })
             .then(() => {
-              transcriptStep.botBegin = new Date()
               transcriptStep.actual = new BotiumMockMessage(convoStep)
               lastMeMsg = convoStep
+              transcriptStep.botBegin = new Date()
               return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex }, transcriptStep.actual))
                 .then(() => {
                   transcriptStep.botEnd = new Date()
@@ -312,8 +319,8 @@ class Convo {
                 return convoStepDone(failErr)
               }
               if (convoStep.messageText) {
-                ScriptingMemory.fill(container, scriptingMemory, saysmsg.messageText, convoStep.messageText, this.scriptingEvents)
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
+                ScriptingMemory.fill(container, scriptingMemory, response, convoStep.messageText, this.scriptingEvents)
                 const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, convoStep.messageText)
                 if (convoStep.not) {
                   try {

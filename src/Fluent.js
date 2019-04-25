@@ -130,6 +130,10 @@ module.exports = class Fluent {
 
   UserSaysText (msg) {
     this.tasks.push(() => {
+      if (_.isFunction(msg)) {
+        msg = msg()
+      }
+
       if (this.currentChannel) {
         return this.container.UserSays({ messageText: msg, channel: this.currentChannel })
       } else {
@@ -141,6 +145,10 @@ module.exports = class Fluent {
 
   UserSays (msg) {
     this.tasks.push(() => {
+      if (_.isFunction(msg)) {
+        msg = msg()
+      }
+
       if (this.currentChannel && !msg.channel) {
         msg = Object.assign({}, msg)
         msg.channel = this.currentChannel

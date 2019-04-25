@@ -49,7 +49,7 @@ describe('connectors.simplerest.nock', function () {
       body: body,
       timeout: 10000
     }
-    const response = await container._waitForPingUrl(pingConfig, 2)
+    const response = await container.pluginInstance._waitForPingUrl(pingConfig, 2)
     assert.equal(response.body, '{"status":"ok"}')
     scope.persist(false)
   })
@@ -78,7 +78,7 @@ describe('connectors.simplerest.nock', function () {
       body: body,
       timeout: 100
     }
-    const response = await container._waitForPingUrl(pingConfig, 2)
+    const response = await container.pluginInstance._waitForPingUrl(pingConfig, 2)
     assert.equal(response.body, '{"status":"ok"}')
     scope.persist(false)
   })
@@ -107,7 +107,7 @@ describe('connectors.simplerest.nock', function () {
       timeout: 100
     }
     try {
-      await container._waitForPingUrl(pingConfig, 2)
+      await container.pluginInstance._waitForPingUrl(pingConfig, 2)
       assert.fail(`expected ping error`)
     } catch (err) {
     }
@@ -120,10 +120,10 @@ describe('connectors.simplerest.build', function () {
     const myCaps = Object.assign({}, myCapsGet)
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
-    assert.equal(container.constructor.name, 'SimpleRestContainer')
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container._buildRequest(msg)
+    const request = container.pluginInstance._buildRequest(msg)
 
     assert.isUndefined(request.json)
     assert.isObject(request.headers)
@@ -142,10 +142,10 @@ describe('connectors.simplerest.build', function () {
 
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
-    assert.equal(container.constructor.name, 'SimpleRestContainer')
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container._buildRequest(myMsg)
+    const request = container.pluginInstance._buildRequest(myMsg)
     assert.isUndefined(request.json)
     assert.isObject(request.headers)
     assert.isUndefined(request.body)
@@ -159,10 +159,10 @@ describe('connectors.simplerest.build', function () {
     const myCaps = Object.assign({}, myCapsPost)
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
-    assert.equal(container.constructor.name, 'SimpleRestContainer')
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container._buildRequest(msg)
+    const request = container.pluginInstance._buildRequest(msg)
 
     assert.isTrue(request.json)
     assert.isObject(request.headers)
@@ -179,10 +179,10 @@ describe('connectors.simplerest.build', function () {
 
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
-    assert.equal(container.constructor.name, 'SimpleRestContainer')
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container._buildRequest(msg)
+    const request = container.pluginInstance._buildRequest(msg)
 
     assert.isTrue(request.json)
     assert.isObject(request.headers)
@@ -200,10 +200,10 @@ describe('connectors.simplerest.build', function () {
 
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
-    assert.equal(container.constructor.name, 'SimpleRestContainer')
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container._buildRequest(msg)
+    const request = container.pluginInstance._buildRequest(msg)
     assert.isObject(request.headers)
     assert.isString(request.body)
     assert.equal(request.body, 'BODY1=BODY1VALUE&BODY2=messageText')

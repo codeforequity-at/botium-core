@@ -1,0 +1,7 @@
+HOOKFROMSRC
+
+#me
+Hello
+
+#bot
+CUSTOMASSERTER

@@ -108,7 +108,7 @@ describe('driver.capabilities', function () {
     assert.isObject(driver.caps['MYJSONCAP'])
     assert.equal(driver.caps['MYJSONCAP'].KEY, 'VALUE1')
   })
-  it('should override not matching caps', function () {
+  it('should override not matching object caps', function () {
     DefaultCapabilities['MYCAP'] = { KEY: 'VALUE' }
     const myCaps = {
       'MYCAP': 'SIMPLESTRING'
@@ -116,5 +116,27 @@ describe('driver.capabilities', function () {
     const driver = new BotDriver(myCaps)
     assert.isString(driver.caps['MYCAP'])
     assert.equal(driver.caps['MYCAP'], 'SIMPLESTRING')
+  })
+  it('should override not matching array caps', function () {
+    DefaultCapabilities['MYCAP'] = [ 'VAL1', 'VAL2' ]
+    const myCaps = {
+      'MYCAP': { 'VAL1': 'VALUE1' }
+    }
+    const driver = new BotDriver(myCaps)
+    assert.isObject(driver.caps['MYCAP'])
+    assert.equal(driver.caps['MYCAP'].VAL1, 'VALUE1')
+  })
+})
+
+describe('driver.constructor', function () {
+  it('should deep copy caps', function () {
+    const myCaps = {
+      ASSERTERS: [ { name: 'ASSERTER1' } ]
+    }
+    const driver = new BotDriver(myCaps)
+    assert.isArray(driver.caps['ASSERTERS'])
+    assert.lengthOf(driver.caps['ASSERTERS'], 1)
+    assert.isArray(DefaultCapabilities['ASSERTERS'])
+    assert.lengthOf(DefaultCapabilities['ASSERTERS'], 0)
   })
 })

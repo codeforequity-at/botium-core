@@ -3,21 +3,75 @@ const debug = require('debug')('botium-ScriptingMemory')
 const randomize = require('randomatic')
 const uuidv1 = require('uuid/v1')
 const moment = require('moment')
+const vm = require('vm')
 
 const Capabilities = require('../Capabilities')
 
+// If they got parameter, then it will be a string always.
+// the receiver can decide what to do with it,
+// convert to int,
+// split by ',' for multiple params,
+// or something else
 const SCRIPTING_FUNCTIONS = {
   '$now': () => {
     return new Date().toLocaleString()
   },
-  '$date': () => {
+  '$now_EN': () => {
+    return new Date().toLocaleString('en-EN')
+  },
+  '$now_DE': () => {
+    return new Date().toLocaleString('de-DE')
+  },
+  '$now_ISO': () => {
+    return new Date().toISOString()
+  },
+
+  '$date': (pattern) => {
+    if (pattern) {
+      return moment().format(pattern)
+    }
     return new Date().toLocaleDateString()
   },
+  '$date_EN': () => {
+    return new Date().toLocaleDateString('en-EN')
+  },
+  '$date_DE': () => {
+    return new Date().toLocaleDateString('de-DE')
+  },
+  '$date_ISO': () => {
+    return moment().format('YYYY-MM-DD')
+  },
+
+  '$time': () => {
+    return new Date().toLocaleTimeString()
+  },
+  '$time_EN': () => {
+    return new Date().toLocaleTimeString('en-EN')
+  },
+  '$time_DE': () => {
+    return new Date().toLocaleTimeString('de-DE')
+  },
+  '$time_ISO': () => {
+    return moment().format('HH:mm:ss')
+  },
+  '$time_HH_MM': () => {
+    return moment().format('HH:mm')
+  },
+  '$time_HH': () => {
+    return moment().format('HH')
+  },
+  '$time_H_A': () => {
+    return moment().format('h A')
+  },
+
   '$year': () => {
     return new Date().getFullYear()
   },
   '$month': () => {
     return moment().format('MMMM')
+  },
+  '$month_MM': () => {
+    return moment().format('MM')
   },
   '$day_of_month': () => {
     return new Date().getDate()
@@ -25,18 +79,28 @@ const SCRIPTING_FUNCTIONS = {
   '$day_of_week': () => {
     return moment().format('dddd')
   },
-  '$now_ISO': () => {
-    return new Date().toISOString()
-  },
-  '$time': () => {
-    return new Date().toLocaleTimeString()
+
+  '$random': (length) => {
+    if (length == null) {
+      throw Error('random function used without args!')
+    }
+    return randomize('0', length)
   },
   '$random10': () => {
     return randomize('0', 10)
   },
+
   '$uniqid': () => {
     return uuidv1()
+  },
+
+  '$func': (code) => {
+    if (code == null) {
+      throw Error('func function used without args!')
+    }
+    return vm.runInNewContext(code, {})
   }
+
 }
 
 const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)
@@ -54,38 +118,38 @@ const applyToArgs = (args, scriptingMemory) => {
   })
 }
 
+// we have two replace longer variable first. if there is $year, and $years, $years should not be found by $year
+const _longestFirst = (a, b) => b.length - a.length
+
 const _apply = (scriptingMemory, str) => {
-  // we have two replace longer variable first. if there is $year, and $years, $years should not be found by $year
-  const longestFirst = (a, b) => b.length - a.length
-
   if (str) {
-    Object.keys(SCRIPTING_FUNCTIONS).sort(longestFirst).forEach((key) => {
-      const stronger = Object.keys(scriptingMemory).filter((variableName) => variableName.startsWith(key))
-      if (stronger.length === 0) {
-        str = str.replace(key, SCRIPTING_FUNCTIONS[key]())
+    // merge all keys: longer is stronger, type does not matter
+    // Not clean: what if a variable references other variable/function?
+    const allKeys = Object.keys(SCRIPTING_FUNCTIONS).concat(Object.keys(scriptingMemory)).sort(_longestFirst)
+    for (const key of allKeys) {
+      // scripting memory is stronger
+      if (scriptingMemory[key]) {
+        str = str.replace(key, scriptingMemory[key])
+      } else {
+        const regex = `\\${key}(\\([^)]*\\))?`
+        const matches = str.match(new RegExp(regex, 'g')) || []
+        for (const match of matches) {
+          if (match.indexOf('(') > 0) {
+            const arg = match.substring(match.indexOf('(') + 1, match.indexOf(')'))
+            str = str.replace(match, SCRIPTING_FUNCTIONS[key](arg))
+          } else {
+            str = str.replace(match, SCRIPTING_FUNCTIONS[key]())
+          }
+        }
       }
-    })
-    Object.keys(scriptingMemory).sort(longestFirst).forEach((key) => {
-      str = str.replace(key, scriptingMemory[key])
-    })
-
-    // _.forOwn(SCRIPTING_FUNCTIONS, (func, key) => {
-    //   const stronger = Object.keys(scriptingMemory).filter((variableName) => variableName.startsWith(key))
-    //   if (stronger.length === 0) {
-    //     str = str.replace(key, func())
-    //   }
-    // })
-    // // forOwn iterates first the longest names, what is good.
-    // // if we have two overlapping variables like year and years, years must be replaced first
-    // _.forOwn(scriptingMemory, (value, key) => {
-    //   str = str.replace(key, value)
-    // })
+    }
   }
   return str
 }
 
 const fill = (container, scriptingMemory, result, utterance, scriptingEvents) => {
   debug(`fill start: ${util.inspect(scriptingMemory)}`)
+  const varRegex = (container.caps[Capabilities.SCRIPTING_MEMORY_MATCHING_MODE] !== 'word') ? '(\\S+)' : '(\\w+)'
   if (result && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
     const utterances = scriptingEvents.resolveUtterance({ utterance })
     utterances.forEach(expected => {
@@ -93,18 +157,19 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
         reExpected = expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&')
       }
-      const varMatches = expected.match(/\$\w+/g) || []
+      const varMatches = (expected.match(/\$\w+/g) || []).sort(_longestFirst)
       for (let i = 0; i < varMatches.length; i++) {
-        reExpected = reExpected.replace(varMatches[i], '(\\w+)')
+        reExpected = reExpected.replace(varMatches[i], varRegex)
       }
       const resultMatches = result.match(reExpected) || []
       for (let i = 1; i < resultMatches.length; i++) {
         if (i <= varMatches.length) {
           const varName = varMatches[i - 1]
           if (RESERVED_WORDS.indexOf(varName) >= 0) {
-            debug(`fill Reserved word "${varName}" used as variable`)
+            debug(`fill Variable "${varName}" is not overwritten, because it is reserved word. `)
+          } else {
+            scriptingMemory[varName] = resultMatches[i]
           }
-          scriptingMemory[varName] = resultMatches[i]
         }
       }
     })

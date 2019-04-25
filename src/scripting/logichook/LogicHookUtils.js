@@ -1,4 +1,5 @@
 const util = require('util')
+const vm = require('vm')
 const path = require('path')
 const isClass = require('is-class')
 const debug = require('debug')('botium-asserterUtils')
@@ -31,7 +32,8 @@ DEFAULT_LOGIC_HOOKS.forEach((logicHook) => {
 
 const DEFAULT_USER_INPUTS = [
   { name: 'BUTTON', className: 'ButtonInput' },
-  { name: 'MEDIA', className: 'MediaInput' }
+  { name: 'MEDIA', className: 'MediaInput' },
+  { name: 'FORM', className: 'FormInput' }
 ]
 
 DEFAULT_USER_INPUTS.forEach((userInput) => {
@@ -185,6 +187,18 @@ module.exports = class LogicHookUtils {
       } catch (err) {
         throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
       }
+    }
+    if (_.isObject(src) && !_.isString(src)) {
+      debug(`Trying to load ${ref} ${hookType} as function code`)
+      const hookObject = Object.keys(src).reduce((result, key) => {
+        result[key] = (args) => {
+          const sandbox = vm.createContext({ debug, console, ...args })
+          vm.runInContext(src[key], sandbox)
+          return sandbox.result || Promise.resolve()
+        }
+        return result
+      }, {})
+      return hookObject
     }
 
     const loadErr = []
