@@ -87,7 +87,9 @@ module.exports = class CompilerTxt extends CompilerBase {
       })
       if (textLines.length > 0) {
         if (textLines[0].startsWith('!')) {
-          convoStep.not = true
+          if (!textLines[0].startsWith('!!')) {
+            convoStep.not = true
+          }
           textLines[0] = textLines[0].substr(1)
         }
         let content = textLines.join(' ')
