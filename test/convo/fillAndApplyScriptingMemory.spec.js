@@ -16,8 +16,6 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-
-
 it('scripting memory function as asserter', async function () {
   const myCaps = {
     [Capabilities.PROJECTNAME]: 'convo.scriptingmemory',
