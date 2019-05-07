@@ -92,6 +92,85 @@ module.exports = class SimpleRestContainer {
     this.view = {}
   }
 
+  _processBodyAsync (body, isFromUser) {
+    if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
+      const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
+      if (_.isArray(contextNodes) && contextNodes.length > 0) {
+        this.view.context = contextNodes[0]
+        debug(`found context: ${util.inspect(this.view.context)}`)
+      } else {
+        this.view.context = {}
+      }
+    } else {
+      this.view.context = body
+    }
+
+    if (isFromUser) {
+      const media = []
+      const buttons = []
+
+      if (this.caps[Capabilities.SIMPLEREST_MEDIA_JSONPATH]) {
+        const jsonPathMediaCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_MEDIA_JSONPATH))
+        _(jsonPathMediaCaps).keys().sort().each((key) => {
+          const jsonPath = this.caps[key]
+          const responseMedia = jp.query(body, jsonPath)
+          if (responseMedia) {
+            (_.isArray(responseMedia) ? responseMedia : [responseMedia]).forEach(m =>
+              media.push({
+                mediaUri: m,
+                mimeType: mime.lookup(m) || 'application/unknown'
+              })
+            )
+            debug(`found response media: ${util.inspect(media)}`)
+          }
+        })
+      }
+      if (this.caps[Capabilities.SIMPLEREST_BUTTONS_JSONPATH]) {
+        const jsonPathButtonsCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_BUTTONS_JSONPATH))
+        _(jsonPathButtonsCaps).keys().sort().each((key) => {
+          const jsonPath = this.caps[key]
+          const responseButtons = jp.query(body, jsonPath)
+          if (responseButtons) {
+            (_.isArray(responseButtons) ? responseButtons : [responseButtons]).forEach(b =>
+              buttons.push({
+                text: b
+              })
+            )
+            debug(`found response buttons: ${util.inspect(buttons)}`)
+          }
+        })
+      }
+
+      return new Promise((resolve) => {
+        let hasMessageText = false
+        if (this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) {
+          const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_RESPONSE_JSONPATH))
+          _(jsonPathCaps).keys().sort().each((key) => {
+            const jsonPath = this.caps[key]
+            debug(`eval json path ${jsonPath}`)
+
+            const responseTexts = jp.query(body, jsonPath)
+            debug(`found response texts: ${util.inspect(responseTexts)}`)
+
+            const messageTexts = (_.isArray(responseTexts) ? responseTexts : [responseTexts])
+            messageTexts.forEach((messageText) => {
+              if (!messageText) return
+
+              hasMessageText = true
+              const botMsg = { sourceData: body, messageText, media, buttons }
+              this.queueBotSays(botMsg)
+            })
+          })
+        }
+        if (!hasMessageText && (media.length > 0 || buttons.length > 0)) {
+          const botMsg = { sourceData: body, media, buttons }
+          this.queueBotSays(botMsg)
+        }
+        resolve()
+      })
+    }
+  }
+
   _doRequest (msg, isFromUser) {
     return new Promise((resolve, reject) => {
       const requestOptions = this._buildRequest(msg)
@@ -105,7 +184,6 @@ module.exports = class SimpleRestContainer {
             debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
             return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))
           }
-          resolve(this)
 
           if (body) {
             debug(`got response body: ${JSON.stringify(body, null, 2)}`)
@@ -120,81 +198,14 @@ module.exports = class SimpleRestContainer {
             if (!_.isObject(body)) {
               return reject(new Error(`Body not an object, cannot continue. Found type: ${typeof body}`))
             }
-
-            if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
-              const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
-              if (_.isArray(contextNodes) && contextNodes.length > 0) {
-                this.view.context = contextNodes[0]
-                debug(`found context: ${util.inspect(this.view.context)}`)
-              } else {
-                this.view.context = {}
-              }
-            } else {
-              this.view.context = body
-            }
-
-            if (isFromUser) {
-              const media = []
-              const buttons = []
-
-              if (this.caps[Capabilities.SIMPLEREST_MEDIA_JSONPATH]) {
-                const jsonPathMediaCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_MEDIA_JSONPATH))
-                _(jsonPathMediaCaps).keys().sort().each((key) => {
-                  const jsonPath = this.caps[key]
-                  const responseMedia = jp.query(body, jsonPath)
-                  if (responseMedia) {
-                    (_.isArray(responseMedia) ? responseMedia : [responseMedia]).forEach(m =>
-                      media.push({
-                        mediaUri: m,
-                        mimeType: mime.lookup(m) || 'application/unknown'
-                      })
-                    )
-                    debug(`found response media: ${util.inspect(media)}`)
-                  }
-                })
-              }
-              if (this.caps[Capabilities.SIMPLEREST_BUTTONS_JSONPATH]) {
-                const jsonPathButtonsCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_BUTTONS_JSONPATH))
-                _(jsonPathButtonsCaps).keys().sort().each((key) => {
-                  const jsonPath = this.caps[key]
-                  const responseButtons = jp.query(body, jsonPath)
-                  if (responseButtons) {
-                    (_.isArray(responseButtons) ? responseButtons : [responseButtons]).forEach(b =>
-                      buttons.push({
-                        text: b
-                      })
-                    )
-                    debug(`found response buttons: ${util.inspect(buttons)}`)
-                  }
-                })
-              }
-
-              let hasMessageText = false
-              if (this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) {
-                const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_RESPONSE_JSONPATH))
-                _(jsonPathCaps).keys().sort().each((key) => {
-                  const jsonPath = this.caps[key]
-                  debug(`eval json path ${jsonPath}`)
-
-                  const responseTexts = jp.query(body, jsonPath)
-                  debug(`found response texts: ${util.inspect(responseTexts)}`)
-
-                  const messageTexts = (_.isArray(responseTexts) ? responseTexts : [responseTexts])
-                  messageTexts.forEach((messageText) => {
-                    if (!messageText) return
-
-                    hasMessageText = true
-                    const botMsg = { sourceData: body, messageText, media, buttons }
-                    this.queueBotSays(botMsg)
-                  })
-                })
-              }
-              if (!hasMessageText && (media.length > 0 || buttons.length > 0)) {
-                const botMsg = { sourceData: body, media, buttons }
-                this.queueBotSays(botMsg)
-              }
-            }
+            // dont block caller process with responding in its time
+            this._processBodyAsync(body, isFromUser)
+              .catch((err) => {
+                debug(`failed to process body ${util.inspect(err)}`)
+              })
           }
+
+          resolve(this)
         }
       })
     })
