@@ -181,5 +181,6 @@ module.exports = {
   apply,
   applyToArgs,
   fill,
-  RESERVED_WORDS
+  RESERVED_WORDS,
+  SCRIPTING_FUNCTIONS
 }

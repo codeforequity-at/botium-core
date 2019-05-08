@@ -10,6 +10,7 @@ const debug = require('debug')('botium-SimpleRestContainer')
 
 const botiumUtils = require('../../helpers/Utils')
 const Capabilities = require('../../Capabilities')
+const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 
 module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
@@ -36,7 +37,17 @@ module.exports = class SimpleRestContainer {
             botium: {
               conversationId: uuidv4(),
               stepId: null
-            }
+            },
+            // wrap the functions into parameterless function as mustache wants it
+            // IF THEY HAVE PARAMETER. It is because Mustache expects functions with parameter,
+            // and without parameter different. And they are called differently from template.
+            // -> optional parameters are not working here!
+            // render(text) is required for forcing mustache to replace valiables in the text first,
+            // then send it to the function.
+            // mapKeys: remove starting $
+            fnc: _.mapValues(_.mapKeys(SCRIPTING_FUNCTIONS, (value, key) => key.substring(1)), (theFunction) => {
+              return theFunction.length ? function () { return (text, render) => theFunction(render(text)) } : theFunction
+            })
           }
           if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
             try {
