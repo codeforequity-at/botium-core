@@ -28,6 +28,7 @@ const myCapsScriptingMemory = {
     FUNCTION_WITHOUT_PARAM: '{{fnc.year}}',
     FUNCTION_WITH_PARAM: '{{#fnc.random}}5{{/fnc.random}}',
     FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY: '{{#fnc.random}}{{msg.scriptingMemory.functionArgument}}{{/fnc.random}}',
+    USING_CODE: '{{#fnc.func}}1 + 2{{/fnc.func}}',
     VARIABLE: '{{msg.scriptingMemory.variable}}'
   },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
@@ -246,6 +247,9 @@ describe('connectors.simplerest.build', function () {
 
     assert.exists(request.body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY)
     assert.equal(request.body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY.length, 7)
+
+    assert.exists(request.body.USING_CODE)
+    assert.equal(request.body.USING_CODE, 3)
 
     assert.exists(request.body.VARIABLE)
     assert.equal(request.body.VARIABLE, 'value')
