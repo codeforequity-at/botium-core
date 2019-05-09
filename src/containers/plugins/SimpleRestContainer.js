@@ -35,7 +35,7 @@ module.exports = class SimpleRestContainer {
             context: {},
             msg: {},
             botium: {
-              conversationId: uuidv4(),
+              conversationId: null,
               stepId: null
             },
             // wrap the functions into parameterless function as mustache wants it
@@ -49,6 +49,14 @@ module.exports = class SimpleRestContainer {
               return theFunction.length ? function () { return (text, render) => theFunction(render(text)) } : theFunction
             })
           }
+
+          if (this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]) {
+            const template = _.isString(this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE])
+            this.view.botium.conversationId = Mustache.render(template, this.view)
+          } else {
+            this.view.botium.conversationId = uuidv4()
+          }
+
           if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
             try {
               this.view.context = _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) ? this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT] : JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
@@ -95,7 +103,6 @@ module.exports = class SimpleRestContainer {
   }
 
   UserSays (mockMsg) {
-    this.view.botium.stepId = uuidv4()
     return this._doRequest(mockMsg, true)
   }
 
@@ -213,10 +220,19 @@ module.exports = class SimpleRestContainer {
 
   _buildRequest (msg) {
     this.view.msg = Object.assign({}, msg)
-    var nonEncodedMessage = this.view.msg.messageText
+
+    let nonEncodedMessage = this.view.msg.messageText
     if (this.view.msg.messageText) {
       this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
     }
+
+    if (this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]) {
+      const template = _.isString(this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE])
+      this.view.botium.stepId = Mustache.render(template, this.view)
+    } else {
+      this.view.botium.stepId = uuidv4()
+    }
+
     const uri = Mustache.render(this.caps[Capabilities.SIMPLEREST_URL], this.view)
 
     const requestOptions = {

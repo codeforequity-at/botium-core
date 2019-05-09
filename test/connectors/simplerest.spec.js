@@ -33,6 +33,15 @@ const myCapsScriptingMemory = {
   },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
 }
+const myCapsConvAndStepId = {
+  [Capabilities.CONTAINERMODE]: 'simplerest',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+  [Capabilities.SIMPLEREST_METHOD]: 'POST',
+  [Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]: '{{fnc.timestamp}}',
+  [Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]: '{{#fnc.random}}7{{/fnc.random}}',
+  [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { SESSION_ID: '{{botium.conversationId}}', MESSAGE_ID: '{{botium.stepId}}' },
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+}
 const msg = {
   messageText: 'messageText',
   token: 'myToken',
@@ -253,6 +262,25 @@ describe('connectors.simplerest.build', function () {
 
     assert.exists(request.body.VARIABLE)
     assert.equal(request.body.VARIABLE, 'value')
+
+    await container.Clean()
+  })
+  it('should use scriptingMemory variables for step, and conversation id if template is set', async function () {
+    const myCaps = Object.assign({}, myCapsConvAndStepId)
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+
+    await container.Start()
+    const request = container.pluginInstance._buildRequest(msg)
+
+    assert.isTrue(request.json)
+    assert.exists(request.body)
+
+    assert.exists(request.body.SESSION_ID)
+    assert.equal(request.body.SESSION_ID.length, 13)
+
+    assert.exists(request.body.MESSAGE_ID)
+    assert.equal(request.body.MESSAGE_ID.length, 7)
 
     await container.Clean()
   })

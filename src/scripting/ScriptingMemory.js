@@ -64,6 +64,10 @@ const SCRIPTING_FUNCTIONS = {
     return moment().format('h A')
   },
 
+  '$timestamp': () => {
+    return Date.now()
+  },
+
   '$year': () => {
     return new Date().getFullYear()
   },
