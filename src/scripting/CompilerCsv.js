@@ -31,7 +31,7 @@ const DEFAULT_MAPPING_SENDER = {
 }
 const DEFAULT_MAPPING_SENDER_1_COLUMN = {
   text: {
-    index: 2,
+    index: 0,
     cap: Capabilities.SCRIPTING_CSV_MODE_SENDER_COL_TEXT
   }
 }
@@ -92,7 +92,9 @@ module.exports = class CompilerCsv extends CompilerBase {
         debug(`Compile no data`)
         return
       }
-      if (this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_USE_HEADER, DEFAULT_USE_HEADER)) {
+      const useHeader = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_USE_HEADER, DEFAULT_USE_HEADER)
+      debug(`Compile use header is ${useHeader}`)
+      if (useHeader) {
         extractedData.header = rowsRaw[0]
         extractedData.rows = rowsRaw.slice(1)
       } else {
@@ -138,11 +140,7 @@ module.exports = class CompilerCsv extends CompilerBase {
         }
       }
       if (extractedData.columnMappingMode == null) {
-        if (extractedData.mode === CSV_MODE_SENDER && extractedData.rows[0].length < 3) {
-          extractedData.columnMappingMode = 'INDEX_SENDER_WITH_1_COLUMN'
-        } else {
-          extractedData.columnMappingMode = 'INDEX'
-        }
+        extractedData.columnMappingMode = 'INDEX'
       }
       debug(`Compile columnMappingMode is ${extractedData.columnMappingMode}`)
     }
@@ -150,7 +148,7 @@ module.exports = class CompilerCsv extends CompilerBase {
     // creates mapping.
     // Examples:
     // {conversationId:0, sender: 1, text: 2 }
-    // {conversationId: null, sender: 3, text: 2}
+    // {sender: 3, text: 2}
     // {question: 2, answer: 4}
     {
       const _getMappingByCap = (header, cap) => {
@@ -185,9 +183,7 @@ module.exports = class CompilerCsv extends CompilerBase {
         return def
       }
 
-      const defMapping = (extractedData.mode === CSV_MODE_SENDER)
-        ? ((extractedData.columnMappingMode === 'INDEX_SENDER_WITH_1_COLUMN') ? DEFAULT_MAPPING_SENDER_1_COLUMN : DEFAULT_MAPPING_SENDER)
-        : DEFAULT_MAPPING_COLUMNS
+      const defMapping = (extractedData.mode === CSV_MODE_SENDER) ? ((extractedData.columnCount > 2) ? DEFAULT_MAPPING_SENDER : DEFAULT_MAPPING_SENDER_1_COLUMN) : DEFAULT_MAPPING_COLUMNS
 
       Object.keys(defMapping).forEach(columnName => {
         const entry = defMapping[columnName]
@@ -200,43 +196,46 @@ module.exports = class CompilerCsv extends CompilerBase {
             mappedIndex = _getMappingByName(extractedData.header, columnName)
             break
           case 'INDEX':
-          case 'INDEX_SENDER_WITH_1_COLUMN':
-            mappedIndex = _getMappingByIndex(entry.index)
+            mappedIndex = _getMappingByIndex(entry.index, extractedData.columnCount)
             break
         }
-        if (mappedIndex < 0 || mappedIndex > extractedData.columnCount) {
+        if (mappedIndex < 0 || mappedIndex >= extractedData.columnCount) {
           throw new Error(`Tried to map column ${columnName}, but the mapped index ${mappedIndex} is invalid in CSV`)
         }
-        if (mappedIndex != null) {
+        if (_exists(mappedIndex)) {
           Object.keys(extractedData.mapping).forEach((alreadyMappedColumnName) => {
             if (extractedData.mapping[alreadyMappedColumnName] === mappedIndex) {
               throw new Error(`Tried to map column ${columnName}, but the mapped index ${mappedIndex} is already mapped to ${alreadyMappedColumnName}`)
             }
           })
+          extractedData.mapping[columnName] = mappedIndex
         }
-        extractedData.mapping[columnName] = mappedIndex
       })
     }
+    debug(`Compile mapped columns: ${Array.from(Object.keys(extractedData.mapping))}`)
 
     const scriptResults = []
     // extract scripts
     {
       if (extractedData.mode === CSV_MODE_SENDER) {
-        if (extractedData.columnMappingMode === 'INDEX_SENDER_WITH_1_COLUMN') {
-          _checkRequiredMapping(extractedData, 'text')
-        } else {
+        if (_exists(extractedData.mapping['conversationId']) || _exists(extractedData.mapping['sender'])) {
           _checkRequiredMapping(extractedData, 'conversationId', 'sender', 'text')
+        } else {
+          debug(`Compile one-column sender mode detected`)
+          _checkRequiredMapping(extractedData, 'text')
+          extractedData.senderModeOneColumn = true
         }
+
         const _getConversationId = (rowIndex, extractedData) => {
-          if (extractedData.columnMappingMode === 'INDEX_SENDER_WITH_1_COLUMN') {
+          if (extractedData.senderModeOneColumn) {
             return Math.floor(rowIndex / 2)
           } else {
             return _getCellByMapping(rowIndex, 'conversationId', extractedData)
           }
         }
         const _getSender = (rowIndex, extractedData) => {
-          if (extractedData.columnMappingMode === 'INDEX_SENDER_WITH_1_COLUMN') {
-            return (rowIndex % 2) ? 'me' : 'bot'
+          if (extractedData.senderModeOneColumn) {
+            return (rowIndex % 2) ? 'bot' : 'me'
           } else {
             const result = _getCellByMapping(rowIndex, 'sender', extractedData)
             if (result !== 'me' && result !== 'bot') {
@@ -359,4 +358,12 @@ const _checkRequiredMapping = (extractedData, ...columnNames) => {
       throw new Error(`Mapping not found for ${columnName}`)
     }
   }
+
+  if (columnNames.length !== Object.keys(extractedData.mapping).length) {
+    throw new Error(`Wrong mapping. Expected: ${columnNames} actual: ${Array.from(Object.keys(extractedData.mapping))}`)
+  }
+}
+
+const _exists = (value) => {
+  return !_.isUndefined(value) && !_.isNull(value)
 }
