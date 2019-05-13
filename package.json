@@ -32,6 +32,7 @@
     "boolean": "^0.2.0",
     "chai-as-promised": "^7.1.1",
     "copy-dir": "^0.3.0",
+    "csv-parse": "^4.4.1",
     "debug": "^3.1.0",
     "express": "^4.16.2",
     "facebook-chat-api": "^1.6.1",

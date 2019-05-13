@@ -39,4 +39,22 @@ module.exports = class CompilerBase {
       throw new Error(`Capability property ${cap} not set`)
     }
   }
+
+  _GetOptionalCapability (cap, def) {
+    if (!this.caps[cap]) {
+      return def
+    }
+
+    return this.caps[cap]
+  }
+
+  _GetCapabilitiesByPrefix (prefix) {
+    const result = {}
+    Object.keys(this.caps).forEach((key) => {
+      if (key.startsWith(prefix)) {
+        result[key] = this.caps[key]
+      }
+    })
+    return result
+  }
 }
