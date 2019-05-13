@@ -1,3 +1,6 @@
+const _ = require('lodash')
+
+
 module.exports = class CompilerBase {
   constructor ({ AddConvos, AddPartialConvos, AddUtterances, AddScriptingMemories, GetPartialConvos, IsAsserterValid, IsLogicHookValid, IsUserInputValid, scriptingEvents }, caps = {}) {
     this.context = {
@@ -40,8 +43,8 @@ module.exports = class CompilerBase {
     }
   }
 
-  _GetOptionalCapability (cap, def) {
-    if (!this.caps[cap]) {
+  _GetOptionalCapability (cap, def = null) {
+    if (_.isUndefined(this.caps[cap])) {
       return def
     }
 

@@ -63,9 +63,14 @@ module.exports = class CompilerCsv extends CompilerBase {
   }
 
   Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
-    let rowsRaw = parse(scriptBuffer, {
-      delimiter: this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_SEPARATOR, DEFAULT_SEPARATOR)
-    })
+    let rowsRaw
+    try {
+      rowsRaw = parse(scriptBuffer, {
+        delimiter: this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_SEPARATOR, DEFAULT_SEPARATOR)
+      })
+    } catch (err) {
+      throw new Error('Invalid CSV!')
+    }
 
     if (rowsRaw.length === 0) {
       return
@@ -84,7 +89,7 @@ module.exports = class CompilerCsv extends CompilerBase {
     // adding header, rows, and columnCount
     {
       if (!rowsRaw.length) {
-        debug(`_extractInfo no data`)
+        debug(`Compile no data`)
         return
       }
       if (this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_USE_HEADER, DEFAULT_USE_HEADER)) {
@@ -94,7 +99,7 @@ module.exports = class CompilerCsv extends CompilerBase {
         extractedData.rows = rowsRaw
       }
       if (!extractedData.rows.length) {
-        debug(`_extractInfo just header ${extractedData.mode}`)
+        debug(`Compile just header, no data!`)
         return
       }
       extractedData.columnCount = extractedData.rows[0].length
@@ -104,9 +109,9 @@ module.exports = class CompilerCsv extends CompilerBase {
     {
       if (this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_MODE)) {
         extractedData.mode = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_MODE)
-      } else if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_COLUMN')).length) {
+      } else if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_COLUMN')).length) {
         extractedData.mode = CSV_MODE_COLUMN
-      } else if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_SENDER')).length) {
+      } else if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_SENDER')).length) {
         extractedData.mode = CSV_MODE_SENDER
       } else if (extractedData.header) {
         if (extractedData.header.filter((columnName) => DEFAULT_MAPPING_COLUMNS[columnName]).length > 0) {
@@ -114,13 +119,15 @@ module.exports = class CompilerCsv extends CompilerBase {
         } else {
           extractedData.mode = CSV_MODE_SENDER
         }
+      } else {
+        extractedData.mode = CSV_MODE_SENDER
       }
-      debug(`_extractInfo mode is ${extractedData.mode}`)
+      debug(`Compile mode is ${extractedData.mode}`)
     }
 
     // adds columnMappingMode
     {
-      if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_COLUMN')).length || Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_SENDER')).length) {
+      if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_COLUMN')).length || Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_SENDER')).length) {
         extractedData.columnMappingMode = 'CAP'
       } else if (extractedData.header) {
         const columnFoundByName = extractedData.header.filter((columnName) => {
@@ -128,17 +135,16 @@ module.exports = class CompilerCsv extends CompilerBase {
         })
         if (columnFoundByName) {
           extractedData.columnMappingMode = 'NAME'
-        } else {
-          if (extractedData.mode === CSV_MODE_SENDER && extractedData.rows[0].length < 3) {
-            extractedData.columnMappingMode = 'INDEX_SENDER_WITH_1_COLUMN'
-          } else {
-            extractedData.columnMappingMode = 'INDEX'
-          }
         }
-      } else if (this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_MODE)) {
-        extractedData.mode = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_MODE)
       }
-      debug(`_extractInfo columnMappingMode is ${extractedData.columnMappingMode}`)
+      if (extractedData.columnMappingMode == null) {
+        if (extractedData.mode === CSV_MODE_SENDER && extractedData.rows[0].length < 3) {
+          extractedData.columnMappingMode = 'INDEX_SENDER_WITH_1_COLUMN'
+        } else {
+          extractedData.columnMappingMode = 'INDEX'
+        }
+      }
+      debug(`Compile columnMappingMode is ${extractedData.columnMappingMode}`)
     }
 
     // creates mapping.
@@ -149,7 +155,10 @@ module.exports = class CompilerCsv extends CompilerBase {
     {
       const _getMappingByCap = (header, cap) => {
         cap = this._GetOptionalCapability(cap)
-        if (cap === _.toSafeInteger(cap).toString()) {
+        if (cap === null) {
+          return null
+        }
+        if (cap.toString() === _.toSafeInteger(cap).toString()) {
           return _.toSafeInteger(cap)
         }
 
@@ -198,11 +207,13 @@ module.exports = class CompilerCsv extends CompilerBase {
         if (mappedIndex < 0 || mappedIndex > extractedData.columnCount) {
           throw new Error(`Tried to map column ${columnName}, but the mapped index ${mappedIndex} is invalid in CSV`)
         }
-        Object.keys(extractedData.mapping).forEach((alreadyMappedColumnName) => {
-          if (extractedData.mapping[alreadyMappedColumnName] === mappedIndex) {
-            throw new Error(`Tried to map column ${columnName}, but the mapped index ${mappedIndex} is already mapped to ${alreadyMappedColumnName}`)
-          }
-        })
+        if (mappedIndex != null) {
+          Object.keys(extractedData.mapping).forEach((alreadyMappedColumnName) => {
+            if (extractedData.mapping[alreadyMappedColumnName] === mappedIndex) {
+              throw new Error(`Tried to map column ${columnName}, but the mapped index ${mappedIndex} is already mapped to ${alreadyMappedColumnName}`)
+            }
+          })
+        }
         extractedData.mapping[columnName] = mappedIndex
       })
     }
@@ -211,6 +222,11 @@ module.exports = class CompilerCsv extends CompilerBase {
     // extract scripts
     {
       if (extractedData.mode === CSV_MODE_SENDER) {
+        if (extractedData.columnMappingMode === 'INDEX_SENDER_WITH_1_COLUMN') {
+          _checkRequiredMapping(extractedData, 'text')
+        } else {
+          _checkRequiredMapping(extractedData, 'conversationId', 'sender', 'text')
+        }
         const _getConversationId = (rowIndex, extractedData) => {
           if (extractedData.columnMappingMode === 'INDEX_SENDER_WITH_1_COLUMN') {
             return Math.floor(rowIndex / 2)
@@ -222,7 +238,11 @@ module.exports = class CompilerCsv extends CompilerBase {
           if (extractedData.columnMappingMode === 'INDEX_SENDER_WITH_1_COLUMN') {
             return (rowIndex % 2) ? 'me' : 'bot'
           } else {
-            return _getCellByMapping(rowIndex, 'sender', extractedData)
+            const result = _getCellByMapping(rowIndex, 'sender', extractedData)
+            if (result !== 'me' && result !== 'bot') {
+              throw Error(`Invalid row ${rowIndex} sender must be 'me' or 'bot'`)
+            }
+            return result
           }
         }
         const _getText = (rowIndex, extractedData) => {
@@ -268,6 +288,7 @@ module.exports = class CompilerCsv extends CompilerBase {
         }
         scriptResults.push(_createConvo(extractedData.rows.length - 1))
       } else if (extractedData.mode === CSV_MODE_COLUMN) {
+        _checkRequiredMapping(extractedData, 'question', 'answer')
         for (let rowIndex = 0; rowIndex < extractedData.rows.length; rowIndex++) {
           const convoId = rowIndex
           const currentConvo = []
@@ -319,7 +340,7 @@ module.exports = class CompilerCsv extends CompilerBase {
 
 const _getHeaderIndexFuzzy = (header, field) => {
   for (let i = 0; i < header.length; i++) {
-    if (header[i].toLocaleLowerCase() === field.toLocaleLowerCase()) {
+    if (header[i].toLocaleLowerCase().trim().replace('_', '').replace('-', '') === field.toLocaleLowerCase().trim().replace('_', '').replace('-', '')) {
       return i
     }
   }
@@ -330,4 +351,12 @@ const _getHeaderIndexFuzzy = (header, field) => {
 const _getCellByMapping = (row, columnName, extractedData) => {
   const colMapping = extractedData.mapping[columnName]
   return extractedData.rows[row][colMapping]
+}
+
+const _checkRequiredMapping = (extractedData, ...columnNames) => {
+  for (const columnName of columnNames) {
+    if (extractedData.mapping[columnName] == null) {
+      throw new Error(`Mapping not found for ${columnName}`)
+    }
+  }
 }
