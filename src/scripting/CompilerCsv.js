@@ -2,6 +2,7 @@
 const parse = require('csv-parse/lib/sync')
 const _ = require('lodash')
 const debug = require('debug')('botium-CompilerXlsx')
+const util = require('util')
 
 const Capabilities = require('../Capabilities')
 const CompilerBase = require('./CompilerBase')
@@ -69,7 +70,7 @@ module.exports = class CompilerCsv extends CompilerBase {
         delimiter: this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_SEPARATOR, DEFAULT_SEPARATOR)
       })
     } catch (err) {
-      throw new Error('Invalid CSV!')
+      throw new Error(`Invalid CSV!\n${util.inspect(err)}`)
     }
 
     if (rowsRaw.length === 0) {
@@ -250,11 +251,10 @@ module.exports = class CompilerCsv extends CompilerBase {
 
         let currentConvo = null
         let currentConvoId = null
-        let convoStartingRowIndex = null
         const _createConvo = (rowIndex) => {
           return new Convo(this.context, {
             header: {
-              name: `${currentConvoId},${convoStartingRowIndex}-${rowIndex}`
+              name: `${currentConvoId}`
             },
             conversation: currentConvo
           })
@@ -271,7 +271,6 @@ module.exports = class CompilerCsv extends CompilerBase {
             }
             currentConvoId = convoId
             currentConvo = []
-            convoStartingRowIndex = rowIndex
           }
 
           const convoStep = linesToConvoStep(
@@ -311,7 +310,7 @@ module.exports = class CompilerCsv extends CompilerBase {
           scriptResults.push(
             new Convo(this.context, {
               header: {
-                name: `${convoId},${rowIndex}/${extractedData.rows.length - 1}`
+                name: `${convoId}`
               },
               conversation: currentConvo
             })
