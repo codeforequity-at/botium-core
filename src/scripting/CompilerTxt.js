@@ -1,4 +1,3 @@
-const isJSON = require('is-json')
 const _ = require('lodash')
 
 const Capabilities = require('../Capabilities')

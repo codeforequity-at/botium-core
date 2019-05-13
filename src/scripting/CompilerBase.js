@@ -1,6 +1,5 @@
 const _ = require('lodash')
 
-
 module.exports = class CompilerBase {
   constructor ({ AddConvos, AddPartialConvos, AddUtterances, AddScriptingMemories, GetPartialConvos, IsAsserterValid, IsLogicHookValid, IsUserInputValid, scriptingEvents }, caps = {}) {
     this.context = {

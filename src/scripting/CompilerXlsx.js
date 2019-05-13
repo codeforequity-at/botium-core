@@ -91,7 +91,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (!_.isString(content)) content = '' + content
           const lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
 
-          return linesToConvoStep(lines, sender, this.context, this.eol)
+          return linesToConvoStep(lines, sender, this.context, eol)
         }
 
         let currentConvo = []
