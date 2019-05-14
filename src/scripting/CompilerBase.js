@@ -1,3 +1,5 @@
+const _ = require('lodash')
+
 module.exports = class CompilerBase {
   constructor ({ AddConvos, AddPartialConvos, AddUtterances, AddScriptingMemories, GetPartialConvos, IsAsserterValid, IsLogicHookValid, IsUserInputValid, scriptingEvents }, caps = {}) {
     this.context = {
@@ -38,5 +40,23 @@ module.exports = class CompilerBase {
     if (!this.caps[cap]) {
       throw new Error(`Capability property ${cap} not set`)
     }
+  }
+
+  _GetOptionalCapability (cap, def = null) {
+    if (_.isUndefined(this.caps[cap])) {
+      return def
+    }
+
+    return this.caps[cap]
+  }
+
+  _GetCapabilitiesByPrefix (prefix) {
+    const result = {}
+    Object.keys(this.caps).forEach((key) => {
+      if (key.startsWith(prefix)) {
+        result[key] = this.caps[key]
+      }
+    })
+    return result
   }
 }

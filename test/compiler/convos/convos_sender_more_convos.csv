@@ -1,0 +1,5 @@
+conversationId,sender,text
+first,me,test 1
+first,bot,test 2
+second,me,test 3
+second,bot,test 4

@@ -10,7 +10,7 @@ const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.xlsx|*.pconvo.txt|*.scriptingmemory.txt)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
 
 const p = (fn) => new Promise((resolve, reject) => {
   try {
@@ -203,6 +203,9 @@ module.exports = class ScriptingProvider {
     const CompilerTxt = require('./CompilerTxt')
     this.compilers[Constants.SCRIPTING_FORMAT_TXT] = new CompilerTxt(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_TXT].Validate()
+    const CompilerCsv = require('./CompilerCsv')
+    this.compilers[Constants.SCRIPTING_FORMAT_CSV] = new CompilerCsv(this._buildScriptContext(), this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_CSV].Validate()
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
     if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp') {
@@ -301,6 +304,10 @@ module.exports = class ScriptingProvider {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
     } else if (filename.endsWith('.scriptingmemory.txt')) {
       fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+    } else if (filename.endsWith('.convo.csv')) {
+      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
+    } else if (filename.endsWith('.pconvo.csv')) {
+      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
     }
     // Compilers saved the convos, and we alter here the saved version too
     if (fileConvos) {

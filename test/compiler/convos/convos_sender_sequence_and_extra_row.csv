@@ -1,0 +1,3 @@
+sender,conversationId,text,comment
+me,first,test 1,will be ignored
+bot,first,test 2,will be ignored
