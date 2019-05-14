@@ -300,5 +300,21 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[1].conversation[1].messageText, 'test 4')
       assert.equal(context.convos[1].conversation[1].sender, 'bot')
     })
+    it('should read user and bot columns', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_me_bot.csv'))
+      const context = buildContext()
+
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.lengthOf(context.convos, 1)
+      assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
+      assert.equal(context.convos[0].conversation[0].sender, 'me')
+      assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
+      assert.equal(context.convos[0].conversation[1].sender, 'bot')
+    })
+
   })
 })

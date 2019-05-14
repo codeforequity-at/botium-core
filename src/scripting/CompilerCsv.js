@@ -36,16 +36,23 @@ const DEFAULT_MAPPING_SENDER_1_COLUMN = {
     cap: Capabilities.SCRIPTING_CSV_MODE_SENDER_COL_TEXT
   }
 }
+// just for quessing, dont has to have all columns, but cant have intersection
+const COLUMNS_JUST_SENDER_MODE = ['conversationId', 'sender', 'text']
+
 const DEFAULT_MAPPING_COLUMNS = {
   question: {
     index: 0,
-    cap: Capabilities.SCRIPTING_CSV_MODE_COLUMN_COL_QUESTION
+    cap: Capabilities.SCRIPTING_CSV_MODE_COLUMN_COL_QUESTION,
+    acceptedColumns: ['question', 'user', 'me']
   },
   answer: {
     index: 1,
-    cap: Capabilities.SCRIPTING_CSV_MODE_COLUMN_COL_ANSWER
+    cap: Capabilities.SCRIPTING_CSV_MODE_COLUMN_COL_ANSWER,
+    acceptedColumns: ['answer', 'bot']
   }
 }
+// just for quessing, dont has to have all columns, but cant have intersection
+const COLUMNS_JUST_COLUMN_MODE = ['question', 'user', 'me', 'answer', 'bot']
 
 module.exports = class CompilerCsv extends CompilerBase {
   constructor (context, caps = {}) {
@@ -117,7 +124,14 @@ module.exports = class CompilerCsv extends CompilerBase {
       } else if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_SENDER')).length) {
         extractedData.mode = CSV_MODE_SENDER
       } else if (extractedData.header) {
-        if (extractedData.header.filter((columnName) => DEFAULT_MAPPING_COLUMNS[columnName]).length > 0) {
+        if (extractedData.header.filter(
+          (columnName) => {
+            return COLUMNS_JUST_COLUMN_MODE.filter(
+              (c) => {
+                return _equalsFuzzy(c, columnName)
+              }).length > 0
+          }
+        ).length > 0) {
           extractedData.mode = CSV_MODE_COLUMN
         } else {
           extractedData.mode = CSV_MODE_SENDER
@@ -172,13 +186,14 @@ module.exports = class CompilerCsv extends CompilerBase {
           throw Error(`Unknown column definition ${cap}. There is no header in CSV.`)
         }
       }
-      const _getMappingByName = (header, defName) => {
-        let result = _getHeaderIndexFuzzy(header, defName)
-        if (result != null) {
-          return result
-        } else {
-          return null
+      const _getMappingByName = (header, defNames) => {
+        for (const defName of defNames) {
+          let result = _getHeaderIndexFuzzy(header, defName)
+          if (result != null) {
+            return result
+          }
         }
+        return null
       }
       const _getMappingByIndex = (def) => {
         return def
@@ -194,7 +209,7 @@ module.exports = class CompilerCsv extends CompilerBase {
             mappedIndex = _getMappingByCap(extractedData.header, entry.cap)
             break
           case 'NAME':
-            mappedIndex = _getMappingByName(extractedData.header, columnName)
+            mappedIndex = _getMappingByName(extractedData.header, defMapping[columnName].acceptedColumns ? defMapping[columnName].acceptedColumns : [columnName])
             break
           case 'INDEX':
             mappedIndex = _getMappingByIndex(entry.index, extractedData.columnCount)
@@ -338,12 +353,16 @@ module.exports = class CompilerCsv extends CompilerBase {
 
 const _getHeaderIndexFuzzy = (header, field) => {
   for (let i = 0; i < header.length; i++) {
-    if (header[i].toLocaleLowerCase().trim().replace('_', '').replace('-', '') === field.toLocaleLowerCase().trim().replace('_', '').replace('-', '')) {
+    if (_equalsFuzzy(header[i], field)) {
       return i
     }
   }
 
   return null
+}
+
+const _equalsFuzzy = (s1, s2) => {
+  return s1.toLocaleLowerCase().trim().replace('_', '').replace('-', '') === s2.toLocaleLowerCase().trim().replace('_', '').replace('-', '')
 }
 
 const _getCellByMapping = (row, columnName, extractedData) => {
