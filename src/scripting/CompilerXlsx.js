@@ -93,12 +93,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
           return linesToConvoStep(lines, sender, this.context, eol)
         }
-
-        let currentConvo = []
-        let emptylines = 0
-        let startcell = null
-        // each row is a conversation with a question and an answer
-        const _extractRow = () => {
+        const _extractRow = (rowindex) => {
           const meCell = this.colnames[colindex] + rowindex
           const meCellValue = sheet[meCell] && sheet[meCell].v
           const botCell = this.colnames[colindex + 1] + rowindex
@@ -106,13 +101,38 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
           return { meCell, meCellValue, botCell, botCellValue }
         }
-        const { meCellValue, botCellValue } = _extractRow()
+
         let questionAnswerMode = this._GetOptionalCapability(Capabilities.SCRIPTING_XLSX_MODE)
-        questionAnswerMode = questionAnswerMode ? (questionAnswerMode === 'QUESTION_ANSWER') : (meCellValue && botCellValue)
-        debug(`questionAnswerMode is ${questionAnswerMode}`)
+        if (questionAnswerMode !== null) {
+          questionAnswerMode = questionAnswerMode === 'QUESTION_ANSWER'
+          debug(`questionAnswerMode to ${questionAnswerMode} (capability)`)
+        } else {
+          let emptyRowCount = 0
+          let index = 0
+          while (emptyRowCount < 2) {
+            const { meCellValue, botCellValue } = _extractRow(rowindex + index)
+            if (!meCellValue && !botCellValue) {
+              emptyRowCount++
+            } else if (meCellValue && botCellValue) {
+              questionAnswerMode = true
+              debug(`questionAnswerMode to true (question-answer row found)`)
+            }
+            index++
+          }
+
+          if (questionAnswerMode === null) {
+            questionAnswerMode = false
+            debug(`questionAnswerMode to false (no question-answer row found)`)
+          }
+        }
+
+        let currentConvo = []
+        let emptylines = 0
+        let startcell = null
+        // each row is a conversation with a question and an answer
 
         while (true) {
-          const { meCell, meCellValue, botCell, botCellValue } = _extractRow()
+          const { meCell, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
           if (questionAnswerMode) {
             if (meCellValue || botCellValue) {
               currentConvo = []

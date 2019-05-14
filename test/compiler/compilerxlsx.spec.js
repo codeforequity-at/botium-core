@@ -156,7 +156,7 @@ describe('compiler.compilerxlsx', function () {
     assert.lengthOf(context.convos[1].conversation, 2)
     assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
     assert.equal(context.convos[0].conversation[1].messageText, '')
-    assert.equal(context.convos[1].conversation[0].messageText, 'test 3')
+    assert.equal(context.convos[1].conversation[0].messageText, '')
     assert.equal(context.convos[1].conversation[1].messageText, 'test 4')
     assert.lengthOf(context.utterances, 0)
   })
