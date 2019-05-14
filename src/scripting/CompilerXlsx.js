@@ -107,7 +107,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
           return { meCell, meCellValue, botCell, botCellValue }
         }
         const { meCellValue, botCellValue } = _extractRow()
-        let questionAnswerMode = meCellValue && botCellValue
+        let questionAnswerMode = this._GetOptionalCapability(Capabilities.SCRIPTING_XLSX_MODE)
+        questionAnswerMode = questionAnswerMode ? (questionAnswerMode === 'QUESTION_ANSWER') : (meCellValue && botCellValue)
+        debug(`questionAnswerMode is ${questionAnswerMode}`)
 
         while (true) {
           const { meCell, meCellValue, botCell, botCellValue } = _extractRow()

@@ -141,4 +141,23 @@ describe('compiler.compilerxlsx', function () {
     assert.equal(context.convos[3].conversation[1].messageText, 'test 4')
     assert.lengthOf(context.utterances, 0)
   })
+  it('should read 2 convos and no utterances in simplified mode forced', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_2convos_simplified_to_force.xlsx'))
+    const context = buildContext()
+
+    const caps = {
+      'SCRIPTING_XLSX_MODE': 'QUESTION_ANSWER'
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.lengthOf(context.convos, 2)
+    assert.lengthOf(context.convos[0].conversation, 2)
+    assert.lengthOf(context.convos[1].conversation, 2)
+    assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
+    assert.equal(context.convos[0].conversation[1].messageText, '')
+    assert.equal(context.convos[1].conversation[0].messageText, 'test 3')
+    assert.equal(context.convos[1].conversation[1].messageText, 'test 4')
+    assert.lengthOf(context.utterances, 0)
+  })
 })

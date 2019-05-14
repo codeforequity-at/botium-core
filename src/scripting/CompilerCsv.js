@@ -11,48 +11,48 @@ const { Convo } = require('./Convo')
 const { linesToConvoStep } = require('./helper')
 
 // From, and To texts are identified by separate Question, and Answer columns
-const CSV_MODE_COLUMN = 'COLUMN'
+const CSV_MODE_QUESTION_ANSWER = 'QUESTION_ANSWER'
 // From, and To texts are identified by a special Sender column
-const CSV_MODE_SENDER = 'SENDER'
+const CSV_MODE_ROW_PER_MESSAGE = 'ROW_PER_MESSAGE'
 const DEFAULT_SEPARATOR = ','
 const DEFAULT_USE_HEADER = true
-const DEFAULT_MAPPING_SENDER = {
+const DEFAULT_MAPPING_ROW_PER_MESSAGE = {
   conversationId: {
     index: 0,
-    cap: Capabilities.SCRIPTING_CSV_MODE_SENDER_COL_CONVERSATION_ID
+    cap: Capabilities.SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_CONVERSATION_ID
   },
   sender: {
     index: 1,
-    cap: Capabilities.SCRIPTING_CSV_MODE_SENDER_COL_SENDER
+    cap: Capabilities.SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_SENDER
   },
   text: {
     index: 2,
-    cap: Capabilities.SCRIPTING_CSV_MODE_SENDER_COL_TEXT
+    cap: Capabilities.SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_TEXT
   }
 }
-const DEFAULT_MAPPING_SENDER_1_COLUMN = {
+const DEFAULT_MAPPING_ROW_PER_MESSAGE_1_COLUMN = {
   text: {
     index: 0,
-    cap: Capabilities.SCRIPTING_CSV_MODE_SENDER_COL_TEXT
+    cap: Capabilities.SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_TEXT
   }
 }
 // just for quessing, dont has to have all columns, but cant have intersection
-const COLUMNS_JUST_SENDER_MODE = ['conversationId', 'sender', 'text']
+// const COLUMNS_JUST_ROW_PER_MESSAGE_MODE = ['conversationId', 'sender', 'text']
 
-const DEFAULT_MAPPING_COLUMNS = {
+const DEFAULT_MAPPING_QUESTION_ANSWER = {
   question: {
     index: 0,
-    cap: Capabilities.SCRIPTING_CSV_MODE_COLUMN_COL_QUESTION,
+    cap: Capabilities.SCRIPTING_CSV_MODE_QUESTION_ANSWER_COL_QUESTION,
     acceptedColumns: ['question', 'user', 'me']
   },
   answer: {
     index: 1,
-    cap: Capabilities.SCRIPTING_CSV_MODE_COLUMN_COL_ANSWER,
+    cap: Capabilities.SCRIPTING_CSV_MODE_QUESTION_ANSWER_COL_ANSWER,
     acceptedColumns: ['answer', 'bot']
   }
 }
 // just for quessing, dont has to have all columns, but cant have intersection
-const COLUMNS_JUST_COLUMN_MODE = ['question', 'user', 'me', 'answer', 'bot']
+const COLUMNS_JUST_QUESTION_ANSWER_MODE = ['question', 'user', 'me', 'answer', 'bot']
 
 module.exports = class CompilerCsv extends CompilerBase {
   constructor (context, caps = {}) {
@@ -64,8 +64,8 @@ module.exports = class CompilerCsv extends CompilerBase {
 
     const mode = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_MODE)
     if (mode) {
-      if (mode !== CSV_MODE_SENDER || mode !== CSV_MODE_COLUMN) {
-        throw new Error('Illegal value in capability SCRIPTING_CSV_MODE. If it is set then it must be COLUMN or SENDER')
+      if (mode !== CSV_MODE_ROW_PER_MESSAGE || mode !== CSV_MODE_QUESTION_ANSWER) {
+        throw new Error('Illegal value in capability SCRIPTING_CSV_MODE. If it is set then it must be QUESTION_ANSWER or ROW_PER_MESSAGE')
       }
     }
   }
@@ -119,36 +119,36 @@ module.exports = class CompilerCsv extends CompilerBase {
     {
       if (this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_MODE)) {
         extractedData.mode = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_MODE)
-      } else if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_COLUMN')).length) {
-        extractedData.mode = CSV_MODE_COLUMN
-      } else if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_SENDER')).length) {
-        extractedData.mode = CSV_MODE_SENDER
+      } else if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_QUESTION_ANSWER')).length) {
+        extractedData.mode = CSV_MODE_QUESTION_ANSWER
+      } else if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_ROW_PER_MESSAGE')).length) {
+        extractedData.mode = CSV_MODE_ROW_PER_MESSAGE
       } else if (extractedData.header) {
         if (extractedData.header.filter(
           (columnName) => {
-            return COLUMNS_JUST_COLUMN_MODE.filter(
+            return COLUMNS_JUST_QUESTION_ANSWER_MODE.filter(
               (c) => {
                 return _equalsFuzzy(c, columnName)
               }).length > 0
           }
         ).length > 0) {
-          extractedData.mode = CSV_MODE_COLUMN
+          extractedData.mode = CSV_MODE_QUESTION_ANSWER
         } else {
-          extractedData.mode = CSV_MODE_SENDER
+          extractedData.mode = CSV_MODE_ROW_PER_MESSAGE
         }
       } else {
-        extractedData.mode = CSV_MODE_SENDER
+        extractedData.mode = CSV_MODE_ROW_PER_MESSAGE
       }
       debug(`Compile mode is ${extractedData.mode}`)
     }
 
     // adds columnMappingMode
     {
-      if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_COLUMN')).length || Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_SENDER')).length) {
+      if (Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_QUESTION_ANSWER')).length || Object.keys(this._GetCapabilitiesByPrefix('SCRIPTING_CSV_MODE_ROW_PER_MESSAGE')).length) {
         extractedData.columnMappingMode = 'CAP'
       } else if (extractedData.header) {
         const columnFoundByName = extractedData.header.filter((columnName) => {
-          return DEFAULT_MAPPING_SENDER[columnName] || DEFAULT_MAPPING_COLUMNS[columnName]
+          return DEFAULT_MAPPING_ROW_PER_MESSAGE[columnName] || DEFAULT_MAPPING_QUESTION_ANSWER[columnName]
         })
         if (columnFoundByName) {
           extractedData.columnMappingMode = 'NAME'
@@ -199,7 +199,7 @@ module.exports = class CompilerCsv extends CompilerBase {
         return def
       }
 
-      const defMapping = (extractedData.mode === CSV_MODE_SENDER) ? ((extractedData.columnCount > 2) ? DEFAULT_MAPPING_SENDER : DEFAULT_MAPPING_SENDER_1_COLUMN) : DEFAULT_MAPPING_COLUMNS
+      const defMapping = (extractedData.mode === CSV_MODE_ROW_PER_MESSAGE) ? ((extractedData.columnCount > 2) ? DEFAULT_MAPPING_ROW_PER_MESSAGE : DEFAULT_MAPPING_ROW_PER_MESSAGE_1_COLUMN) : DEFAULT_MAPPING_QUESTION_ANSWER
 
       Object.keys(defMapping).forEach(columnName => {
         const entry = defMapping[columnName]
@@ -233,7 +233,7 @@ module.exports = class CompilerCsv extends CompilerBase {
     const scriptResults = []
     // extract scripts
     {
-      if (extractedData.mode === CSV_MODE_SENDER) {
+      if (extractedData.mode === CSV_MODE_ROW_PER_MESSAGE) {
         if (_exists(extractedData.mapping['conversationId']) || _exists(extractedData.mapping['sender'])) {
           _checkRequiredMapping(extractedData, 'conversationId', 'sender', 'text')
         } else {
@@ -300,7 +300,7 @@ module.exports = class CompilerCsv extends CompilerBase {
           throw new Error('Illegal state, convo can be empty here')
         }
         scriptResults.push(_createConvo(extractedData.rows.length - 1))
-      } else if (extractedData.mode === CSV_MODE_COLUMN) {
+      } else if (extractedData.mode === CSV_MODE_QUESTION_ANSWER) {
         _checkRequiredMapping(extractedData, 'question', 'answer')
         for (let rowIndex = 0; rowIndex < extractedData.rows.length; rowIndex++) {
           const convoId = rowIndex
