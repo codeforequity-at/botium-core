@@ -117,4 +117,28 @@ describe('compiler.compilerxlsx', function () {
     assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
     assert.lengthOf(context.utterances, 0)
   })
+  it('should read 2x2 convos and no utterances in simplified mode', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_2x2convos_simplified.xlsx'))
+    const context = buildContext()
+
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.lengthOf(context.convos, 4)
+    assert.lengthOf(context.convos[0].conversation, 2)
+    assert.lengthOf(context.convos[1].conversation, 2)
+    assert.lengthOf(context.convos[2].conversation, 2)
+    assert.lengthOf(context.convos[3].conversation, 2)
+    assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
+    assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
+    assert.equal(context.convos[1].conversation[0].messageText, 'test 3')
+    assert.equal(context.convos[1].conversation[1].messageText, 'test 4')
+    assert.equal(context.convos[2].conversation[0].messageText, 'test 1')
+    assert.equal(context.convos[2].conversation[1].messageText, 'test 2')
+    assert.equal(context.convos[3].conversation[0].messageText, 'test 3')
+    assert.equal(context.convos[3].conversation[1].messageText, 'test 4')
+    assert.lengthOf(context.utterances, 0)
+  })
 })

@@ -97,36 +97,69 @@ module.exports = class CompilerXlsx extends CompilerBase {
         let currentConvo = []
         let emptylines = 0
         let startcell = null
-        while (true) {
+        // each row is a conversation with a question and an answer
+        const _extractRow = () => {
           const meCell = this.colnames[colindex] + rowindex
+          const meCellValue = sheet[meCell] && sheet[meCell].v
           const botCell = this.colnames[colindex + 1] + rowindex
+          const botCellValue = sheet[botCell] && sheet[botCell].v
 
-          if (sheet[meCell] && sheet[meCell].v) {
-            currentConvo.push(Object.assign(
-              { sender: 'me', stepTag: 'Cell ' + meCell },
-              parseCell('me', sheet[meCell].v)
-            ))
-            if (!startcell) startcell = meCell
-            emptylines = 0
-          } else if (sheet[botCell] && sheet[botCell].v) {
-            currentConvo.push(Object.assign(
-              { sender: 'bot', stepTag: 'Cell ' + botCell },
-              parseCell('bot', sheet[botCell].v)
-            ))
-            if (!startcell) startcell = botCell
-            emptylines = 0
-          } else {
-            if (currentConvo.length > 0) {
+          return { meCell, meCellValue, botCell, botCellValue }
+        }
+        const { meCellValue, botCellValue } = _extractRow()
+        let questionAnswerMode = meCellValue && botCellValue
+
+        while (true) {
+          const { meCell, meCellValue, botCell, botCellValue } = _extractRow()
+          if (questionAnswerMode) {
+            if (meCellValue || botCellValue) {
+              currentConvo = []
+              currentConvo.push(Object.assign(
+                { sender: 'me', stepTag: 'Cell ' + meCell },
+                parseCell('me', meCellValue)
+              ))
+              startcell = meCell
+              currentConvo.push(Object.assign(
+                { sender: 'bot', stepTag: 'Cell ' + botCell },
+                parseCell('bot', botCellValue)
+              ))
               scriptResults.push(new Convo(this.context, {
                 header: {
                   name: `${sheetname}-${startcell}`
                 },
                 conversation: currentConvo
               }))
+            } else {
+              emptylines++
             }
-            currentConvo = []
-            startcell = null
-            emptylines++
+          } else {
+            if (meCellValue) {
+              currentConvo.push(Object.assign(
+                { sender: 'me', stepTag: 'Cell ' + meCell },
+                parseCell('me', meCellValue)
+              ))
+              if (!startcell) startcell = meCell
+              emptylines = 0
+            } else if (botCellValue) {
+              currentConvo.push(Object.assign(
+                { sender: 'bot', stepTag: 'Cell ' + botCell },
+                parseCell('bot', botCellValue)
+              ))
+              if (!startcell) startcell = botCell
+              emptylines = 0
+            } else {
+              if (currentConvo.length > 0) {
+                scriptResults.push(new Convo(this.context, {
+                  header: {
+                    name: `${sheetname}-${startcell}`
+                  },
+                  conversation: currentConvo
+                }))
+              }
+              currentConvo = []
+              startcell = null
+              emptylines++
+            }
           }
           rowindex++
 
