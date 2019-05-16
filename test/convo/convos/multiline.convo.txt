@@ -1,0 +1,21 @@
+2 steps
+
+#begin
+
+#me
+year is
+$year
+
+#bot
+year is
+$year
+
+#me
+year is
+$year
+
+#bot
+year is
+$year_captured
+
+#end
