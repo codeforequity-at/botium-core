@@ -1,0 +1,5 @@
+conversationId,sender,text
+Logout,bot,Are you sure?
+Logout,me,Yes
+Login,bot,Password please!
+Login,me,123456

@@ -16,6 +16,30 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
+it('scripting memory function as asserter', async function () {
+  const myCaps = {
+    [Capabilities.PROJECTNAME]: 'convo.scriptingmemory',
+    [Capabilities.CONTAINERMODE]: ({ queueBotSays }) => {
+      return {
+        UserSays (msg) {
+          const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: new Date().toLocaleDateString() }
+          queueBotSays(botMsg)
+        }
+      }
+    },
+    [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
+  }
+  const driver = new BotDriver(myCaps)
+  const compiler = driver.BuildCompiler()
+  const container = await driver.Build()
+
+  compiler.ReadScript(path.resolve(__dirname, 'convos'), 'assert_date.convo.txt')
+  assert.equal(compiler.convos.length, 1)
+  await compiler.convos[0].Run(container)
+
+  container && await container.Clean()
+})
+
 describe('convo.scriptingmemory.convos', function () {
   beforeEach(async function () {
     const myCaps = {
@@ -78,6 +102,17 @@ describe('convo.scriptingmemory.convos', function () {
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
     assert.isUndefined(transcript.scriptingMemory['$year'])
+  })
+  it('should append multiline messages from scripting memory', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'multiline.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    transcript.steps[0].actual.messageText.startsWith('year is\n21')
+    transcript.steps[1].actual.messageText.startsWith('year is\n21')
+    assert.isObject(transcript.scriptingMemory)
+    assert.isDefined(transcript.scriptingMemory['$year_captured'])
+    assert.equal(transcript.scriptingMemory['$year_captured'].length, 4)
   })
 })
 
@@ -578,6 +613,15 @@ describe('convo.scriptingMemory.api', function () {
         '$time_H_A'
       )
       assert(result.indexOf(' ') > 0)
+    })
+
+    it('timestamp', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$timestamp'
+      )
+      assert(result.length === 13, '$timestap is invalid')
     })
 
     it('year', async function () {

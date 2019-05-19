@@ -1,5 +1,4 @@
 const util = require('util')
-const isJSON = require('is-json')
 const XLSX = require('xlsx')
 const _ = require('lodash')
 const debug = require('debug')('botium-CompilerXlsx')
@@ -9,6 +8,7 @@ const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const Utterance = require('./Utterance')
 const { Convo } = require('./Convo')
+const { linesToConvoStep } = require('./helper')
 
 module.exports = class CompilerXlsx extends CompilerBase {
   constructor (context, caps = {}) {
@@ -91,74 +91,97 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (!_.isString(content)) content = '' + content
           const lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
 
-          const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false }
+          return linesToConvoStep(lines, sender, this.context, eol)
+        }
+        const _extractRow = (rowindex) => {
+          const meCell = this.colnames[colindex] + rowindex
+          const meCellValue = sheet[meCell] && sheet[meCell].v
+          const botCell = this.colnames[colindex + 1] + rowindex
+          const botCellValue = sheet[botCell] && sheet[botCell].v
 
-          const textLines = []
-          lines.forEach(l => {
-            const name = l.split(' ')[0]
-            if (sender !== 'me' && this.context.IsAsserterValid(name)) {
-              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-              convoStep.asserters.push({ name, args })
-            } else if (sender === 'me' && this.context.IsUserInputValid(name)) {
-              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-              convoStep.userInputs.push({ name, args })
-            } else if (this.context.IsLogicHookValid(name)) {
-              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-              convoStep.logicHooks.push({ name, args })
-            } else {
-              textLines.push(l)
+          return { meCell, meCellValue, botCell, botCellValue }
+        }
+
+        let questionAnswerMode = this._GetOptionalCapability(Capabilities.SCRIPTING_XLSX_MODE)
+        if (questionAnswerMode !== null) {
+          questionAnswerMode = questionAnswerMode === 'QUESTION_ANSWER'
+          debug(`questionAnswerMode to ${questionAnswerMode} (capability)`)
+        } else {
+          let emptyRowCount = 0
+          let index = 0
+          while (emptyRowCount < 2) {
+            const { meCellValue, botCellValue } = _extractRow(rowindex + index)
+            if (!meCellValue && !botCellValue) {
+              emptyRowCount++
+            } else if (meCellValue && botCellValue) {
+              questionAnswerMode = true
+              debug(`questionAnswerMode to true (question-answer row found)`)
             }
-          })
-          if (textLines.length > 0) {
-            if (textLines[0].startsWith('!')) {
-              convoStep.not = true
-              textLines[0] = textLines[0].substr(1)
-            }
-            let content = textLines.join(' ')
-            if (isJSON(content)) {
-              convoStep.sourceData = JSON.parse(content)
-            } else {
-              convoStep.messageText = textLines.join(eol)
-            }
-          } else {
-            convoStep.messageText = ''
+            index++
           }
-          return convoStep
+
+          if (questionAnswerMode === null) {
+            questionAnswerMode = false
+            debug(`questionAnswerMode to false (no question-answer row found)`)
+          }
         }
 
         let currentConvo = []
         let emptylines = 0
         let startcell = null
-        while (true) {
-          const meCell = this.colnames[colindex] + rowindex
-          const botCell = this.colnames[colindex + 1] + rowindex
+        // each row is a conversation with a question and an answer
 
-          if (sheet[meCell] && sheet[meCell].v) {
-            currentConvo.push(Object.assign(
-              { sender: 'me', stepTag: 'Cell ' + meCell },
-              parseCell('me', sheet[meCell].v)
-            ))
-            if (!startcell) startcell = meCell
-            emptylines = 0
-          } else if (sheet[botCell] && sheet[botCell].v) {
-            currentConvo.push(Object.assign(
-              { sender: 'bot', stepTag: 'Cell ' + botCell },
-              parseCell('bot', sheet[botCell].v)
-            ))
-            if (!startcell) startcell = botCell
-            emptylines = 0
-          } else {
-            if (currentConvo.length > 0) {
+        while (true) {
+          const { meCell, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
+          if (questionAnswerMode) {
+            if (meCellValue || botCellValue) {
+              currentConvo = []
+              currentConvo.push(Object.assign(
+                { sender: 'me', stepTag: 'Cell ' + meCell },
+                parseCell('me', meCellValue)
+              ))
+              startcell = meCell
+              currentConvo.push(Object.assign(
+                { sender: 'bot', stepTag: 'Cell ' + botCell },
+                parseCell('bot', botCellValue)
+              ))
               scriptResults.push(new Convo(this.context, {
                 header: {
                   name: `${sheetname}-${startcell}`
                 },
                 conversation: currentConvo
               }))
+            } else {
+              emptylines++
             }
-            currentConvo = []
-            startcell = null
-            emptylines++
+          } else {
+            if (meCellValue) {
+              currentConvo.push(Object.assign(
+                { sender: 'me', stepTag: 'Cell ' + meCell },
+                parseCell('me', meCellValue)
+              ))
+              if (!startcell) startcell = meCell
+              emptylines = 0
+            } else if (botCellValue) {
+              currentConvo.push(Object.assign(
+                { sender: 'bot', stepTag: 'Cell ' + botCell },
+                parseCell('bot', botCellValue)
+              ))
+              if (!startcell) startcell = botCell
+              emptylines = 0
+            } else {
+              if (currentConvo.length > 0) {
+                scriptResults.push(new Convo(this.context, {
+                  header: {
+                    name: `${sheetname}-${startcell}`
+                  },
+                  conversation: currentConvo
+                }))
+              }
+              currentConvo = []
+              startcell = null
+              emptylines++
+            }
           }
           rowindex++
 

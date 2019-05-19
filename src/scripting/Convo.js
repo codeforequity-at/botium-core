@@ -261,7 +261,6 @@ class Convo {
         if (convoStep.sender === 'begin' || convoStep.sender === 'end') {
           convoStepDoneCb()
         } else if (convoStep.sender === 'me') {
-          convoStep.messageText = this._checkNormalizeText(container, convoStep.messageText)
           convoStep.messageText = ScriptingMemory.apply(container, scriptingMemory, convoStep.messageText)
 
           return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg: convoStep })
@@ -280,7 +279,7 @@ class Convo {
               transcriptStep.actual = new BotiumMockMessage(convoStep)
               lastMeMsg = convoStep
               transcriptStep.botBegin = new Date()
-              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex }, transcriptStep.actual))
+              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, transcriptStep.actual))
                 .then(() => {
                   transcriptStep.botEnd = new Date()
                   return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory })
@@ -320,8 +319,9 @@ class Convo {
               }
               if (convoStep.messageText) {
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
-                ScriptingMemory.fill(container, scriptingMemory, response, convoStep.messageText, this.scriptingEvents)
-                const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, convoStep.messageText)
+                const messageText = this._checkNormalizeText(container, convoStep.messageText)
+                ScriptingMemory.fill(container, scriptingMemory, response, messageText, this.scriptingEvents)
+                const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, messageText)
                 if (convoStep.not) {
                   try {
                     this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)

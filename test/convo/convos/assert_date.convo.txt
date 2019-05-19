@@ -1,0 +1,7 @@
+asserting date
+
+#me
+hello!
+
+#bot
+$date

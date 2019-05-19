@@ -10,6 +10,7 @@ const debug = require('debug')('botium-SimpleRestContainer')
 
 const botiumUtils = require('../../helpers/Utils')
 const Capabilities = require('../../Capabilities')
+const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 
 module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
@@ -34,10 +35,28 @@ module.exports = class SimpleRestContainer {
             context: {},
             msg: {},
             botium: {
-              conversationId: uuidv4(),
+              conversationId: null,
               stepId: null
-            }
+            },
+            // wrap the functions into parameterless function as mustache wants it
+            // IF THEY HAVE PARAMETER. It is because Mustache expects functions with parameter,
+            // and without parameter different. And they are called differently from template.
+            // -> optional parameters are not working here!
+            // render(text) is required for forcing mustache to replace valiables in the text first,
+            // then send it to the function.
+            // mapKeys: remove starting $
+            fnc: _.mapValues(_.mapKeys(SCRIPTING_FUNCTIONS, (value, key) => key.substring(1)), (theFunction) => {
+              return theFunction.length ? function () { return (text, render) => theFunction(render(text)) } : theFunction
+            })
           }
+
+          if (this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]) {
+            const template = _.isString(this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE])
+            this.view.botium.conversationId = Mustache.render(template, this.view)
+          } else {
+            this.view.botium.conversationId = uuidv4()
+          }
+
           if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
             try {
               this.view.context = _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) ? this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT] : JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
@@ -84,12 +103,90 @@ module.exports = class SimpleRestContainer {
   }
 
   UserSays (mockMsg) {
-    this.view.botium.stepId = uuidv4()
     return this._doRequest(mockMsg, true)
   }
 
   Stop () {
     this.view = {}
+  }
+
+  _processBodyAsync (body, isFromUser) {
+    if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
+      const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
+      if (_.isArray(contextNodes) && contextNodes.length > 0) {
+        this.view.context = contextNodes[0]
+        debug(`found context: ${util.inspect(this.view.context)}`)
+      } else {
+        this.view.context = {}
+      }
+    } else {
+      this.view.context = body
+    }
+
+    if (isFromUser) {
+      const media = []
+      const buttons = []
+
+      if (this.caps[Capabilities.SIMPLEREST_MEDIA_JSONPATH]) {
+        const jsonPathMediaCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_MEDIA_JSONPATH))
+        _(jsonPathMediaCaps).keys().sort().each((key) => {
+          const jsonPath = this.caps[key]
+          const responseMedia = jp.query(body, jsonPath)
+          if (responseMedia) {
+            (_.isArray(responseMedia) ? responseMedia : [responseMedia]).forEach(m =>
+              media.push({
+                mediaUri: m,
+                mimeType: mime.lookup(m) || 'application/unknown'
+              })
+            )
+            debug(`found response media: ${util.inspect(media)}`)
+          }
+        })
+      }
+      if (this.caps[Capabilities.SIMPLEREST_BUTTONS_JSONPATH]) {
+        const jsonPathButtonsCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_BUTTONS_JSONPATH))
+        _(jsonPathButtonsCaps).keys().sort().each((key) => {
+          const jsonPath = this.caps[key]
+          const responseButtons = jp.query(body, jsonPath)
+          if (responseButtons) {
+            (_.isArray(responseButtons) ? responseButtons : [responseButtons]).forEach(b =>
+              buttons.push({
+                text: b
+              })
+            )
+            debug(`found response buttons: ${util.inspect(buttons)}`)
+          }
+        })
+      }
+
+      return new Promise((resolve) => {
+        let hasMessageText = false
+        if (this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) {
+          const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_RESPONSE_JSONPATH))
+          _(jsonPathCaps).keys().sort().each((key) => {
+            const jsonPath = this.caps[key]
+            debug(`eval json path ${jsonPath}`)
+
+            const responseTexts = jp.query(body, jsonPath)
+            debug(`found response texts: ${util.inspect(responseTexts)}`)
+
+            const messageTexts = (_.isArray(responseTexts) ? responseTexts : [responseTexts])
+            messageTexts.forEach((messageText) => {
+              if (!messageText) return
+
+              hasMessageText = true
+              const botMsg = { sourceData: body, messageText, media, buttons }
+              this.queueBotSays(botMsg)
+            })
+          })
+        }
+        if (!hasMessageText && (media.length > 0 || buttons.length > 0)) {
+          const botMsg = { sourceData: body, media, buttons }
+          this.queueBotSays(botMsg)
+        }
+        resolve()
+      })
+    }
   }
 
   _doRequest (msg, isFromUser) {
@@ -105,7 +202,6 @@ module.exports = class SimpleRestContainer {
             debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
             return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))
           }
-          resolve(this)
 
           if (body) {
             debug(`got response body: ${JSON.stringify(body, null, 2)}`)
@@ -120,81 +216,14 @@ module.exports = class SimpleRestContainer {
             if (!_.isObject(body)) {
               return reject(new Error(`Body not an object, cannot continue. Found type: ${typeof body}`))
             }
-
-            if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
-              const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
-              if (_.isArray(contextNodes) && contextNodes.length > 0) {
-                this.view.context = contextNodes[0]
-                debug(`found context: ${util.inspect(this.view.context)}`)
-              } else {
-                this.view.context = {}
-              }
-            } else {
-              this.view.context = body
-            }
-
-            if (isFromUser) {
-              const media = []
-              const buttons = []
-
-              if (this.caps[Capabilities.SIMPLEREST_MEDIA_JSONPATH]) {
-                const jsonPathMediaCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_MEDIA_JSONPATH))
-                _(jsonPathMediaCaps).keys().sort().each((key) => {
-                  const jsonPath = this.caps[key]
-                  const responseMedia = jp.query(body, jsonPath)
-                  if (responseMedia) {
-                    (_.isArray(responseMedia) ? responseMedia : [responseMedia]).forEach(m =>
-                      media.push({
-                        mediaUri: m,
-                        mimeType: mime.lookup(m) || 'application/unknown'
-                      })
-                    )
-                    debug(`found response media: ${util.inspect(media)}`)
-                  }
-                })
-              }
-              if (this.caps[Capabilities.SIMPLEREST_BUTTONS_JSONPATH]) {
-                const jsonPathButtonsCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_BUTTONS_JSONPATH))
-                _(jsonPathButtonsCaps).keys().sort().each((key) => {
-                  const jsonPath = this.caps[key]
-                  const responseButtons = jp.query(body, jsonPath)
-                  if (responseButtons) {
-                    (_.isArray(responseButtons) ? responseButtons : [responseButtons]).forEach(b =>
-                      buttons.push({
-                        text: b
-                      })
-                    )
-                    debug(`found response buttons: ${util.inspect(buttons)}`)
-                  }
-                })
-              }
-
-              let hasMessageText = false
-              if (this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) {
-                const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_RESPONSE_JSONPATH))
-                _(jsonPathCaps).keys().sort().each((key) => {
-                  const jsonPath = this.caps[key]
-                  debug(`eval json path ${jsonPath}`)
-
-                  const responseTexts = jp.query(body, jsonPath)
-                  debug(`found response texts: ${util.inspect(responseTexts)}`)
-
-                  const messageTexts = (_.isArray(responseTexts) ? responseTexts : [responseTexts])
-                  messageTexts.forEach((messageText) => {
-                    if (!messageText) return
-
-                    hasMessageText = true
-                    const botMsg = { sourceData: body, messageText, media, buttons }
-                    this.queueBotSays(botMsg)
-                  })
-                })
-              }
-              if (!hasMessageText && (media.length > 0 || buttons.length > 0)) {
-                const botMsg = { sourceData: body, media, buttons }
-                this.queueBotSays(botMsg)
-              }
-            }
+            // dont block caller process with responding in its time
+            this._processBodyAsync(body, isFromUser)
+              .catch((err) => {
+                debug(`failed to process body ${util.inspect(err)}`)
+              })
           }
+
+          resolve(this)
         }
       })
     })
@@ -202,10 +231,19 @@ module.exports = class SimpleRestContainer {
 
   _buildRequest (msg) {
     this.view.msg = Object.assign({}, msg)
-    var nonEncodedMessage = this.view.msg.messageText
+
+    let nonEncodedMessage = this.view.msg.messageText
     if (this.view.msg.messageText) {
       this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
     }
+
+    if (this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]) {
+      const template = _.isString(this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE])
+      this.view.botium.stepId = Mustache.render(template, this.view)
+    } else {
+      this.view.botium.stepId = uuidv4()
+    }
+
     const uri = Mustache.render(this.caps[Capabilities.SIMPLEREST_URL], this.view)
 
     const requestOptions = {
