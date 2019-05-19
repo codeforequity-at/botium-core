@@ -16,6 +16,30 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
+it('scripting memory function as asserter', async function () {
+  const myCaps = {
+    [Capabilities.PROJECTNAME]: 'convo.scriptingmemory',
+    [Capabilities.CONTAINERMODE]: ({ queueBotSays }) => {
+      return {
+        UserSays (msg) {
+          const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: new Date().toLocaleDateString() }
+          queueBotSays(botMsg)
+        }
+      }
+    },
+    [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
+  }
+  const driver = new BotDriver(myCaps)
+  const compiler = driver.BuildCompiler()
+  const container = await driver.Build()
+
+  compiler.ReadScript(path.resolve(__dirname, 'convos'), 'assert_date.convo.txt')
+  assert.equal(compiler.convos.length, 1)
+  await compiler.convos[0].Run(container)
+
+  container && await container.Clean()
+})
+
 describe('convo.scriptingmemory.convos', function () {
   beforeEach(async function () {
     const myCaps = {
