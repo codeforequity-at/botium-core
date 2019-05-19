@@ -67,7 +67,6 @@ module.exports = class CompilerTxt extends CompilerBase {
     const parseMsg = (lines) => {
       lines = lines || []
       return linesToConvoStep(lines, convoStepSender, this.context, this.eol)
-
     }
 
     let pushPrev = () => {
