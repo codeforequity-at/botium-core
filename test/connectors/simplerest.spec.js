@@ -20,9 +20,36 @@ const myCapsPost = {
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { BODY1: 'BODY1VALUE', BODY2: '{{msg.messageText}}' },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
 }
+const myCapsScriptingMemory = {
+  [Capabilities.CONTAINERMODE]: 'simplerest',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+  [Capabilities.SIMPLEREST_METHOD]: 'POST',
+  [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
+    FUNCTION_WITHOUT_PARAM: '{{fnc.year}}',
+    FUNCTION_WITH_PARAM: '{{#fnc.random}}5{{/fnc.random}}',
+    FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY: '{{#fnc.random}}{{msg.scriptingMemory.functionArgument}}{{/fnc.random}}',
+    USING_CODE: '{{#fnc.func}}1 + 2{{/fnc.func}}',
+    VARIABLE: '{{msg.scriptingMemory.variable}}'
+  },
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+}
+const myCapsConvAndStepId = {
+  [Capabilities.CONTAINERMODE]: 'simplerest',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+  [Capabilities.SIMPLEREST_METHOD]: 'POST',
+  [Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]: '{{fnc.timestamp}}',
+  [Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]: '{{#fnc.random}}7{{/fnc.random}}',
+  [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { SESSION_ID: '{{botium.conversationId}}', MESSAGE_ID: '{{botium.stepId}}' },
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+}
 const msg = {
   messageText: 'messageText',
-  token: 'myToken'
+  token: 'myToken',
+  scriptingMemory: {
+    variable: 'value',
+    functionArgument: '7'
+
+  }
 }
 
 describe('connectors.simplerest.nock', function () {
@@ -207,6 +234,53 @@ describe('connectors.simplerest.build', function () {
     assert.isObject(request.headers)
     assert.isString(request.body)
     assert.equal(request.body, 'BODY1=BODY1VALUE&BODY2=messageText')
+
+    await container.Clean()
+  })
+  it('should use scriptingMemory variables', async function () {
+    const myCaps = Object.assign({}, myCapsScriptingMemory)
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+
+    await container.Start()
+    const request = container.pluginInstance._buildRequest(msg)
+
+    assert.isTrue(request.json)
+    assert.exists(request.body)
+
+    assert.exists(request.body.FUNCTION_WITHOUT_PARAM)
+    assert.equal(request.body.FUNCTION_WITHOUT_PARAM.length, 4)
+
+    assert.exists(request.body.FUNCTION_WITH_PARAM)
+    assert.equal(request.body.FUNCTION_WITH_PARAM.length, 5)
+
+    assert.exists(request.body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY)
+    assert.equal(request.body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY.length, 7)
+
+    assert.exists(request.body.USING_CODE)
+    assert.equal(request.body.USING_CODE, 3)
+
+    assert.exists(request.body.VARIABLE)
+    assert.equal(request.body.VARIABLE, 'value')
+
+    await container.Clean()
+  })
+  it('should use scriptingMemory variables for step, and conversation id if template is set', async function () {
+    const myCaps = Object.assign({}, myCapsConvAndStepId)
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+
+    await container.Start()
+    const request = container.pluginInstance._buildRequest(msg)
+
+    assert.isTrue(request.json)
+    assert.exists(request.body)
+
+    assert.exists(request.body.SESSION_ID)
+    assert.equal(request.body.SESSION_ID.length, 13)
+
+    assert.exists(request.body.MESSAGE_ID)
+    assert.equal(request.body.MESSAGE_ID.length, 7)
 
     await container.Clean()
   })

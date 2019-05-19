@@ -64,6 +64,10 @@ const SCRIPTING_FUNCTIONS = {
     return moment().format('h A')
   },
 
+  '$timestamp': () => {
+    return Date.now()
+  },
+
   '$year': () => {
     return new Date().getFullYear()
   },
@@ -181,5 +185,6 @@ module.exports = {
   apply,
   applyToArgs,
   fill,
-  RESERVED_WORDS
+  RESERVED_WORDS,
+  SCRIPTING_FUNCTIONS
 }

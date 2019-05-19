@@ -279,7 +279,7 @@ class Convo {
               transcriptStep.actual = new BotiumMockMessage(convoStep)
               lastMeMsg = convoStep
               transcriptStep.botBegin = new Date()
-              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex }, transcriptStep.actual))
+              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, transcriptStep.actual))
                 .then(() => {
                   transcriptStep.botEnd = new Date()
                   return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory })

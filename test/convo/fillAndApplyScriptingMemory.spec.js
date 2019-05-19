@@ -615,6 +615,15 @@ describe('convo.scriptingMemory.api', function () {
       assert(result.indexOf(' ') > 0)
     })
 
+    it('timestamp', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$timestamp'
+      )
+      assert(result.length === 13, '$timestap is invalid')
+    })
+
     it('year', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
