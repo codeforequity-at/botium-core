@@ -1,5 +1,5 @@
-const BotDriver = require('../../index').BotDriver
-const Events = require('../../index').Events
+const BotDriver = require('../../../index').BotDriver
+const Events = require('../../../index').Events
 
 const driver = new BotDriver()
 driver.on(Events.MESSAGE_SENTTOBOT, (container, msg) => {
