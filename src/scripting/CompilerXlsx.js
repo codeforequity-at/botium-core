@@ -1,5 +1,4 @@
 const util = require('util')
-const isJSON = require('is-json')
 const XLSX = require('xlsx')
 const _ = require('lodash')
 const debug = require('debug')('botium-CompilerXlsx')
@@ -9,6 +8,7 @@ const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const Utterance = require('./Utterance')
 const { Convo } = require('./Convo')
+const { linesToConvoStep } = require('./helper')
 
 module.exports = class CompilerXlsx extends CompilerBase {
   constructor (context, caps = {}) {
@@ -91,41 +91,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (!_.isString(content)) content = '' + content
           const lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
 
-          const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false }
+          return linesToConvoStep(lines, sender, this.context, eol)
 
-          const textLines = []
-          lines.forEach(l => {
-            const name = l.split(' ')[0]
-            if (sender !== 'me' && this.context.IsAsserterValid(name)) {
-              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-              convoStep.asserters.push({ name, args })
-            } else if (sender === 'me' && this.context.IsUserInputValid(name)) {
-              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-              convoStep.userInputs.push({ name, args })
-            } else if (this.context.IsLogicHookValid(name)) {
-              const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-              convoStep.logicHooks.push({ name, args })
-            } else {
-              textLines.push(l)
-            }
-          })
-          if (textLines.length > 0) {
-            if (textLines[0].startsWith('!')) {
-              if (!textLines[0].startsWith('!!')) {
-                convoStep.not = true
-              }
-              textLines[0] = textLines[0].substr(1)
-            }
-            let content = textLines.join(' ')
-            if (isJSON(content)) {
-              convoStep.sourceData = JSON.parse(content)
-            } else {
-              convoStep.messageText = textLines.join(eol)
-            }
-          } else {
-            convoStep.messageText = ''
-          }
-          return convoStep
+
         }
 
         let currentConvo = []

@@ -10,6 +10,7 @@ module.exports = class BotiumMockMessage {
     this.buttons = (fromJson.buttons ? fromJson.buttons.map((a) => new BotiumMockButton(a)) : null)
     this.cards = (fromJson.cards ? fromJson.cards.map((a) => new BotiumMockCard(a)) : null)
     this.forms = (fromJson.forms ? fromJson.forms.map((a) => new BotiumMockForm(a)) : null)
+    this.nlp = fromJson.nlp
     this.sourceData = fromJson.sourceData
     this.sourceAction = fromJson.sourceAction
     this.attachments = (fromJson.attachments ? fromJson.attachments.map((a) => new BotiumMockAttachment(a)) : null)

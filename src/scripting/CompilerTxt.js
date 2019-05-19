@@ -1,4 +1,3 @@
-const isJSON = require('is-json')
 const _ = require('lodash')
 
 const Capabilities = require('../Capabilities')
@@ -6,6 +5,7 @@ const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
 const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
+const { linesToConvoStep } = require('./helper')
 
 module.exports = class CompilerTxt extends CompilerBase {
   constructor (context, caps = {}) {
@@ -66,42 +66,8 @@ module.exports = class CompilerTxt extends CompilerBase {
 
     const parseMsg = (lines) => {
       lines = lines || []
+      return linesToConvoStep(lines, convoStepSender, this.context, this.eol)
 
-      const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false }
-
-      const textLines = []
-      lines.forEach(l => {
-        const name = l.split(' ')[0]
-        if (convoStepSender !== 'me' && this.context.IsAsserterValid(name)) {
-          const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-          convoStep.asserters.push({ name, args })
-        } else if (convoStepSender === 'me' && this.context.IsUserInputValid(name)) {
-          const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-          convoStep.userInputs.push({ name, args })
-        } else if (this.context.IsLogicHookValid(name)) {
-          const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-          convoStep.logicHooks.push({ name, args })
-        } else {
-          textLines.push(l)
-        }
-      })
-      if (textLines.length > 0) {
-        if (textLines[0].startsWith('!')) {
-          if (!textLines[0].startsWith('!!')) {
-            convoStep.not = true
-          }
-          textLines[0] = textLines[0].substr(1)
-        }
-        let content = textLines.join(' ')
-        if (isJSON(content)) {
-          convoStep.sourceData = JSON.parse(content)
-        } else {
-          convoStep.messageText = textLines.join(this.eol)
-        }
-      } else {
-        convoStep.messageText = ''
-      }
-      return convoStep
     }
 
     let pushPrev = () => {

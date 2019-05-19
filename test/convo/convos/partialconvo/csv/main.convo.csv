@@ -1,0 +1,7 @@
+conversationId,sender,text
+main,me,Login please
+main,me,INCLUDE Login
+main,bot,You are logged in!
+main,me,Logout please!
+main,me,INCLUDE Logout
+main,bot,You are logged out!

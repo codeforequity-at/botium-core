@@ -59,7 +59,6 @@ describe('convo.partialconvo.usecases', function () {
     assert.equal(transcript.steps[7].actual.sender, 'bot')
     assert.equal(transcript.steps[7].actual.messageText, 'You are logged out!')
   })
-
   it('Depth1 xls, everything ok', async function () {
     await _initIt([
       'Password please!',
@@ -90,7 +89,42 @@ describe('convo.partialconvo.usecases', function () {
     assert.equal(transcript.steps[7].actual.sender, 'bot')
     assert.equal(transcript.steps[7].actual.messageText, 'You are logged out!')
   })
+  it('Depth1 csv, everything ok', async function () {
+    await _initIt([
+      'Password please!',
+      'You are logged in!',
+      'Are you sure?',
+      'You are logged out!'
+    ], 'convos/partialconvo/csv', this)
 
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.lengthOf(transcript.steps, 10)
+    assert.equal(transcript.steps[0].actual.sender, 'me')
+    assert.equal(transcript.steps[0].actual.messageText, 'Login please')
+    // placeholder for include
+    assert.equal(transcript.steps[1].actual.sender, 'me')
+    assert.equal(transcript.steps[1].actual.messageText, '')
+    assert.equal(transcript.steps[2].actual.sender, 'bot')
+    assert.equal(transcript.steps[2].actual.messageText, 'Password please!')
+    assert.equal(transcript.steps[3].actual.sender, 'me')
+    assert.equal(transcript.steps[3].actual.messageText, '123456')
+    assert.equal(transcript.steps[4].actual.sender, 'bot')
+    assert.equal(transcript.steps[4].actual.messageText, 'You are logged in!')
+    assert.equal(transcript.steps[5].actual.sender, 'me')
+    assert.equal(transcript.steps[5].actual.messageText, 'Logout please!')
+    // placeholder for include
+    assert.equal(transcript.steps[6].actual.sender, 'me')
+    assert.equal(transcript.steps[6].actual.messageText, '')
+    assert.equal(transcript.steps[7].actual.sender, 'bot')
+    assert.equal(transcript.steps[7].actual.messageText, 'Are you sure?')
+    assert.equal(transcript.steps[8].actual.sender, 'me')
+    assert.equal(transcript.steps[8].actual.messageText, 'Yes')
+    assert.equal(transcript.steps[9].actual.sender, 'bot')
+    assert.equal(transcript.steps[9].actual.messageText, 'You are logged out!')
+  })
   it('Wrong botsays in main convo', async function () {
     await _initIt([
       'Password please!',

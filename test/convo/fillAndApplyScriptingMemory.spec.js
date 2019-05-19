@@ -103,6 +103,17 @@ describe('convo.scriptingmemory.convos', function () {
     assert.isObject(transcript.scriptingMemory)
     assert.isUndefined(transcript.scriptingMemory['$year'])
   })
+  it('should append multiline messages from scripting memory', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'multiline.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    transcript.steps[0].actual.messageText.startsWith('year is\n21')
+    transcript.steps[1].actual.messageText.startsWith('year is\n21')
+    assert.isObject(transcript.scriptingMemory)
+    assert.isDefined(transcript.scriptingMemory['$year_captured'])
+    assert.equal(transcript.scriptingMemory['$year_captured'].length, 4)
+  })
 })
 
 describe('convo.scriptingMemory.api', function () {
