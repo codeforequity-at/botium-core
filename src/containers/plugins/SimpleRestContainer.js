@@ -133,7 +133,7 @@ module.exports = class SimpleRestContainer {
           const jsonPath = this.caps[key]
           const responseMedia = jp.query(body, jsonPath)
           if (responseMedia) {
-            (_.isArray(responseMedia) ? responseMedia : [responseMedia]).forEach(m =>
+            (_.isArray(responseMedia) ? _.flattenDeep(responseMedia) : [responseMedia]).forEach(m =>
               media.push({
                 mediaUri: m,
                 mimeType: mime.lookup(m) || 'application/unknown'
@@ -149,7 +149,7 @@ module.exports = class SimpleRestContainer {
           const jsonPath = this.caps[key]
           const responseButtons = jp.query(body, jsonPath)
           if (responseButtons) {
-            (_.isArray(responseButtons) ? responseButtons : [responseButtons]).forEach(b =>
+            (_.isArray(responseButtons) ? _.flattenDeep(responseButtons) : [responseButtons]).forEach(b =>
               buttons.push({
                 text: b
               })
@@ -170,7 +170,7 @@ module.exports = class SimpleRestContainer {
             const responseTexts = jp.query(body, jsonPath)
             debug(`found response texts: ${util.inspect(responseTexts)}`)
 
-            const messageTexts = (_.isArray(responseTexts) ? responseTexts : [responseTexts])
+            const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
             messageTexts.forEach((messageText) => {
               if (!messageText) return
 
