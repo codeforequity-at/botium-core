@@ -179,8 +179,8 @@ module.exports = class SimpleRestContainer {
           })
         })
       }
-      if (!hasMessageText && (media.length > 0 || buttons.length > 0)) {
-        const botMsg = { sourceData: body, media, buttons }
+      if (!hasMessageText) {
+        const botMsg = { messageText: '', sourceData: body, media, buttons }
         this.queueBotSays(botMsg)
       }
     }
