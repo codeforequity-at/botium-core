@@ -159,33 +159,30 @@ module.exports = class SimpleRestContainer {
         })
       }
 
-      return new Promise((resolve) => {
-        let hasMessageText = false
-        if (this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) {
-          const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_RESPONSE_JSONPATH))
-          _(jsonPathCaps).keys().sort().each((key) => {
-            const jsonPath = this.caps[key]
-            debug(`eval json path ${jsonPath}`)
+      let hasMessageText = false
+      if (this.caps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH]) {
+        const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(Capabilities.SIMPLEREST_RESPONSE_JSONPATH))
+        _(jsonPathCaps).keys().sort().each((key) => {
+          const jsonPath = this.caps[key]
+          debug(`eval json path ${jsonPath}`)
 
-            const responseTexts = jp.query(body, jsonPath)
-            debug(`found response texts: ${util.inspect(responseTexts)}`)
+          const responseTexts = jp.query(body, jsonPath)
+          debug(`found response texts: ${util.inspect(responseTexts)}`)
 
-            const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
-            messageTexts.forEach((messageText) => {
-              if (!messageText) return
+          const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
+          messageTexts.forEach((messageText) => {
+            if (!messageText) return
 
-              hasMessageText = true
-              const botMsg = { sourceData: body, messageText, media, buttons }
-              this.queueBotSays(botMsg)
-            })
+            hasMessageText = true
+            const botMsg = { sourceData: body, messageText, media, buttons }
+            this.queueBotSays(botMsg)
           })
-        }
-        if (!hasMessageText && (media.length > 0 || buttons.length > 0)) {
-          const botMsg = { sourceData: body, media, buttons }
-          this.queueBotSays(botMsg)
-        }
-        resolve()
-      })
+        })
+      }
+      if (!hasMessageText) {
+        const botMsg = { messageText: '', sourceData: body, media, buttons }
+        this.queueBotSays(botMsg)
+      }
     }
   }
 
@@ -217,10 +214,7 @@ module.exports = class SimpleRestContainer {
               return reject(new Error(`Body not an object, cannot continue. Found type: ${typeof body}`))
             }
             // dont block caller process with responding in its time
-            this._processBodyAsync(body, isFromUser)
-              .catch((err) => {
-                debug(`failed to process body ${util.inspect(err)}`)
-              })
+            setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
           }
 
           resolve(this)

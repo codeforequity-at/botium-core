@@ -1,4 +1,6 @@
 const util = require('util')
+const path = require('path')
+const fs = require('fs')
 const _ = require('lodash')
 const promiseRetry = require('promise-retry')
 const debug = require('debug')('botium-PluginConnectorContainer')
@@ -22,6 +24,21 @@ const tryLoadPlugin = (containermode, args) => {
   }
   const loadErr = []
 
+  const tryLoadFile = path.resolve(process.cwd(), containermode)
+  if (fs.existsSync(tryLoadFile)) {
+    try {
+      const plugin = require(tryLoadFile)
+      if (!plugin.PluginVersion || !plugin.PluginClass) {
+        debug(`Invalid Botium plugin loaded from ${tryLoadFile}, expected PluginVersion, PluginClass fields`)
+      } else {
+        const pluginInstance = new plugin.PluginClass(args)
+        debug(`Botium plugin loaded from ${tryLoadFile}`)
+        return pluginInstance
+      }
+    } catch (err) {
+      loadErr.push(`Loading Botium plugin from ${tryLoadFile} failed - ${util.inspect(err)}`)
+    }
+  }
   try {
     const plugin = require(containermode)
     if (!plugin.PluginVersion || !plugin.PluginClass) {
