@@ -33,6 +33,13 @@ const myCapsScriptingMemory = {
   },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
 }
+const myCapsStringTemplate = {
+  [Capabilities.CONTAINERMODE]: 'simplerest',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+  [Capabilities.SIMPLEREST_METHOD]: 'POST',
+  [Capabilities.SIMPLEREST_BODY_TEMPLATE]: '{ "timestamp": "{{fnc.now_DE}}" }',
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+}
 const myCapsConvAndStepId = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
   [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
@@ -262,6 +269,21 @@ describe('connectors.simplerest.build', function () {
 
     assert.exists(request.body.VARIABLE)
     assert.equal(request.body.VARIABLE, 'value')
+
+    await container.Clean()
+  })
+  it('should parse string template', async function () {
+    const myCaps = Object.assign({}, myCapsStringTemplate)
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+
+    await container.Start()
+    const request = container.pluginInstance._buildRequest(msg)
+
+    assert.isTrue(request.json)
+    assert.exists(request.body)
+
+    assert.exists(request.body.timestamp)
 
     await container.Clean()
   })
