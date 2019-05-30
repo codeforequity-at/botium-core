@@ -1,5 +1,6 @@
 const BotiumMockAttachment = require('./BotiumMockAttachment')
 const { BotiumMockMedia, BotiumMockButton, BotiumMockCard, BotiumMockForm } = require('./BotiumMockRichMessageTypes')
+const { BotiumMockAsserter, BotiumMockUserInput, BotiumMockLogicHook } = require('./BotiumMockScripting')
 
 module.exports = class BotiumMockMessage {
   constructor (fromJson = {}) {
@@ -13,5 +14,8 @@ module.exports = class BotiumMockMessage {
     this.sourceData = fromJson.sourceData
     this.sourceAction = fromJson.sourceAction
     this.attachments = (fromJson.attachments ? fromJson.attachments.map((a) => new BotiumMockAttachment(a)) : null)
+    this.asserters = (fromJson.asserters ? fromJson.asserters.map((a) => new BotiumMockAsserter(a)) : null)
+    this.userInputs = (fromJson.userInputs ? fromJson.userInputs.map((a) => new BotiumMockUserInput(a)) : null)
+    this.logicHooks = (fromJson.logicHooks ? fromJson.logicHooks.map((a) => new BotiumMockLogicHook(a)) : null)
   }
 }
