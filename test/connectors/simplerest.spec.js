@@ -49,6 +49,39 @@ const myCapsConvAndStepId = {
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { SESSION_ID: '{{botium.conversationId}}', MESSAGE_ID: '{{botium.stepId}}' },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
 }
+
+const myCapsHookBase = {
+  [Capabilities.CONTAINERMODE]: 'simplerest',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+  [Capabilities.SIMPLEREST_METHOD]: 'POST',
+  [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { SESSION_ID: '{{botium.conversationId}}', MESSAGE_ID: '{{botium.stepId}}' },
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+}
+const myCapsRequestHookFromString = Object.assign({
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: `
+    let counter = 1
+    requestOptions.body = {bodyFieldRequestHook: counter++}
+    context.contextFieldRequestHook = counter
+  `
+}, myCapsHookBase)
+const myCapsRequestHookFromFunction = Object.assign({
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: ({ requestOptions, context }) => {
+    let counter = 1
+    requestOptions.body = { bodyFieldRequestHook: counter++ }
+    context.contextFieldRequestHook = counter
+  }
+}, myCapsHookBase)
+const myCapsRequestHookFromModule = Object.assign({
+  // path relative to SimpleRestContainer???
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: '../../../test/connectors/logicHook'
+}, myCapsHookBase)
+const myCapsResponseHook = Object.assign({
+  // path relative to SimpleRestContainer???
+  [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
+    botMsg.messageText = responseJsonPathKey ? 'message text from hook' : ('messageText found by' + responseJsonPathKey)  
+  `
+}, myCapsHookBase)
+
 const msg = {
   messageText: 'messageText',
   token: 'myToken',
@@ -57,6 +90,25 @@ const msg = {
     functionArgument: '7'
 
   }
+}
+
+const _assertHook = async (myCaps) => {
+  const driver = new BotDriver(myCaps)
+  const container = await driver.Build()
+
+  await container.Start()
+  const request = container.pluginInstance._buildRequest(msg)
+
+  assert.exists(request.body)
+  assert.exists(request.body.bodyFieldRequestHook)
+  assert.equal(request.body.bodyFieldRequestHook, 1)
+
+  assert.exists(container.pluginInstance.view)
+  assert.exists(container.pluginInstance.view.context)
+  assert.exists(container.pluginInstance.view.context.contextFieldRequestHook)
+  assert.equal(container.pluginInstance.view.context.contextFieldRequestHook, 2)
+
+  await container.Clean()
 }
 
 describe('connectors.simplerest.nock', function () {
@@ -303,6 +355,32 @@ describe('connectors.simplerest.build', function () {
 
     assert.exists(request.body.MESSAGE_ID)
     assert.equal(request.body.MESSAGE_ID.length, 7)
+
+    await container.Clean()
+  })
+  it('should use request hook, from string', async function () {
+    await _assertHook(Object.assign({}, myCapsRequestHookFromString))
+  })
+  it('should use request hook, from function', async function () {
+    await _assertHook(Object.assign({}, myCapsRequestHookFromFunction))
+  })
+  it('should use request hook, from module', async function () {
+    await _assertHook(Object.assign({}, myCapsRequestHookFromModule))
+  })
+})
+describe('connectors.simplerest.processBody', function () {
+  it('should build JSON GET url', async function () {
+    const myCaps = Object.assign({}, myCapsResponseHook)
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const msgs = container.pluginInstance._processBodyAsyncImpl({}, true)
+
+    assert.exists(msgs)
+    assert.equal(msgs.length, 1)
+    assert.equal(msgs[0].messageText, 'message text from hook')
 
     await container.Clean()
   })
