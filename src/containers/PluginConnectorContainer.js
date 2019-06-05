@@ -45,7 +45,7 @@ const tryLoadPlugin = (containermode, args) => {
       debug(`Invalid Botium plugin loaded from ${containermode}, expected PluginVersion, PluginClass fields`)
     } else {
       const pluginInstance = new plugin.PluginClass(args)
-      debug(`Botium plugin loaded from ${containermode}`)
+      debug(`Botium plugin loaded from ${containermode}. Plugin version is ${plugin.PluginVersion}`)
       return pluginInstance
     }
   } catch (err) {
@@ -58,7 +58,7 @@ const tryLoadPlugin = (containermode, args) => {
       debug(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
     } else {
       const pluginInstance = new plugin.PluginClass(args)
-      debug(`Botium plugin ${tryLoadPackage} loaded`)
+      debug(`Botium plugin ${tryLoadPackage} loaded. Plugin version is ${plugin.PluginVersion}`)
       return pluginInstance
     }
   } catch (err) {
