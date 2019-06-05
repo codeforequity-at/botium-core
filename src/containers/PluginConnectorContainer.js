@@ -11,6 +11,21 @@ const BaseContainer = require('./BaseContainer')
 const pluginResolver = require('./plugins/index')
 const RetryHelper = require('../helpers/RetryHelper')
 
+const getModuleVersionSafe = (required) => {
+  try {
+    const pckg = require(required + '/package.json')
+    if (pckg.version === undefined) {
+      return 'Not set'
+    } else {
+      return pckg.version
+    }
+  } catch (e) {
+    if (e.code !== 'MODULE_NOT_FOUND') {
+      return 'Unknown error while determining version'
+    }
+    return 'Unknown version'
+  }
+}
 const tryLoadPlugin = (containermode, args) => {
   if (pluginResolver(containermode)) {
     const pluginInstance = new (pluginResolver(containermode))(args)
@@ -45,7 +60,7 @@ const tryLoadPlugin = (containermode, args) => {
       debug(`Invalid Botium plugin loaded from ${containermode}, expected PluginVersion, PluginClass fields`)
     } else {
       const pluginInstance = new plugin.PluginClass(args)
-      debug(`Botium plugin loaded from ${containermode}. Plugin version is ${plugin.PluginVersion}`)
+      debug(`Botium plugin loaded from ${containermode}. Plugin version is ${getModuleVersionSafe(containermode)}`)
       return pluginInstance
     }
   } catch (err) {
@@ -58,7 +73,7 @@ const tryLoadPlugin = (containermode, args) => {
       debug(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
     } else {
       const pluginInstance = new plugin.PluginClass(args)
-      debug(`Botium plugin ${tryLoadPackage} loaded. Plugin version is ${plugin.PluginVersion}`)
+      debug(`Botium plugin ${tryLoadPackage} loaded. Plugin version is ${getModuleVersionSafe(tryLoadPackage)}`)
       return pluginInstance
     }
   } catch (err) {
