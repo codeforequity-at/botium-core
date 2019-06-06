@@ -7,7 +7,7 @@ const EntityValuesAsserter = require('../../../src/scripting/logichook/asserter/
 const asserter = new EntityValuesAsserter(null, {})
 
 describe('EntitiesAsserter', function () {
-  it('expected 0 entities, found 1 enitities, negative case', async function () {
+  it('expected 0 entities, found 1 entities, negative case', async function () {
     return _assert(
       [],
       ['e1'],
@@ -15,21 +15,21 @@ describe('EntitiesAsserter', function () {
     )
   })
 
-  it('expected 0... entities, found 0 enitities, positive case', async function () {
+  it('expected 0... entities, found 0 entities, positive case', async function () {
     return _assert(
       ['...'],
       []
     )
   })
 
-  it('expected 0... entities, found 1 enitities, positive case', async function () {
+  it('expected 0... entities, found 1 entities, positive case', async function () {
     return _assert(
       ['...'],
       ['e1']
     )
   })
 
-  it('expected 3 entities, found 0 enitities, positive case', async function () {
+  it('expected 3 entities, found 0 entities, positive case', async function () {
     return _assert(
       ['e1', 'e2', 'e3'],
       [],
@@ -37,7 +37,7 @@ describe('EntitiesAsserter', function () {
     )
   })
 
-  it('expected 3 entities, found 1 enitities, negative case', async function () {
+  it('expected 3 entities, found 1 entities, negative case', async function () {
     return _assert(
       ['e1', 'e2', 'e3'],
       ['e1'],
@@ -45,14 +45,14 @@ describe('EntitiesAsserter', function () {
     )
   })
 
-  it('expected 3 entities, found 3 enitities, positive case', async function () {
+  it('expected 3 entities, found 3 entities, positive case', async function () {
     return _assert(
       ['e1', 'e2', 'e3'],
       ['e1', 'e2', 'e3']
     )
   })
 
-  it('expected 3 entities, found 3 enitities, but not same 1, negative case', async function () {
+  it('expected 3 entities, found 3 entities, but not same 1, negative case', async function () {
     return _assert(
       ['e1', 'e2', 'e3'],
       ['e1', 'e2', 'e4'],
@@ -60,7 +60,7 @@ describe('EntitiesAsserter', function () {
     )
   })
 
-  it('expected 3 entities, found 3 enitities, but not same 2, negative case', async function () {
+  it('expected 3 entities, found 3 entities, but not same 2, negative case', async function () {
     return _assert(
       ['e1', 'e2', 'e2'],
       ['e1', 'e1', 'e2'],
@@ -68,11 +68,26 @@ describe('EntitiesAsserter', function () {
     )
   })
 
-  it('expected 3 entities, found 4 enitities, nagative case', async function () {
+  it('expected 3 entities, found 4 entities, negative case', async function () {
     return _assert(
       ['e1', 'e2', 'e3'],
       ['e1', 'e2', 'e3', 'e4'],
       { e4: 1 }
+    )
+  })
+
+  it('expected 1... entities, found 0 entities, positive case', async function () {
+    return _assert(
+      ['e1', '...'],
+      [],
+      { e1: -1 }
+    )
+  })
+  it('expected 1... entities, found 1 entities, positive case', async function () {
+    return _assert(
+      ['e1', '...'],
+      ['e2'],
+      { e1: -1, e2: 1 }
     )
   })
 })
