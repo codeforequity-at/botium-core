@@ -154,14 +154,15 @@ const _apply = (scriptingMemory, str) => {
 const fill = (container, scriptingMemory, result, utterance, scriptingEvents) => {
   debug(`fill start: ${util.inspect(scriptingMemory)}`)
   const varRegex = (container.caps[Capabilities.SCRIPTING_MEMORY_MATCHING_MODE] !== 'word') ? '(\\S+)' : '(\\w+)'
-  if (result && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+  if (result && typeof(result) === 'string' && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
     const utterances = scriptingEvents.resolveUtterance({ utterance })
     utterances.forEach(expected => {
+      const isExpectedAString = typeof(expected) === 'string'
       let reExpected = expected
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
-        reExpected = expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&')
+        reExpected = isExpectedAString ? expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&') : expected
       }
-      const varMatches = (expected.match(/\$\w+/g) || []).sort(_longestFirst)
+      const varMatches = ((isExpectedAString ? expected.match(/\$\w+/g) : false) || []).sort(_longestFirst)
       for (let i = 0; i < varMatches.length; i++) {
         reExpected = reExpected.replace(varMatches[i], varRegex)
       }
