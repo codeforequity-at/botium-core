@@ -3,6 +3,7 @@ const vm = require('vm')
 const path = require('path')
 const isClass = require('is-class')
 const debug = require('debug')('botium-asserterUtils')
+
 const { LOGIC_HOOK_INCLUDE } = require('./LogicHookConsts')
 
 const DEFAULT_ASSERTERS = [
@@ -89,7 +90,6 @@ module.exports = class LogicHookUtils {
           debug(`${asserter.ref} asserter already exists, overwriting.`)
         }
         this.asserters[asserter.ref] = this._loadClass(asserter, 'asserter')
-        debug(`Loaded ${asserter.ref} SUCCESSFULLY`)
         if (asserter.global) {
           this.globalAsserters.push(asserter.ref)
           debug(`global asserter: ${asserter.ref} was set and will be executed in every convo`)
@@ -138,33 +138,37 @@ module.exports = class LogicHookUtils {
       throw Error(`Unknown hookType ${hookType}`)
     }
 
-    // gives possibility to use default filters as global filter
+    // 1 gives possibility to use default asserter as global asserter
     if (hookType === 'asserter') {
       const asserter = DEFAULT_ASSERTERS.find(asserter => src === asserter.className)
       if (asserter) {
+        debug(`Loading ${ref} ${hookType}. Using default asserter ${asserter.className} as global asserter`)
         return new (asserter.Class)(this.buildScriptContext, this.caps, args)
       }
     }
     if (hookType === 'logic-hook') {
       const lh = DEFAULT_LOGIC_HOOKS.find(lh => src === lh.className)
       if (lh) {
+        debug(`Loading ${ref} ${hookType}. Using default logic-hook ${lh.className} as global logic-hook`)
         return new (lh.Class)(this.buildScriptContext, this.caps, args)
       }
     }
     if (hookType === 'user-input') {
       const ui = DEFAULT_USER_INPUTS.find(ui => src === ui.className)
       if (ui) {
+        debug(`Loading ${ref} ${hookType}. Using default user-input ${ui.className} as global user-input`)
         return new (ui.Class)(this.buildScriptContext, this.caps, args)
       }
     }
     if (!src) {
       let packageName = `botium-${hookType}-${ref}`
-      debug(`Trying to load ${ref} ${hookType} from ${packageName}`)
       try {
         const CheckClass = require(packageName)
         if (isClass(CheckClass)) {
+          debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as class. Guessed package name.`)
           return new CheckClass(this.buildScriptContext, this.caps, args)
         } else if (_.isFunction(CheckClass)) {
+          debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as function. Guessed package name.`)
           return CheckClass(this.buildScriptContext, this.caps, args)
         } else {
           throw new Error(`${packageName} class or function expected`)
@@ -176,6 +180,7 @@ module.exports = class LogicHookUtils {
     if (isClass(src)) {
       try {
         const CheckClass = src
+        debug(`Loading ${ref} ${hookType}. Using src as class.`)
         return new CheckClass(this.buildScriptContext, this.caps, args)
       } catch (err) {
         throw new Error(`Failed to load package ${ref} from provided class - ${util.inspect(err)}`)
@@ -183,36 +188,47 @@ module.exports = class LogicHookUtils {
     }
     if (_.isFunction(src)) {
       try {
+        debug(`Loading ${ref} ${hookType}. Using src as function.`)
         return src(this.buildScriptContext, this.caps, args)
       } catch (err) {
         throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
       }
     }
     if (_.isObject(src) && !_.isString(src)) {
-      debug(`Trying to load ${ref} ${hookType} as function code`)
-      const hookObject = Object.keys(src).reduce((result, key) => {
-        result[key] = (args) => {
-          const sandbox = vm.createContext({ debug, console, ...args })
-          vm.runInContext(src[key], sandbox)
-          return sandbox.result || Promise.resolve()
-        }
-        return result
-      }, {})
-      return hookObject
+      try {
+        const hookObject = Object.keys(src).reduce((result, key) => {
+          result[key] = (args) => {
+            const script = src[key]
+            try {
+              const sandbox = vm.createContext({ debug, console, ...args })
+              vm.runInContext(script, sandbox)
+              return sandbox.result || Promise.resolve()
+            } catch (err) {
+              throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
+            }
+          }
+          return result
+        }, {})
+        debug(`Loading ${ref} ${hookType}. Using src as function code.`)
+        return hookObject
+      } catch (err) {
+        throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
+      }
     }
 
     const loadErr = []
 
     const tryLoadPackage = src
-    debug(`Trying to load ${ref} ${hookType} from ${tryLoadPackage}`)
     try {
       let CheckClass = require(tryLoadPackage)
       if (CheckClass.default) {
         CheckClass = CheckClass.default
       }
       if (isClass(CheckClass)) {
+        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class`)
         return new CheckClass(this.buildScriptContext, this.caps, args)
       } else if (_.isFunction(CheckClass)) {
+        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class`)
         return CheckClass(this.buildScriptContext, this.caps, args)
       } else {
         throw new Error(`${tryLoadPackage} class or function expected`)
@@ -222,15 +238,16 @@ module.exports = class LogicHookUtils {
     }
 
     const tryLoadFile = path.resolve(process.cwd(), src)
-    debug(`Trying to load ${ref} ${hookType} from ${tryLoadFile}`)
     try {
       let CheckClass = require(tryLoadFile)
       if (CheckClass.default) {
         CheckClass = CheckClass.default
       }
       if (isClass(CheckClass)) {
+        debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class`)
         return new CheckClass(this.buildScriptContext, this.caps, args)
       } else if (_.isFunction(CheckClass)) {
+        debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a function. Loading from ${tryLoadFile} as class`)
         return CheckClass(this.buildScriptContext, this.caps, args)
       } else {
         throw new Error(`${tryLoadFile} class or function expected`)
