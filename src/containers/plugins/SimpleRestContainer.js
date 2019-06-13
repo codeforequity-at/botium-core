@@ -10,6 +10,7 @@ const debug = require('debug')('botium-SimpleRestContainer')
 const path = require('path')
 const fs = require('fs')
 const vm = require('vm')
+const esprima = require('esprima')
 
 const botiumUtils = require('../../helpers/Utils')
 const Capabilities = require('../../Capabilities')
@@ -372,7 +373,13 @@ module.exports = class SimpleRestContainer {
     }
 
     if (_.isString(data)) {
-      debug(`found hook, type: JavaScript as String`)
+      try {
+        esprima.parseScript(data)
+      } catch (err) {
+        throw new Error(`Cant load hook, syntax is not valid - ${util.inspect(err)}`)
+      }
+
+      debug(`Found hook, type: JavaScript as String`)
       return data
     }
 

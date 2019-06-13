@@ -64,6 +64,9 @@ const myCapsRequestHookFromString = Object.assign({
     context.contextFieldRequestHook = counter
   `
 }, myCapsHookBase)
+const myCapsRequestHookFromStringInvalid = Object.assign({
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: `!`
+}, myCapsHookBase)
 const myCapsRequestHookFromFunction = Object.assign({
   [Capabilities.SIMPLEREST_REQUEST_HOOK]: ({ requestOptions, context }) => {
     let counter = 1
@@ -76,7 +79,6 @@ const myCapsRequestHookFromModule = Object.assign({
   [Capabilities.SIMPLEREST_REQUEST_HOOK]: '../../../test/connectors/logicHook'
 }, myCapsHookBase)
 const myCapsResponseHook = Object.assign({
-  // path relative to SimpleRestContainer???
   [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
     botMsg.messageText = responseJsonPathKey ? 'message text from hook' : ('messageText found by' + responseJsonPathKey)  
   `
@@ -364,8 +366,20 @@ describe('connectors.simplerest.build', function () {
   it('should use request hook, from function', async function () {
     await _assertHook(Object.assign({}, myCapsRequestHookFromFunction))
   })
+  it('should use request hook, from function2', async function () {
+    await _assertHook(Object.assign({}, myCapsRequestHookFromFunction))
+  })
   it('should use request hook, from module', async function () {
     await _assertHook(Object.assign({}, myCapsRequestHookFromModule))
+  })
+  it('should use request hook, from invalid string', async function () {
+    const driver = new BotDriver(myCapsRequestHookFromStringInvalid)
+    try {
+      await driver.Build()
+      assert.fail('it should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.includes('Cant load hook, syntax is not valid'))
+    }
   })
 })
 describe('connectors.simplerest.processBody', function () {
