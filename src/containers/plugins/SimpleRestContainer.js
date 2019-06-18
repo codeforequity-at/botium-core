@@ -288,39 +288,33 @@ module.exports = class SimpleRestContainer {
     return requestOptions
   }
 
-  _waitForPingUrl (pingConfig, retries) {
-    return new Promise((resolve, reject) => {
-      let finished = false
-      let tries = 0
-      async.until(
-        () => finished,
-        (callback) => {
-          debug(`_waitForPingUrl checking url ${pingConfig.uri} before proceed`)
-          if (tries > retries) {
-            finished = true
-            callback(new Error(`Failed to ping bot after ${retries} retries`))
-            return
-          }
-          tries++
-          request(pingConfig, (err, response, body) => {
-            if (err) {
-              debug(`_waitForPingUrl error on url check ${pingConfig.uri}: ${err}`)
-              setTimeout(callback, pingConfig.timeout)
-            } else if (response.statusCode >= 400) {
-              debug(`_waitForPingUrl on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
-              setTimeout(callback, pingConfig.timeout)
-            } else {
-              debug(`_waitForPingUrl success on url check ${pingConfig.uri}: ${err}`)
-              finished = true
-              callback(null, response)
-            }
-          })
-        },
-        (err, response) => {
-          if (err) return reject(err)
-          return resolve(response)
+  async _waitForPingUrl (pingConfig, retries) {
+    const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+    let tries = 0
+
+    while (true) {
+      debug(`_waitForPingUrl checking url ${pingConfig.uri} before proceed`)
+      if (tries > retries) {
+        throw new Error(`Failed to ping bot after ${retries} retries`)
+      }
+      tries++
+      const { err, response } = await new Promise((resolve) => {
+        request(pingConfig, (err, response, body) => {
+          resolve({ err, response, body })
         })
-    })
+      })
+      if (err) {
+        debug(`_waitForPingUrl error on url check ${pingConfig.uri}: ${err}`)
+        await timeout(pingConfig.timeout)
+      } else if (response.statusCode >= 400) {
+        debug(`_waitForPingUrl on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
+        await timeout(pingConfig.timeout)
+      } else {
+        debug(`_waitForPingUrl success on url check ${pingConfig.uri}: ${err}`)
+        return response
+      }
+    }
   }
 
   _executeHookWeak (hook, args) {
