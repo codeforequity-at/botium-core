@@ -4,6 +4,7 @@ const randomize = require('randomatic')
 const uuidv1 = require('uuid/v1')
 const moment = require('moment')
 const vm = require('vm')
+const _ = require('lodash')
 
 const Capabilities = require('../Capabilities')
 
@@ -154,15 +155,14 @@ const _apply = (scriptingMemory, str) => {
 const fill = (container, scriptingMemory, result, utterance, scriptingEvents) => {
   debug(`fill start: ${util.inspect(scriptingMemory)}`)
   const varRegex = (container.caps[Capabilities.SCRIPTING_MEMORY_MATCHING_MODE] !== 'word') ? '(\\S+)' : '(\\w+)'
-  if (result && typeof(result) === 'string' && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
+  if (result && _.isString(result) && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
     const utterances = scriptingEvents.resolveUtterance({ utterance })
     utterances.forEach(expected => {
-      const isExpectedAString = typeof(expected) === 'string'
       let reExpected = expected
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
-        reExpected = isExpectedAString ? expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&') : expected
+        reExpected = _.isString(expected) ? expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&') : expected
       }
-      const varMatches = ((isExpectedAString ? expected.match(/\$\w+/g) : false) || []).sort(_longestFirst)
+      const varMatches = ((_.isString(expected) ? expected.match(/\$\w+/g) : false) || []).sort(_longestFirst)
       for (let i = 0; i < varMatches.length; i++) {
         reExpected = reExpected.replace(varMatches[i], varRegex)
       }
