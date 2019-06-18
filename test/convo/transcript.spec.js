@@ -160,4 +160,22 @@ describe('convo.transcript', function () {
       assert.isDefined(transcript)
     })
   })
+  it('should emit transcript with asserters', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'asserters.convo.txt')
+
+    let transcript = null
+    this.driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { transcript = transcriptEv })
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.isDefined(transcript)
+      assert.lengthOf(transcript.steps, 2)
+      assert.isDefined(transcript.steps[1].expected.asserters)
+      assert.lengthOf(transcript.steps[1].expected.asserters, 1)
+      assert.equal(transcript.steps[1].expected.asserters[0].name, 'BUTTONS')
+      assert.lengthOf(transcript.steps[1].expected.asserters[0].args, 2)
+    }
+  })
 })

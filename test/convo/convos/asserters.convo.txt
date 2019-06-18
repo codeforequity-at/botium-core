@@ -1,0 +1,7 @@
+asserters
+
+#me
+Hello
+
+#bot
+BUTTONS btn1|btn2
