@@ -45,6 +45,7 @@ Botium Core provides the core functionality. For attaching Botium to your chatbo
 * [Microsoft LUIS](https://github.com/codeforequity-at/botium-connector-luis)
 * [Google Dialogflow](https://github.com/codeforequity-at/botium-connector-dialogflow)
 * [Action on Google / Google Assistant](https://github.com/codeforequity-at/botium-connector-google-assistant)
+* [Rasa](https://github.com/codeforequity-at/botium-connector-rasa)
 * [Botpress](https://github.com/codeforequity-at/botium-connector-botpress)
 * [Botkit](https://github.com/codeforequity-at/botium-connector-botkit)
 * [Wechat](https://github.com/codeforequity-at/botium-connector-wechat)
