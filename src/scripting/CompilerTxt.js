@@ -185,11 +185,6 @@ module.exports = class CompilerTxt extends CompilerBase {
             script += '!'
           }
           script += set.messageText + this.eol
-        } else if (set.sourceData) {
-          if (set.not) {
-            script += '!'
-          }
-          script += JSON.stringify(set.sourceData, null, 2) + this.eol
         }
         if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
         if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol

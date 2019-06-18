@@ -18,9 +18,9 @@ module.exports = class EntityValuesAsserter {
 
     const currentEntities = _.has(botMsg, 'nlp.entities') ? _extractCount(botMsg.nlp.entities.map((entity) => entity.value)) : {}
 
-    const { substracted, hasMissingEntityEntity } = _substract(currentEntities, expectedEntities)
+    const { substracted, hasMissingEntity } = _substract(currentEntities, expectedEntities)
 
-    if (Object.keys(substracted).length === 0 || (acceptMoreEntities && !hasMissingEntityEntity)) {
+    if (Object.keys(substracted).length === 0 || (acceptMoreEntities && !hasMissingEntity)) {
       return Promise.resolve()
     }
 

@@ -7,6 +7,10 @@ const mime = require('mime-types')
 const uuidv4 = require('uuid/v4')
 const _ = require('lodash')
 const debug = require('debug')('botium-SimpleRestContainer')
+const path = require('path')
+const fs = require('fs')
+const vm = require('vm')
+const esprima = require('esprima')
 
 const botiumUtils = require('../../helpers/Utils')
 const Capabilities = require('../../Capabilities')
@@ -25,6 +29,8 @@ module.exports = class SimpleRestContainer {
     if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
       _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
     }
+    this.requestHook = this._getHook(this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
+    this.responseHook = this._getHook(this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])
   }
 
   Start () {
@@ -38,13 +44,12 @@ module.exports = class SimpleRestContainer {
               conversationId: null,
               stepId: null
             },
-            // wrap the functions into parameterless function as mustache wants it
-            // IF THEY HAVE PARAMETER. It is because Mustache expects functions with parameter,
-            // and without parameter different. And they are called differently from template.
+            // Mustache deals with fuctions with, or without parameters differently.
+            // -> we have to add our functions differently, if they have param or not.
             // -> optional parameters are not working here!
-            // render(text) is required for forcing mustache to replace valiables in the text first,
-            // then send it to the function.
-            // mapKeys: remove starting $
+            // (render(text) is required for forcing mustache to replace valiables in the text first,
+            // then send it to the function.)
+            // (mapKeys: remove starting $)
             fnc: _.mapValues(_.mapKeys(SCRIPTING_FUNCTIONS, (value, key) => key.substring(1)), (theFunction) => {
               return theFunction.length ? function () { return (text, render) => theFunction(render(text)) } : theFunction
             })
@@ -110,7 +115,13 @@ module.exports = class SimpleRestContainer {
     this.view = {}
   }
 
+  // Separated just for better module testing
   _processBodyAsync (body, isFromUser) {
+    this._processBodyAsyncImpl(body, isFromUser).forEach(entry => this.queueBotSays(entry))
+  }
+
+  // Separated just for better module testing
+  _processBodyAsyncImpl (body, isFromUser) {
     if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
       const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
       if (_.isArray(contextNodes) && contextNodes.length > 0) {
@@ -123,6 +134,7 @@ module.exports = class SimpleRestContainer {
       this.view.context = body
     }
 
+    const result = []
     if (isFromUser) {
       const media = []
       const buttons = []
@@ -175,15 +187,18 @@ module.exports = class SimpleRestContainer {
 
             hasMessageText = true
             const botMsg = { sourceData: body, messageText, media, buttons }
-            this.queueBotSays(botMsg)
+            this._executeHookWeak(this.responseHook, Object.assign({ botMsg, responseJsonPathKey: key }, this.view))
+            result.push(botMsg)
           })
         })
       }
       if (!hasMessageText) {
         const botMsg = { messageText: '', sourceData: body, media, buttons }
-        this.queueBotSays(botMsg)
+        this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
+        result.push(botMsg)
       }
     }
+    return result
   }
 
   _doRequest (msg, isFromUser) {
@@ -268,41 +283,100 @@ module.exports = class SimpleRestContainer {
         requestOptions.json = true
       }
     }
+    this._executeHookWeak(this.requestHook, Object.assign({ requestOptions }, this.view))
+
     return requestOptions
   }
 
-  _waitForPingUrl (pingConfig, retries) {
-    return new Promise((resolve, reject) => {
-      let finished = false
-      let tries = 0
-      async.until(
-        () => finished,
-        (callback) => {
-          debug(`_waitForPingUrl checking url ${pingConfig.uri} before proceed`)
-          if (tries > retries) {
-            finished = true
-            callback(new Error(`Failed to ping bot after ${retries} retries`))
-            return
-          }
-          tries++
-          request(pingConfig, (err, response, body) => {
-            if (err) {
-              debug(`_waitForPingUrl error on url check ${pingConfig.uri}: ${err}`)
-              setTimeout(callback, pingConfig.timeout)
-            } else if (response.statusCode >= 400) {
-              debug(`_waitForPingUrl on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
-              setTimeout(callback, pingConfig.timeout)
-            } else {
-              debug(`_waitForPingUrl success on url check ${pingConfig.uri}: ${err}`)
-              finished = true
-              callback(null, response)
-            }
-          })
-        },
-        (err, response) => {
-          if (err) return reject(err)
-          return resolve(response)
+  async _waitForPingUrl (pingConfig, retries) {
+    const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+    let tries = 0
+
+    while (true) {
+      debug(`_waitForPingUrl checking url ${pingConfig.uri} before proceed`)
+      if (tries > retries) {
+        throw new Error(`Failed to ping bot after ${retries} retries`)
+      }
+      tries++
+      const { err, response } = await new Promise((resolve) => {
+        request(pingConfig, (err, response, body) => {
+          resolve({ err, response, body })
         })
-    })
+      })
+      if (err) {
+        debug(`_waitForPingUrl error on url check ${pingConfig.uri}: ${err}`)
+        await timeout(pingConfig.timeout)
+      } else if (response.statusCode >= 400) {
+        debug(`_waitForPingUrl on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
+        await timeout(pingConfig.timeout)
+      } else {
+        debug(`_waitForPingUrl success on url check ${pingConfig.uri}: ${err}`)
+        return response
+      }
+    }
+  }
+
+  _executeHookWeak (hook, args) {
+    if (!hook) {
+      return
+    }
+    if (_.isFunction(hook)) {
+      hook(args)
+      return
+    }
+    if (_.isString(hook)) {
+      // we let to alter args this way
+      vm.createContext(args)
+      vm.runInContext(hook, args)
+      return
+    }
+
+    throw new Error(`Unknown hook ${typeof hook}`)
+  }
+
+  _getHook (data) {
+    if (!data) {
+      return null
+    }
+
+    if (_.isFunction(data)) {
+      debug(`found hook, type: function definition`)
+      return data
+    }
+
+    let resultWithRequire
+    let tryLoadFile = path.resolve(process.cwd(), data)
+    if (fs.existsSync(tryLoadFile)) {
+      resultWithRequire = require(tryLoadFile)
+    }
+
+    tryLoadFile = data
+    try {
+      resultWithRequire = require(data)
+    } catch (err) {
+    }
+
+    if (resultWithRequire) {
+      if (_.isFunction(resultWithRequire)) {
+        debug(`found hook, type: require`)
+        return resultWithRequire
+      } else {
+        throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
+      }
+    }
+
+    if (_.isString(data)) {
+      try {
+        esprima.parseScript(data)
+      } catch (err) {
+        throw new Error(`Cant load hook, syntax is not valid - ${util.inspect(err)}`)
+      }
+
+      debug(`Found hook, type: JavaScript as String`)
+      return data
+    }
+
+    throw new Error(`Not valid hook ${util.inspect(data)}`)
   }
 }
