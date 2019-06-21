@@ -85,7 +85,7 @@ module.exports = class ScriptingProvider {
             return botresponse === utt
           }
         })
-        if (!found) {
+        if (found === undefined) {
           throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`)
         }
       },
