@@ -4,12 +4,34 @@ JSON
 
 #me
 {
-  "message": "Hello"
+  "text": "Success!",
+  "falsytext": "",
+  "number": 1,
+  "falsynumber": 0,
+  "floating": 1.0,
+  "falsyfloat": 0.0,
+  "isBoolean": true,
+  "isNotBoolean": false,
+  "fullArray": ["entryOne"],
+  "halfArray": [""],
+  "emptyArray": [],
+  "containsNothing": null
 }
 
 #bot
 {
-  "message": "Hello"
+  "text": "Success!",
+  "falsytext": "",
+  "number": 1,
+  "falsynumber": 0,
+  "floating": 1.0,
+  "falsyfloat": 0.0,
+  "isBoolean": true,
+  "isNotBoolean": false,
+  "fullArray": ["entryOne"],
+  "halfArray": [""],
+  "emptyArray": [],
+  "containsNothing": null
 }
 
 #end

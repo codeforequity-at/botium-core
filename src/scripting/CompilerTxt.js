@@ -100,7 +100,7 @@ module.exports = class CompilerTxt extends CompilerBase {
           convoStepSender = convoStepSender.substr(0, convoStepSender.indexOf(' ')).trim()
         }
         currentLines = []
-      } else if (line && line.length > 0) {
+      } else if (currentLines.length > 0 || (line && line.length > 0)) {
         currentLines.push(line)
       }
     })
