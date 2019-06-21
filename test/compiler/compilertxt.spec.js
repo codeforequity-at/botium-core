@@ -64,4 +64,16 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].messageText, 'test 2\n!test 2')
     assert.equal(context.convos[0].conversation[1].not, true)
   })
+  it('should keep newlines within message', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_with_newlines.convo.txt'))
+    const context = buildContext()
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    const convo = context.convos[0]
+    assert.equal(convo.conversation[0].messageText, 'Hallo\n\nHallo2')
+    assert.equal(convo.conversation[1].messageText, 'Hallo\n\nHallo2')
+  })
 })

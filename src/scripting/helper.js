@@ -37,7 +37,7 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
         if (eol === null) {
           throw new Error('eol cant be null')
         }
-        convoStep.messageText = textLines.join(eol)
+        convoStep.messageText = textLines.join(eol).trim()
       }
     }
   } else {

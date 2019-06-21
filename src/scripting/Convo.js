@@ -470,7 +470,7 @@ class Convo {
       // replace two spaces with one
       str = str.replace(/\s+/g, ' ')
 
-      str = str.trim()
+      str = str.split('\n').map(s => s.trim()).join('\n').trim()
     }
     return str
   }
