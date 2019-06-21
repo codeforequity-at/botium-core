@@ -108,8 +108,8 @@ describe('convo.scriptingmemory.convos', function () {
     assert.equal(this.compiler.convos.length, 1)
 
     const transcript = await this.compiler.convos[0].Run(this.container)
-    transcript.steps[0].actual.messageText.startsWith('year is\n21')
-    transcript.steps[1].actual.messageText.startsWith('year is\n21')
+    assert(transcript.steps[0].actual.messageText.split('\n')[1].startsWith('20'))
+    assert(transcript.steps[1].actual.messageText.split('\n')[1].startsWith('20'))
     assert.isObject(transcript.scriptingMemory)
     assert.isDefined(transcript.scriptingMemory['$year_captured'])
     assert.equal(transcript.scriptingMemory['$year_captured'].length, 4)
@@ -571,7 +571,7 @@ describe('convo.scriptingMemory.api', function () {
         { },
         '$time'
       )
-      assert(result.length >= 5 && result.length <= 10)
+      assert(result.indexOf(':') < 3)
     })
     it('time_EN', async function () {
       const result = ScriptingMemory.apply(
