@@ -1,3 +1,5 @@
+const BotiumError = require('../../BotiumError')
+
 module.exports = class ButtonsAsserter {
   constructor (context, caps = {}) {
     this.context = context
@@ -16,7 +18,22 @@ module.exports = class ButtonsAsserter {
         }
         buttonsNotFound.push(args[i])
       }
-      if (buttonsNotFound.length > 0) return Promise.reject(new Error(`${convoStep.stepTag}: Expected buttons with text "${buttonsNotFound}"`))
+      if (buttonsNotFound.length > 0) {
+        return Promise.reject(new BotiumError(
+          `${convoStep.stepTag}: Expected buttons with text "${buttonsNotFound}"`,
+          {
+            type: 'asserter',
+            source: 'BottonsAsserter',
+            params: {
+              args,
+              botMsg
+            },
+            cause: {
+              buttonsNotFound
+            }
+          }
+        ))
+      }
     }
     return Promise.resolve()
   }
