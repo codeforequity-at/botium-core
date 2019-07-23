@@ -93,13 +93,18 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
           return linesToConvoStep(lines, sender, this.context, eol)
         }
+
+        const formatRowIndex = (rowindex) => ('00' + rowindex).slice(-3)
+
         const _extractRow = (rowindex) => {
           const meCell = this.colnames[colindex] + rowindex
+          const meCellName = this.colnames[colindex] + formatRowIndex(rowindex)
           const meCellValue = sheet[meCell] && sheet[meCell].v
           const botCell = this.colnames[colindex + 1] + rowindex
+          const botCellName = this.colnames[colindex + 1] + formatRowIndex(rowindex)
           const botCellValue = sheet[botCell] && sheet[botCell].v
 
-          return { meCell, meCellValue, botCell, botCellValue }
+          return { meCell, meCellName, meCellValue, botCell, botCellName, botCellValue }
         }
 
         let questionAnswerMode = this._GetOptionalCapability(Capabilities.SCRIPTING_XLSX_MODE)
@@ -132,7 +137,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
         // each row is a conversation with a question and an answer
 
         while (true) {
-          const { meCell, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
+          const { meCell, meCellName, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
           if (questionAnswerMode) {
             if (meCellValue || botCellValue) {
               currentConvo = []
@@ -140,7 +145,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
                 { sender: 'me', stepTag: 'Cell ' + meCell },
                 parseCell('me', meCellValue)
               ))
-              startcell = meCell
+              startcell = meCellName
               currentConvo.push(Object.assign(
                 { sender: 'bot', stepTag: 'Cell ' + botCell },
                 parseCell('bot', botCellValue)
@@ -160,14 +165,14 @@ module.exports = class CompilerXlsx extends CompilerBase {
                 { sender: 'me', stepTag: 'Cell ' + meCell },
                 parseCell('me', meCellValue)
               ))
-              if (!startcell) startcell = meCell
+              if (!startcell) startcell = meCellName
               emptylines = 0
             } else if (botCellValue) {
               currentConvo.push(Object.assign(
                 { sender: 'bot', stepTag: 'Cell ' + botCell },
                 parseCell('bot', botCellValue)
               ))
-              if (!startcell) startcell = botCell
+              if (!startcell) startcell = meCellName
               emptylines = 0
             } else {
               if (currentConvo.length > 0) {

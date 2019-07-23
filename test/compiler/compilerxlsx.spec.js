@@ -210,4 +210,20 @@ describe('compiler.compilerxlsx', function () {
     assert.equal(context.convos[1].conversation[1].messageText, 'test 4')
     assert.lengthOf(context.utterances, 0)
   })
+  it('should sort convos by position in file', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sortorder.xlsx'))
+    const context = buildContext()
+
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.lengthOf(context.convos, 5)
+    assert.equal(context.convos[0].header.name, 'Convos1-A002')
+    assert.equal(context.convos[1].header.name, 'Convos1-A005')
+    assert.equal(context.convos[2].header.name, 'Convos1-A008')
+    assert.equal(context.convos[3].header.name, 'Convos1-A011')
+    assert.equal(context.convos[4].header.name, 'Convos1-A014')
+  })
 })
