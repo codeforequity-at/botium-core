@@ -30,9 +30,7 @@ All of the components in the Botium Stack build on top of Botium Core (except Bo
 
 ## Documentation
 
-See the [Botium Wiki](https://github.com/codeforequity-at/botium-core/wiki) for documentation.
-
-A short overview article has been published here: [Selenium for Chatbots - Introducing Botium](https://chatbotsmagazine.com/selenium-for-chatbots-introducing-botium-1f1f0b3d4164)
+See the [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/overview) for documentation.
 
 ## Connectors
 Botium Core provides the core functionality. For attaching Botium to your chatbot, there are lots of _connectors_ available for most important chatbot technologies, frameworks, APIs, SDKs, cloud services etc. Please follow these links to the connector repositories. Sample configurations and scripts are included with each connector.
