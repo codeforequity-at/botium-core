@@ -13,6 +13,7 @@ const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 class ConvoHeader {
   constructor (fromJson = {}) {
     this.name = fromJson.name
+    this.sort = fromJson.sort
     this.order = fromJson.order
     this.description = fromJson.description
   }

@@ -542,7 +542,7 @@ module.exports = class ScriptingProvider {
   }
 
   _sortConvos () {
-    this.convos = _.sortBy(this.convos, [(convo) => convo.header.name])
+    this.convos = _.sortBy(this.convos, [(convo) => convo.header.sort || convo.header.name])
     let i = 0
     this.convos.forEach((convo) => {
       convo.header.order = ++i
