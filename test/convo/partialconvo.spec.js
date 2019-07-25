@@ -204,7 +204,12 @@ describe('convo.partialconvo.wrongconvos', function () {
 
   it('Partial convo not found', async function () {
     await _initIt([], 'convos/partialconvo/notfound', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Cant find partial convo with name notexists')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Cant find partial convo with name notexists (There are no partial convos)')
+  })
+
+  it('Partial convo wrong ref', async function () {
+    await _initIt([], 'convos/partialconvo/wrongref', this)
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Cant find partial convo with name wrongref (available partial convos: exists)')
   })
 
   it('Partial convo name duplicated', async function () {

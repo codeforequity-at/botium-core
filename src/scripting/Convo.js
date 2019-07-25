@@ -13,6 +13,7 @@ const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 class ConvoHeader {
   constructor (fromJson = {}) {
     this.name = fromJson.name
+    this.sort = fromJson.sort
     this.order = fromJson.order
     this.description = fromJson.description
   }
@@ -515,12 +516,12 @@ class Convo {
             throw new Error(`Partial convos are included circular. "${includeLogicHook}" is referenced by "/${parentPConvos.slice(0, alreadyThereAt).join('/')}" and by "/${parentPConvos.join('/')}" `)
           }
           const partialConvos = this.context.GetPartialConvos()
-          if (!partialConvos) {
+          if (!partialConvos || Object.keys(partialConvos).length === 0) {
             throw new Error(`Cant find partial convo with name ${includeLogicHook} (There are no partial convos)`)
           }
-          const partialConvo = this.context.GetPartialConvos()[includeLogicHook]
+          const partialConvo = partialConvos[includeLogicHook]
           if (!partialConvo) {
-            throw Error(`Cant find partial convo with name ${includeLogicHook}`)
+            throw Error(`Cant find partial convo with name ${includeLogicHook} (available partial convos: ${Object.keys(partialConvos).join(',')})`)
           }
 
           _getEffectiveConversationRecursive(partialConvo.conversation, [...parentPConvos, includeLogicHook], result)
