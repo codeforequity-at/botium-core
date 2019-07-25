@@ -23,7 +23,7 @@ module.exports = class ButtonsAsserter {
           `${convoStep.stepTag}: Expected buttons with text "${buttonsNotFound}"`,
           {
             type: 'asserter',
-            source: 'BottonsAsserter',
+            source: 'ButtonsAsserter',
             params: {
               args,
               botMsg
