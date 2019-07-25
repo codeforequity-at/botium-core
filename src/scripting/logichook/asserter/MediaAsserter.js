@@ -23,7 +23,7 @@ module.exports = class MediaAsserter {
         return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected media with uri "${mediaNotFound}"`,
           {
             type: 'asserter',
-            source: 'IntentConfidenceAsserter',
+            source: 'MediaAsserter',
             context: {
               // effective arguments getting from constructor
               constructor: {},
