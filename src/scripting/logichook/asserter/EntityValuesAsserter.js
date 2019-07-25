@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const util = require('util')
+const BotiumError = require('../../BotiumError')
 
 module.exports = class EntityValuesAsserter {
   constructor (context, caps = {}) {
@@ -33,7 +34,30 @@ module.exports = class EntityValuesAsserter {
         return 0
       }
     )
-    return Promise.reject(new Error(`${convoStep.stepTag}: Wrong number of entity values. The difference is ${util.inspect(substractedAsArray)}`))
+    return Promise.reject(new BotiumError(
+      `${convoStep.stepTag}: Wrong number of entity values. The difference is ${util.inspect(substractedAsArray)}`,
+      {
+        type: 'asserter',
+        source: 'EntityValuesAsserter',
+        context: {
+          constructor: {
+          },
+          params: {
+            args,
+            botMsg
+          },
+          // intermediate? State?
+          calculation: {
+            acceptMoreEntities,
+            currentEntities,
+            expectedEntities
+          }
+        },
+        cause: {
+          substractedAsArray
+        }
+      }
+    ))
   }
 }
 

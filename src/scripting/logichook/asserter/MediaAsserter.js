@@ -1,3 +1,5 @@
+const BotiumError = require('../../BotiumError')
+
 module.exports = class MediaAsserter {
   constructor (context, caps = {}) {
     this.context = context
@@ -17,7 +19,25 @@ module.exports = class MediaAsserter {
         }
         mediaNotFound.push(args[i])
       }
-      if (mediaNotFound.length > 0) return Promise.reject(new Error(`${convoStep.stepTag}: Expected media with uri "${mediaNotFound}"`))
+      if (mediaNotFound.length > 0) {
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected media with uri "${mediaNotFound}"`,
+          {
+            type: 'asserter',
+            source: 'MediaAsserter',
+            context: {
+              // effective arguments getting from constructor
+              constructor: {},
+              params: {
+                args,
+                botMsg
+              }
+            },
+            cause: {
+              mediaNotFound
+            }
+          }
+        ))
+      }
     }
     return Promise.resolve()
   }

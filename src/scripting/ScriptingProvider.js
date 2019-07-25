@@ -10,6 +10,7 @@ const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
+const BotiumError = require('./BotiumError')
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
 
 const p = (fn) => new Promise((resolve, reject) => {
@@ -86,7 +87,20 @@ module.exports = class ScriptingProvider {
           }
         })
         if (found === undefined) {
-          throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`)
+          throw new BotiumError(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
+            {
+              type: 'response not match',
+              source: 'ScriptingProvider',
+              context: {
+                stepTag
+              },
+              cause: {
+                tomatch,
+                botresponse,
+                meMsg
+              }
+            }
+          )
         }
       },
       assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg) => {
@@ -542,7 +556,7 @@ module.exports = class ScriptingProvider {
   }
 
   _sortConvos () {
-    this.convos = _.sortBy(this.convos, [(convo) => convo.header.name])
+    this.convos = _.sortBy(this.convos, [(convo) => convo.header.sort || convo.header.name])
     let i = 0
     this.convos.forEach((convo) => {
       convo.header.order = ++i

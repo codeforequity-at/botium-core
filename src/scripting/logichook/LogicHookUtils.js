@@ -9,6 +9,7 @@ const { LOGIC_HOOK_INCLUDE } = require('./LogicHookConsts')
 const DEFAULT_ASSERTERS = [
   { name: 'BUTTONS', className: 'ButtonsAsserter' },
   { name: 'MEDIA', className: 'MediaAsserter' },
+  { name: 'CARDS', className: 'CardsAsserter' },
   { name: 'PAUSE_ASSERTER', className: 'PauseAsserter' },
   { name: 'ENTITIES', className: 'EntitiesAsserter' },
   { name: 'ENTITY_VALUES', className: 'EntityValuesAsserter' },
