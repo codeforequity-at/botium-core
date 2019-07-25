@@ -154,7 +154,19 @@ const _apply = (scriptingMemory, str) => {
 
 const fill = (container, scriptingMemory, result, utterance, scriptingEvents) => {
   debug(`fill start: ${util.inspect(scriptingMemory)}`)
-  const varRegex = (container.caps[Capabilities.SCRIPTING_MEMORY_MATCHING_MODE] !== 'word') ? '(\\S+)' : '(\\w+)'
+  let varRegex
+  switch (container.caps[Capabilities.SCRIPTING_MEMORY_MATCHING_MODE]) {
+    case 'word':
+      varRegex = '(\\w+)'
+      break
+    case 'joker':
+      varRegex = '([\\w\\W]+)'
+      break
+    default:
+      varRegex = '(\\S+)'
+      break
+  }
+
   if (result && _.isString(result) && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
     const utterances = scriptingEvents.resolveUtterance({ utterance })
     utterances.forEach(expected => {

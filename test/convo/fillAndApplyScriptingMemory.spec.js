@@ -132,6 +132,13 @@ describe('convo.scriptingMemory.api', function () {
           [Capabilities.SCRIPTING_MEMORY_MATCHING_MODE]: 'word'
         }
       }
+      this.containerStubMatchingModeJoker = {
+        caps: {
+          [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+          [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true,
+          [Capabilities.SCRIPTING_MEMORY_MATCHING_MODE]: 'joker'
+        }
+      }
       this.scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await this.scriptingProvider.Build()
       this.scriptingContext = this.scriptingProvider._buildScriptContext()
@@ -281,6 +288,16 @@ describe('convo.scriptingMemory.api', function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStubMatchingModeWord, scriptingMemory, 'my name is joe.', 'my name is $name', this.convo.scriptingEvents)
       assert.equal(scriptingMemory['$name'], 'joe')
+    })
+    it('should match multi lines (SCRIPTING_MEMORY_MATCHING_MODE == joker)', async function () {
+      const scriptingMemory = {}
+      ScriptingMemory.fill(this.containerStubMatchingModeJoker, scriptingMemory, 'test sentence \nline1\r\nline2', 'test sentence $lines', this.convo.scriptingEvents)
+      assert.equal(scriptingMemory['$lines'], '\nline1\r\nline2')
+    })
+    it('should match multi words (SCRIPTING_MEMORY_MATCHING_MODE == joker)', async function () {
+      const scriptingMemory = {}
+      ScriptingMemory.fill(this.containerStubMatchingModeJoker, scriptingMemory, 'test sentence match1 match2', 'test sentence $words', this.convo.scriptingEvents)
+      assert.equal(scriptingMemory['$words'], 'match1 match2')
     })
     // this is not an expectation, nothing depends on this behaviour
     it('should match $', async function () {
