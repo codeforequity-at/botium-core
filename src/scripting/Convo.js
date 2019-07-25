@@ -307,7 +307,11 @@ class Convo {
               transcriptStep.botEnd = new Date()
               transcriptStep.actual = new BotiumMockMessage(saysmsg)
 
-              debug(`${this.header.name}: bot says ${JSON.stringify(saysmsg, null, 2)}`)
+              const coreMsg = _.omit(saysmsg, [
+                'attachments',
+                'sourceData'
+              ])
+              debug(`${this.header.name}: bot says (cleaned by attachments and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
               if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData && !saysmsg.nlp)) {
                 const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
                 debug(failErr)
