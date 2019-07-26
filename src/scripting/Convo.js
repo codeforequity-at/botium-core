@@ -69,6 +69,14 @@ class ConvoStep {
     this.userInputs = _.map(fromJson.userInputs, (userInput) => new ConvoStepUserInput(userInput))
   }
 
+  hasInteraction () {
+    return (this.messageText && this.messageText.length > 0) ||
+     this.sourceData ||
+     (this.asserters && this.asserters.length > 0) ||
+     (this.logicHooks && this.logicHooks.findIndex(l => l.name !== LOGIC_HOOK_INCLUDE) >= 0) ||
+     (this.userInputs && this.userInputs.length > 0)
+  }
+
   toString () {
     return this.stepTag +
       ': #' + this.sender +
@@ -487,7 +495,7 @@ class Convo {
 
     const _getIncludeLogicHookNames = (convoStep) => {
       if (!convoStep.logicHooks) {
-        return
+        return []
       }
 
       let result = []
@@ -505,10 +513,13 @@ class Convo {
 
     const _getEffectiveConversationRecursive = (conversation, parentPConvos = [], result = []) => {
       conversation.forEach((convoStep) => {
-        // dont put convo name for ConvoSteps on the root.
-        const steptagPath = parentPConvos.length === 0 ? '' : parentPConvos.join('/') + '/'
-        result.push(Object.assign(new ConvoStep(), convoStep, { stepTag: `${steptagPath}${convoStep.stepTag}` }))
         const includeLogicHooks = _getIncludeLogicHookNames(convoStep)
+
+        if (includeLogicHooks.length === 0 || convoStep.hasInteraction()) {
+          // dont put convo name for ConvoSteps on the root.
+          const steptagPath = parentPConvos.length === 0 ? '' : parentPConvos.join('/') + '/'
+          result.push(Object.assign(new ConvoStep(), convoStep, { stepTag: `${steptagPath}${convoStep.stepTag}` }))
+        }
 
         includeLogicHooks.forEach((includeLogicHook) => {
           const alreadyThereAt = parentPConvos.indexOf(includeLogicHook)

@@ -37,7 +37,6 @@ module.exports = class CompilerXlsx extends CompilerBase {
     const workbook = XLSX.read(scriptBuffer, { type: 'buffer' })
     if (!workbook) throw new Error(`Workbook not readable`)
 
-    const eolSplit = this.caps[Capabilities.SCRIPTING_XLSX_EOL_SPLIT]
     const eol = this.caps[Capabilities.SCRIPTING_XLSX_EOL_WRITE]
 
     let sheetnames = []
@@ -89,7 +88,20 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (!content) return { messageText: '' }
 
           if (!_.isString(content)) content = '' + content
-          const lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
+
+          let eolSplit = null
+          let lines = []
+          if (content.indexOf('\n') >= 0) {
+            eolSplit = '\n'
+          } else if (content.indexOf('\r') >= 0) {
+            eolSplit = '\r'
+          }
+
+          if (eolSplit) {
+            lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
+          } else {
+            lines = [ content.trim() ]
+          }
 
           return linesToConvoStep(lines, sender, this.context, eol)
         }
