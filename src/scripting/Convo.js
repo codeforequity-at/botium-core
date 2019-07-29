@@ -7,6 +7,7 @@ const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const ScriptingMemory = require('./ScriptingMemory')
+const { BotiumError, botiumErrorFromList } = require('./BotiumError')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -322,6 +323,7 @@ class Convo {
                 }
                 return convoStepDone(failErr)
               }
+              const assertErrors = []
               if (convoStep.messageText) {
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
                 const messageText = this._checkNormalizeText(container, convoStep.messageText)
@@ -331,13 +333,21 @@ class Convo {
                   try {
                     this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)
                   } catch (err) {
-                    return convoStepDone(err)
+                    if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                      assertErrors.push(err)
+                    } else {
+                      return convoStepDone(err)
+                    }
                   }
                 } else {
                   try {
                     this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)
                   } catch (err) {
-                    return convoStepDone(err)
+                    if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                      assertErrors.push(err)
+                    } else {
+                      return convoStepDone(err)
+                    }
                   }
                 }
               } else if (convoStep.sourceData) {
@@ -349,7 +359,6 @@ class Convo {
               }
               this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
                 .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
-                .then(() => convoStepDone())
                 .catch((err) => {
                   const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: assertion error - ${util.inspect(err)}`)
                   debug(failErr)
@@ -357,7 +366,18 @@ class Convo {
                     this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
                   } catch (failErr) {
                   }
-                  convoStepDone(failErr)
+                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS] && err instanceof BotiumError) {
+                    assertErrors.push(err)
+                  } else {
+                    return convoStepDone(failErr)
+                  }
+                })
+                .then(() => {
+                  if (assertErrors.length === 0) {
+                    convoStepDone()
+                  } else {
+                    return convoStepDone(botiumErrorFromList(assertErrors, {}))
+                  }
                 })
             }).catch((err) => {
               transcriptStep.botEnd = new Date()

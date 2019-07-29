@@ -1,3 +1,5 @@
+const { BotiumError } = require('../../BotiumError')
+
 module.exports = class CardsAsserter {
   constructor (context, caps = {}) {
     this.context = context
@@ -13,7 +15,26 @@ module.exports = class CardsAsserter {
         }
         cardsNotFound.push(args[i])
       }
-      if (cardsNotFound.length > 0) return Promise.reject(new Error(`${convoStep.stepTag}: Expected cards with text "${cardsNotFound}"`))
+      if (cardsNotFound.length > 0) {
+        return Promise.reject(new BotiumError(
+          `${convoStep.stepTag}: Expected cards with text "${cardsNotFound}"`,
+          {
+            type: 'asserter',
+            source: 'EntitiesAsserter',
+            context: {
+              constructor: {
+              },
+              params: {
+                args,
+                botMsg
+              }
+            },
+            cause: {
+              cardsNotFound
+            }
+          }
+        ))
+      }
     }
     return Promise.resolve()
   }
