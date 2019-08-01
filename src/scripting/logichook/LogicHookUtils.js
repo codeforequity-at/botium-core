@@ -25,6 +25,7 @@ const DEFAULT_LOGIC_HOOKS = [
   { name: 'WAITFORBOT', className: 'WaitForBotLogicHook' },
   { name: 'SET_SCRIPTING_MEMORY', className: 'SetScriptingMemoryLogicHook' },
   { name: 'CLEAR_SCRIPTING_MEMORY', className: 'ClearScriptingMemoryLogicHook' },
+  { name: 'UPDATE_CONTEXT', className: 'UpdateContextLogicHook' },
   { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
 ]
 

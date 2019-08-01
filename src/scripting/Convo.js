@@ -274,7 +274,11 @@ class Convo {
 
           return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg: convoStep })
             .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`))
-            .then(() => this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory }))
+            .then(() => {
+              const meMsg = new BotiumMockMessage(convoStep)
+              transcriptStep.actual = meMsg
+              return this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
+            })
             .then(() => {
               return new Promise(resolve => {
                 if (container.caps.SIMULATE_WRITING_SPEED && convoStep.messageText && convoStep.messageText.length) {
@@ -285,7 +289,6 @@ class Convo {
               })
             })
             .then(() => {
-              transcriptStep.actual = new BotiumMockMessage(convoStep)
               lastMeMsg = convoStep
               transcriptStep.botBegin = new Date()
               return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, transcriptStep.actual))
