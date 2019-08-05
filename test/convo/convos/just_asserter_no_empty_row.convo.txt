@@ -1,0 +1,17 @@
+1 step
+
+#me
+Hello
+
+#bot
+Hello
+
+#me
+PAUSE 100
+
+#me
+Goodbye
+
+#bot
+Goodbye
+

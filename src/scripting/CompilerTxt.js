@@ -69,7 +69,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       return linesToConvoStep(lines, convoStepSender, this.context, this.eol)
     }
 
-    let pushPrev = () => {
+    const pushPrev = () => {
       if (convoStepSender && currentLines) {
         const convoStep = {
           sender: convoStepSender,
@@ -100,7 +100,7 @@ module.exports = class CompilerTxt extends CompilerBase {
           convoStepSender = convoStepSender.substr(0, convoStepSender.indexOf(' ')).trim()
         }
         currentLines = []
-      } else if (currentLines.length > 0 || (line && line.length > 0)) {
+      } else {
         currentLines.push(line)
       }
     })

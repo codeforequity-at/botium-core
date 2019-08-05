@@ -3,6 +3,7 @@ const isJSON = require('is-json')
 module.exports.linesToConvoStep = (lines, sender, context, eol) => {
   const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false, sender }
 
+  let textLinesRaw = []
   const textLines = []
   lines.forEach(l => {
     const name = l.split(' ')[0]
@@ -16,9 +17,24 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
       const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
       convoStep.logicHooks.push({ name, args })
     } else {
-      textLines.push(l)
+      textLinesRaw.push(l)
+    }
+    // line is not textline if it is empty, and there is no line with data after it.
+    if (textLinesRaw.length > 0) {
+      if (l.trim().length) {
+        textLines.push(...textLinesRaw)
+        textLinesRaw = []
+      }
     }
   })
+  // What we except: If there are just empty rows, at least 2, then it is an empty message.
+  // (msg = "", not null)
+  // if we found at lest 3, who cares? -> this case is not tested
+  if (textLinesRaw.length > 0 && textLines.length === 0) {
+    textLinesRaw.pop()
+    textLines.push(...textLinesRaw)
+  }
+
   if (textLines.length > 0) {
     if (textLines[0].startsWith('!')) {
       if (!textLines[0].startsWith('!!')) {
@@ -41,7 +57,8 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
       }
     }
   } else {
-    convoStep.messageText = ''
+    // no message is different from empty message
+    convoStep.messageText = null
   }
   return convoStep
 }
