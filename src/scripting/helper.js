@@ -21,7 +21,7 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
       textLinesAccepted = false
     } else {
       if (sender === 'me' && !textLinesAccepted && l.trim().length) {
-        throw new Error(`Failed to parse conversation. Convo step invalid:\n ${lines.join('\n')}`)
+        throw new Error(`Failed to parse conversation. Invalid text: '${l.trim()}' in convo:\n ${lines.join('\n')}`)
       }
       textLinesRaw.push(l)
     }
