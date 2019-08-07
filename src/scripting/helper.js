@@ -5,6 +5,8 @@ module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode =
 
   let textLinesRaw = []
   const textLines = []
+  // local eslint accepts it without disable, but build on github does not
+  // eslint-disable-next-line no-unused-vars
   let textLinesAccepted = true
   lines.forEach(l => {
     const name = l.split(' ')[0]
