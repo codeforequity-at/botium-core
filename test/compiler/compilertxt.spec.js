@@ -186,5 +186,18 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation[0].logicHooks.length, 0)
       assert.equal(convo.conversation[1].messageText, 'Hi')
     })
+    it('should throw error if there is message after logichook', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_emptyrow_text_after_logichook.convo.txt'))
+      const context = buildContextWithPause()
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+      try {
+        compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+        assert.fail('expected error')
+      } catch (err) {
+        assert.equal(err.message, 'Failed to parse conversation. Convo step invalid:\n PAUSE 100\nHi!\n')
+      }
+    })
   })
 })

@@ -5,6 +5,7 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
 
   let textLinesRaw = []
   const textLines = []
+  let textLinesAccepted = true
   lines.forEach(l => {
     const name = l.split(' ')[0]
     if (sender !== 'me' && context.IsAsserterValid(name)) {
@@ -13,10 +14,15 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
     } else if (sender === 'me' && context.IsUserInputValid(name)) {
       const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
       convoStep.userInputs.push({ name, args })
+      textLinesAccepted = false
     } else if (context.IsLogicHookValid(name)) {
       const args = (l.length > name.length ? l.substr(name.length + 1).split('|').map(a => a.trim()) : [])
       convoStep.logicHooks.push({ name, args })
+      textLinesAccepted = false
     } else {
+      if (l.trim().length) {
+        throw new Error(`Failed to parse conversation. Convo step invalid:\n ${lines.join('\n')}`)
+      }
       textLinesRaw.push(l)
     }
     // line is not textline if it is empty, and there is no line with data after it.
