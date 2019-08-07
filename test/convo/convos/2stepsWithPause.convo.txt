@@ -7,8 +7,8 @@ Hello
 Hello
 
 #me
-PAUSE 1000
 Hello again!
+PAUSE 1000
 
 #bot
 Hello again!

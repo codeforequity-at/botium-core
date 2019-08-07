@@ -20,7 +20,7 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
       convoStep.logicHooks.push({ name, args })
       textLinesAccepted = false
     } else {
-      if (l.trim().length) {
+      if (sender === 'me' && !textLinesAccepted && l.trim().length) {
         throw new Error(`Failed to parse conversation. Convo step invalid:\n ${lines.join('\n')}`)
       }
       textLinesRaw.push(l)
