@@ -42,10 +42,9 @@ module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode =
       }
     }
   })
-  // What we except: If there are just empty rows, at least 2, then it is an empty message.
-  // (msg = "", not null)
-  // if we found at lest 3, who cares? -> this case is not tested
-  if ((textLinesRaw.length > 1 || (singleLineMode && textLinesRaw.length === 1)) && textLines.length === 0) {
+
+  // deal with just message convosteps
+  if (textLinesRaw.length >= 1 && textLines.length === 0) {
     textLines.push(...textLinesRaw)
     textLinesRaw.pop()
   }
