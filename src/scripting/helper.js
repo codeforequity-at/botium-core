@@ -1,6 +1,6 @@
 const isJSON = require('is-json')
 
-module.exports.linesToConvoStep = (lines, sender, context, eol) => {
+module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
   const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false, sender }
 
   let textLinesRaw = []
@@ -20,10 +20,19 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
       convoStep.logicHooks.push({ name, args })
       textLinesAccepted = false
     } else {
-      if (sender === 'me' && !textLinesAccepted && l.trim().length) {
-        throw new Error(`Failed to parse conversation. Invalid text: '${l.trim()}' in convo:\n ${lines.join('\n')}`)
+      if (sender === 'me') {
+        if (!textLinesAccepted) {
+          if (l.trim().length) {
+            throw new Error(`Failed to parse conversation. Invalid text: '${l.trim()}' in convo:\n ${lines.join('\n')}`)
+          } else {
+            // skip empty lines
+          }
+        } else {
+          textLinesRaw.push(l)
+        }
+      } else {
+        textLinesRaw.push(l)
       }
-      textLinesRaw.push(l)
     }
     // line is not textline if it is empty, and there is no line with data after it.
     if (textLinesRaw.length > 0) {
@@ -36,9 +45,9 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
   // What we except: If there are just empty rows, at least 2, then it is an empty message.
   // (msg = "", not null)
   // if we found at lest 3, who cares? -> this case is not tested
-  if (textLinesRaw.length > 0 && textLines.length === 0) {
-    textLinesRaw.pop()
+  if ((textLinesRaw.length > 1 || (singleLineMode && textLinesRaw.length === 1)) && textLines.length === 0) {
     textLines.push(...textLinesRaw)
+    textLinesRaw.pop()
   }
 
   if (textLines.length > 0) {
@@ -53,7 +62,7 @@ module.exports.linesToConvoStep = (lines, sender, context, eol) => {
       convoStep.sourceData = JSON.parse(content)
     } else {
       /// csv has always just 1 line, and has no eol setting
-      if (textLines.length === 1) {
+      if (singleLineMode) {
         convoStep.messageText = textLines[0]
       } else {
         if (eol === null) {
