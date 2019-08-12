@@ -21,7 +21,7 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('scripting.logichooks.cases', function () {
+describe('UpdateCustomLogicHook', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.logichooks',
@@ -38,21 +38,21 @@ describe('scripting.logichooks.cases', function () {
   })
 
   it('should update me message from json', async function () {
-    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'update_context_me_msg_json.convo.txt')
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'update_custom_me_msg_json.convo.txt')
     assert.equal(this.compiler.convos.length, 1)
 
     await this.compiler.convos[0].Run(this.container)
   })
 
   it('should update me message 2 depth', async function () {
-    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'update_context_me_msg_depth2.convo.txt')
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'update_custom_me_msg_depth2.convo.txt')
     assert.equal(this.compiler.convos.length, 1)
 
     await this.compiler.convos[0].Run(this.container)
   })
 
   it('should update me message from skalar', async function () {
-    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'update_context_me_msg_simple.convo.txt')
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'update_custom_me_msg_simple.convo.txt')
     assert.equal(this.compiler.convos.length, 1)
 
     await this.compiler.convos[0].Run(this.container)

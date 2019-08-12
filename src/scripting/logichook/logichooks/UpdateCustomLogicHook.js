@@ -3,7 +3,7 @@ const _ = require('lodash')
 
 const { isStringJson } = require('../../../helpers/Utils')
 
-module.exports = class UpdateContextLogicHook {
+module.exports = class UpdateCustomLogicHook {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -22,10 +22,10 @@ module.exports = class UpdateContextLogicHook {
 
   _update (convoStep, args, context) {
     if (!args || args.length < 2) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateContextLogicHook Not enough arguments argument ${util.inspect(args)}`))
+      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook Not enough arguments argument ${util.inspect(args)}`))
     }
     if (args.length > 3) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateContextLogicHook Too much arguments ${util.inspect(args)}`))
+      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook Too much arguments ${util.inspect(args)}`))
     }
 
     try {
@@ -38,7 +38,7 @@ module.exports = class UpdateContextLogicHook {
         context[args[0]][args[1]] = this._getValue(args[2])
       }
     } catch (err) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateContextLogicHook Failed to set context. Arguments ${util.inspect(args)}`))
+      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook Failed to set context. Arguments ${util.inspect(args)}`))
     }
     return Promise.resolve()
   }
