@@ -6,10 +6,10 @@ module.exports = class PauseLogicHook {
   }
 
   onMeStart ({ convo, convoStep, args }) {
-    return pause(convoStep.stepTag, args)
+    return pause('PauseLogicHook', convoStep.stepTag, args)
   }
 
   onBotStart ({ convoStep, container, args }) {
-    return pause(convoStep.stepTag, args)
+    return pause('PauseLogicHook', convoStep.stepTag, args)
   }
 }

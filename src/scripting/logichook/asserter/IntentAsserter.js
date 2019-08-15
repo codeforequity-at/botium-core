@@ -42,7 +42,8 @@ module.exports = class IntentAsserter {
 
     const intent = botMsg.nlp.intent.name
     if (intent !== args[0]) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected intent "${args[0]}" but found ${intent}`),
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Expected intent "${args[0]}" but found ${intent}`,
         {
           type: 'asserter',
           source: 'IntentAsserter',
@@ -55,7 +56,8 @@ module.exports = class IntentAsserter {
           cause: {
             intent
           }
-        })
+        }
+      ))
     }
 
     return Promise.resolve()

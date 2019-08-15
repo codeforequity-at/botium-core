@@ -20,7 +20,8 @@ module.exports = class MediaAsserter {
         mediaNotFound.push(args[i])
       }
       if (mediaNotFound.length > 0) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected media with uri "${mediaNotFound}"`,
+        return Promise.reject(new BotiumError(
+          `${convoStep.stepTag}: Expected media with uri "${mediaNotFound}"`,
           {
             type: 'asserter',
             source: 'MediaAsserter',
