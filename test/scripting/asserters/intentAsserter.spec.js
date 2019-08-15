@@ -3,8 +3,8 @@ const assert = require('chai').assert
 chai.use(require('chai-as-promised'))
 const util = require('util')
 
-const EntitiesAsserter = require('../../../src/scripting/logichook/asserter/IntentAsserter')
-const asserter = new EntitiesAsserter(null, {})
+const IntentAsserter = require('../../../src/scripting/logichook/asserter/IntentAsserter')
+const asserter = new IntentAsserter(null, {})
 
 describe('IntentAsserter', function () {
   it('positive case for intent asserter', async function () {
