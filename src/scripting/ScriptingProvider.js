@@ -87,7 +87,8 @@ module.exports = class ScriptingProvider {
           }
         })
         if (found === undefined) {
-          throw new BotiumError(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
+          throw new BotiumError(
+            `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
             {
               type: 'response not match',
               source: 'ScriptingProvider',
@@ -95,9 +96,8 @@ module.exports = class ScriptingProvider {
                 stepTag
               },
               cause: {
-                tomatch,
-                botresponse,
-                meMsg
+                expected: tomatch,
+                actual: botresponse
               }
             }
           )
@@ -110,7 +110,20 @@ module.exports = class ScriptingProvider {
         } catch (err) {
           return
         }
-        throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`)
+        throw new BotiumError(
+          `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`,
+          {
+            type: 'response does match',
+            source: 'ScriptingProvider',
+            context: {
+              stepTag
+            },
+            cause: {
+              expected: nottomatch,
+              actual: botresponse
+            }
+          }
+        )
       },
       fail: null
     }
