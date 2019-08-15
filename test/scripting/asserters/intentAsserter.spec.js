@@ -31,6 +31,26 @@ describe('IntentAsserter', function () {
       'order'
     )
   })
+  it('negative case for intent asserter, wrong intent, details', async function () {
+    try {
+      await asserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: [ 'greetings' ],
+        botMsg: {
+          nlp: {
+            intent: { name: 'order' }
+          }
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf(`Expected intent "greetings" but found order`) > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.equal(err.context.cause.expected, 'greetings')
+      assert.equal(err.context.cause.actual, 'order')
+    }
+  })
 })
 
 const _assert = (expected, found) => {

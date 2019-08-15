@@ -43,8 +43,7 @@ module.exports = class EntityValuesAsserter {
           constructor: {
           },
           params: {
-            args,
-            botMsg
+            args
           },
           // intermediate? State?
           calculation: {
@@ -54,7 +53,9 @@ module.exports = class EntityValuesAsserter {
           }
         },
         cause: {
-          substractedAsArray
+          expected: args,
+          actual: botMsg.nlp.entities.map((entity) => entity.value),
+          diff: substractedAsArray
         }
       }
     ))

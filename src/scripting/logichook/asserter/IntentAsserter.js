@@ -35,7 +35,7 @@ module.exports = class IntentAsserter {
           type: 'asserter',
           subtype: 'wrong parameters',
           source: 'IntentAsserter',
-          cause: { args, botMsg }
+          cause: { args }
         }
       )
     }
@@ -49,12 +49,12 @@ module.exports = class IntentAsserter {
           source: 'IntentAsserter',
           context: {
             params: {
-              args,
-              botMsg
+              args
             }
           },
           cause: {
-            intent
+            expected: args[0],
+            actual: intent
           }
         }
       ))

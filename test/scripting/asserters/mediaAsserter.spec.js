@@ -65,6 +65,12 @@ describe('scripting.asserters.mediaAsserter', function () {
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err.message.indexOf('Expected media with uri "test.jpg"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, ['test.jpg'])
+      assert.deepEqual(err.context.cause.actual, [])
+      assert.deepEqual(err.context.cause.diff, ['test.jpg'])
     }
   })
 })
