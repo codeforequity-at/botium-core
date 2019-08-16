@@ -271,12 +271,13 @@ class Convo {
           convoStepDoneCb()
         } else if (convoStep.sender === 'me') {
           convoStep.messageText = ScriptingMemory.apply(container, scriptingMemory, convoStep.messageText)
-          transcriptStep.actual = new BotiumMockMessage(convoStep)
 
           return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg: convoStep })
             .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`))
             .then(() => {
-              return this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg: transcriptStep.actual })
+              const meMsg = new BotiumMockMessage(convoStep)
+              transcriptStep.actual = meMsg
+              return this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
             })
             .then(() => {
               return new Promise(resolve => {
