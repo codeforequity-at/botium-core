@@ -3,7 +3,7 @@ updating the me-message.
 
 #me
 HI
-UPDATE_CONTEXT depth1Field|depth2Field|new message
+UPDATE_CUSTOM depth1Field|depth2Field|new message
 
 #bot
 new message

@@ -3,7 +3,7 @@ updating the me-message.
 
 #me
 HI
-UPDATE_CONTEXT aJsonField|{"msg": "new message"}
+UPDATE_CUSTOM aJsonField|{"msg": "new message"}
 
 #bot
 new message
