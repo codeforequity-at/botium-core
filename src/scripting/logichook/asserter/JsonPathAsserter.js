@@ -11,9 +11,9 @@ module.exports = class JsonPathAsserter {
     const rawBotResponse = botMsg.sourceData
     const path = args[0]
     const expected = args[1]
-    const actual = jsonPath.query(rawBotResponse, path)
+    const [ actual ] = jsonPath.query(rawBotResponse, path)
     if (expected && !this.context.Match(actual, expected)) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected element ${expected} in jsonPath ${path}"`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected: ${expected} in jsonPath ${path}"`,
         {
           type: 'asserter',
           source: 'JsonPathAsserter',
@@ -25,7 +25,11 @@ module.exports = class JsonPathAsserter {
               botMsg
             }
           },
-          cause: `Expected: ${expected} not equals Actual: ${actual}`
+          cause: {
+            expected,
+            actual,
+            path
+          }
         }
       ))
     }
@@ -43,7 +47,11 @@ module.exports = class JsonPathAsserter {
               botMsg
             }
           },
-          cause: `No element in path ${path}`
+          cause: {
+            expected,
+            actual,
+            path
+          }
         }
       ))
     }

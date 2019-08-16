@@ -27,6 +27,7 @@ pizza
 #bot
 Super! I've found $count locations for you. Which one would you like to drive to?
 DUMMY $count | arg2
+JSON_PATH $.entities[*].entity | cuisine
 
 #me
 1
