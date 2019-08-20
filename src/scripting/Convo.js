@@ -237,7 +237,7 @@ class Convo {
       err: null
     })
 
-    let lastMeMsg = null
+    let lastMeConvoStep = null
     let effectiveConversation
     try {
       effectiveConversation = this._getEffectiveConversation()
@@ -270,31 +270,28 @@ class Convo {
         if (convoStep.sender === 'begin' || convoStep.sender === 'end') {
           convoStepDoneCb()
         } else if (convoStep.sender === 'me') {
-          convoStep.messageText = ScriptingMemory.apply(container, scriptingMemory, convoStep.messageText)
+          const meMsg = new BotiumMockMessage(convoStep)
+          meMsg.messageText = ScriptingMemory.apply(container, scriptingMemory, meMsg.messageText)
+          convoStep.messageText = meMsg.messageText
+          transcriptStep.actual = meMsg
 
-          return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg: convoStep })
+          return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg })
+            .then(() => this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg }))
             .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`))
+            .then(() => new Promise(resolve => {
+              if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
+                setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * meMsg.messageText.length)
+              } else {
+                resolve()
+              }
+            }))
             .then(() => {
-              const meMsg = new BotiumMockMessage(convoStep)
-              transcriptStep.actual = meMsg
-              return this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
-            })
-            .then(() => {
-              return new Promise(resolve => {
-                if (container.caps.SIMULATE_WRITING_SPEED && convoStep.messageText && convoStep.messageText.length) {
-                  setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * convoStep.messageText.length)
-                } else {
-                  resolve()
-                }
-              })
-            })
-            .then(() => {
-              lastMeMsg = convoStep
+              lastMeConvoStep = convoStep
               transcriptStep.botBegin = new Date()
-              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, transcriptStep.actual))
+              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, meMsg))
                 .then(() => {
                   transcriptStep.botEnd = new Date()
-                  return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory })
+                  return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
                 })
                 .then(() => convoStepDone())
             })
@@ -328,7 +325,7 @@ class Convo {
                 const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
                 debug(failErr)
                 try {
-                  this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
+                  this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
                 } catch (failErr) {
                 }
                 return convoStepDone(failErr)
@@ -340,13 +337,13 @@ class Convo {
                 const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, messageText)
                 if (convoStep.not) {
                   try {
-                    this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)
+                    this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
                   } catch (err) {
                     return convoStepDone(err)
                   }
                 } else {
                   try {
-                    this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeMsg)
+                    this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
                   } catch (err) {
                     return convoStepDone(err)
                   }
@@ -365,7 +362,7 @@ class Convo {
                   const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: assertion error - ${util.inspect(err)}`)
                   debug(failErr)
                   try {
-                    this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
+                    this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
                   } catch (failErr) {
                   }
                   convoStepDone(failErr)
@@ -376,7 +373,7 @@ class Convo {
               const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`)
               debug(failErr)
               try {
-                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
+                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
               } catch (failErr) {
               }
               convoStepDone(failErr)
