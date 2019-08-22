@@ -103,9 +103,12 @@ const SCRIPTING_FUNCTIONS = {
     if (code == null) {
       throw Error('func function used without args!')
     }
-    return vm.runInNewContext(code, {})
+    try {
+      return vm.runInNewContext(code, { debug, console, require })
+    } catch (err) {
+      throw Error(`func function execution failed - ${err}`)
+    }
   }
-
 }
 
 const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)
@@ -136,11 +139,11 @@ const _apply = (scriptingMemory, str) => {
       if (scriptingMemory[key]) {
         str = str.replace(key, scriptingMemory[key])
       } else {
-        const regex = `\\${key}(\\([^)]*\\))?`
+        const regex = `\\${key}(\\(.+(?<!\\\\)\\))?`
         const matches = str.match(new RegExp(regex, 'g')) || []
         for (const match of matches) {
           if (match.indexOf('(') > 0) {
-            const arg = match.substring(match.indexOf('(') + 1, match.indexOf(')'))
+            const arg = match.substring(match.indexOf('(') + 1, match.lastIndexOf(')')).replace(/\\\)/g, ')')
             str = str.replace(match, SCRIPTING_FUNCTIONS[key](arg))
           } else {
             str = str.replace(match, SCRIPTING_FUNCTIONS[key]())
