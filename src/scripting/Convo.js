@@ -7,6 +7,7 @@ const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const ScriptingMemory = require('./ScriptingMemory')
+const BotiumError = require('./BotiumError')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -112,10 +113,11 @@ class TranscriptStep {
 }
 
 class TranscriptError extends Error {
-  constructor (message, transcript) {
-    super(message)
+  constructor (err, transcript) {
+    super(err.message)
     this.name = this.constructor.name
     this.transcript = transcript
+    this.cause = err
     Error.captureStackTrace(this, this.constructor)
   }
 }
@@ -188,12 +190,12 @@ class Convo {
         (cb) => {
           this.scriptingEvents.onConvoBegin({ convo: this, container, scriptingMemory })
             .then(() => cb())
-            .catch((err) => cb(new Error(`${this.header.name}: error begin handler ${util.inspect(err)}`)))
+            .catch((err) => cb(new BotiumError(`${this.header.name}: error begin handler - ${err.message}`, { err })))
         },
         (cb) => {
           this.scriptingEvents.assertConvoBegin({ convo: this, container, scriptingMemory })
             .then(() => cb())
-            .catch((err) => cb(new Error(`${this.header.name}: error begin handler ${util.inspect(err)}`)))
+            .catch((err) => cb(new BotiumError(`${this.header.name}: error begin handler - ${err.message}`, { err })))
         },
         (cb) => {
           this.runConversation(container, scriptingMemory, (transcript) => {
@@ -208,12 +210,12 @@ class Convo {
         (transcript, cb) => {
           this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
             .then(() => cb(null, transcript))
-            .catch((err) => cb(new Error(`${this.header.name}: error end handler ${util.inspect(err)}`), transcript))
+            .catch((err) => cb(new BotiumError(`${this.header.name}: error end handler - ${err.message}`, { err }), transcript))
         },
         (transcript, cb) => {
           this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
             .then(() => cb(null, transcript))
-            .catch((err) => cb(new Error(`${this.header.name}: error end asserter ${util.inspect(err)}`), transcript))
+            .catch((err) => cb(new BotiumError(`${this.header.name}: error end asserter - ${err.message}`, { err }), transcript))
         }
       ],
       (err, transcript) => {
@@ -298,7 +300,7 @@ class Convo {
             .catch((err) => {
               transcriptStep.botEnd = new Date()
 
-              const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: error sending to bot ${util.inspect(err)}`)
+              const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: error sending to bot - ${err.message || err}`, { err })
               debug(failErr)
               try {
                 this.scriptingEvents.fail && this.scriptingEvents.fail(failErr)
@@ -322,7 +324,7 @@ class Convo {
               ])
               debug(`${this.header.name}: bot says (cleaned by attachments and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
               if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData && !saysmsg.nlp)) {
-                const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
+                const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
                 debug(failErr)
                 try {
                   this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
@@ -359,7 +361,7 @@ class Convo {
                 .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
                 .then(() => convoStepDone())
                 .catch((err) => {
-                  const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: assertion error - ${util.inspect(err)}`)
+                  const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message}`, { err })
                   debug(failErr)
                   try {
                     this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
@@ -370,7 +372,7 @@ class Convo {
             }).catch((err) => {
               transcriptStep.botEnd = new Date()
 
-              const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: error waiting for bot ${util.inspect(err)}`)
+              const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: error waiting for bot - ${err.message}`, { err })
               debug(failErr)
               try {
                 this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeMsg)
@@ -379,7 +381,7 @@ class Convo {
               convoStepDone(failErr)
             })
         } else {
-          const failErr = new Error(`${this.header.name}/${convoStep.stepTag}: invalid sender ${util.inspect(convoStep.sender)}`)
+          const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: invalid sender - ${util.inspect(convoStep.sender)}`)
           debug(failErr)
           try {
             this.scriptingEvents.fail && this.scriptingEvents.fail(failErr)
@@ -402,10 +404,10 @@ class Convo {
 
     if (_.isArray(expected)) {
       if (!_.isArray(result)) {
-        throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response expected array, got "${result}"`)
+        throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response expected array, got "${result}"`)
       }
       if (expected.length !== result.length) {
-        throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
+        throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
       }
       for (var i = 0; i < expected.length; i++) {
         this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i])
@@ -415,7 +417,7 @@ class Convo {
         if (result.hasOwnProperty(key)) {
           this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key])
         } else {
-          throw new Error(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
+          throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
         }
       })
     } else {
@@ -524,11 +526,11 @@ class Convo {
         includeLogicHooks.forEach((includeLogicHook) => {
           const alreadyThereAt = parentPConvos.indexOf(includeLogicHook)
           if (alreadyThereAt >= 0) {
-            throw new Error(`Partial convos are included circular. "${includeLogicHook}" is referenced by "/${parentPConvos.slice(0, alreadyThereAt).join('/')}" and by "/${parentPConvos.join('/')}" `)
+            throw new BotiumError(`Partial convos are included circular. "${includeLogicHook}" is referenced by "/${parentPConvos.slice(0, alreadyThereAt).join('/')}" and by "/${parentPConvos.join('/')}" `)
           }
           const partialConvos = this.context.GetPartialConvos()
           if (!partialConvos || Object.keys(partialConvos).length === 0) {
-            throw new Error(`Cant find partial convo with name ${includeLogicHook} (There are no partial convos)`)
+            throw new BotiumError(`Cant find partial convo with name ${includeLogicHook} (There are no partial convos)`)
           }
           const partialConvo = partialConvos[includeLogicHook]
           if (!partialConvo) {
