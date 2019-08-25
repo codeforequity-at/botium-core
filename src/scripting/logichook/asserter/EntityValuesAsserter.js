@@ -54,7 +54,7 @@ module.exports = class EntityValuesAsserter {
         },
         cause: {
           expected: args,
-          actual: botMsg.nlp.entities.map((entity) => entity.value),
+          actual: botMsg.nlp && botMsg.nlp.entities && botMsg.nlp.entities.map((entity) => entity.value),
           diff: substractedAsArray
         }
       }
