@@ -75,8 +75,8 @@ module.exports = class IntentConfidenceAsserter {
           subtype: 'wrong parameters',
           source: 'IntentConfidenceAsserter',
           cause: {
-            args,
-            botMsg
+            expected: expectedMinimum,
+            actual: null
           }
         }
       ))
@@ -84,21 +84,23 @@ module.exports = class IntentConfidenceAsserter {
 
     let confidence = Number(botMsg.nlp.intent.confidence)
     if (Number.isNaN(confidence)) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Config error. Cant recognize as intent: "${botMsg.nlp.intent.confidence}"`,
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Config error. Cant recognize as intent confidence: "${botMsg.nlp.intent.confidence}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
           source: 'IntentConfidenceAsserter',
           cause: {
-            args,
-            confidence
+            expected: expectedMinimum,
+            actual: confidence
           }
         }
       ))
     }
 
     if (confidence * 100 < expectedMinimum) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Confidence expected minimum ${expectedMinimum} current "${confidence * 100}"`,
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Confidence expected minimum ${expectedMinimum} current "${confidence * 100}"`,
         {
           type: 'asserter',
           source: 'IntentConfidenceAsserter',
@@ -107,12 +109,12 @@ module.exports = class IntentConfidenceAsserter {
               expectedMinimum: this.globalExpectedMinimum
             },
             params: {
-              args,
-              botMsg
+              args
             }
           },
           cause: {
-            confidence: confidence * 100
+            expected: expectedMinimum,
+            actual: confidence * 100
           }
         }
       ))

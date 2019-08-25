@@ -8,15 +8,12 @@ module.exports = class ButtonsAsserter {
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (args && args.length > 0) {
+      const buttonsFound = (botMsg.buttons ? botMsg.buttons.map(b => b.text) : []).concat(botMsg.cards ? botMsg.cards.reduce((acc, mc) => acc.concat(mc.buttons ? mc.buttons.map(b => b.text) : []), []) : [])
       const buttonsNotFound = []
       for (let i = 0; i < args.length; i++) {
-        if (botMsg.buttons) {
-          if (botMsg.buttons.findIndex(mb => this.context.Match(mb.text, args[i])) >= 0) continue
+        if (buttonsFound.findIndex(b => this.context.Match(b, args[i])) < 0) {
+          buttonsNotFound.push(args[i])
         }
-        if (botMsg.cards) {
-          if (botMsg.cards.findIndex(mc => mc.buttons && mc.buttons.findIndex(mcb => this.context.Match(mcb.text, args[i])) >= 0) >= 0) continue
-        }
-        buttonsNotFound.push(args[i])
       }
       if (buttonsNotFound.length > 0) {
         return Promise.reject(new BotiumError(
@@ -25,11 +22,12 @@ module.exports = class ButtonsAsserter {
             type: 'asserter',
             source: 'ButtonsAsserter',
             params: {
-              args,
-              botMsg
+              args
             },
             cause: {
-              buttonsNotFound
+              expected: args,
+              actual: buttonsFound,
+              diff: buttonsNotFound
             }
           }
         ))

@@ -14,6 +14,7 @@ const DEFAULT_ASSERTERS = [
   { name: 'ENTITIES', className: 'EntitiesAsserter' },
   { name: 'ENTITY_VALUES', className: 'EntityValuesAsserter' },
   { name: 'INTENT', className: 'IntentAsserter' },
+  { name: 'INTENT_UNIQUE', className: 'IntentUniqueAsserter' },
   { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' }
 ]
 DEFAULT_ASSERTERS.forEach((asserter) => {
