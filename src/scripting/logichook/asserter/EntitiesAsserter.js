@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const util = require('util')
-const BotiumError = require('../../BotiumError')
+const { BotiumError } = require('../../BotiumError')
 
 module.exports = class EntitiesAsserter {
   constructor (context, caps = {}) {
