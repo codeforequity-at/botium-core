@@ -22,7 +22,8 @@ const BotiumError = class BotiumError extends Error {
     // Capturing stack trace, excluding constructor call from it.
     Error.captureStackTrace(this, this.constructor)
 
-    this.context = context
+    this.context = context || {}
+    this.context.message = message.message || message
   }
 }
 

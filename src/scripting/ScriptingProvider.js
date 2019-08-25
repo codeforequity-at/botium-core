@@ -91,8 +91,8 @@ module.exports = class ScriptingProvider {
           throw new BotiumError(
             `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
             {
-              type: 'response not match',
-              source: 'ScriptingProvider',
+              type: 'asserter',
+              source: 'TextMatchAsserter',
               context: {
                 stepTag
               },
@@ -114,8 +114,8 @@ module.exports = class ScriptingProvider {
         throw new BotiumError(
           `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`,
           {
-            type: 'response does match',
-            source: 'ScriptingProvider',
+            type: 'asserter',
+            source: 'TextNotMatchAsserter',
             context: {
               stepTag
             },
