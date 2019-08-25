@@ -33,9 +33,16 @@ module.exports = class IntentAsserter {
       return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected intent "${args[0]}" but found nothing`,
         {
           type: 'asserter',
-          subtype: 'wrong parameters',
           source: 'IntentAsserter',
-          cause: { args }
+          context: {
+            params: {
+              args
+            }
+          },
+          cause: {
+            expected: args[0],
+            actual: null
+          }
         }
       ))
     }

@@ -69,7 +69,7 @@ module.exports = class IntentConfidenceAsserter {
     }
 
     if (!_.has(botMsg, 'nlp.intent.confidence')) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected confidence minimum "${expectedMinimum}" but found nothing (botMsg.nlp.intent.confidence is not set)`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected confidence minimum "${expectedMinimum}" but found nothing`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
