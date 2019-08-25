@@ -7,7 +7,7 @@ const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const ScriptingMemory = require('./ScriptingMemory')
-const { BotiumError, botiumErrorFromList } = require('./BotiumError')
+const { BotiumError, botiumErrorFromErr, botiumErrorFromList } = require('./BotiumError')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -190,12 +190,12 @@ class Convo {
         (cb) => {
           this.scriptingEvents.onConvoBegin({ convo: this, container, scriptingMemory })
             .then(() => cb())
-            .catch((err) => cb(new BotiumError(`${this.header.name}: error begin handler - ${err.message}`, { err })))
+            .catch((err) => cb(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err)))
         },
         (cb) => {
           this.scriptingEvents.assertConvoBegin({ convo: this, container, scriptingMemory })
             .then(() => cb())
-            .catch((err) => cb(new BotiumError(`${this.header.name}: error begin handler - ${err.message}`, { err })))
+            .catch((err) => cb(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err)))
         },
         (cb) => {
           this.runConversation(container, scriptingMemory, (transcript) => {
@@ -210,12 +210,12 @@ class Convo {
         (transcript, cb) => {
           this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
             .then(() => cb(null, transcript))
-            .catch((err) => cb(new BotiumError(`${this.header.name}: error end handler - ${err.message}`, { err }), transcript))
+            .catch((err) => cb(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript))
         },
         (transcript, cb) => {
           this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
             .then(() => cb(null, transcript))
-            .catch((err) => cb(new BotiumError(`${this.header.name}: error end asserter - ${err.message}`, { err }), transcript))
+            .catch((err) => cb(botiumErrorFromErr(`${this.header.name}: error end asserter - ${err.message}`, err), transcript))
         }
       ],
       (err, transcript) => {
@@ -300,7 +300,7 @@ class Convo {
             .catch((err) => {
               transcriptStep.botEnd = new Date()
 
-              const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: error sending to bot - ${err.message || err}`, { err })
+              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: error sending to bot - ${err.message || err}`, err)
               debug(failErr)
               try {
                 this.scriptingEvents.fail && this.scriptingEvents.fail(failErr)
@@ -373,7 +373,7 @@ class Convo {
               this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
                 .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
                 .catch((err) => {
-                  const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message}`, { err })
+                  const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message}`, err)
                   debug(failErr)
                   try {
                     this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
@@ -401,7 +401,7 @@ class Convo {
             }).catch((err) => {
               transcriptStep.botEnd = new Date()
 
-              const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: error waiting for bot - ${err.message}`, { err })
+              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: error waiting for bot - ${err.message}`, err)
               debug(failErr)
               try {
                 this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)

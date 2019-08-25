@@ -11,7 +11,7 @@ const BotiumError = class BotiumError extends Error {
    *   ...
    */
   constructor (message, context, supressChildCheck) {
-    super(message)
+    super(message.message || message)
 
     if (!supressChildCheck && _getChildErrorsFromContext(context)) {
       throw Error('Create BotiumError with child errors using the fromList() method!')
@@ -53,12 +53,20 @@ module.exports.getErrorsFromError = (error, safe = true) => {
   throw Error('Invalid error format!')
 }
 
+const botiumErrorFromErr = (message, err) => {
+  if (err instanceof BotiumError) {
+    return new BotiumError(message, err.context, true)
+  } else {
+    return new BotiumError(message, { err }, true)
+  }
+}
+
 const botiumErrorFromList = (errors, { type = 'list', source = 'BotiumError', flat = true }) => {
   const message = errors.map(err => err.message || err.toString()).join(',\n')
   let children = []
 
   for (const error of errors) {
-    if (error instanceof module.exports.BotiumError) {
+    if (error instanceof BotiumError) {
       const childErrors = flat && _getChildErrorsFromContext(error.context)
       if (childErrors && childErrors.length) {
         children = children.concat(childErrors)
@@ -75,5 +83,6 @@ const botiumErrorFromList = (errors, { type = 'list', source = 'BotiumError', fl
 
 module.exports = {
   BotiumError,
+  botiumErrorFromErr,
   botiumErrorFromList
 }
