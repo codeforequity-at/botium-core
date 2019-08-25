@@ -354,7 +354,11 @@ class Convo {
                 try {
                   this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
                 } catch (err) {
-                  return convoStepDone(err)
+                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                    assertErrors.push(err)
+                  } else {
+                    return convoStepDone(err)
+                  }
                 }
               }
               this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
@@ -373,10 +377,16 @@ class Convo {
                   }
                 })
                 .then(() => {
-                  if (assertErrors.length === 0) {
-                    convoStepDone()
+                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                    if (assertErrors.length === 0) {
+                      convoStepDone()
+                    } else {
+                      return convoStepDone(botiumErrorFromList(assertErrors, {}))
+                    }
                   } else {
-                    return convoStepDone(botiumErrorFromList(assertErrors, {}))
+                    if (!transcriptStep.stepEnd) {
+                      convoStepDone()
+                    }
                   }
                 })
             }).catch((err) => {

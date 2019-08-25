@@ -1,8 +1,6 @@
 const _ = require('lodash')
 
-let supressChildCheck = false
-
-module.exports.BotiumError = class BotiumError extends Error {
+const BotiumError = class BotiumError extends Error {
   /**
    *
    * @param message
@@ -12,7 +10,7 @@ module.exports.BotiumError = class BotiumError extends Error {
    *   source: 'source of the event',
    *   ...
    */
-  constructor (message, context) {
+  constructor (message, context, supressChildCheck) {
     super(message)
 
     if (!supressChildCheck && _getChildErrorsFromContext(context)) {
@@ -55,7 +53,7 @@ module.exports.getErrorsFromError = (error, safe = true) => {
   throw Error('Invalid error format!')
 }
 
-module.exports.botiumErrorFromList = (errors, { type = 'list', source = 'BotiumError', flat = true }) => {
+const botiumErrorFromList = (errors, { type = 'list', source = 'BotiumError', flat = true }) => {
   const message = errors.map(err => err.message || err.toString()).join(',\n')
   let children = []
 
@@ -71,8 +69,11 @@ module.exports.botiumErrorFromList = (errors, { type = 'list', source = 'BotiumE
       children.push(error)
     }
   }
-  supressChildCheck = true
-  const result = new module.exports.BotiumError(message, { errors: children, type, source })
-  supressChildCheck = false
+  const result = new BotiumError(message, { errors: children, type, source }, true)
   return result
+}
+
+module.exports = {
+  BotiumError,
+  botiumErrorFromList
 }
