@@ -12,7 +12,7 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('scripting.logichooks.cases', function () {
+describe('SetClearScriptingMemory', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.logichooks',

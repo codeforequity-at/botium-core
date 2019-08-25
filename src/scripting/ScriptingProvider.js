@@ -4,13 +4,14 @@ const fs = require('fs')
 const path = require('path')
 const glob = require('glob')
 const _ = require('lodash')
+require('promise.allsettled').shim()
 const debug = require('debug')('botium-ScriptingProvider')
 
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
-const BotiumError = require('./BotiumError')
+const { BotiumError, botiumErrorFromList } = require('./BotiumError')
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
 
 const p = (fn) => new Promise((resolve, reject) => {
@@ -87,7 +88,8 @@ module.exports = class ScriptingProvider {
           }
         })
         if (found === undefined) {
-          throw new BotiumError(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
+          throw new BotiumError(
+            `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
             {
               type: 'response not match',
               source: 'ScriptingProvider',
@@ -95,9 +97,8 @@ module.exports = class ScriptingProvider {
                 stepTag
               },
               cause: {
-                tomatch,
-                botresponse,
-                meMsg
+                expected: tomatch,
+                actual: botresponse
               }
             }
           )
@@ -110,7 +111,20 @@ module.exports = class ScriptingProvider {
         } catch (err) {
           return
         }
-        throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`)
+        throw new BotiumError(
+          `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`,
+          {
+            type: 'response does match',
+            source: 'ScriptingProvider',
+            context: {
+              stepTag
+            },
+            cause: {
+              expected: nottomatch,
+              actual: botresponse
+            }
+          }
+        )
       },
       fail: null
     }
@@ -135,6 +149,15 @@ module.exports = class ScriptingProvider {
       .map(a => p(() => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoAsserter, ...globalAsserter]
+    if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+      return Promise.allSettled(allPromises).then((results) => {
+        const rejected = results.filter(result => result.status === 'rejected').map(result => result.reason)
+        if (rejected.length) {
+          throw botiumErrorFromList(rejected, {})
+        }
+        return results.filter(result => result.status === 'fulfilled').map(result => result.value)
+      })
+    }
     return Promise.all(allPromises)
   }
 

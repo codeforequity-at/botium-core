@@ -76,6 +76,12 @@ describe('scripting.asserters.cardsAsserter', function () {
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err.message.indexOf('Expected cards with text "missingcard"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, ['missingcard'])
+      assert.deepEqual(err.context.cause.actual, [])
+      assert.deepEqual(err.context.cause.diff, ['missingcard'])
     }
   })
   it('should fail on one missing card', async function () {
@@ -97,6 +103,12 @@ describe('scripting.asserters.cardsAsserter', function () {
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err.message.indexOf('Expected cards with text "missingcard"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, ['existingcard', 'missingcard'])
+      assert.deepEqual(err.context.cause.actual, ['existingcard', 'cardtext2'])
+      assert.deepEqual(err.context.cause.diff, ['missingcard'])
     }
   })
 })

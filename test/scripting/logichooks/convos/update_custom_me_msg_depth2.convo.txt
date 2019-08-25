@@ -1,0 +1,9 @@
+update_context_me_msg
+updating the me-message.
+
+#me
+HI
+UPDATE_CUSTOM depth1Field|depth2Field|new message
+
+#bot
+new message
