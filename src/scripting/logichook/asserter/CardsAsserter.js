@@ -1,4 +1,4 @@
-const BotiumError = require('../../BotiumError')
+const { BotiumError } = require('../../BotiumError')
 
 module.exports = class CardsAsserter {
   constructor (context, caps = {}) {
