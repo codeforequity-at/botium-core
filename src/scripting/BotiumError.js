@@ -27,7 +27,7 @@ const BotiumError = class BotiumError extends Error {
 }
 
 const _getChildErrorsFromContext = (context) => {
-  if (context.errors && _.isArray(context.errors)) {
+  if (context && context.errors && _.isArray(context.errors)) {
     return context.errors
   }
   return false

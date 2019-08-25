@@ -563,7 +563,7 @@ class Convo {
           }
           const partialConvo = partialConvos[includeLogicHook]
           if (!partialConvo) {
-            throw Error(`Cant find partial convo with name ${includeLogicHook} (available partial convos: ${Object.keys(partialConvos).join(',')})`)
+            throw new BotiumError(`Cant find partial convo with name ${includeLogicHook} (available partial convos: ${Object.keys(partialConvos).join(',')})`)
           }
 
           _getEffectiveConversationRecursive(partialConvo.conversation, [...parentPConvos, includeLogicHook], result)
