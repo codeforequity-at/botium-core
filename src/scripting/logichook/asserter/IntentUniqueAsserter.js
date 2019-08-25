@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const BotiumError = require('../../BotiumError')
+const { BotiumError } = require('../../BotiumError')
 
 module.exports = class IntentUniqueAsserter {
   constructor (context, caps = {}) {
@@ -9,14 +9,15 @@ module.exports = class IntentUniqueAsserter {
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (args.length > 0) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentUniqueAsserter Too much argument "${args}"`),
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: IntentUniqueAsserter Too much argument "${args}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
           source: 'IntentUniqueAsserter',
           cause: { args }
         }
-      )
+      ))
     }
 
     if (botMsg.nlp && botMsg.nlp.intent && !Number.isNaN(botMsg.nlp.intent.confidence) && botMsg.nlp.intent.intents && botMsg.nlp.intent.intents.length > 0) {
