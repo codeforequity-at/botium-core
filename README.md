@@ -20,7 +20,7 @@ All of the components in the Botium Stack build on top of Botium Core (except Bo
 ## How do I get help ?
 * Read the [Botium in a Nutshell](https://medium.com/@floriantreml/botium-in-a-nutshell-part-1-overview-f8d0ceaf8fb4) series
 * If you think you found a bug in Botium, please use the Github issue tracker.
-* The documentation on a very technical level can be found in the [Botium Wiki](https://github.com/codeforequity-at/botium-core/wiki).
+* The documentation can be found in the [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/overview).
 * For asking questions please use Stackoverflow - we are monitoring and answering questions there.
 * For our VIP users, there is also a Slack workspace available (coming soon).
 
@@ -35,18 +35,4 @@ See the [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/overview) 
 ## Connectors
 Botium Core provides the core functionality. For attaching Botium to your chatbot, there are lots of _connectors_ available for most important chatbot technologies, frameworks, APIs, SDKs, cloud services etc. Please follow these links to the connector repositories. Sample configurations and scripts are included with each connector.
 
-* [IBM Watson Assistant](https://github.com/codeforequity-at/botium-connector-watson)
-* [Alexa Voice Service](https://github.com/codeforequity-at/botium-connector-alexa-avs)
-* [Alexa Skill Management API](https://github.com/codeforequity-at/botium-connector-alexa-smapi)
-* [Facebook Messenger](https://github.com/codeforequity-at/botium-connector-fbpagereceiver)
-* [Microsoft Bot Framework](https://github.com/codeforequity-at/botium-connector-directline3)
-* [Microsoft LUIS](https://github.com/codeforequity-at/botium-connector-luis)
-* [Google Dialogflow](https://github.com/codeforequity-at/botium-connector-dialogflow)
-* [Action on Google / Google Assistant](https://github.com/codeforequity-at/botium-connector-google-assistant)
-* [Rasa](https://github.com/codeforequity-at/botium-connector-rasa)
-* [Botpress](https://github.com/codeforequity-at/botium-connector-botpress)
-* [Botkit](https://github.com/codeforequity-at/botium-connector-botkit)
-* [Wechat](https://github.com/codeforequity-at/botium-connector-wechat)
-* [Kore.ai](https://github.com/codeforequity-at/botium-connector-koreai-webhook)
-* [Webdriver](https://github.com/codeforequity-at/botium-connector-webdriverio) - for testing on user interface level
-* [Generic HTTP(s)/JSON Endpoints](https://github.com/codeforequity-at/botium-core/wiki/operation-mode-simplerest)
+See [here](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/360553/Botium+Connectors) for the latest connector updates.
