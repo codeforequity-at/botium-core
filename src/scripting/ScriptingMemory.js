@@ -104,7 +104,7 @@ const SCRIPTING_FUNCTIONS = {
       throw Error('func function used without args!')
     }
     try {
-      return vm.runInNewContext(code, { debug, console, require })
+      return vm.runInNewContext(code, { debug: debug, console: console, require: require })
     } catch (err) {
       throw Error(`func function execution failed - ${err}`)
     }
