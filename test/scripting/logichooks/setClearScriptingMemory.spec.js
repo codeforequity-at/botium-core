@@ -97,6 +97,16 @@ describe('SetClearScriptingMemory', function () {
     assert.isDefined(transcript.scriptingMemory['$year'])
     assert.equal(transcript.scriptingMemory['$year'], '2012')
   })
+
+  it('numbers, parse currencies', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_numbers.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    console.log(transcript)
+    // assert.isDefined(transcript.scriptingMemory['$year'])
+    // assert.equal(transcript.scriptingMemory['$year'], '2012')
+  })
 })
 
 describe('scripting.logichooks.global', function () {
