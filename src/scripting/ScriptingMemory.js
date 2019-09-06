@@ -21,7 +21,7 @@ const SCRIPTING_FUNCTIONS = {
     return new Date().toLocaleString('en-EN')
   },
   '$now_DE': () => {
-    return new Date().toLocaleString('de-DE')
+    return moment().format('DD.MM.YYYY, HH:mm:ss')
   },
   '$now_ISO': () => {
     return new Date().toISOString()
@@ -37,7 +37,7 @@ const SCRIPTING_FUNCTIONS = {
     return new Date().toLocaleDateString('en-EN')
   },
   '$date_DE': () => {
-    return new Date().toLocaleDateString('de-DE')
+    return moment().format('YYYY.MM.DD')
   },
   '$date_ISO': () => {
     return moment().format('YYYY-MM-DD')
@@ -50,7 +50,7 @@ const SCRIPTING_FUNCTIONS = {
     return new Date().toLocaleTimeString('en-EN')
   },
   '$time_DE': () => {
-    return new Date().toLocaleTimeString('de-DE')
+    return moment().format('HH:mm:ss')
   },
   '$time_ISO': () => {
     return moment().format('HH:mm:ss')

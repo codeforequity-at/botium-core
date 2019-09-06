@@ -521,7 +521,7 @@ describe('convo.scriptingMemory.api', function () {
         { },
         '$now_DE'
       )
-      assert(result.indexOf('-') === 4)
+      assert(result.indexOf('.') === 2)
       assert(result.lastIndexOf(':') > 10)
     })
     it('now_ISO', async function () {
@@ -568,8 +568,8 @@ describe('convo.scriptingMemory.api', function () {
         '$date_DE'
       )
       assert(result.length <= 10, 'wrong format')
-      assert(result.indexOf('-') === 4, 'wrong format')
-      assert(result.lastIndexOf('-') > 5, 'wrong format')
+      assert(result.indexOf('.') === 4, 'wrong format')
+      assert(result.lastIndexOf('.') === 7, 'wrong format')
     })
     it('date_ISO', async function () {
       const result = ScriptingMemory.apply(
