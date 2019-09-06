@@ -1,0 +1,8 @@
+#me
+PAUSE 100
+Hi!
+
+#bot
+Hi
+
+

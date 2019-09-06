@@ -252,7 +252,7 @@ describe('convo.partialconvo.wrongconvos', function () {
   })
 
   it('Partial convo without name', async function () {
-    return assert.isRejected(_initIt([], 'convos/partialconvo/noname', this), 'Invalid convo header: undefined undefined')
+    return assert.isRejected(_initIt([], 'convos/partialconvo/noname', this), 'Header name is mandatory: {"name":""}')
   })
 
   it('Partial convo not found', async function () {

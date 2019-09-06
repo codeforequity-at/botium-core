@@ -291,7 +291,9 @@ module.exports = class CompilerCsv extends CompilerBase {
           const convoStep = linesToConvoStep(
             [_getText(rowIndex, extractedData)],
             _getSender(rowIndex, extractedData),
-            this.context
+            this.context,
+            undefined,
+            true
           )
           convoStep.stepTag = `Row ${rowIndex}`
           currentConvo.push(convoStep)

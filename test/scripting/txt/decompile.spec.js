@@ -34,6 +34,81 @@ botText
 `
     )
   })
+  it('should decompile logichook', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'meText',
+          logicHooks: [{ name: 'PAUSE', args: ['100'] }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+meText
+PAUSE 100
+`
+    )
+  })
+  it('should decompile logichook without message', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          logicHooks: [{ name: 'PAUSE', args: ['100'] }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+PAUSE 100
+`
+    )
+  })
+  it('should decompile logichook with message null', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: null,
+          logicHooks: [{ name: 'PAUSE', args: ['100'] }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+PAUSE 100
+`
+    )
+  })
   it('should decompile button asserter', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()

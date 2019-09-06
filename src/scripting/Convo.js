@@ -290,12 +290,22 @@ class Convo {
             .then(() => {
               lastMeConvoStep = convoStep
               transcriptStep.botBegin = new Date()
-              return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, meMsg))
-                .then(() => {
-                  transcriptStep.botEnd = new Date()
-                  return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
-                })
-                .then(() => convoStepDone())
+              if (!_.isNull(convoStep.messageText) || convoStep.sourceData || (convoStep.userInputs && convoStep.userInputs.length)) {
+                transcriptStep.botBegin = new Date()
+                return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, meMsg))
+                  .then(() => {
+                    transcriptStep.botEnd = new Date()
+                    return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
+                  })
+                  .then(() => convoStepDone())
+              } else {
+                debug(`${this.header.name}/${convoStep.stepTag}: message not found in #me section, message not sent to container ${util.inspect(convoStep)}`)
+                return Promise.resolve()
+                  .then(() => {
+                    return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
+                  })
+                  .then(() => convoStepDone())
+              }
             })
             .catch((err) => {
               transcriptStep.botEnd = new Date()

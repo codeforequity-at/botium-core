@@ -619,7 +619,7 @@ module.exports = class ScriptingProvider {
       }
     } else if (convos) {
       if (!convos.header || !convos.header.name) {
-        throw Error(`Invalid convo header: ${convos.header}`)
+        throw Error(`Header name is mandatory: ${JSON.stringify(convos.header)}`)
       }
       if (convos.header.name.indexOf('|') >= 0) {
         throw Error(`Invalid partial convo name: ${convos.header.name}`)

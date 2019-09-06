@@ -69,7 +69,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       return linesToConvoStep(lines, convoStepSender, this.context, this.eol)
     }
 
-    let pushPrev = () => {
+    const pushPrev = () => {
       if (convoStepSender && currentLines) {
         const convoStep = {
           sender: convoStepSender,
@@ -100,7 +100,7 @@ module.exports = class CompilerTxt extends CompilerBase {
           convoStepSender = convoStepSender.substr(0, convoStepSender.indexOf(' ')).trim()
         }
         currentLines = []
-      } else if (currentLines.length > 0 || (line && line.length > 0)) {
+      } else {
         currentLines.push(line)
       }
     })
@@ -173,7 +173,7 @@ module.exports = class CompilerTxt extends CompilerBase {
           script += 'BUTTON ' + (set.buttons[0].payload || set.buttons[0].text) + this.eol
         } else if (set.media && set.media.length > 0) {
           script += 'MEDIA ' + set.media[0].mediaUri + this.eol
-        } else {
+        } else if (set.messageText) {
           script += set.messageText + this.eol
         }
         set.logicHooks && set.logicHooks.map((logicHook) => {
