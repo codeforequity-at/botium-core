@@ -103,9 +103,12 @@ const SCRIPTING_FUNCTIONS = {
     if (code == null) {
       throw Error('func function used without args!')
     }
-    return vm.runInNewContext(code, {})
+    try {
+      return vm.runInNewContext(code, { debug: debug, console: console, require: require })
+    } catch (err) {
+      throw Error(`func function execution failed - ${err}`)
+    }
   }
-
 }
 
 const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)
@@ -136,11 +139,11 @@ const _apply = (scriptingMemory, str) => {
       if (scriptingMemory[key]) {
         str = str.replace(key, scriptingMemory[key])
       } else {
-        const regex = `\\${key}(\\([^)]*\\))?`
+        const regex = `\\${key}(\\(.+(?<!\\\\)\\))?`
         const matches = str.match(new RegExp(regex, 'g')) || []
         for (const match of matches) {
           if (match.indexOf('(') > 0) {
-            const arg = match.substring(match.indexOf('(') + 1, match.indexOf(')'))
+            const arg = match.substring(match.indexOf('(') + 1, match.lastIndexOf(')')).replace(/\\\)/g, ')')
             str = str.replace(match, SCRIPTING_FUNCTIONS[key](arg))
           } else {
             str = str.replace(match, SCRIPTING_FUNCTIONS[key]())
@@ -174,7 +177,7 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
         reExpected = _.isString(expected) ? expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&') : expected
       }
-      const varMatches = ((_.isString(expected) ? expected.match(/\$\w+/g) : false) || []).sort(_longestFirst)
+      const varMatches = ((_.isString(expected) ? expected.match(/\$[A-Za-z]\w+/g) : false) || []).sort(_longestFirst)
       for (let i = 0; i < varMatches.length; i++) {
         reExpected = reExpected.replace(varMatches[i], varRegex)
       }

@@ -38,6 +38,11 @@ describe('scriptingProvider._resolveUtterances', function () {
       assert.fail('expected error')
     } catch (err) {
       assert.isTrue(err.message.indexOf('Expected bot response') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, tomatch)
+      assert.equal(err.context.cause.actual, 'TEXT1')
     }
   })
   it('should fail on unresolved utterance', async function () {
@@ -53,6 +58,11 @@ describe('scriptingProvider._resolveUtterances', function () {
       assert.fail('expected error')
     } catch (err) {
       assert.isTrue(err.message.indexOf('Expected bot response') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, ['utt1'])
+      assert.equal(err.context.cause.actual, 'TEXT1')
     }
   })
 })

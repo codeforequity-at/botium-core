@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const BotiumError = require('../../BotiumError')
+const { BotiumError } = require('../../BotiumError')
 
 module.exports = class IntentAsserter {
   constructor (context, caps = {}) {
@@ -9,53 +9,62 @@ module.exports = class IntentAsserter {
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (!args || args.length < 1) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentAsserter Missing argument`),
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentAsserter Missing argument`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
           source: 'IntentAsserter',
           cause: { args }
         }
-      )
+      ))
     }
     if (args.length > 1) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentAsserter Too much argument "${args}"`),
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentAsserter Too much argument "${args}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
           source: 'IntentAsserter',
           cause: { args }
         }
-      )
+      ))
     }
 
     if (!_.has(botMsg, 'nlp.intent.name')) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected intent "${args[0]}" but found nothing`),
-        {
-          type: 'asserter',
-          subtype: 'wrong parameters',
-          source: 'IntentAsserter',
-          cause: { args, botMsg }
-        }
-      )
-    }
-
-    const intent = botMsg.nlp.intent.name
-    if (intent !== args[0]) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected intent "${args[0]}" but found ${intent}`),
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected intent "${args[0]}" but found nothing`,
         {
           type: 'asserter',
           source: 'IntentAsserter',
           context: {
             params: {
-              args,
-              botMsg
+              args
             }
           },
           cause: {
-            intent
+            expected: args[0],
+            actual: null
           }
-        })
+        }
+      ))
+    }
+
+    const intent = botMsg.nlp.intent.name
+    if (intent !== args[0]) {
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Expected intent "${args[0]}" but found ${intent}`,
+        {
+          type: 'asserter',
+          source: 'IntentAsserter',
+          context: {
+            params: {
+              args
+            }
+          },
+          cause: {
+            expected: args[0],
+            actual: intent
+          }
+        }
+      ))
     }
 
     return Promise.resolve()

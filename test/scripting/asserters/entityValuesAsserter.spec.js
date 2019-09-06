@@ -75,6 +75,32 @@ describe('EntitiesAsserter', function () {
       { e4: 1 }
     )
   })
+  it('expected 3 entities, found 4 entities, negative case, details', async function () {
+    try {
+      await asserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: [ 'e1', 'e2', 'e3' ],
+        botMsg: {
+          nlp: {
+            entities: [
+              { name: 'e1', confidence: 1, value: 'e1' },
+              { name: 'e2', confidence: 1, value: 'e2' },
+              { name: 'e3', confidence: 1, value: 'e3' },
+              { name: 'e4', confidence: 1, value: 'e4' }
+            ]
+          }
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Wrong number of entity values') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, ['e1', 'e2', 'e3'])
+      assert.deepEqual(err.context.cause.actual, ['e1', 'e2', 'e3', 'e4'])
+    }
+  })
 
   it('expected 1... entities, found 0 entities, positive case', async function () {
     return _assert(

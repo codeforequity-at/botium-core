@@ -730,5 +730,25 @@ describe('convo.scriptingMemory.api', function () {
 
       assert(result === '15', 'func invalid')
     })
+    it('func invalid code', async function () {
+      try {
+        ScriptingMemory.apply(
+          { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+          { },
+          '$func(hugo123)'
+        )
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('func function execution failed') >= 0)
+      }
+    })
+    it('func full code', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$func(require("os"\\).hostname(\\);)'
+      )
+      assert.isNotNull(result)
+    })
   })
 })

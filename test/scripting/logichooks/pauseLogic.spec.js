@@ -6,7 +6,7 @@ describe('PauseLogic.pause', function () {
   it('positive case for pause logic', async function () {
     const pause = PauseLogic.pause
     const currentDate = new Date()
-    return pause('test', ['1000'])
+    return pause('Test', 'test', ['1000'])
       .then(resolve => {
         const finishedDate = new Date()
         const time = moment(finishedDate).diff(currentDate)
@@ -16,7 +16,7 @@ describe('PauseLogic.pause', function () {
   it('negative case for pause logic', async function () {
     const pause = PauseLogic.pause
     const currentDate = new Date()
-    return pause('test', ['500'])
+    return pause('Test', 'test', ['500'])
       .then(resolve => {
         const finishedDate = new Date()
         const time = moment(finishedDate).diff(currentDate)
@@ -25,7 +25,7 @@ describe('PauseLogic.pause', function () {
   })
   it('wrong number of args', async function () {
     const pause = PauseLogic.pause
-    return pause('test', ['500', '300'])
+    return pause('Test', 'test', ['500', '300'])
       .catch((err) => {
         assert.isDefined(err)
         assert.instanceOf(err, Error)
@@ -33,7 +33,7 @@ describe('PauseLogic.pause', function () {
   })
   it('not a number as argument', async function () {
     const pause = PauseLogic.pause
-    return pause('test', ['a500'])
+    return pause('Test', 'test', ['a500'])
       .catch((err) => {
         assert.isDefined(err)
         assert.instanceOf(err, Error)
@@ -41,7 +41,7 @@ describe('PauseLogic.pause', function () {
   })
   it('empty argument list', async function () {
     const pause = PauseLogic.pause
-    return pause('test', [])
+    return pause('Test', 'test', [])
       .catch((err) => {
         assert.isDefined(err)
         assert.instanceOf(err, Error)

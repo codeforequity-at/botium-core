@@ -126,7 +126,7 @@ describe('convo.partialconvo.usecases', function () {
       'Are you sure?',
       'You are logged out!'
     ], 'convos/partialconvo/depth1', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Main/Line 10: Expected bot response (on Login/Line 8: #me - 123456) "You are logged in ERROR!" to match one of "You are logged in!"')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Main/Line 10: Expected bot response (on Login/Line 8: #me - 123456) "You are logged in ERROR!" to match one of "You are logged in!"')
   })
 
   it('Wrong botsays in partial convo', async function () {
@@ -136,7 +136,7 @@ describe('convo.partialconvo.usecases', function () {
       'Are you sure ERROR?',
       'You are logged out!'
     ], 'convos/partialconvo/depth1', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Main/Logout/Line 5: Expected bot response (on Line 13: #me - Logout please! INCLUDE(Logout)) "Are you sure ERROR?" to match one of "Are you sure?"')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Main/Logout/Line 5: Expected bot response (on Line 13: #me - Logout please! INCLUDE(Logout)) "Are you sure ERROR?" to match one of "Are you sure?"')
   })
 
   it('Depth is 2', async function () {
@@ -248,7 +248,7 @@ describe('convo.partialconvo.usecases', function () {
 describe('convo.partialconvo.wrongconvos', function () {
   it('Circular', async function () {
     await _initIt([], 'convos/partialconvo/circular', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Partial convos are included circular. "first" is referenced by "/" and by "/first/second"')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Partial convos are included circular. "first" is referenced by "/" and by "/first/second"')
   })
 
   it('Partial convo without name', async function () {
@@ -257,12 +257,12 @@ describe('convo.partialconvo.wrongconvos', function () {
 
   it('Partial convo not found', async function () {
     await _initIt([], 'convos/partialconvo/notfound', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Cant find partial convo with name notexists (There are no partial convos)')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Cant find partial convo with name notexists (There are no partial convos)')
   })
 
   it('Partial convo wrong ref', async function () {
     await _initIt([], 'convos/partialconvo/wrongref', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Cant find partial convo with name wrongref (available partial convos: exists)')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Cant find partial convo with name wrongref (available partial convos: exists)')
   })
 
   it('Partial convo name duplicated', async function () {
@@ -271,7 +271,7 @@ describe('convo.partialconvo.wrongconvos', function () {
 
   it('Wrong arguments', async function () {
     await _initIt([], 'convos/partialconvo/wrongarg', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Wrong argument for include logic hook!')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Wrong argument for include logic hook!')
   })
 
   it('Illegal partial convo name', async function () {

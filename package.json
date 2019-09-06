@@ -4,6 +4,9 @@
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "module": "dist/botium-es.js",
+  "engines": {
+    "node": ">=8.10.0"
+  },
   "scripts": {
     "build": "npm run eslint && nyc npm test && nyc check-coverage --lines 50 --functions 50 --branches 35 && rollup -c",
     "eslint": "eslint \"./src/**/*.js\" \"./test/**/*.js\"",
@@ -48,6 +51,7 @@
     "mustache": "^3.0.1",
     "opn": "^6.0.0",
     "promise-retry": "^1.1.1",
+    "promise.allsettled": "^1.0.1",
     "randomatic": "^3.1.1",
     "request": "^2.88.0",
     "rimraf": "^2.6.3",
