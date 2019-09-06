@@ -176,7 +176,8 @@ module.exports = class ScriptingProvider {
         scriptingMemory,
         args: ScriptingMemory.applyToArgs(l.args, scriptingMemory),
         isGlobal: false,
-        ...rest })))
+        ...rest
+      })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
@@ -194,7 +195,8 @@ module.exports = class ScriptingProvider {
         convoStep,
         scriptingMemory,
         args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory),
-        ...rest })))
+        ...rest
+      })))
 
     return Promise.all(convoStepPromises)
   }
@@ -279,12 +281,12 @@ module.exports = class ScriptingProvider {
   }
 
   Compile (scriptBuffer, scriptFormat, scriptType) {
-    let compiler = this.GetCompiler(scriptFormat)
+    const compiler = this.GetCompiler(scriptFormat)
     return compiler.Compile(scriptBuffer, scriptType)
   }
 
   Decompile (convos, scriptFormat) {
-    let compiler = this.GetCompiler(scriptFormat)
+    const compiler = this.GetCompiler(scriptFormat)
     return compiler.Decompile(convos)
   }
 
@@ -386,7 +388,7 @@ module.exports = class ScriptingProvider {
 
   ExpandScriptingMemoryToConvos () {
     if (!this.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      debug(`ExpandScriptingMemoryToConvos - Scripting memory turned off, no convos expanded`)
+      debug('ExpandScriptingMemoryToConvos - Scripting memory turned off, no convos expanded')
       return
     }
 
@@ -401,7 +403,7 @@ module.exports = class ScriptingProvider {
     })
 
     let convosExpandedAll = []
-    let convosOriginalAll = []
+    const convosOriginalAll = []
     this.convos.forEach((convo) => {
       const convoVariables = convo.GetScriptingMemoryAllVariables(this)
       debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, all: "${util.inspect(convoVariables)}"`)
@@ -424,7 +426,7 @@ module.exports = class ScriptingProvider {
       let convosToExpand = [convo]
       let convosExpandedConvo = []
       // just for debug output. If we got 6 expanded convo, then this array can be for example [2, 3]
-      let multipliers = []
+      const multipliers = []
       for (const [key, scriptingMemories] of variablesToScriptingMemory.entries()) {
         const variableNames = JSON.parse(key)
         if (_.intersection(variableNames, convoVariables).length) {
@@ -432,7 +434,7 @@ module.exports = class ScriptingProvider {
           multipliers.push(scriptingMemories.length)
           scriptingMemories.forEach((scriptingMemory) => {
             // Appending the case name to name
-            for (let convoToExpand of convosToExpand) {
+            for (const convoToExpand of convosToExpand) {
               const convoExpanded = _.cloneDeep(convoToExpand)
               convoExpanded.header.name = convoToExpand.header.name + '.' + scriptingMemory.header.name
               variableNames.forEach((name) => {
@@ -601,7 +603,7 @@ module.exports = class ScriptingProvider {
     }
     if (utterances) {
       _.forEach(utterances, (utt) => {
-        let eu = this.utterances[utt.name]
+        const eu = this.utterances[utt.name]
         if (eu) {
           eu.utterances = _.uniq(_.concat(eu.utterances, utt.utterances))
         } else {

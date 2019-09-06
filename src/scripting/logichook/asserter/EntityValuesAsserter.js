@@ -79,7 +79,7 @@ const _substract = (first, second) => {
   const substracted = {}
   let hasMissingEntity = false
 
-  for (let key in first) {
+  for (const key in first) {
     if (second[key]) {
       if (first[key] - second[key] !== 0) {
         substracted[key] = first[key] - second[key]
@@ -92,7 +92,7 @@ const _substract = (first, second) => {
     }
   }
 
-  for (let key in second) {
+  for (const key in second) {
     if (!first[key]) {
       substracted[key] = -second[key]
       hasMissingEntity = true

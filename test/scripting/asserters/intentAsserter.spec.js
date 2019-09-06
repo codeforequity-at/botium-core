@@ -35,7 +35,7 @@ describe('IntentAsserter', function () {
     try {
       await asserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ 'greetings' ],
+        args: ['greetings'],
         botMsg: {
           nlp: {
             intent: { name: 'order' }
@@ -44,7 +44,7 @@ describe('IntentAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf(`Expected intent "greetings" but found order`) > 0)
+      assert.isTrue(err.message.indexOf('Expected intent "greetings" but found order') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.equal(err.context.cause.expected, 'greetings')

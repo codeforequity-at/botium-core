@@ -55,6 +55,6 @@ module.exports = {
     [Source.GITDIR]: '.'
   },
   Envs: {
-    'IS_BOTIUM_CONTAINER': true
+    IS_BOTIUM_CONTAINER: true
   }
 }

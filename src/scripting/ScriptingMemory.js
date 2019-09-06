@@ -14,92 +14,92 @@ const Capabilities = require('../Capabilities')
 // split by ',' for multiple params,
 // or something else
 const SCRIPTING_FUNCTIONS = {
-  '$now': () => {
+  $now: () => {
     return new Date().toLocaleString()
   },
-  '$now_EN': () => {
+  $now_EN: () => {
     return new Date().toLocaleString('en-EN')
   },
-  '$now_DE': () => {
+  $now_DE: () => {
     return moment().format('DD.MM.YYYY, HH:mm:ss')
   },
-  '$now_ISO': () => {
+  $now_ISO: () => {
     return new Date().toISOString()
   },
 
-  '$date': (pattern) => {
+  $date: (pattern) => {
     if (pattern) {
       return moment().format(pattern)
     }
     return new Date().toLocaleDateString()
   },
-  '$date_EN': () => {
+  $date_EN: () => {
     return new Date().toLocaleDateString('en-EN')
   },
-  '$date_DE': () => {
+  $date_DE: () => {
     return moment().format('YYYY.MM.DD')
   },
-  '$date_ISO': () => {
+  $date_ISO: () => {
     return moment().format('YYYY-MM-DD')
   },
 
-  '$time': () => {
+  $time: () => {
     return new Date().toLocaleTimeString()
   },
-  '$time_EN': () => {
+  $time_EN: () => {
     return new Date().toLocaleTimeString('en-EN')
   },
-  '$time_DE': () => {
+  $time_DE: () => {
     return moment().format('HH:mm:ss')
   },
-  '$time_ISO': () => {
+  $time_ISO: () => {
     return moment().format('HH:mm:ss')
   },
-  '$time_HH_MM': () => {
+  $time_HH_MM: () => {
     return moment().format('HH:mm')
   },
-  '$time_HH': () => {
+  $time_HH: () => {
     return moment().format('HH')
   },
-  '$time_H_A': () => {
+  $time_H_A: () => {
     return moment().format('h A')
   },
 
-  '$timestamp': () => {
+  $timestamp: () => {
     return Date.now()
   },
 
-  '$year': () => {
+  $year: () => {
     return new Date().getFullYear()
   },
-  '$month': () => {
+  $month: () => {
     return moment().format('MMMM')
   },
-  '$month_MM': () => {
+  $month_MM: () => {
     return moment().format('MM')
   },
-  '$day_of_month': () => {
+  $day_of_month: () => {
     return new Date().getDate()
   },
-  '$day_of_week': () => {
+  $day_of_week: () => {
     return moment().format('dddd')
   },
 
-  '$random': (length) => {
+  $random: (length) => {
     if (length == null) {
       throw Error('random function used without args!')
     }
     return randomize('0', length)
   },
-  '$random10': () => {
+  $random10: () => {
     return randomize('0', 10)
   },
 
-  '$uniqid': () => {
+  $uniqid: () => {
     return uuidv1()
   },
 
-  '$func': (code) => {
+  $func: (code) => {
     if (code == null) {
       throw Error('func function used without args!')
     }

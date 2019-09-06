@@ -19,7 +19,7 @@ module.exports = class SyslogServer extends EventEmitter {
   start (options = { port: 514, address: '0.0.0.0', exclusive: true }, cb) {
     return new Promise((resolve, reject) => {
       if (this.status === true) {
-        let errorObj = createErrorObject(null, 'NodeJS Syslog Server is already running!')
+        const errorObj = createErrorObject(null, 'NodeJS Syslog Server is already running!')
         if (cb) return cb(errorObj)
         return reject(errorObj)
       } else {
@@ -38,7 +38,7 @@ module.exports = class SyslogServer extends EventEmitter {
 
         // Socket message handler
         this.server.on('message', (msg, remote) => {
-          let message = {
+          const message = {
             date: new Date(),
             host: remote.address,
             message: msg.toString('utf8'),
@@ -55,7 +55,7 @@ module.exports = class SyslogServer extends EventEmitter {
 
         this.server.bind(options, (err) => {
           if (err) {
-            let errorObj = createErrorObject(err, 'NodeJS Syslog Server failed to start!')
+            const errorObj = createErrorObject(err, 'NodeJS Syslog Server failed to start!')
             if (cb) return cb(errorObj)
             return reject(errorObj)
           } else {
@@ -75,7 +75,7 @@ module.exports = class SyslogServer extends EventEmitter {
           return resolve()
         })
       } catch (err) {
-        let errorObj = createErrorObject(err, 'NodeJS Syslog Server is not running!')
+        const errorObj = createErrorObject(err, 'NodeJS Syslog Server is not running!')
         if (cb) return cb(errorObj)
         return reject(errorObj)
       }

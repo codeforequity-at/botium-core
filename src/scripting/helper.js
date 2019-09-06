@@ -58,7 +58,7 @@ module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode =
       }
       textLines[0] = textLines[0].substr(1)
     }
-    let content = textLines.join(' ')
+    const content = textLines.join(' ')
     if (isJSON(content)) {
       convoStep.sourceData = JSON.parse(content)
     } else {

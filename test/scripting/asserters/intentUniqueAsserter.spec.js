@@ -9,7 +9,7 @@ describe('IntentUniqueAsserter', function () {
   it('positive case for intent unique asserter, no alternate', async function () {
     await asserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ ],
+      args: [],
       botMsg: {
         nlp: {
           intent: {
@@ -23,7 +23,7 @@ describe('IntentUniqueAsserter', function () {
   it('positive case for intent unique asserter, with alternate', async function () {
     await asserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ ],
+      args: [],
       botMsg: {
         nlp: {
           intent: {
@@ -48,7 +48,7 @@ describe('IntentUniqueAsserter', function () {
     try {
       await asserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ ],
+        args: [],
         botMsg: {
           nlp: {
             intent: {
@@ -70,7 +70,7 @@ describe('IntentUniqueAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf(`Expected intent "order" (confidence: 0.5) to be unique`) > 0)
+      assert.isTrue(err.message.indexOf('Expected intent "order" (confidence: 0.5) to be unique') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.equal(err.context.cause.expected, 'order')

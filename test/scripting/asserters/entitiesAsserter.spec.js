@@ -80,7 +80,7 @@ describe('scripting.asserters.entitiesAsserter', function () {
     try {
       await asserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ 'e1', 'e2', 'e3' ],
+        args: ['e1', 'e2', 'e3'],
         botMsg: {
           nlp: {
             entities: [

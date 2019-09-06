@@ -53,7 +53,7 @@ describe('logichooks.waitforbot', function () {
 
     try {
       await compiler.convos[0].Run(container)
-      assert.fail(`should have failed with timeout`)
+      assert.fail('should have failed with timeout')
     } catch (err) {
     }
     await container.Clean()

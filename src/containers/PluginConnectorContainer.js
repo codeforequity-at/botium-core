@@ -29,12 +29,12 @@ const getModuleVersionSafe = (required) => {
 const tryLoadPlugin = (containermode, args) => {
   if (pluginResolver(containermode)) {
     const pluginInstance = new (pluginResolver(containermode))(args)
-    debug(`Botium plugin loaded from internal plugin resolver`)
+    debug('Botium plugin loaded from internal plugin resolver')
     return pluginInstance
   }
   if (_.isFunction(containermode)) {
     const pluginInstance = containermode(args)
-    debug(`Botium plugin loaded from function call`)
+    debug('Botium plugin loaded from function call')
     return pluginInstance
   }
   const loadErr = []
@@ -96,10 +96,10 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
           envs: this.envs
         })
       if (!this.pluginInstance) {
-        throw new Error(`Loading Botium plugin failed`)
+        throw new Error('Loading Botium plugin failed')
       }
       if (!this.pluginInstance.UserSays) {
-        throw new Error(`Invalid Botium plugin, expected UserSays function`)
+        throw new Error('Invalid Botium plugin, expected UserSays function')
       }
       return this.pluginInstance.Validate ? (this.pluginInstance.Validate() || Promise.resolve()) : Promise.resolve()
     }).then(() => {

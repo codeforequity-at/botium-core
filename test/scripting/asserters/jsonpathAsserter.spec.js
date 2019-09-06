@@ -14,7 +14,7 @@ describe('scripting.asserters.mediaAsserter', function () {
   it('should succeed on existing jsonpath', async function () {
     await this.jsonPathAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ '$.test' ],
+      args: ['$.test'],
       botMsg: {
         sourceData: {
           test: true
@@ -26,7 +26,7 @@ describe('scripting.asserters.mediaAsserter', function () {
     try {
       await this.jsonPathAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ '$.test' ],
+        args: ['$.test'],
         botMsg: {
           sourceData: {
           }
@@ -40,7 +40,7 @@ describe('scripting.asserters.mediaAsserter', function () {
   it('should succeed on matching jsonpath', async function () {
     await this.jsonPathAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ '$.test', 'test' ],
+      args: ['$.test', 'test'],
       botMsg: {
         sourceData: {
           test: 'test'
@@ -51,7 +51,7 @@ describe('scripting.asserters.mediaAsserter', function () {
   it('should succeed on matching jsonpath array', async function () {
     await this.jsonPathAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ '$.test[0]', 'test' ],
+      args: ['$.test[0]', 'test'],
       botMsg: {
         sourceData: {
           test: ['test']

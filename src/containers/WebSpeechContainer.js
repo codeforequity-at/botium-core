@@ -105,7 +105,7 @@ module.exports = class WebSpeechContainer extends BaseContainer {
           } else {
             this.connectResolve = opnComplete
 
-            let opnOptions = { }
+            const opnOptions = { }
             if (this.caps[Capabilities.WEBSPEECH_BROWSER_APP]) {
               opnOptions.app = this.caps[Capabilities.WEBSPEECH_BROWSER_APP]
             }
@@ -113,7 +113,7 @@ module.exports = class WebSpeechContainer extends BaseContainer {
             const browserUrl = `http://127.0.0.1:${this.caps[Capabilities.WEBSPEECH_SERVER_PORT]}/WebSpeechContainer.html`
             debug(`opening browser process to point to url ${browserUrl}`)
             opn(browserUrl, opnOptions).then((cp) => {
-              debug(`browser process running`)
+              debug('browser process running')
               this.clientProcess = cp
             })
           }

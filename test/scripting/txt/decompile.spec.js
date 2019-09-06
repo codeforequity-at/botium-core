@@ -23,7 +23,7 @@ describe('scriptingProvider.txt.decompile', function () {
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #me
@@ -51,7 +51,7 @@ botText
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #me
@@ -76,7 +76,7 @@ PAUSE 100
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #me
@@ -101,7 +101,7 @@ PAUSE 100
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #me
@@ -125,7 +125,7 @@ PAUSE 100
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #bot
@@ -149,7 +149,7 @@ BUTTONS buttontext
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #bot
@@ -173,7 +173,7 @@ MEDIA test1.png|test2.png
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #bot
@@ -198,7 +198,7 @@ myasserter arg1|arg2
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #me
@@ -222,7 +222,7 @@ BUTTON buttonpayload
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #me

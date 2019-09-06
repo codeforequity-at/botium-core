@@ -10,12 +10,12 @@ const convoStep = {
 describe('UserInputs.defaults.buttonInput', function () {
   it('correct number of args', async function () {
     const bi = new ButtonInput()
-    await bi.setUserInput({ convoStep, args: [ 'Test1' ], meMsg: {} })
+    await bi.setUserInput({ convoStep, args: ['Test1'], meMsg: {} })
   })
   it('wrong number of args', async function () {
     const bi = new ButtonInput()
     try {
-      await bi.setUserInput({ convoStep, args: [ 'Test1', 'Test2' ], meMsg: {} })
+      await bi.setUserInput({ convoStep, args: ['Test1', 'Test2'], meMsg: {} })
       assert.fail('expected error')
     } catch (err) {
       assert.isDefined(err)
@@ -36,7 +36,7 @@ describe('UserInputs.defaults.buttonInput', function () {
     const bi = new ButtonInput()
 
     const meMsg = {}
-    await bi.setUserInput({ convoStep, args: [ 'Test1' ], meMsg })
+    await bi.setUserInput({ convoStep, args: ['Test1'], meMsg })
     assert.isArray(meMsg.buttons)
     assert.lengthOf(meMsg.buttons, 1)
     assert.equal(meMsg.buttons[0].text, 'Test1')
@@ -46,11 +46,11 @@ describe('UserInputs.defaults.buttonInput', function () {
 describe('UserInputs.defaults.mediaInput', function () {
   it('correct number of args', async function () {
     const mi = new MediaInput()
-    await mi.setUserInput({ convoStep, args: [ 'Test1' ], meMsg: {}, convo: { sourceTag: { filename: '' } } })
+    await mi.setUserInput({ convoStep, args: ['Test1'], meMsg: {}, convo: { sourceTag: { filename: '' } } })
   })
   it('wrong number of args', async function () {
     const mi = new MediaInput()
-    return mi.setUserInput({ convoStep, args: [ 'Test1', 'Test2' ], meMsg: {} })
+    return mi.setUserInput({ convoStep, args: ['Test1', 'Test2'], meMsg: {} })
       .then(() => assert.fail('expected error'))
       .catch((err) => {
         assert.isDefined(err)
@@ -70,21 +70,21 @@ describe('UserInputs.defaults.mediaInput', function () {
     const mi = new MediaInput()
 
     const meMsg = {}
-    await mi.setUserInput({ convoStep, args: [ 'Test1' ], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
+    await mi.setUserInput({ convoStep, args: ['Test1'], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
     assert.isArray(meMsg.media)
     assert.lengthOf(meMsg.media, 1)
-    assert.equal(meMsg.media[0].mediaUri, `file://mydir/Test1`)
+    assert.equal(meMsg.media[0].mediaUri, 'file://mydir/Test1')
   })
 })
 
 describe('UserInputs.defaults.formInput', function () {
   it('correct number of args', async function () {
     const mi = new FormInput()
-    await mi.setUserInput({ convoStep, args: [ 'NAME1', 'VALUE1' ], meMsg: {}, convo: { sourceTag: { filename: '' } } })
+    await mi.setUserInput({ convoStep, args: ['NAME1', 'VALUE1'], meMsg: {}, convo: { sourceTag: { filename: '' } } })
   })
   it('wrong number of args', async function () {
     const mi = new FormInput()
-    return mi.setUserInput({ convoStep, args: [ ], meMsg: {} })
+    return mi.setUserInput({ convoStep, args: [], meMsg: {} })
       .then(() => assert.fail('expected error'))
       .catch((err) => {
         assert.isDefined(err)
@@ -104,7 +104,7 @@ describe('UserInputs.defaults.formInput', function () {
     const mi = new FormInput()
 
     const meMsg = {}
-    await mi.setUserInput({ convoStep, args: [ 'NAME1' ], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
+    await mi.setUserInput({ convoStep, args: ['NAME1'], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
     assert.isArray(meMsg.forms)
     assert.lengthOf(meMsg.forms, 1)
     assert.equal(meMsg.forms[0].name, 'NAME1')
@@ -114,7 +114,7 @@ describe('UserInputs.defaults.formInput', function () {
     const mi = new FormInput()
 
     const meMsg = {}
-    await mi.setUserInput({ convoStep, args: [ 'NAME1', 'VALUE1' ], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
+    await mi.setUserInput({ convoStep, args: ['NAME1', 'VALUE1'], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
     assert.isArray(meMsg.forms)
     assert.lengthOf(meMsg.forms, 1)
     assert.equal(meMsg.forms[0].name, 'NAME1')
@@ -124,7 +124,7 @@ describe('UserInputs.defaults.formInput', function () {
     const mi = new FormInput()
 
     const meMsg = {}
-    await mi.setUserInput({ convoStep, args: [ 'NAME1', 'VALUE1', 'VALUE2' ], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
+    await mi.setUserInput({ convoStep, args: ['NAME1', 'VALUE1', 'VALUE2'], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
     assert.isArray(meMsg.forms)
     assert.lengthOf(meMsg.forms, 1)
     assert.equal(meMsg.forms[0].name, 'NAME1')
@@ -137,8 +137,8 @@ describe('UserInputs.defaults.formInput', function () {
     const mi = new FormInput()
 
     const meMsg = {}
-    await mi.setUserInput({ convoStep, args: [ 'NAME1', 'VALUE1' ], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
-    await mi.setUserInput({ convoStep, args: [ 'NAME2', 'VALUE2' ], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
+    await mi.setUserInput({ convoStep, args: ['NAME1', 'VALUE1'], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
+    await mi.setUserInput({ convoStep, args: ['NAME2', 'VALUE2'], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
     assert.isArray(meMsg.forms)
     assert.lengthOf(meMsg.forms, 2)
     assert.equal(meMsg.forms[0].name, 'NAME1')

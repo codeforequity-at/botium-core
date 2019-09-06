@@ -125,10 +125,10 @@ class TranscriptError extends Error {
 class Convo {
   constructor (context, fromJson = {}) {
     if (fromJson instanceof Convo) {
-      debug(`Illegal state!!! Parameter should be a JSON, but it is a Convo`)
+      debug('Illegal state!!! Parameter should be a JSON, but it is a Convo')
     } else if (fromJson.beginAsserter) {
       // beginAsserter is one of the fields which are lost
-      debug(`Illegal state!!! Parameter should be a native JSON, but looks as a Convo converted to JSON`)
+      debug('Illegal state!!! Parameter should be a native JSON, but looks as a Convo converted to JSON')
     }
 
     this.scriptingEvents = context.scriptingEvents
@@ -140,10 +140,10 @@ class Convo {
       this.conversation = []
     }
     this.sourceTag = fromJson.sourceTag
-    let { beginAsserter, endAsserter } = this.setConvoBeginAndEndAsserter(fromJson)
+    const { beginAsserter, endAsserter } = this.setConvoBeginAndEndAsserter(fromJson)
     this.beginAsserter = beginAsserter
     this.endAsserter = endAsserter
-    let { beginLogicHook, endLogicHook } = this.setConvoBeginAndEndLogicHook(fromJson)
+    const { beginLogicHook, endLogicHook } = this.setConvoBeginAndEndLogicHook(fromJson)
     this.beginLogicHook = beginLogicHook
     this.endLogicHook = endLogicHook
     this.effectiveConversation = null
@@ -453,7 +453,7 @@ class Convo {
       }
     } else if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
-        if (result.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(result, key)) {
           this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key])
         } else {
           throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
@@ -539,7 +539,7 @@ class Convo {
         return []
       }
 
-      let result = []
+      const result = []
       convoStep.logicHooks.forEach((logicHook) => {
         if (logicHook.name === LOGIC_HOOK_INCLUDE) {
           if (logicHook.args.length !== 1) {

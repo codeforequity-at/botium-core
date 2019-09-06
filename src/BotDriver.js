@@ -30,17 +30,17 @@ module.exports = class BotDriver {
 
     this._fetchConfigFromFiles(['./botium.json', './botium.local.json'])
 
-    let botiumConfigEnv = process.env['BOTIUM_CONFIG']
+    const botiumConfigEnv = process.env.BOTIUM_CONFIG
     if (botiumConfigEnv) {
       if (!this._fetchConfigFromFiles([botiumConfigEnv])) {
         throw new Error(`FAILED: Botium configuration file ${botiumConfigEnv} not available`)
       }
     }
 
-    let sourcesToTest = Object.keys(Source)
+    const sourcesToTest = Object.keys(Source)
 
     Object.keys(process.env).filter(e => e.startsWith('BOTIUM_')).forEach((element) => {
-      let elementToTest = element.replace(/^BOTIUM_/, '')
+      const elementToTest = element.replace(/^BOTIUM_/, '')
       if (sourcesToTest.includes(elementToTest)) {
         this._mergeCaps(this.sources, { [elementToTest]: process.env[element] })
         debug('Changed source ' + elementToTest + ' to "' + this.sources[elementToTest] + '" using environment variables.')
@@ -49,7 +49,7 @@ module.exports = class BotDriver {
         debug('Changed capability ' + elementToTest + ' to "' + this.caps[elementToTest] + '" using environment variables.')
       }
       if (element.startsWith('BOTIUM_ENV_')) {
-        let envName = element.replace(/^BOTIUM_ENV_/, '')
+        const envName = element.replace(/^BOTIUM_ENV_/, '')
         this.envs[envName] = process.env[element]
         debug('Changed env ' + envName + ' to "' + process.env[element] + '" using environment variables.')
       }
@@ -160,7 +160,7 @@ module.exports = class BotDriver {
   BuildCompiler () {
     debug(`BuildCompiler: Capabilites: ${util.inspect(this.caps)}`)
     try {
-      let compiler = new ScriptingProvider(this.caps)
+      const compiler = new ScriptingProvider(this.caps)
       compiler.Build()
       return compiler
     } catch (err) {
@@ -174,7 +174,7 @@ module.exports = class BotDriver {
   // loadConfig from files
   _loadConfigFile (filename) {
     try {
-      let configJson = JSON.parse(fs.readFileSync(filename))
+      const configJson = JSON.parse(fs.readFileSync(filename))
       if (configJson.botium) {
         if (configJson.botium.Capabilities) this._mergeCaps(this.caps, configJson.botium.Capabilities)
         if (configJson.botium.Sources) this._mergeCaps(this.sources, configJson.botium.Sources)
@@ -202,15 +202,15 @@ module.exports = class BotDriver {
 
   _findKeyProperty (obj) {
     const lookup = ['id', 'ID', 'Id', 'ref', 'REF', 'Ref', 'name', 'NAME', 'Name']
-    for (let checkPropIdx in lookup) {
-      if (obj.hasOwnProperty(lookup[checkPropIdx])) return lookup[checkPropIdx]
+    for (const checkPropIdx in lookup) {
+      if (Object.prototype.hasOwnProperty.call(obj, lookup[checkPropIdx])) return lookup[checkPropIdx]
     }
   }
 
   _mergeCaps (caps, newCaps) {
     if (!caps) return
     Object.keys(newCaps).forEach(capKey => {
-      if (!caps.hasOwnProperty(capKey)) {
+      if (!Object.prototype.hasOwnProperty.call(caps, capKey)) {
         if (_.isString(newCaps[capKey])) {
           try {
             caps[capKey] = JSON.parse(newCaps[capKey])

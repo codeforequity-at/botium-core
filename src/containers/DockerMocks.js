@@ -186,7 +186,7 @@ class BaseMock {
         this.debug(`Mock - endpoint ${mockUrl} not online (Status Code: ${response.statusCode} - ${body}), checking again in 2 seconds ...`)
         await timeout(2000)
       } else {
-        throw new Error(`Mock - checking endpoint didn't either return error nor response.`)
+        throw new Error('Mock - checking endpoint didn\'t either return error nor response.')
       }
     }
   }

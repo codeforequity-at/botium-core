@@ -53,8 +53,8 @@ describe('compiler.compilerxlsx', function () {
       const context = buildContext()
 
       const caps = {
-        'SCRIPTING_XLSX_SHEETNAMES': 'Convos',
-        'SCRIPTING_XLSX_SHEETNAMES_UTTERANCES': 'Utterances'
+        SCRIPTING_XLSX_SHEETNAMES: 'Convos',
+        SCRIPTING_XLSX_SHEETNAMES_UTTERANCES: 'Utterances'
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -87,7 +87,7 @@ describe('compiler.compilerxlsx', function () {
       const context = buildContext()
 
       const caps = {
-        'SCRIPTING_XLSX_SHEETNAMES_UTTERANCES': 'Utterances'
+        SCRIPTING_XLSX_SHEETNAMES_UTTERANCES: 'Utterances'
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -102,8 +102,8 @@ describe('compiler.compilerxlsx', function () {
       const context = buildContext()
 
       const caps = {
-        'SCRIPTING_XLSX_STARTROW': 6,
-        'SCRIPTING_XLSX_STARTCOL': 'C'
+        SCRIPTING_XLSX_STARTROW: 6,
+        SCRIPTING_XLSX_STARTCOL: 'C'
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -119,8 +119,8 @@ describe('compiler.compilerxlsx', function () {
       const context = buildContext()
 
       const caps = {
-        'SCRIPTING_XLSX_STARTROW': 6,
-        'SCRIPTING_XLSX_STARTCOL': 3
+        SCRIPTING_XLSX_STARTROW: 6,
+        SCRIPTING_XLSX_STARTCOL: 3
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -237,7 +237,7 @@ describe('compiler.compilerxlsx', function () {
     const context = buildContext()
 
     const caps = {
-      'SCRIPTING_XLSX_MODE': 'QUESTION_ANSWER'
+      SCRIPTING_XLSX_MODE: 'QUESTION_ANSWER'
     }
     const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 

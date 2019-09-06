@@ -14,7 +14,7 @@ describe('scripting.asserters.mediaAsserter', function () {
   it('should succeed on existing media', async function () {
     await this.mediaAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'test.jpg' ],
+      args: ['test.jpg'],
       botMsg: {
         media: [
           {
@@ -27,7 +27,7 @@ describe('scripting.asserters.mediaAsserter', function () {
   it('should succeed on existing card image', async function () {
     await this.mediaAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'test.jpg' ],
+      args: ['test.jpg'],
       botMsg: {
         cards: [
           {
@@ -40,7 +40,7 @@ describe('scripting.asserters.mediaAsserter', function () {
   it('should succeed on existing card media', async function () {
     await this.mediaAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'test.jpg', 'test1.jpg' ],
+      args: ['test.jpg', 'test1.jpg'],
       botMsg: {
         cards: [
           {
@@ -59,7 +59,7 @@ describe('scripting.asserters.mediaAsserter', function () {
     try {
       await this.mediaAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ 'test.jpg' ],
+        args: ['test.jpg'],
         botMsg: { }
       })
       assert.fail('should have failed')

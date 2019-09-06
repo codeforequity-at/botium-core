@@ -69,21 +69,21 @@ describe('scriptingProvider._resolveUtterances', function () {
 
 describe('scriptingProvider._isValidAsserterType', function () {
   it('valid asserterType', async function () {
-    let scriptingProvider = new ScriptingProvider()
+    const scriptingProvider = new ScriptingProvider()
     assert.equal(scriptingProvider._isValidAsserterType('assertConvoStep'), true)
   })
   it('invalid asserterType', async function () {
-    let scriptingProvider = new ScriptingProvider()
+    const scriptingProvider = new ScriptingProvider()
     assert.equal(scriptingProvider._isValidAsserterType('assertStep'), false)
   })
 })
 
 describe('scriptingProvider._tagAndCleanupUtterances', function () {
   it('positive case remove empty String from utterances', async function () {
-    let scriptingProvider = new ScriptingProvider()
-    let utterances = ['don\'t understand', 'sorry', '']
+    const scriptingProvider = new ScriptingProvider()
+    const utterances = ['don\'t understand', 'sorry', '']
     const fileUtterances = [{ name: 'INCOMPREHENSION', utterances: utterances }]
-    let actualResult = scriptingProvider._tagAndCleanupUtterances(fileUtterances, 'mydir', 'incomprehension.utterances.txt')
+    const actualResult = scriptingProvider._tagAndCleanupUtterances(fileUtterances, 'mydir', 'incomprehension.utterances.txt')
     expect(actualResult[0].utterances).to.eql(utterances.slice(0, 2))
   })
 })
@@ -113,7 +113,7 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
     assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
   })
   it('should build incomprehension convos for utterance', async function () {
-    const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { 'SCRIPTING_UTTEXPANSION_INCOMPREHENSION': 'INCOMPREHENSION' }))
+    const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_INCOMPREHENSION: 'INCOMPREHENSION' }))
     await scriptingProvider.Build()
     scriptingProvider.AddUtterances({
       name: 'utt1',
@@ -169,7 +169,7 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
     assert.isFalse(scriptingProvider.convos[1].conversation[1].not)
   })
   it('should fail incomprehension convos for utterance without incomprehension utt', async function () {
-    const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { 'SCRIPTING_UTTEXPANSION_INCOMPREHENSION': 'INCOMPREHENSION' }))
+    const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_INCOMPREHENSION: 'INCOMPREHENSION' }))
     await scriptingProvider.Build()
 
     try {

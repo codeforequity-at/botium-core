@@ -165,7 +165,7 @@ module.exports = class LogicHookUtils {
       }
     }
     if (!src) {
-      let packageName = `botium-${hookType}-${ref}`
+      const packageName = `botium-${hookType}-${ref}`
       try {
         const CheckClass = require(packageName)
         if (isClass(CheckClass)) {

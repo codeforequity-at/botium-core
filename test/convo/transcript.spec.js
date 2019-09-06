@@ -211,9 +211,9 @@ describe('convo.transcript', function () {
     } catch (err) {
       assert.equal(
         err.transcript.err.message,
-        `asserters/Line 6: Expected bot response (on Line 3: #me - Hello) "Hello" to match one of "Goodbye!",\n` +
-        `Line 6: Expected buttons with text "btn1",\n` +
-        `Line 6: Expected buttons with text "btn2"`)
+        'asserters/Line 6: Expected bot response (on Line 3: #me - Hello) "Hello" to match one of "Goodbye!",\n' +
+        'Line 6: Expected buttons with text "btn1",\n' +
+        'Line 6: Expected buttons with text "btn2"')
       assert.equal(err.transcript.err.context.errors[0].type, 'asserter')
       assert.equal(err.transcript.err.context.errors[0].source, 'TextMatchAsserter')
       assert.equal(err.transcript.err.context.errors[1].type, 'asserter')

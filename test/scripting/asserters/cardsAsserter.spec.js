@@ -14,7 +14,7 @@ describe('scripting.asserters.cardsAsserter', function () {
   it('should succeed on existing card text', async function () {
     await this.cardsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'cardtext' ],
+      args: ['cardtext'],
       botMsg: {
         cards: [
           {
@@ -27,7 +27,7 @@ describe('scripting.asserters.cardsAsserter', function () {
   it('should succeed on existing card subtext', async function () {
     await this.cardsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'cardtext' ],
+      args: ['cardtext'],
       botMsg: {
         cards: [
           {
@@ -40,7 +40,7 @@ describe('scripting.asserters.cardsAsserter', function () {
   it('should succeed on existing card content', async function () {
     await this.cardsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'cardtext' ],
+      args: ['cardtext'],
       botMsg: {
         cards: [
           {
@@ -53,7 +53,7 @@ describe('scripting.asserters.cardsAsserter', function () {
   it('should succeed on multiple existing cards', async function () {
     await this.cardsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'cardtext1', 'cardtext2' ],
+      args: ['cardtext1', 'cardtext2'],
       botMsg: {
         cards: [
           {
@@ -70,7 +70,7 @@ describe('scripting.asserters.cardsAsserter', function () {
     try {
       await this.cardsAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ 'missingcard' ],
+        args: ['missingcard'],
         botMsg: { }
       })
       assert.fail('should have failed')
@@ -88,7 +88,7 @@ describe('scripting.asserters.cardsAsserter', function () {
     try {
       await this.cardsAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ 'existingcard', 'missingcard' ],
+        args: ['existingcard', 'missingcard'],
         botMsg: {
           cards: [
             {

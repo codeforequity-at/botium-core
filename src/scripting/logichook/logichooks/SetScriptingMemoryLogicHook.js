@@ -38,7 +38,7 @@ module.exports = class SetScriptingMemoryLogicHook {
       return Promise.reject(new Error(`${convoStep.stepTag}: SetScriptingMemoryLogicHook Name is missing. args: ${util.inspect(args)}, \nglobalArgs: ${util.inspect(this.globalArgs)}`))
     }
 
-    let value = args[1] || this.globalArgs.value
+    const value = args[1] || this.globalArgs.value
     if (!value) {
       return Promise.reject(new Error(`${convoStep.stepTag}: SetScriptingMemoryLogicHook Value is missing. args: ${util.inspect(args)}, \nglobalArgs: ${util.inspect(this.globalArgs)}`))
     }

@@ -25,9 +25,9 @@ describe('driver.fetchConfigFromFiles', function () {
   it('fetch capabilities from multiple files and check if overwritten', function () {
     const driver = new BotDriver()
     driver._fetchConfigFromFiles(['test/driver/configFiles/config1.json', 'test/driver/configFiles/config2.json'])
-    assert.equal(driver.caps['PROJECTNAME'], 'Botium Example 2')
-    assert.equal(driver.sources['GITURL'], 'https://github.com/codeforequity-at/botium-bindings')
-    assert.equal(driver.envs['IS_BOTIUM_CONTAINER'], true)
+    assert.equal(driver.caps.PROJECTNAME, 'Botium Example 2')
+    assert.equal(driver.sources.GITURL, 'https://github.com/codeforequity-at/botium-bindings')
+    assert.equal(driver.envs.IS_BOTIUM_CONTAINER, true)
   })
 })
 
@@ -60,83 +60,83 @@ describe('driver.capabilities', function () {
     assert.isFalse(driver.caps[Capabilities.DOCKERMACHINE])
   })
   it('should parse array caps', function () {
-    DefaultCapabilities['MYCAP'] = []
+    DefaultCapabilities.MYCAP = []
     const myCaps = {
-      'MYCAP': '[{"KEY":"VALUE"},{"KEY":"VALUE1"}]'
+      MYCAP: '[{"KEY":"VALUE"},{"KEY":"VALUE1"}]'
     }
     const driver = new BotDriver(myCaps)
-    assert.isArray(driver.caps['MYCAP'])
-    assert.lengthOf(driver.caps['MYCAP'], 2)
+    assert.isArray(driver.caps.MYCAP)
+    assert.lengthOf(driver.caps.MYCAP, 2)
   })
   it('should merge array caps', function () {
-    DefaultCapabilities['MYCAP'] = [{ id: 'id1', key: 'VALUE' }]
+    DefaultCapabilities.MYCAP = [{ id: 'id1', key: 'VALUE' }]
     const myCaps = {
-      'MYCAP': '[{"id":"id1", "key1": "VALUE1"},{"key":"VALUE1"}]'
+      MYCAP: '[{"id":"id1", "key1": "VALUE1"},{"key":"VALUE1"}]'
     }
     const driver = new BotDriver(myCaps)
-    assert.isArray(driver.caps['MYCAP'])
-    assert.lengthOf(driver.caps['MYCAP'], 2)
-    assert.equal(driver.caps['MYCAP'][0].key, 'VALUE')
-    assert.equal(driver.caps['MYCAP'][0].key1, 'VALUE1')
-    assert.isUndefined(driver.caps['MYCAP'][1].id)
-    assert.equal(driver.caps['MYCAP'][1].key, 'VALUE1')
+    assert.isArray(driver.caps.MYCAP)
+    assert.lengthOf(driver.caps.MYCAP, 2)
+    assert.equal(driver.caps.MYCAP[0].key, 'VALUE')
+    assert.equal(driver.caps.MYCAP[0].key1, 'VALUE1')
+    assert.isUndefined(driver.caps.MYCAP[1].id)
+    assert.equal(driver.caps.MYCAP[1].key, 'VALUE1')
   })
   it('should parse object caps', function () {
-    DefaultCapabilities['MYCAP'] = { KEY: 'VALUE' }
+    DefaultCapabilities.MYCAP = { KEY: 'VALUE' }
     const myCaps = {
-      'MYCAP': '{"KEY":"VALUE1"}'
+      MYCAP: '{"KEY":"VALUE1"}'
     }
     const driver = new BotDriver(myCaps)
-    assert.isObject(driver.caps['MYCAP'])
-    assert.equal(driver.caps['MYCAP'].KEY, 'VALUE1')
+    assert.isObject(driver.caps.MYCAP)
+    assert.equal(driver.caps.MYCAP.KEY, 'VALUE1')
   })
   it('should merge object caps', function () {
-    DefaultCapabilities['MYCAP'] = { KEY: 'VALUE' }
+    DefaultCapabilities.MYCAP = { KEY: 'VALUE' }
     const myCaps = {
-      'MYCAP': '{"KEY1":"VALUE1"}'
+      MYCAP: '{"KEY1":"VALUE1"}'
     }
     const driver = new BotDriver(myCaps)
-    assert.isObject(driver.caps['MYCAP'])
-    assert.equal(driver.caps['MYCAP'].KEY, 'VALUE')
-    assert.equal(driver.caps['MYCAP'].KEY1, 'VALUE1')
+    assert.isObject(driver.caps.MYCAP)
+    assert.equal(driver.caps.MYCAP.KEY, 'VALUE')
+    assert.equal(driver.caps.MYCAP.KEY1, 'VALUE1')
   })
   it('should not parse JSON caps', function () {
     const myCaps = {
-      'MYJSONCAP': '{"KEY":"VALUE1"}'
+      MYJSONCAP: '{"KEY":"VALUE1"}'
     }
     const driver = new BotDriver(myCaps)
-    assert.isObject(driver.caps['MYJSONCAP'])
-    assert.equal(driver.caps['MYJSONCAP'].KEY, 'VALUE1')
+    assert.isObject(driver.caps.MYJSONCAP)
+    assert.equal(driver.caps.MYJSONCAP.KEY, 'VALUE1')
   })
   it('should override not matching object caps', function () {
-    DefaultCapabilities['MYCAP'] = { KEY: 'VALUE' }
+    DefaultCapabilities.MYCAP = { KEY: 'VALUE' }
     const myCaps = {
-      'MYCAP': 'SIMPLESTRING'
+      MYCAP: 'SIMPLESTRING'
     }
     const driver = new BotDriver(myCaps)
-    assert.isString(driver.caps['MYCAP'])
-    assert.equal(driver.caps['MYCAP'], 'SIMPLESTRING')
+    assert.isString(driver.caps.MYCAP)
+    assert.equal(driver.caps.MYCAP, 'SIMPLESTRING')
   })
   it('should override not matching array caps', function () {
-    DefaultCapabilities['MYCAP'] = [ 'VAL1', 'VAL2' ]
+    DefaultCapabilities.MYCAP = ['VAL1', 'VAL2']
     const myCaps = {
-      'MYCAP': { 'VAL1': 'VALUE1' }
+      MYCAP: { VAL1: 'VALUE1' }
     }
     const driver = new BotDriver(myCaps)
-    assert.isObject(driver.caps['MYCAP'])
-    assert.equal(driver.caps['MYCAP'].VAL1, 'VALUE1')
+    assert.isObject(driver.caps.MYCAP)
+    assert.equal(driver.caps.MYCAP.VAL1, 'VALUE1')
   })
 })
 
 describe('driver.constructor', function () {
   it('should deep copy caps', function () {
     const myCaps = {
-      ASSERTERS: [ { name: 'ASSERTER1' } ]
+      ASSERTERS: [{ name: 'ASSERTER1' }]
     }
     const driver = new BotDriver(myCaps)
-    assert.isArray(driver.caps['ASSERTERS'])
-    assert.lengthOf(driver.caps['ASSERTERS'], 1)
-    assert.isArray(DefaultCapabilities['ASSERTERS'])
-    assert.lengthOf(DefaultCapabilities['ASSERTERS'], 0)
+    assert.isArray(driver.caps.ASSERTERS)
+    assert.lengthOf(driver.caps.ASSERTERS, 1)
+    assert.isArray(DefaultCapabilities.ASSERTERS)
+    assert.lengthOf(DefaultCapabilities.ASSERTERS, 0)
   })
 })

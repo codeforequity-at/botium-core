@@ -14,7 +14,7 @@ describe('scripting.asserters.buttonsAsserter', function () {
   it('should succeed on existing button', async function () {
     await this.buttonsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'test' ],
+      args: ['test'],
       botMsg: {
         buttons: [
           {
@@ -27,7 +27,7 @@ describe('scripting.asserters.buttonsAsserter', function () {
   it('should succeed on existing card button', async function () {
     await this.buttonsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'test' ],
+      args: ['test'],
       botMsg: {
         cards: [
           {
@@ -44,7 +44,7 @@ describe('scripting.asserters.buttonsAsserter', function () {
   it('should succeed on existing card buttons', async function () {
     await this.buttonsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'test', 'test1' ],
+      args: ['test', 'test1'],
       botMsg: {
         buttons: [
           {
@@ -67,7 +67,7 @@ describe('scripting.asserters.buttonsAsserter', function () {
     try {
       await this.buttonsAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ 'test', 'test1' ],
+        args: ['test', 'test1'],
         botMsg: {
           buttons: [
             {

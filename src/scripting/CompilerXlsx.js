@@ -14,7 +14,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
 
-    this.colnames = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' ]
+    this.colnames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
   }
 
   _splitSheetnames (sheetnames) {
@@ -35,7 +35,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
   Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
     const workbook = XLSX.read(scriptBuffer, { type: 'buffer' })
-    if (!workbook) throw new Error(`Workbook not readable`)
+    if (!workbook) throw new Error('Workbook not readable')
 
     const eol = this.caps[Capabilities.SCRIPTING_XLSX_EOL_WRITE]
 
@@ -100,7 +100,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
           if (eolSplit) {
             lines = content.split(eolSplit).map(l => l.trim()).filter(l => l)
           } else {
-            lines = [ content.trim() ]
+            lines = [content.trim()]
           }
 
           return linesToConvoStep(lines, sender, this.context, eol)
@@ -132,14 +132,14 @@ module.exports = class CompilerXlsx extends CompilerBase {
               emptyRowCount++
             } else if (meCellValue && botCellValue) {
               questionAnswerMode = true
-              debug(`questionAnswerMode to true (question-answer row found)`)
+              debug('questionAnswerMode to true (question-answer row found)')
             }
             index++
           }
 
           if (questionAnswerMode === null) {
             questionAnswerMode = false
-            debug(`questionAnswerMode to false (no question-answer row found)`)
+            debug('questionAnswerMode to false (no question-answer row found)')
           }
         }
 
@@ -220,7 +220,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
           const uttCell = this.colnames[colindex + 1] + rowindex
 
           if (sheet[nameCell] && sheet[nameCell].v && sheet[uttCell] && sheet[uttCell].v) {
-            currentUtterance = new Utterance({ name: sheet[nameCell].v, utterances: [ sheet[uttCell].v ] })
+            currentUtterance = new Utterance({ name: sheet[nameCell].v, utterances: [sheet[uttCell].v] })
             scriptResults.push(currentUtterance)
             emptylines = 0
           } else if (sheet[uttCell] && sheet[uttCell].v) {

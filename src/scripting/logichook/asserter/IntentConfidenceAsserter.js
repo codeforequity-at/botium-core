@@ -81,7 +81,7 @@ module.exports = class IntentConfidenceAsserter {
       ))
     }
 
-    let confidence = Number(botMsg.nlp.intent.confidence)
+    const confidence = Number(botMsg.nlp.intent.confidence)
     if (Number.isNaN(confidence)) {
       return Promise.reject(new BotiumError(
         `${convoStep.stepTag}: Config error. Cant recognize as intent confidence: "${botMsg.nlp.intent.confidence}"`,
