@@ -1,0 +1,7 @@
+1 step
+
+#me
+my account balance is $15000.
+
+#bot
+my account balance is \$\d+.

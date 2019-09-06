@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const util = require('util')
-const BotiumError = require('../../BotiumError')
+const { BotiumError } = require('../../BotiumError')
 
 module.exports = class EntityValuesAsserter {
   constructor (context, caps = {}) {
@@ -43,8 +43,7 @@ module.exports = class EntityValuesAsserter {
           constructor: {
           },
           params: {
-            args,
-            botMsg
+            args
           },
           // intermediate? State?
           calculation: {
@@ -54,7 +53,9 @@ module.exports = class EntityValuesAsserter {
           }
         },
         cause: {
-          substractedAsArray
+          expected: args,
+          actual: botMsg.nlp && botMsg.nlp.entities && botMsg.nlp.entities.map((entity) => entity.value),
+          diff: substractedAsArray
         }
       }
     ))
