@@ -1,4 +1,4 @@
-const BotiumError = require('../../BotiumError')
+const { BotiumError } = require('../../BotiumError')
 const jsonPath = require('jsonpath')
 
 module.exports = class JsonPathAsserter {
