@@ -21,9 +21,9 @@ if (publishPort) {
   publishPort = 46199
 }
 
-let microsoftAppId = process.env.BOTIUM_BOTFRAMEWORK_APP_ID || ''
-let channelId = process.env.BOTIUM_BOTFRAMEWORK_CHANNEL_ID || 'facebook'
-let securityToken = getSecurityToken()
+const microsoftAppId = process.env.BOTIUM_BOTFRAMEWORK_APP_ID || ''
+const channelId = process.env.BOTIUM_BOTFRAMEWORK_CHANNEL_ID || 'facebook'
+const securityToken = getSecurityToken()
 
 var webhookurl = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKURL
 const webhookport = process.env.BOTIUM_BOTFRAMEWORK_WEBHOOKPORT
@@ -77,7 +77,7 @@ appMock.get('/v1/.well-known/keys', (req, res) => {
   console.log('/v1/.well-known/keys called')
   return res.json(
     {
-      'keys': [
+      keys: [
         botiumJwk
       ]
     }
@@ -218,7 +218,7 @@ appTest.get('/', (req, res) => {
           method: botHealthCheckVerb,
           json: {},
           headers: {
-            'Authorization': 'Bearer ' + securityToken
+            Authorization: 'Bearer ' + securityToken
           }
         }
         request(options, (err, response, body) => {
@@ -308,7 +308,7 @@ function callWebhook (msg) {
     method: 'POST',
     json: msg,
     headers: {
-      'Authorization': 'Bearer ' + securityToken
+      Authorization: 'Bearer ' + securityToken
     }
   }
   console.log('callWebhook: ' + JSON.stringify(options, null, 2))

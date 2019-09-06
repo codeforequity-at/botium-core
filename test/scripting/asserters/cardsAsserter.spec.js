@@ -14,7 +14,7 @@ describe('scripting.asserters.cardsAsserter', function () {
   it('should succeed on existing card text', async function () {
     await this.cardsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'cardtext' ],
+      args: ['cardtext'],
       botMsg: {
         cards: [
           {
@@ -27,7 +27,7 @@ describe('scripting.asserters.cardsAsserter', function () {
   it('should succeed on existing card subtext', async function () {
     await this.cardsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'cardtext' ],
+      args: ['cardtext'],
       botMsg: {
         cards: [
           {
@@ -40,7 +40,7 @@ describe('scripting.asserters.cardsAsserter', function () {
   it('should succeed on existing card content', async function () {
     await this.cardsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'cardtext' ],
+      args: ['cardtext'],
       botMsg: {
         cards: [
           {
@@ -53,7 +53,7 @@ describe('scripting.asserters.cardsAsserter', function () {
   it('should succeed on multiple existing cards', async function () {
     await this.cardsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: [ 'cardtext1', 'cardtext2' ],
+      args: ['cardtext1', 'cardtext2'],
       botMsg: {
         cards: [
           {
@@ -70,19 +70,25 @@ describe('scripting.asserters.cardsAsserter', function () {
     try {
       await this.cardsAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ 'missingcard' ],
+        args: ['missingcard'],
         botMsg: { }
       })
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err.message.indexOf('Expected cards with text "missingcard"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, ['missingcard'])
+      assert.deepEqual(err.context.cause.actual, [])
+      assert.deepEqual(err.context.cause.diff, ['missingcard'])
     }
   })
   it('should fail on one missing card', async function () {
     try {
       await this.cardsAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: [ 'existingcard', 'missingcard' ],
+        args: ['existingcard', 'missingcard'],
         botMsg: {
           cards: [
             {
@@ -97,6 +103,12 @@ describe('scripting.asserters.cardsAsserter', function () {
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err.message.indexOf('Expected cards with text "missingcard"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, ['existingcard', 'missingcard'])
+      assert.deepEqual(err.context.cause.actual, ['existingcard', 'cardtext2'])
+      assert.deepEqual(err.context.cause.diff, ['missingcard'])
     }
   })
 })

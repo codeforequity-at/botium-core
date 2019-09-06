@@ -23,9 +23,9 @@ module.exports = class CompilerTxt extends CompilerBase {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
-    let lines = scriptData.split(this.eol)
+    const lines = scriptData.split(this.eol)
 
-    let header = { }
+    const header = { }
 
     if (lines && !lines[0].startsWith('#')) {
       header.name = lines[0]
@@ -37,7 +37,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
-    let lines = _.map(scriptData.split(this.eol), (line) => line.trim())
+    const lines = _.map(scriptData.split(this.eol), (line) => line.trim())
 
     if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
       return this._compileConvo(lines, false)
@@ -53,7 +53,7 @@ module.exports = class CompilerTxt extends CompilerBase {
   }
 
   _compileConvo (lines, isPartial = false) {
-    let convo = {
+    const convo = {
       header: {},
       conversation: []
     }
@@ -69,7 +69,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       return linesToConvoStep(lines, convoStepSender, this.context, this.eol)
     }
 
-    let pushPrev = () => {
+    const pushPrev = () => {
       if (convoStepSender && currentLines) {
         const convoStep = {
           sender: convoStepSender,
@@ -100,13 +100,13 @@ module.exports = class CompilerTxt extends CompilerBase {
           convoStepSender = convoStepSender.substr(0, convoStepSender.indexOf(' ')).trim()
         }
         currentLines = []
-      } else if (currentLines.length > 0 || (line && line.length > 0)) {
+      } else {
         currentLines.push(line)
       }
     })
     pushPrev()
 
-    let result = [ new Convo(this.context, convo) ]
+    const result = [new Convo(this.context, convo)]
     if (isPartial) {
       this.context.AddPartialConvos(result)
     } else {
@@ -117,7 +117,7 @@ module.exports = class CompilerTxt extends CompilerBase {
 
   _compileUtterances (lines) {
     if (lines && lines.length > 1) {
-      let result = [ new Utterance({ name: lines[0], utterances: lines.slice(1) }) ]
+      const result = [new Utterance({ name: lines[0], utterances: lines.slice(1) })]
       this.context.AddUtterances(result)
       return result
     }
@@ -173,7 +173,7 @@ module.exports = class CompilerTxt extends CompilerBase {
           script += 'BUTTON ' + (set.buttons[0].payload || set.buttons[0].text) + this.eol
         } else if (set.media && set.media.length > 0) {
           script += 'MEDIA ' + set.media[0].mediaUri + this.eol
-        } else {
+        } else if (set.messageText) {
           script += set.messageText + this.eol
         }
         set.logicHooks && set.logicHooks.map((logicHook) => {

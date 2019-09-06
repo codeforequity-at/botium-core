@@ -23,7 +23,7 @@ describe('scriptingProvider.txt.decompile', function () {
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #me
@@ -31,6 +31,81 @@ meText
 
 #bot
 botText
+`
+    )
+  })
+  it('should decompile logichook', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'meText',
+          logicHooks: [{ name: 'PAUSE', args: ['100'] }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+meText
+PAUSE 100
+`
+    )
+  })
+  it('should decompile logichook without message', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          logicHooks: [{ name: 'PAUSE', args: ['100'] }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+PAUSE 100
+`
+    )
+  })
+  it('should decompile logichook with message null', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: null,
+          logicHooks: [{ name: 'PAUSE', args: ['100'] }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+PAUSE 100
 `
     )
   })
@@ -50,7 +125,7 @@ botText
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #bot
@@ -74,7 +149,7 @@ BUTTONS buttontext
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #bot
@@ -98,7 +173,7 @@ MEDIA test1.png|test2.png
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #bot
@@ -123,7 +198,7 @@ myasserter arg1|arg2
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #me
@@ -147,7 +222,7 @@ BUTTON buttonpayload
       ]
     }
 
-    const script = scriptingProvider.Decompile([ convo ], 'SCRIPTING_FORMAT_TXT')
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
     assert.equal(script, `test convo
 
 #me

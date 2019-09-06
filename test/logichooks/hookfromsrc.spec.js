@@ -52,7 +52,7 @@ describe('logichooks.hookfromsrc', function () {
       await compiler.convos[0].Run(container)
       assert.fail('it should have failed')
     } catch (err) {
-      assert.isTrue(err.message.includes('Line 6: assertion error - Error: expected Hello1'))
+      assert.isTrue(err.message.includes('Line 6: assertion error - expected Hello1'))
     }
   })
   it('should fail with asserter with invalid script', async function () {
@@ -69,7 +69,7 @@ describe('logichooks.hookfromsrc', function () {
       await compiler.convos[0].Run(container)
       assert.fail('it should have failed')
     } catch (err) {
-      assert.isTrue(err.message.includes('Line 6: assertion error - Error: Script "assertConvoStep" is not valid'))
+      assert.isTrue(err.message.includes('Line 6: assertion error - Script "assertConvoStep" is not valid'))
     }
   })
 })

@@ -97,7 +97,7 @@ module.exports = class CompilerCsv extends CompilerBase {
     // adding header, rows, and columnCount
     {
       if (!rowsRaw.length) {
-        debug(`Compile no data`)
+        debug('Compile no data')
         return
       }
       const useHeader = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_USE_HEADER, DEFAULT_USE_HEADER)
@@ -109,7 +109,7 @@ module.exports = class CompilerCsv extends CompilerBase {
         extractedData.rows = rowsRaw
       }
       if (!extractedData.rows.length) {
-        debug(`Compile just header, no data!`)
+        debug('Compile just header, no data!')
         return
       }
       extractedData.columnCount = extractedData.rows[0].length
@@ -176,7 +176,7 @@ module.exports = class CompilerCsv extends CompilerBase {
         }
 
         if (header) {
-          let result = _getHeaderIndexFuzzy(header, cap)
+          const result = _getHeaderIndexFuzzy(header, cap)
           if (result != null) {
             return result
           } else {
@@ -188,7 +188,7 @@ module.exports = class CompilerCsv extends CompilerBase {
       }
       const _getMappingByName = (header, defNames) => {
         for (const defName of defNames) {
-          let result = _getHeaderIndexFuzzy(header, defName)
+          const result = _getHeaderIndexFuzzy(header, defName)
           if (result != null) {
             return result
           }
@@ -234,10 +234,10 @@ module.exports = class CompilerCsv extends CompilerBase {
     // extract scripts
     {
       if (extractedData.mode === CSV_MODE_ROW_PER_MESSAGE) {
-        if (_exists(extractedData.mapping['conversationId']) || _exists(extractedData.mapping['sender'])) {
+        if (_exists(extractedData.mapping.conversationId) || _exists(extractedData.mapping.sender)) {
           _checkRequiredMapping(extractedData, 'conversationId', 'sender', 'text')
         } else {
-          debug(`Compile one-column sender mode detected`)
+          debug('Compile one-column sender mode detected')
           _checkRequiredMapping(extractedData, 'text')
           extractedData.senderModeOneColumn = true
         }
@@ -291,7 +291,9 @@ module.exports = class CompilerCsv extends CompilerBase {
           const convoStep = linesToConvoStep(
             [_getText(rowIndex, extractedData)],
             _getSender(rowIndex, extractedData),
-            this.context
+            this.context,
+            undefined,
+            true
           )
           convoStep.stepTag = `Row ${rowIndex}`
           currentConvo.push(convoStep)

@@ -12,7 +12,7 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('scripting.logichooks.cases', function () {
+describe('SetClearScriptingMemory', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.logichooks',
@@ -34,8 +34,8 @@ describe('scripting.logichooks.cases', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$created_by_begin'])
-    assert.equal(transcript.scriptingMemory['$created_by_begin'], 'created_by_begin_from_begin')
+    assert.isDefined(transcript.scriptingMemory.$created_by_begin)
+    assert.equal(transcript.scriptingMemory.$created_by_begin, 'created_by_begin_from_begin')
   })
 
   it('should be created two by begin', async function () {
@@ -44,10 +44,10 @@ describe('scripting.logichooks.cases', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$created_by_begin_one'])
-    assert.equal(transcript.scriptingMemory['$created_by_begin_one'], 'created_by_begin_one_from_begin')
-    assert.isDefined(transcript.scriptingMemory['$created_by_begin_two'])
-    assert.equal(transcript.scriptingMemory['$created_by_begin_two'], 'created_by_begin_two_from_begin')
+    assert.isDefined(transcript.scriptingMemory.$created_by_begin_one)
+    assert.equal(transcript.scriptingMemory.$created_by_begin_one, 'created_by_begin_one_from_begin')
+    assert.isDefined(transcript.scriptingMemory.$created_by_begin_two)
+    assert.equal(transcript.scriptingMemory.$created_by_begin_two, 'created_by_begin_two_from_begin')
   })
 
   it('should be created by logic hook', async function () {
@@ -56,8 +56,8 @@ describe('scripting.logichooks.cases', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$created_by_logic_hook'])
-    assert.equal(transcript.scriptingMemory['$created_by_logic_hook'], 'created_by_logic_hook_from_logic_hook')
+    assert.isDefined(transcript.scriptingMemory.$created_by_logic_hook)
+    assert.equal(transcript.scriptingMemory.$created_by_logic_hook, 'created_by_logic_hook_from_logic_hook')
   })
 
   it('should be cleared by logic hook', async function () {
@@ -66,7 +66,7 @@ describe('scripting.logichooks.cases', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.notExists(transcript.scriptingMemory['cleared_by_logic_hook'])
+    assert.notExists(transcript.scriptingMemory.cleared_by_logic_hook)
   })
 
   it('should be overwritten by convo', async function () {
@@ -75,8 +75,8 @@ describe('scripting.logichooks.cases', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$overwritten_by_convo'])
-    assert.equal(transcript.scriptingMemory['$overwritten_by_convo'], 'overwritten_by_convo_from_convo')
+    assert.isDefined(transcript.scriptingMemory.$overwritten_by_convo)
+    assert.equal(transcript.scriptingMemory.$overwritten_by_convo, 'overwritten_by_convo_from_convo')
   })
 
   it('should be overwritten by logic hook', async function () {
@@ -85,8 +85,8 @@ describe('scripting.logichooks.cases', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$overwritten_by_logic_hook'])
-    assert.equal(transcript.scriptingMemory['$overwritten_by_logic_hook'], 'overwritten_by_logic_hook_from_logic_hook')
+    assert.isDefined(transcript.scriptingMemory.$overwritten_by_logic_hook)
+    assert.equal(transcript.scriptingMemory.$overwritten_by_logic_hook, 'overwritten_by_logic_hook_from_logic_hook')
   })
 
   it('reserved word, just a log on console', async function () {
@@ -94,8 +94,18 @@ describe('scripting.logichooks.cases', function () {
     assert.equal(this.compiler.convos.length, 1)
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$year'])
-    assert.equal(transcript.scriptingMemory['$year'], '2012')
+    assert.isDefined(transcript.scriptingMemory.$year)
+    assert.equal(transcript.scriptingMemory.$year, '2012')
+  })
+
+  it('numbers, parse currencies', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_numbers.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    console.log(transcript)
+    // assert.isDefined(transcript.scriptingMemory['$year'])
+    // assert.equal(transcript.scriptingMemory['$year'], '2012')
   })
 })
 
@@ -142,8 +152,8 @@ describe('scripting.logichooks.global', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$created_by_global'])
-    assert.equal(transcript.scriptingMemory['$created_by_global'], 'created_by_global_from_global')
+    assert.isDefined(transcript.scriptingMemory.$created_by_global)
+    assert.equal(transcript.scriptingMemory.$created_by_global, 'created_by_global_from_global')
   })
 
   // It must be just an accident that the global is overwritten by begin. feel free to change this test
@@ -153,7 +163,7 @@ describe('scripting.logichooks.global', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$created_by_begin'])
-    assert.equal(transcript.scriptingMemory['$created_by_begin'], 'created_by_begin_from_global')
+    assert.isDefined(transcript.scriptingMemory.$created_by_begin)
+    assert.equal(transcript.scriptingMemory.$created_by_begin, 'created_by_begin_from_global')
   })
 })

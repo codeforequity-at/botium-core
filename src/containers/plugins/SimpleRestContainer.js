@@ -241,7 +241,7 @@ module.exports = class SimpleRestContainer {
   _buildRequest (msg) {
     this.view.msg = Object.assign({}, msg)
 
-    let nonEncodedMessage = this.view.msg.messageText
+    const nonEncodedMessage = this.view.msg.messageText
     if (this.view.msg.messageText) {
       this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
     }
@@ -341,7 +341,7 @@ module.exports = class SimpleRestContainer {
     }
 
     if (_.isFunction(data)) {
-      debug(`found hook, type: function definition`)
+      debug('found hook, type: function definition')
       return data
     }
 
@@ -359,7 +359,7 @@ module.exports = class SimpleRestContainer {
 
     if (resultWithRequire) {
       if (_.isFunction(resultWithRequire)) {
-        debug(`found hook, type: require`)
+        debug('found hook, type: require')
         return resultWithRequire
       } else {
         throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
@@ -373,7 +373,7 @@ module.exports = class SimpleRestContainer {
         throw new Error(`Cant load hook, syntax is not valid - ${util.inspect(err)}`)
       }
 
-      debug(`Found hook, type: JavaScript as String`)
+      debug('Found hook, type: JavaScript as String')
       return data
     }
 

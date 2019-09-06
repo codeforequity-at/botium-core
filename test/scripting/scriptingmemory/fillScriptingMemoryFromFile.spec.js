@@ -38,8 +38,8 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$productName'])
-    assert.equal(transcript.scriptingMemory['$productName'], 'Wiener Schnitzel')
+    assert.isDefined(transcript.scriptingMemory.$productName)
+    assert.equal(transcript.scriptingMemory.$productName, 'Wiener Schnitzel')
   })
 
   it('one scripting memory file, two colums', async function () {
@@ -48,10 +48,10 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 4)
 
-    for (let convo of this.compiler.convos) {
+    for (const convo of this.compiler.convos) {
       const transcript = await convo.Run(this.container)
       assert.isObject(transcript.scriptingMemory)
-      assert.isDefined(transcript.scriptingMemory['$productName'])
+      assert.isDefined(transcript.scriptingMemory.$productName)
     }
   })
 
@@ -61,10 +61,10 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 4)
 
-    for (let convo of this.compiler.convos) {
+    for (const convo of this.compiler.convos) {
       const transcript = await convo.Run(this.container)
       assert.isObject(transcript.scriptingMemory)
-      assert.isDefined(transcript.scriptingMemory['$productName'])
+      assert.isDefined(transcript.scriptingMemory.$productName)
     }
   })
 
@@ -76,8 +76,8 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$productName'])
-    assert.notExists(transcript.scriptingMemory['$customerName'])
+    assert.isDefined(transcript.scriptingMemory.$productName)
+    assert.notExists(transcript.scriptingMemory.$customerName)
   })
 
   // Box can work without files, this eexception had no sense -> removed
@@ -99,10 +99,10 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$productName'])
-    assert.equal(transcript.scriptingMemory['$productName'], 'Wiener Schnitzel')
-    assert.isDefined(transcript.scriptingMemory['$customer'])
-    assert.equal(transcript.scriptingMemory['$customer'], 'Joe')
+    assert.isDefined(transcript.scriptingMemory.$productName)
+    assert.equal(transcript.scriptingMemory.$productName, 'Wiener Schnitzel')
+    assert.isDefined(transcript.scriptingMemory.$customer)
+    assert.equal(transcript.scriptingMemory.$customer, 'Joe')
   })
 
   // nothing to test here, this case is just a debug log.
@@ -168,6 +168,6 @@ describe('scripting.scriptingmemory.memorydisabled', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.notExists(transcript.scriptingMemory['$productName'])
+    assert.notExists(transcript.scriptingMemory.$productName)
   })
 })

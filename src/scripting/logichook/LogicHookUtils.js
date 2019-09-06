@@ -14,7 +14,9 @@ const DEFAULT_ASSERTERS = [
   { name: 'ENTITIES', className: 'EntitiesAsserter' },
   { name: 'ENTITY_VALUES', className: 'EntityValuesAsserter' },
   { name: 'INTENT', className: 'IntentAsserter' },
-  { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' }
+  { name: 'INTENT_UNIQUE', className: 'IntentUniqueAsserter' },
+  { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' },
+  { name: 'JSON_PATH', className: 'JsonPathAsserter' }
 ]
 DEFAULT_ASSERTERS.forEach((asserter) => {
   asserter.Class = require(`./asserter/${asserter.className}`)
@@ -25,6 +27,7 @@ const DEFAULT_LOGIC_HOOKS = [
   { name: 'WAITFORBOT', className: 'WaitForBotLogicHook' },
   { name: 'SET_SCRIPTING_MEMORY', className: 'SetScriptingMemoryLogicHook' },
   { name: 'CLEAR_SCRIPTING_MEMORY', className: 'ClearScriptingMemoryLogicHook' },
+  { name: 'UPDATE_CUSTOM', className: 'UpdateCustomLogicHook' },
   { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
 ]
 
@@ -162,7 +165,7 @@ module.exports = class LogicHookUtils {
       }
     }
     if (!src) {
-      let packageName = `botium-${hookType}-${ref}`
+      const packageName = `botium-${hookType}-${ref}`
       try {
         const CheckClass = require(packageName)
         if (isClass(CheckClass)) {

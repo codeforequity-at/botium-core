@@ -65,7 +65,7 @@ const myCapsRequestHookFromString = Object.assign({
   `
 }, myCapsHookBase)
 const myCapsRequestHookFromStringInvalid = Object.assign({
-  [Capabilities.SIMPLEREST_REQUEST_HOOK]: `!`
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: '!'
 }, myCapsHookBase)
 const myCapsRequestHookFromFunction = Object.assign({
   [Capabilities.SIMPLEREST_REQUEST_HOOK]: ({ requestOptions, context }) => {
@@ -141,7 +141,7 @@ describe('connectors.simplerest.nock', function () {
     assert.equal(response.body, '{"status":"ok"}')
     scope.persist(false)
   })
-  it(`post ping endpoint`, async () => {
+  it('post ping endpoint', async () => {
     const caps = {
       [Capabilities.CONTAINERMODE]: 'simplerest',
       [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
@@ -170,7 +170,7 @@ describe('connectors.simplerest.nock', function () {
     assert.equal(response.body, '{"status":"ok"}')
     scope.persist(false)
   })
-  it(`error case can't connect`, async () => {
+  it('error case can\'t connect', async () => {
     const caps = {
       [Capabilities.CONTAINERMODE]: 'simplerest',
       [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
@@ -196,7 +196,7 @@ describe('connectors.simplerest.nock', function () {
     }
     try {
       await container.pluginInstance._waitForPingUrl(pingConfig, 2)
-      assert.fail(`expected ping error`)
+      assert.fail('expected ping error')
     } catch (err) {
     }
     scope.persist(false)

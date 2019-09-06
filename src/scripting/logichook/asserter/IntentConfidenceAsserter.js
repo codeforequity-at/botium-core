@@ -1,5 +1,6 @@
 const _ = require('lodash')
-const BotiumError = require('../../BotiumError')
+
+const { BotiumError } = require('../../BotiumError')
 
 /**
  * Can be used as local, and as global asserter
@@ -20,20 +21,20 @@ module.exports = class IntentConfidenceAsserter {
 
   assertConvoStep ({ convo, convoStep, args, botMsg, isGlobal }) {
     if (args.length > 1) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentConfidenceAsserter Too much arguments "${args}"`),
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentConfidenceAsserter Too much arguments "${args}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
           source: 'IntentConfidenceAsserter',
           cause: { args }
         }
-      )
+      ))
     }
 
     const hasLocalExpectedMinimum = args && args.length
 
     if (!this.hasGlobalExpectedMinimum && !hasLocalExpectedMinimum) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentConfidenceAsserter configured neither global, nor local`),
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentConfidenceAsserter configured neither global, nor local`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
@@ -44,14 +45,14 @@ module.exports = class IntentConfidenceAsserter {
             hasLocalExpectedMinimum
           }
         }
-      )
+      ))
     }
 
     let expectedMinimum
     if (hasLocalExpectedMinimum) {
       expectedMinimum = Number(args[0])
       if (parseInt(expectedMinimum, 10) !== expectedMinimum) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentConfidenceAsserter Wrong argument. It must be integer "${args[0]}"`),
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentConfidenceAsserter Wrong argument. It must be integer "${args[0]}"`,
           {
             type: 'asserter',
             subtype: 'wrong parameters',
@@ -61,43 +62,43 @@ module.exports = class IntentConfidenceAsserter {
               expectedMinimum
             }
           }
-        )
+        ))
       }
     } else {
       expectedMinimum = this.globalExpectedMinimum
     }
 
     if (!_.has(botMsg, 'nlp.intent.confidence')) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected confidence minimum "${expectedMinimum}" but found nothing (botMsg.nlp.intent.confidence is not set)`),
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected confidence minimum "${expectedMinimum}" but found nothing`,
         {
           type: 'asserter',
-          subtype: 'wrong parameters',
           source: 'IntentConfidenceAsserter',
           cause: {
-            args,
-            botMsg
+            expected: expectedMinimum,
+            actual: null
           }
         }
-      )
+      ))
     }
 
-    let confidence = Number(botMsg.nlp.intent.confidence)
+    const confidence = Number(botMsg.nlp.intent.confidence)
     if (Number.isNaN(confidence)) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Config error. Cant recognize as intent: "${botMsg.nlp.intent.confidence}"`),
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Config error. Cant recognize as intent confidence: "${botMsg.nlp.intent.confidence}"`,
         {
           type: 'asserter',
-          subtype: 'wrong parameters',
           source: 'IntentConfidenceAsserter',
           cause: {
-            args,
-            confidence
+            expected: expectedMinimum,
+            actual: confidence
           }
         }
-      )
+      ))
     }
 
     if (confidence * 100 < expectedMinimum) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Confidence expected minimum ${expectedMinimum} current "${confidence * 100}"`,
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Confidence expected minimum ${expectedMinimum} current "${confidence * 100}"`,
         {
           type: 'asserter',
           source: 'IntentConfidenceAsserter',
@@ -106,12 +107,12 @@ module.exports = class IntentConfidenceAsserter {
               expectedMinimum: this.globalExpectedMinimum
             },
             params: {
-              args,
-              botMsg
+              args
             }
           },
           cause: {
-            confidence: confidence * 100
+            expected: expectedMinimum,
+            actual: confidence * 100
           }
         }
       ))

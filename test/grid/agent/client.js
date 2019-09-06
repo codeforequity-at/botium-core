@@ -11,19 +11,19 @@ socket.on('authenticated', () => {
   console.log('authenticated')
   socket.emit('BUILD_CONTAINER',
     {
-      'PROJECTNAME': 'Botium Facebook Sample 1',
-      'FACEBOOK_API': true,
-      'FACEBOOK_WEBHOOK_PORT': 5000,
-      'FACEBOOK_WEBHOOK_PATH': 'webhook',
-      'CLEANUPTEMPDIR': false,
-      'STARTCMD': 'npm install && node index.js'
+      PROJECTNAME: 'Botium Facebook Sample 1',
+      FACEBOOK_API: true,
+      FACEBOOK_WEBHOOK_PORT: 5000,
+      FACEBOOK_WEBHOOK_PATH: 'webhook',
+      CLEANUPTEMPDIR: false,
+      STARTCMD: 'npm install && node index.js'
     },
     {
-      'LOCALPATH': path.resolve(__dirname, '../../../samples/facebook')
+      LOCALPATH: path.resolve(__dirname, '../../../samples/facebook')
     },
     {
-      'NODE_TLS_REJECT_UNAUTHORIZED': 0,
-      'NODE_ENV': 'dev'
+      NODE_TLS_REJECT_UNAUTHORIZED: 0,
+      NODE_ENV: 'dev'
     })
 })
 socket.on('CONTAINER_BUILT', () => {

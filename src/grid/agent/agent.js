@@ -31,7 +31,7 @@ app.use('/api/*', (req, res, next) => {
   if (!apiToken || apiToken === clientApiToken) {
     next()
   } else {
-    debug(`agent client not authenticated, wrong api token or api token not given`)
+    debug('agent client not authenticated, wrong api token or api token not given')
     const err = new Error('apiToken invalid')
     err.code = 401
     next(err)
@@ -84,13 +84,13 @@ io.on('connection', (socket) => {
       })
     })
     .catch(() => {
-      socket.emit(Events.TOOMUCHWORKERS_ERROR, `Maximum worker count exceeded`)
+      socket.emit(Events.TOOMUCHWORKERS_ERROR, 'Maximum worker count exceeded')
       socket.disconnect(true)
     })
 })
 
 server.listen(port, () => {
-  console.log(`Swagger UI available at /api-docs`)
-  console.log(`Swagger definition available at /swagger.json`)
+  console.log('Swagger UI available at /api-docs')
+  console.log('Swagger definition available at /swagger.json')
   console.log(`listening on *:${port}`)
 })

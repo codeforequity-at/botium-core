@@ -35,6 +35,7 @@ module.exports = {
     [Capabilities.SCRIPTING_XLSX_STARTCOL]: 1,
     [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true,
     [Capabilities.SCRIPTING_ENABLE_MEMORY]: false,
+    [Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]: false,
     [Capabilities.SCRIPTING_MATCHING_MODE]: 'includeLowerCase',
     [Capabilities.SCRIPTING_UTTEXPANSION_MODE]: 'all',
     [Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]: 1,
@@ -54,6 +55,6 @@ module.exports = {
     [Source.GITDIR]: '.'
   },
   Envs: {
-    'IS_BOTIUM_CONTAINER': true
+    IS_BOTIUM_CONTAINER: true
   }
 }

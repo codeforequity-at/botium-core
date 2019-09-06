@@ -4,13 +4,14 @@ const fs = require('fs')
 const path = require('path')
 const glob = require('glob')
 const _ = require('lodash')
+require('promise.allsettled').shim()
 const debug = require('debug')('botium-ScriptingProvider')
 
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
-const BotiumError = require('./BotiumError')
+const { BotiumError, botiumErrorFromList } = require('./BotiumError')
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
 
 const p = (fn) => new Promise((resolve, reject) => {
@@ -87,17 +88,17 @@ module.exports = class ScriptingProvider {
           }
         })
         if (found === undefined) {
-          throw new BotiumError(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
+          throw new BotiumError(
+            `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
             {
-              type: 'response not match',
-              source: 'ScriptingProvider',
+              type: 'asserter',
+              source: 'TextMatchAsserter',
               context: {
                 stepTag
               },
               cause: {
-                tomatch,
-                botresponse,
-                meMsg
+                expected: tomatch,
+                actual: botresponse
               }
             }
           )
@@ -110,7 +111,20 @@ module.exports = class ScriptingProvider {
         } catch (err) {
           return
         }
-        throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`)
+        throw new BotiumError(
+          `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`,
+          {
+            type: 'asserter',
+            source: 'TextNotMatchAsserter',
+            context: {
+              stepTag
+            },
+            cause: {
+              expected: nottomatch,
+              actual: botresponse
+            }
+          }
+        )
       },
       fail: null
     }
@@ -135,6 +149,15 @@ module.exports = class ScriptingProvider {
       .map(a => p(() => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoAsserter, ...globalAsserter]
+    if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+      return Promise.allSettled(allPromises).then((results) => {
+        const rejected = results.filter(result => result.status === 'rejected').map(result => result.reason)
+        if (rejected.length) {
+          throw botiumErrorFromList(rejected, {})
+        }
+        return results.filter(result => result.status === 'fulfilled').map(result => result.value)
+      })
+    }
     return Promise.all(allPromises)
   }
 
@@ -153,7 +176,8 @@ module.exports = class ScriptingProvider {
         scriptingMemory,
         args: ScriptingMemory.applyToArgs(l.args, scriptingMemory),
         isGlobal: false,
-        ...rest })))
+        ...rest
+      })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
@@ -171,7 +195,8 @@ module.exports = class ScriptingProvider {
         convoStep,
         scriptingMemory,
         args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory),
-        ...rest })))
+        ...rest
+      })))
 
     return Promise.all(convoStepPromises)
   }
@@ -256,12 +281,12 @@ module.exports = class ScriptingProvider {
   }
 
   Compile (scriptBuffer, scriptFormat, scriptType) {
-    let compiler = this.GetCompiler(scriptFormat)
+    const compiler = this.GetCompiler(scriptFormat)
     return compiler.Compile(scriptBuffer, scriptType)
   }
 
   Decompile (convos, scriptFormat) {
-    let compiler = this.GetCompiler(scriptFormat)
+    const compiler = this.GetCompiler(scriptFormat)
     return compiler.Decompile(convos)
   }
 
@@ -363,7 +388,7 @@ module.exports = class ScriptingProvider {
 
   ExpandScriptingMemoryToConvos () {
     if (!this.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      debug(`ExpandScriptingMemoryToConvos - Scripting memory turned off, no convos expanded`)
+      debug('ExpandScriptingMemoryToConvos - Scripting memory turned off, no convos expanded')
       return
     }
 
@@ -378,7 +403,7 @@ module.exports = class ScriptingProvider {
     })
 
     let convosExpandedAll = []
-    let convosOriginalAll = []
+    const convosOriginalAll = []
     this.convos.forEach((convo) => {
       const convoVariables = convo.GetScriptingMemoryAllVariables(this)
       debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, all: "${util.inspect(convoVariables)}"`)
@@ -401,7 +426,7 @@ module.exports = class ScriptingProvider {
       let convosToExpand = [convo]
       let convosExpandedConvo = []
       // just for debug output. If we got 6 expanded convo, then this array can be for example [2, 3]
-      let multipliers = []
+      const multipliers = []
       for (const [key, scriptingMemories] of variablesToScriptingMemory.entries()) {
         const variableNames = JSON.parse(key)
         if (_.intersection(variableNames, convoVariables).length) {
@@ -409,7 +434,7 @@ module.exports = class ScriptingProvider {
           multipliers.push(scriptingMemories.length)
           scriptingMemories.forEach((scriptingMemory) => {
             // Appending the case name to name
-            for (let convoToExpand of convosToExpand) {
+            for (const convoToExpand of convosToExpand) {
               const convoExpanded = _.cloneDeep(convoToExpand)
               convoExpanded.header.name = convoToExpand.header.name + '.' + scriptingMemory.header.name
               variableNames.forEach((name) => {
@@ -578,7 +603,7 @@ module.exports = class ScriptingProvider {
     }
     if (utterances) {
       _.forEach(utterances, (utt) => {
-        let eu = this.utterances[utt.name]
+        const eu = this.utterances[utt.name]
         if (eu) {
           eu.utterances = _.uniq(_.concat(eu.utterances, utt.utterances))
         } else {
@@ -596,7 +621,7 @@ module.exports = class ScriptingProvider {
       }
     } else if (convos) {
       if (!convos.header || !convos.header.name) {
-        throw Error(`Invalid convo header: ${convos.header}`)
+        throw Error(`Header name is mandatory: ${JSON.stringify(convos.header)}`)
       }
       if (convos.header.name.indexOf('|') >= 0) {
         throw Error(`Invalid partial convo name: ${convos.header.name}`)

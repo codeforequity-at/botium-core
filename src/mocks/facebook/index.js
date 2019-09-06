@@ -147,7 +147,7 @@ var appTest = express()
 appTest.use(bodyParser.json())
 
 appTest.get('/', function (req, res) {
-  let urlparts = new URL(botHealthCheckUrl)
+  const urlparts = new URL(botHealthCheckUrl)
 
   tcpPortUsed.check(parseInt(urlparts.port), urlparts.hostname)
     .then((inUse) => {
@@ -207,7 +207,7 @@ function sendToBot (mockMsg) {
   } else if (mockMsg.sourceData) {
     msgContainer.entry[0].messaging.push(mockMsg.sourceData)
   } else {
-    console.log(`No messageText or sourceData given. Ignored.`, mockMsg)
+    console.log('No messageText or sourceData given. Ignored.', mockMsg)
     return
   }
 

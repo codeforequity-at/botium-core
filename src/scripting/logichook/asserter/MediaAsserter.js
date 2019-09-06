@@ -1,4 +1,4 @@
-const BotiumError = require('../../BotiumError')
+const { BotiumError } = require('../../BotiumError')
 
 module.exports = class MediaAsserter {
   constructor (context, caps = {}) {
@@ -8,19 +8,23 @@ module.exports = class MediaAsserter {
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (args && args.length > 0) {
+      let mediaFound = []
+      if (botMsg.media) {
+        mediaFound = mediaFound.concat(botMsg.media.map(mb => mb.mediaUri))
+      }
+      if (botMsg.cards) {
+        mediaFound = mediaFound.concat(botMsg.cards.filter(mc => mc.image).map(mc => mc.image.mediaUri))
+        mediaFound = mediaFound.concat(botMsg.cards.filter(mc => mc.media).reduce((acc, mc) => acc.concat(mc.media.map(mcm => mcm.mediaUri)), []))
+      }
       const mediaNotFound = []
       for (let i = 0; i < args.length; i++) {
-        if (botMsg.media) {
-          if (botMsg.media.findIndex(mb => this.context.Match(mb.mediaUri, args[i])) >= 0) continue
+        if (mediaFound.findIndex(c => this.context.Match(c, args[i])) < 0) {
+          mediaNotFound.push(args[i])
         }
-        if (botMsg.cards) {
-          if (botMsg.cards.findIndex(mc => mc.image && this.context.Match(mc.image.mediaUri, args[i])) >= 0) continue
-          if (botMsg.cards.findIndex(mc => mc.media && mc.media.findIndex(mcm => this.context.Match(mcm.mediaUri, args[i])) >= 0) >= 0) continue
-        }
-        mediaNotFound.push(args[i])
       }
       if (mediaNotFound.length > 0) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected media with uri "${mediaNotFound}"`,
+        return Promise.reject(new BotiumError(
+          `${convoStep.stepTag}: Expected media with uri "${mediaNotFound}"`,
           {
             type: 'asserter',
             source: 'MediaAsserter',
@@ -28,12 +32,13 @@ module.exports = class MediaAsserter {
               // effective arguments getting from constructor
               constructor: {},
               params: {
-                args,
-                botMsg
+                args
               }
             },
             cause: {
-              mediaNotFound
+              expected: args,
+              actual: mediaFound,
+              diff: mediaNotFound
             }
           }
         ))

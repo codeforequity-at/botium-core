@@ -68,12 +68,39 @@ describe('scripting.asserters.entitiesAsserter', function () {
     )
   })
 
-  it('expected 3 entities, found 4 enitities, nagative case', async function () {
+  it('expected 3 entities, found 4 enitities, negative case', async function () {
     return _assert(
       ['e1', 'e2', 'e3'],
       ['e1', 'e2', 'e3', 'e4'],
       { e4: 1 }
     )
+  })
+
+  it('expected 3 entities, found 4 enitities, negative case, details', async function () {
+    try {
+      await asserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['e1', 'e2', 'e3'],
+        botMsg: {
+          nlp: {
+            entities: [
+              { name: 'e1', confidence: 1, value: 'value' },
+              { name: 'e2', confidence: 1, value: 'value' },
+              { name: 'e3', confidence: 1, value: 'value' },
+              { name: 'e4', confidence: 1, value: 'value' }
+            ]
+          }
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Wrong number of entities') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, ['e1', 'e2', 'e3'])
+      assert.deepEqual(err.context.cause.actual, ['e1', 'e2', 'e3', 'e4'])
+    }
   })
 })
 

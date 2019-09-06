@@ -20,7 +20,7 @@ if (!userNameDefault) {
 }
 
 var userIdMap = {}
-userIdMap['me'] = userIdDefault
+userIdMap.me = userIdDefault
 userIdMap[userNameDefault] = userIdDefault
 var userNameMap = {}
 userNameMap[userIdDefault] = 'me'
