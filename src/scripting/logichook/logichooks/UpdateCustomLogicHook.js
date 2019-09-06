@@ -30,10 +30,33 @@ module.exports = class UpdateCustomLogicHook {
 
     try {
       if (args.length === 2) {
-        context[args[0]] = this._getValue(args[1])
+        if (_.isUndefined(context[args[0]])) {
+          context[args[0]] = this._getValue(args[1])
+        } else {
+          if (_.isString(context[args[0]])) {
+            context[args[0]] = [
+              context[args[0]],
+              this._getValue(args[1])
+            ]
+          } else if (_.isArray(context[args[0]])) {
+            context[args[0]].push(this._getValue(args[1]))
+          } else {
+            context[args[0]][this._getValue(args[1])] = true
+          }
+        }
       } else {
         if (_.isUndefined(context[args[0]])) {
           context[args[0]] = {}
+        } else {
+          if (_.isString(context[args[0]])) {
+            const newVal = {}
+            newVal[context[args[0]]] = true
+            context[args[0]] = newVal
+          } else if (_.isArray(context[args[0]])) {
+            const newVal = {}
+            context[args[0]].forEach(a => { newVal[a] = true })
+            context[args[0]] = newVal
+          }
         }
         context[args[0]][args[1]] = this._getValue(args[2])
       }

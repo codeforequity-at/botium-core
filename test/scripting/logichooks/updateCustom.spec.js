@@ -15,7 +15,7 @@ const echoConnector = ({ queueBotSays }) => {
         messageText = msg.simpleField
       }
 
-      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText }
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText, custom: msg.custom }
       queueBotSays(botMsg)
     }
   }
@@ -56,5 +56,36 @@ describe('UpdateCustomLogicHook', function () {
     assert.equal(this.compiler.convos.length, 1)
 
     await this.compiler.convos[0].Run(this.container)
+  })
+
+  it('should update mixed custom fields', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'update_custom_me_msg_mixed_struct.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.lengthOf(transcript.steps, 10)
+
+    assert.isArray(transcript.steps[0].actual.custom)
+    assert.lengthOf(transcript.steps[0].actual.custom, 3)
+    assert.equal(transcript.steps[0].actual.custom[0], 'scalar1')
+    assert.equal(transcript.steps[0].actual.custom[1], 'scalar2')
+    assert.equal(transcript.steps[0].actual.custom[2], 'scalar3')
+
+    assert.isObject(transcript.steps[2].actual.custom)
+    assert.equal(transcript.steps[2].actual.custom.field1, 'value1')
+    assert.equal(transcript.steps[2].actual.custom.field2, 'value2')
+
+    assert.isObject(transcript.steps[4].actual.custom)
+    assert.equal(transcript.steps[4].actual.custom.field1, 'value1')
+    assert.equal(transcript.steps[4].actual.custom.scalar1, true)
+
+    assert.isObject(transcript.steps[6].actual.custom)
+    assert.equal(transcript.steps[6].actual.custom.field1, 'value1')
+    assert.equal(transcript.steps[6].actual.custom.scalar1, true)
+
+    assert.isObject(transcript.steps[8].actual.custom)
+    assert.equal(transcript.steps[8].actual.custom.field1, 'value1')
+    assert.equal(transcript.steps[8].actual.custom.scalar1, true)
+    assert.equal(transcript.steps[8].actual.custom.scalar2, true)
   })
 })
