@@ -78,13 +78,52 @@ describe('scripting.asserters.buttonsAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected buttons with text "test1"') > 0)
+      assert.isTrue(err.message.indexOf('Expected button(s) with text "test1"') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.isArray(err.context.cause.expected)
+      assert.isNotTrue(err.context.cause.not)
       assert.deepEqual(err.context.cause.expected, ['test', 'test1'])
       assert.deepEqual(err.context.cause.actual, ['test'])
       assert.deepEqual(err.context.cause.diff, ['test1'])
+    }
+  })
+  it('should succeed on not existing button', async function () {
+    await this.buttonsAsserter.assertNotConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['test1'],
+      botMsg: {
+        buttons: [
+          {
+            text: 'test'
+          }
+        ]
+      }
+    })
+  })
+  it('should fail on unexpected button', async function () {
+    try {
+      await this.buttonsAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['test', 'test1'],
+        botMsg: {
+          buttons: [
+            {
+              text: 'test'
+            }
+          ]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Not expected button(s) with text "test"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.isTrue(err.context.cause.not)
+      assert.deepEqual(err.context.cause.expected, ['test', 'test1'])
+      assert.deepEqual(err.context.cause.actual, ['test'])
+      assert.deepEqual(err.context.cause.diff, ['test'])
     }
   })
 })

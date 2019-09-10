@@ -59,4 +59,67 @@ describe('scripting.asserters.mediaAsserter', function () {
       }
     })
   })
+  it('should fail on not matching jsonpath', async function () {
+    try {
+      await this.jsonPathAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['$.test', 'test2'],
+        botMsg: {
+          sourceData: {
+            test: 'test1'
+          }
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected: test2 in jsonPath $.test') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isNotTrue(err.context.cause.not)
+      assert.equal(err.context.cause.expected, 'test2')
+      assert.equal(err.context.cause.actual, 'test1')
+    }
+  })
+  it('should succeed on non existing jsonpath', async function () {
+    await this.jsonPathAsserter.assertNotConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['$.test'],
+      botMsg: {
+        sourceData: {
+        }
+      }
+    })
+  })
+  it('should succeed on non matching jsonpath', async function () {
+    await this.jsonPathAsserter.assertNotConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['$.test', 'test2'],
+      botMsg: {
+        sourceData: {
+          test: 'test1'
+        }
+      }
+    })
+  })
+  it('should fail on matching jsonpath', async function () {
+    try {
+      await this.jsonPathAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['$.test', 'test1'],
+        botMsg: {
+          sourceData: {
+            test: 'test1'
+          }
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Not expected: test1 in jsonPath $.test') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isTrue(err.context.cause.not)
+      assert.equal(err.context.cause.expected, 'test1')
+      assert.equal(err.context.cause.actual, 'test1')
+    }
+  })
 })

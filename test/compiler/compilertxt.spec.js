@@ -19,7 +19,7 @@ const buildContext = () => {
 
 const buildContextWithPause = () => {
   const result = {
-    IsAsserterValid: () => false,
+    IsAsserterValid: (name) => name === 'BUTTONS',
     IsUserInputValid: () => false,
     IsLogicHookValid: (name) => name === 'PAUSE',
     AddConvos: (c) => { result.convos = result.convos.concat(c) },
@@ -199,6 +199,19 @@ describe('compiler.compilertxt', function () {
       } catch (err) {
         assert.equal(err.message, 'Failed to parse conversation. Invalid text: \'Hi!\' in convo:\n PAUSE 100\nHi!\n')
       }
+    })
+    it('should consider modificator for asserter', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_asserter_modificator.convo.txt'))
+      const context = buildContextWithPause()
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      const convo = context.convos[0]
+      assert.equal(convo.conversation.length, 2)
+      assert.equal(convo.conversation[0].asserters.length, 1)
+      assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test1', 'Test2'], not: true })
     })
   })
 })
