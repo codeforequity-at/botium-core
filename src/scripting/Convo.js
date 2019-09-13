@@ -483,6 +483,9 @@ class Convo {
     const utterances = this.scriptingEvents.resolveUtterance({ utterance })
 
     return utterances.reduce((acc, expected) => {
+      if (!expected.match) {
+        return [];
+      }
       return acc.concat(expected.match(/\$\w+/g) || [])
     }, [])
   }
