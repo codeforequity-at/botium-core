@@ -8,6 +8,7 @@ const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromErr, botiumErrorFromList } = require('./BotiumError')
+const { toString } = require('./helper')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -483,7 +484,8 @@ class Convo {
     const utterances = this.scriptingEvents.resolveUtterance({ utterance })
 
     return utterances.reduce((acc, expected) => {
-      return acc.concat(expected.match(/\$\w+/g) || [])
+      if (_.isUndefined(expected)) return acc
+      else return acc.concat(toString(expected).match(/\$\w+/g) || [])
     }, [])
   }
 
