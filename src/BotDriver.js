@@ -7,7 +7,7 @@ const slugify = require('slugify')
 const moment = require('moment')
 const randomize = require('randomatic')
 const _ = require('lodash')
-const boolean = require('boolean')
+const boolean = require('boolean').default
 const EventEmitter = require('events')
 const debug = require('debug')('botium-BotDriver')
 
