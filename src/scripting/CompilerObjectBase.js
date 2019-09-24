@@ -1,4 +1,3 @@
-const _ = require('lodash')
 const debug = require('debug')('botium-CompilerObject')
 
 const Capabilities = require('../Capabilities')
@@ -25,7 +24,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
   }
 
   Deserialize (sciptData) {
-    throw new Error(`not implemented`)
+    throw new Error('not implemented')
   }
 
   Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
@@ -73,7 +72,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
         ))
       }
 
-      let convo = {
+      const convo = {
         header: {
           name: convoRaw.name,
           description: convoRaw.description
@@ -81,7 +80,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
         conversation
       }
 
-      let toAdd = new Convo(this.context, convo)
+      const toAdd = new Convo(this.context, convo)
       result.push(toAdd)
       if (isPartial) {
         this.context.AddPartialConvos([toAdd])
@@ -124,6 +123,6 @@ module.exports = class CompilerObjectBase extends CompilerBase {
   }
 
   Decompile (convos) {
-    throw new Error(`not implemented`)
+    throw new Error('not implemented')
   }
 }
