@@ -81,12 +81,12 @@ module.exports = class CompilerObjectBase extends CompilerBase {
         conversation
       }
 
-      let toAdd = [new Convo(this.context, convo)]
+      let toAdd = new Convo(this.context, convo)
       result.push(toAdd)
       if (isPartial) {
-        this.context.AddPartialConvos(toAdd)
+        this.context.AddPartialConvos([toAdd])
       } else {
-        this.context.AddConvos(toAdd)
+        this.context.AddConvos([toAdd])
       }
     }
     return result

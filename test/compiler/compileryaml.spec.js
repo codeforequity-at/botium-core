@@ -38,7 +38,7 @@ describe('compiler.compileryml', function () {
     }
     const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
-    compiler.Compile(scriptBuffer)
+    compiler.Compile(scriptBuffer, Constants.SCRIPTING_TYPE_CONVO)
     assert.equal(context.convos.length, 2)
     assert.equal(context.convos[1].conversation.length, 5)
     assert.equal(context.convos[1].conversation[0].messageText, 'hi')
