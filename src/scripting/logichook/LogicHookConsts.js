@@ -1,5 +1,6 @@
+const LOGIC_HOOK_INCLUDE = 'INCLUDE'
 module.exports = {
-  LOGIC_HOOK_INCLUDE: 'INCLUDE',
+  LOGIC_HOOK_INCLUDE,
   DEFAULT_ASSERTERS: [
     { name: 'BUTTONS', className: 'ButtonsAsserter' },
     { name: 'MEDIA', className: 'MediaAsserter' },
@@ -18,7 +19,7 @@ module.exports = {
     { name: 'SET_SCRIPTING_MEMORY', className: 'SetScriptingMemoryLogicHook' },
     { name: 'CLEAR_SCRIPTING_MEMORY', className: 'ClearScriptingMemoryLogicHook' },
     { name: 'UPDATE_CUSTOM', className: 'UpdateCustomLogicHook' },
-    { name: module.exports.LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
+    { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
   ],
   DEFAULT_USER_INPUTS: [
     { name: 'BUTTON', className: 'ButtonInput' },
