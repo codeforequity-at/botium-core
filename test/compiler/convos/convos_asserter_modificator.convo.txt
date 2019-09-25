@@ -1,0 +1,5 @@
+#bot
+!BUTTONS Test1|Test2
+
+#me
+hugo
