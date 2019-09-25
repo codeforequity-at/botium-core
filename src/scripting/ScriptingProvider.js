@@ -293,13 +293,16 @@ module.exports = class ScriptingProvider {
     this.compilers[Constants.SCRIPTING_FORMAT_CSV].Validate()
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
-    if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp') {
+    if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
+      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
       this.matchFn = (botresponse, utterance) => {
         if (_.isUndefined(botresponse)) return false
-        return (new RegExp(utterance, 'i')).test(toString(botresponse))
+
+        const regexp = lc ? (new RegExp(utterance, 'i')) : (new RegExp(utterance, ''))
+        return regexp.test(toString(botresponse))
       }
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase') {
-      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase')
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase') {
+      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase')
       this.matchFn = (botresponse, utterance) => {
         if (_.isUndefined(botresponse)) {
           if (utterance.trim() === '*') return true
@@ -316,7 +319,7 @@ module.exports = class ScriptingProvider {
         if (_.isUndefined(botresponse)) return false
         return toString(botresponse).indexOf(utterance) >= 0
       }
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
       this.matchFn = (botresponse, utterance) => {
         if (_.isUndefined(botresponse)) return false
         return toString(botresponse).toLowerCase().indexOf(utterance.toLowerCase()) >= 0

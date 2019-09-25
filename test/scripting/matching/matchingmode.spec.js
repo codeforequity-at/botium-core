@@ -31,6 +31,39 @@ describe('matching.matchingmode.regexp', function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'regex.convo.txt')
     await this.compiler.convos[0].Run(this.container)
   })
+  it('should match case sensitive response', async function () {
+    assert.isTrue(this.compiler.Match('This is a long text', 'This .*'))
+  })
+  it('should not match uppercase response', async function () {
+    assert.isFalse(this.compiler.Match('THIS is a long text', 'This .*'))
+  })
+})
+
+describe('matching.matchingmode.regexpIgnoreCase', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_MATCHING_MODE]: 'regexpIgnoreCase'
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should check matching with regex', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'regex.convo.txt')
+    await this.compiler.convos[0].Run(this.container)
+  })
+  it('should match case sensitive response', async function () {
+    assert.isTrue(this.compiler.Match('This is a long text', 'This .*'))
+  })
+  it('should match uppercase response', async function () {
+    assert.isTrue(this.compiler.Match('THIS is a long text', 'This .*'))
+  })
 })
 
 describe('matching.matchingmode.include', function () {
@@ -86,12 +119,12 @@ describe('matching.matchingmode.wildcard', function () {
   })
 })
 
-describe('matching.matchingmode.wildcardLowerCase', function () {
+describe('matching.matchingmode.wildcardIgnoreCase', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'matching.matchingmode',
       [Capabilities.CONTAINERMODE]: echoConnector,
-      [Capabilities.SCRIPTING_MATCHING_MODE]: 'wildcardLowerCase'
+      [Capabilities.SCRIPTING_MATCHING_MODE]: 'wildcardIgnoreCase'
     }
     const driver = new BotDriver(myCaps)
     this.compiler = driver.BuildCompiler()

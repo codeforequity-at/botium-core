@@ -103,7 +103,7 @@ module.exports = {
   SCRIPTING_NORMALIZE_TEXT: 'SCRIPTING_NORMALIZE_TEXT',
   SCRIPTING_ENABLE_MEMORY: 'SCRIPTING_ENABLE_MEMORY',
   SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS: 'SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS',
-  // regexp, wildcard, wildcardLowerCase, include, includeLowerCase, equals
+  // regexp, regexpIgnoreCase, wildcard, wildcardIgnoreCase, include, includeIgnoreCase, equals
   SCRIPTING_MATCHING_MODE: 'SCRIPTING_MATCHING_MODE',
   // all, first, random
   SCRIPTING_UTTEXPANSION_MODE: 'SCRIPTING_UTTEXPANSION_MODE',
