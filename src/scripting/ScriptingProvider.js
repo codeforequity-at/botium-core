@@ -12,7 +12,7 @@ const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
-const { toString } = require('./helper')
+const { quoteRegexpString, toString } = require('./helper')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
 
@@ -297,6 +297,19 @@ module.exports = class ScriptingProvider {
       this.matchFn = (botresponse, utterance) => {
         if (_.isUndefined(botresponse)) return false
         return (new RegExp(utterance, 'i')).test(toString(botresponse))
+      }
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase') {
+      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase')
+      this.matchFn = (botresponse, utterance) => {
+        if (_.isUndefined(botresponse)) {
+          if (utterance.trim() === '*') return true
+          else return false
+        }
+        const utteranceRe = quoteRegexpString(utterance).replace(/\\\*/g, '(.*)')
+
+        const botresponseStr = toString(botresponse)
+        const regexp = lc ? (new RegExp(utteranceRe, 'i')) : (new RegExp(utteranceRe, ''))
+        return regexp.test(botresponseStr)
       }
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include') {
       this.matchFn = (botresponse, utterance) => {

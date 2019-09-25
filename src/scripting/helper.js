@@ -1,6 +1,10 @@
 const _ = require('lodash')
 const isJSON = require('is-json')
 
+module.exports.quoteRegexpString = (str) => {
+  return str.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')
+}
+
 module.exports.toString = (value) => {
   if (_.isUndefined(value)) return undefined
   if (_.isString(value)) return value

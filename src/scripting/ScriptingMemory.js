@@ -7,7 +7,7 @@ const vm = require('vm')
 const _ = require('lodash')
 
 const Capabilities = require('../Capabilities')
-const { toString } = require('./helper')
+const { quoteRegexpString, toString } = require('./helper')
 
 // If they got parameter, then it will be a string always.
 // the receiver can decide what to do with it,
@@ -182,7 +182,7 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
 
       let reExpected = expected
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
-        reExpected = _.isString(expected) ? expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&') : expected
+        reExpected = _.isString(expected) ? quoteRegexpString(expected).replace(/\\\$/g, '$') : expected
       }
       const varMatches = ((_.isString(expected) ? expected.match(/\$[A-Za-z]\w+/g) : false) || []).sort(_longestFirst)
       for (let i = 0; i < varMatches.length; i++) {

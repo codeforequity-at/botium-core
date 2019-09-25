@@ -56,3 +56,55 @@ describe('matching.matchingmode.include', function () {
     assert.isTrue(this.compiler.Match({ myvalue: 123 }, '123'))
   })
 })
+
+describe('matching.matchingmode.wildcard', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_MATCHING_MODE]: 'wildcard'
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should match long response with wildcard', async function () {
+    assert.isTrue(this.compiler.Match('this is a long text', 'this is a * text'))
+  })
+  it('should match very long response with wildcard', async function () {
+    assert.isTrue(this.compiler.Match('this is a long text this is a long text this is a long text this is a long text', 'this is a * text this is a * text this is a * text'))
+  })
+  it('should not match long uppcercase response with wildcard', async function () {
+    assert.isFalse(this.compiler.Match('THIS IS A LONG TEXT', 'this is a * text'))
+  })
+  it('should match very long response with very long wildcard', async function () {
+    assert.isTrue(this.compiler.Match('begin this is a long text this is a long text this is a long text this is a long text end', 'begin * end'))
+  })
+})
+
+describe('matching.matchingmode.wildcardLowerCase', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_MATCHING_MODE]: 'wildcardLowerCase'
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should match long response with wildcard', async function () {
+    assert.isTrue(this.compiler.Match('this is a long text', 'this is a * text'))
+  })
+  it('should match long uppcercase response with wildcard', async function () {
+    assert.isTrue(this.compiler.Match('THIS IS A LONG TEXT', 'this is a * text'))
+  })
+})
