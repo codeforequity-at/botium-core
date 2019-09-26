@@ -5,7 +5,7 @@ module.exports = class CompilerJson extends CompilerObjectBase {
     super(context, caps)
   }
 
-  Deserialize (sciptData) {
-    return JSON.parse(sciptData)
+  Deserialize (scriptData) {
+    return JSON.parse(scriptData)
   }
 }

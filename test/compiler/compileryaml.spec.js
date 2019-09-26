@@ -42,6 +42,7 @@ describe('compiler.compileryml', function () {
     assert.equal(context.convos.length, 2)
     assert.equal(context.convos[1].conversation.length, 5)
     assert.equal(context.convos[1].conversation[0].messageText, 'hi')
+    assert.equal(context.convos[1].conversation[1].messageText, 'hello')
     assert.equal(context.convos[1].conversation[0].logicHooks.length, 1)
     assert.equal(context.convos[1].conversation[0].logicHooks[0].name, 'PAUSE')
     assert.equal(context.convos[1].conversation[0].logicHooks[0].args.length, 1)

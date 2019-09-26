@@ -6,7 +6,7 @@ module.exports = class CompilerYaml extends CompilerObjectBase {
     super(context, caps)
   }
 
-  Deserialize (sciptData) {
-    return YAML.parse(sciptData)
+  Deserialize (scriptData) {
+    return YAML.parse(scriptData)
   }
 }

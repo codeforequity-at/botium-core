@@ -22,6 +22,7 @@ module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode =
       convoStep.logicHooks.push({ name, args })
       textLinesAccepted = false
     } else {
+      l = l.startsWith('TEXT ') ? l.substring(5) : l
       if (sender === 'me') {
         if (!textLinesAccepted) {
           if (l.trim().length) {

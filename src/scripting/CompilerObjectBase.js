@@ -23,7 +23,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
     debug('GetHeaders is not implemented!')
   }
 
-  Deserialize (sciptData) {
+  Deserialize (scriptData) {
     throw new Error('not implemented')
   }
 
@@ -62,13 +62,13 @@ module.exports = class CompilerObjectBase extends CompilerBase {
 
         const convoStepSender = convoStepRaw.me ? 'me' : 'bot'
         const convoStepObject = convoStepRaw.me || convoStepRaw.bot
-        const lines = convoStepObject.map((line) => line.startsWith('TEXT ') ? line.substring(5) : line)
+
         conversation.push(Object.assign(
           {
             sender: convoStepSender,
             stepTag: 'Line ' + convoStepLineIndex
           },
-          linesToConvoStep(lines, convoStepSender, this.context, this.eol)
+          linesToConvoStep(convoStepObject, convoStepSender, this.context, this.eol)
         ))
       }
 
