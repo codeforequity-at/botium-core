@@ -181,7 +181,7 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       expected = toString(expected)
 
       let reExpected = expected
-      if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
+      if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp' && container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexpIgnoreCase') {
         reExpected = _.isString(expected) ? quoteRegexpString(expected).replace(/\\\$/g, '$') : expected
       }
       const varMatches = ((_.isString(expected) ? expected.match(/\$[A-Za-z]\w+/g) : false) || []).sort(_longestFirst)
