@@ -750,5 +750,14 @@ describe('convo.scriptingMemory.api', function () {
       )
       assert.isNotNull(result)
     })
+    it('func environment variable', async function () {
+      process.env.MY_VAR_VALUE = 'botium'
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$func(process.env.MY_VAR_VALUE)'
+      )
+      assert.isNotNull(result)
+    })
   })
 })
