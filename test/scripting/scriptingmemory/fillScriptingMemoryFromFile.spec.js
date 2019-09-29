@@ -6,7 +6,8 @@ const Capabilities = require('../../../').Capabilities
 const echoConnector = ({ queueBotSays }) => {
   return {
     UserSays (msg) {
-      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: `You said: ${msg.messageText}` }
+      const response = `You said: ${msg.messageText.replace('forcereplace1', 'OUTPUT1').replace('forcereplace2', 'OUTPUT2')}`
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: response }
       queueBotSays(botMsg)
     }
   }
@@ -114,6 +115,18 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosNoIntersection'))
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
+  })
+
+  it('should use scripting memory for assertion', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosAssertion'))
+    this.compiler.ExpandScriptingMemoryToConvos()
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected bot response (on Line 3: #me - forcereplace1 forcereplace2) "You said: OUTPUT1 OUTPUT2" to match one of "forcereplace1 forcereplace2"') >= 0)
+    }
   })
 })
 

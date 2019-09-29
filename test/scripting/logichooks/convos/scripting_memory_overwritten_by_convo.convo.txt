@@ -3,7 +3,7 @@ overwritten_by_convo
 SET_SCRIPTING_MEMORY overwritten_by_convo|overwritten_by_convo_from_begin
 
 #me
-this is a variable: overwritten_by_convo_from_convo
+this is a variable: $overwritten_by_convo
 
 #bot
 this is a variable: $overwritten_by_convo

@@ -177,7 +177,7 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
         reExpected = _.isString(expected) ? expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&') : expected
       }
-      const varMatches = ((_.isString(expected) ? expected.match(/\$[A-Za-z]\w+/g) : false) || []).sort(_longestFirst)
+      const varMatches = ((_.isString(expected) ? expected.match(/\$[A-Za-z]\w+/g) : false) || [])
       for (let i = 0; i < varMatches.length; i++) {
         reExpected = reExpected.replace(varMatches[i], varRegex)
       }

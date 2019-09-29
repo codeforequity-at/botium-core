@@ -1,0 +1,13 @@
+overwrite and check
+
+#me
+this is a variable: VARVALUE1
+
+#bot
+this is a variable: $myvar
+
+#me
+this is a variable: VARVALUE2 
+
+#bot
+this is a variable: $myvar

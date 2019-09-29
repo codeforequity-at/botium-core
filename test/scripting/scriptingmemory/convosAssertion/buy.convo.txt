@@ -1,0 +1,7 @@
+buy
+
+#me
+$productName $customer
+
+#bot
+$productName $customer

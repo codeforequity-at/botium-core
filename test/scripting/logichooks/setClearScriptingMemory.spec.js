@@ -6,7 +6,8 @@ const Capabilities = require('../../../index').Capabilities
 const echoConnector = ({ queueBotSays }) => {
   return {
     UserSays (msg) {
-      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: msg.messageText }
+      const response = msg.messageText.replace('INPUT1', 'OUTPUT1').replace('INPUT2', 'OUTPUT2')
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: response }
       queueBotSays(botMsg)
     }
   }
@@ -76,7 +77,7 @@ describe('SetClearScriptingMemory', function () {
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
     assert.isDefined(transcript.scriptingMemory.$overwritten_by_convo)
-    assert.equal(transcript.scriptingMemory.$overwritten_by_convo, 'overwritten_by_convo_from_convo')
+    assert.equal(transcript.scriptingMemory.$overwritten_by_convo, 'overwritten_by_convo_from_begin')
   })
 
   it('should be overwritten by logic hook', async function () {
@@ -103,9 +104,31 @@ describe('SetClearScriptingMemory', function () {
     assert.equal(this.compiler.convos.length, 1)
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    console.log(transcript)
     // assert.isDefined(transcript.scriptingMemory['$year'])
     // assert.equal(transcript.scriptingMemory['$year'], '2012')
+  })
+
+  it('should use scripting memory for assertions', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_progress.convo.txt')
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected bot response (on Line 6: #me - sending input: INPUT1) "sending input: OUTPUT1" to match one of "sending input: INPUT1"') >= 0)
+    }
+  })
+  it('should overwrite scripting memory and use for assertions', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_overwrite_and_check.convo.txt')
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected bot response (on Line 9: #me - this is a variable: VARVALUE2) "this is a variable: VARVALUE2" to match one of "this is a variable: VARVALUE1"') >= 0)
+      assert.isUndefined(err.transcript.steps[0].scriptingMemory.$myvar)
+      assert.equal(err.transcript.steps[1].scriptingMemory.$myvar, 'VARVALUE1')
+      assert.equal(err.transcript.steps[2].scriptingMemory.$myvar, 'VARVALUE1')
+      assert.equal(err.transcript.steps[3].scriptingMemory.$myvar, 'VARVALUE1')
+    }
   })
 })
 

@@ -1,0 +1,2 @@
+        |$productName    |$customer
+product1|forcereplace1   |forcereplace2
