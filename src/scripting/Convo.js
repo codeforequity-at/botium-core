@@ -29,10 +29,11 @@ class ConvoStepAssert {
   constructor (fromJson = {}) {
     this.name = fromJson.name
     this.args = fromJson.args
+    this.not = fromJson.not
   }
 
   toString () {
-    return this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
+    return (this.not ? '!' : '') + this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
   }
 }
 

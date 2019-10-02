@@ -5,6 +5,7 @@ module.exports = class IntentAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
+    this.name = 'IntentAsserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
@@ -13,7 +14,7 @@ module.exports = class IntentAsserter {
         {
           type: 'asserter',
           subtype: 'wrong parameters',
-          source: 'IntentAsserter',
+          source: this.name,
           cause: { args }
         }
       ))
@@ -23,7 +24,7 @@ module.exports = class IntentAsserter {
         {
           type: 'asserter',
           subtype: 'wrong parameters',
-          source: 'IntentAsserter',
+          source: this.name,
           cause: { args }
         }
       ))
@@ -33,7 +34,7 @@ module.exports = class IntentAsserter {
       return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected intent "${args[0]}" but found nothing`,
         {
           type: 'asserter',
-          source: 'IntentAsserter',
+          source: this.name,
           context: {
             params: {
               args
@@ -53,7 +54,7 @@ module.exports = class IntentAsserter {
         `${convoStep.stepTag}: Expected intent "${args[0]}" but found ${intent}`,
         {
           type: 'asserter',
-          source: 'IntentAsserter',
+          source: this.name,
           context: {
             params: {
               args

@@ -133,6 +133,8 @@ const _longestFirst = (a, b) => b.length - a.length
 const _apply = (scriptingMemory, str) => {
   if (str) {
     str = toString(str)
+    scriptingMemory = scriptingMemory || {}
+
     // merge all keys: longer is stronger, type does not matter
     // Not clean: what if a variable references other variable/function?
     const allKeys = Object.keys(SCRIPTING_FUNCTIONS).concat(Object.keys(scriptingMemory)).sort(_longestFirst)
