@@ -12,6 +12,8 @@ const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
+const { quoteRegexpString, toString } = require('./helper')
+
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
 
 const p = (fn) => new Promise((resolve, reject) => {
@@ -19,6 +21,14 @@ const p = (fn) => new Promise((resolve, reject) => {
     resolve(fn())
   } catch (err) {
     reject(err)
+  }
+})
+const pnot = (fn, err) => new Promise((resolve, reject) => {
+  try {
+    fn()
+    reject(err)
+  } catch (err) {
+    resolve()
   }
 })
 
@@ -115,11 +125,12 @@ module.exports = class ScriptingProvider {
           `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`,
           {
             type: 'asserter',
-            source: 'TextNotMatchAsserter',
+            source: 'TextMatchAsserter',
             context: {
               stepTag
             },
             cause: {
+              not: true,
               expected: nottomatch,
               actual: botresponse
             }
@@ -134,16 +145,51 @@ module.exports = class ScriptingProvider {
     if (!this._isValidAsserterType(asserterType)) {
       throw Error(`Unknown asserterType ${asserterType}`)
     }
+
+    const mapNot = {
+      assertConvoBegin: 'assertNotConvoBegin',
+      assertConvoStep: 'assertNotConvoStep',
+      assertConvoEnd: 'assertNotConvoEnd'
+    }
+    const callAsserter = (asserterSpec, asserter, params) => {
+      if (asserterSpec.not) {
+        const notAsserterType = mapNot[asserterType]
+        if (asserter[notAsserterType]) {
+          return p(() => asserter[notAsserterType](params))
+        } else {
+          return pnot(() => asserter[asserterType](params),
+            new BotiumError(
+              `${convoStep.stepTag}: Expected asserter ${asserter.name || asserterSpec.name} with args "${params.args}" to fail`,
+              {
+                type: 'asserter',
+                source: asserter.name || asserterSpec.name,
+                params: {
+                  args: params.args
+                },
+                cause: {
+                  not: true,
+                  expected: 'failed',
+                  actual: 'not failed'
+                }
+              }
+            )
+          )
+        }
+      } else {
+        return p(() => asserter[asserterType](params))
+      }
+    }
+
     const convoAsserter = asserters
       .filter(a => this.asserters[a.name][asserterType])
-      .map(a => p(() => this.asserters[a.name][asserterType]({
+      .map(a => callAsserter(a, this.asserters[a.name], {
         convo,
         convoStep,
         scriptingMemory,
         args: ScriptingMemory.applyToArgs(a.args, scriptingMemory),
         isGlobal: false,
         ...rest
-      })))
+      }))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
       .map(a => p(() => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
@@ -247,12 +293,37 @@ module.exports = class ScriptingProvider {
     this.compilers[Constants.SCRIPTING_FORMAT_CSV].Validate()
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
-    if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp') {
-      this.matchFn = (botresponse, utterance) => (new RegExp(utterance, 'i')).test(botresponse)
+    if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
+      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
+      this.matchFn = (botresponse, utterance) => {
+        if (_.isUndefined(botresponse)) return false
+
+        const regexp = lc ? (new RegExp(utterance, 'i')) : (new RegExp(utterance, ''))
+        return regexp.test(toString(botresponse))
+      }
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase') {
+      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase')
+      this.matchFn = (botresponse, utterance) => {
+        if (_.isUndefined(botresponse)) {
+          if (utterance.trim() === '*') return true
+          else return false
+        }
+        const utteranceRe = quoteRegexpString(utterance).replace(/\\\*/g, '(.*)')
+
+        const botresponseStr = toString(botresponse)
+        const regexp = lc ? (new RegExp(utteranceRe, 'i')) : (new RegExp(utteranceRe, ''))
+        return regexp.test(botresponseStr)
+      }
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include') {
-      this.matchFn = (botresponse, utterance) => botresponse.indexOf(utterance) >= 0
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
-      this.matchFn = (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+      this.matchFn = (botresponse, utterance) => {
+        if (_.isUndefined(botresponse)) return false
+        return toString(botresponse).indexOf(utterance) >= 0
+      }
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
+      this.matchFn = (botresponse, utterance) => {
+        if (_.isUndefined(botresponse)) return false
+        return toString(botresponse).toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+      }
     } else {
       this.matchFn = (botresponse, utterance) => botresponse === utterance
     }
@@ -297,10 +368,18 @@ module.exports = class ScriptingProvider {
   }
 
   ReadScriptsFromDirectory (convoDir, globFilter) {
-    const filelist = glob.sync(globPattern, { cwd: convoDir })
-    if (globFilter) {
-      const filelistGlobbed = glob.sync(globFilter, { cwd: convoDir })
-      _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
+    let filelist = []
+
+    const convoDirStats = fs.statSync(convoDir)
+    if (convoDirStats.isFile()) {
+      filelist = [path.basename(convoDir)]
+      convoDir = path.dirname(convoDir)
+    } else {
+      filelist = glob.sync(globPattern, { cwd: convoDir })
+      if (globFilter) {
+        const filelistGlobbed = glob.sync(globFilter, { cwd: convoDir })
+        _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
+      }
     }
     debug(`ReadConvosFromDirectory(${convoDir}) found filenames: ${filelist}`)
 
@@ -565,7 +644,8 @@ module.exports = class ScriptingProvider {
                 utt = util.format(utt, ...uttArgs)
               }
               currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: utt }))
-              const currentConvoLabeled = Object.assign(_.cloneDeep(currentConvo), { header: Object.assign({}, currentConvo.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) }) })
+              const currentConvoLabeled = _.cloneDeep(currentConvo)
+              Object.assign(currentConvoLabeled.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) })
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
             return

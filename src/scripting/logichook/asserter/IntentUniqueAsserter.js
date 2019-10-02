@@ -5,6 +5,7 @@ module.exports = class IntentUniqueAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
+    this.name = 'IntentUniqueAsserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
@@ -14,7 +15,7 @@ module.exports = class IntentUniqueAsserter {
         {
           type: 'asserter',
           subtype: 'wrong parameters',
-          source: 'IntentUniqueAsserter',
+          source: this.name,
           cause: { args }
         }
       ))
@@ -29,7 +30,7 @@ module.exports = class IntentUniqueAsserter {
           `${convoStep.stepTag}: Expected intent "${foundIntent.name}" (confidence: ${foundIntent.confidence}) to be unique, found alternate intent ${alternateIntents[0].name} with same confidence`,
           {
             type: 'asserter',
-            source: 'IntentUniqueAsserter',
+            source: this.name,
             context: {
               params: {
                 args

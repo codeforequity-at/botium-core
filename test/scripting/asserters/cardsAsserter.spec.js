@@ -75,7 +75,7 @@ describe('scripting.asserters.cardsAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected cards with text "missingcard"') > 0)
+      assert.isTrue(err.message.indexOf('Expected card(s) with text "missingcard"') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.isArray(err.context.cause.expected)
@@ -102,13 +102,55 @@ describe('scripting.asserters.cardsAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected cards with text "missingcard"') > 0)
+      assert.isTrue(err.message.indexOf('Expected card(s) with text "missingcard"') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.isArray(err.context.cause.expected)
+      assert.isNotTrue(err.context.cause.not)
       assert.deepEqual(err.context.cause.expected, ['existingcard', 'missingcard'])
       assert.deepEqual(err.context.cause.actual, ['existingcard', 'cardtext2'])
       assert.deepEqual(err.context.cause.diff, ['missingcard'])
+    }
+  })
+  it('should succeed on unexpected card text', async function () {
+    await this.cardsAsserter.assertNotConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['cardtext1'],
+      botMsg: {
+        cards: [
+          {
+            text: 'cardtext'
+          }
+        ]
+      }
+    })
+  })
+  it('should fail on one unexpected card', async function () {
+    try {
+      await this.cardsAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['existingcard', 'missingcard'],
+        botMsg: {
+          cards: [
+            {
+              text: 'existingcard'
+            },
+            {
+              text: 'cardtext2'
+            }
+          ]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Not expected card(s) with text "existingcard"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.isTrue(err.context.cause.not)
+      assert.deepEqual(err.context.cause.expected, ['existingcard', 'missingcard'])
+      assert.deepEqual(err.context.cause.actual, ['existingcard', 'cardtext2'])
+      assert.deepEqual(err.context.cause.diff, ['existingcard'])
     }
   })
 })

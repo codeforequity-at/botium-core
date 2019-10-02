@@ -8,6 +8,7 @@ const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromErr, botiumErrorFromList } = require('./BotiumError')
+const { toString } = require('./helper')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -28,10 +29,11 @@ class ConvoStepAssert {
   constructor (fromJson = {}) {
     this.name = fromJson.name
     this.args = fromJson.args
+    this.not = fromJson.not
   }
 
   toString () {
-    return this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
+    return (this.not ? '!' : '') + this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
   }
 }
 
@@ -264,6 +266,7 @@ class Convo {
           err: null
         })
         const convoStepDone = (err) => {
+          transcriptStep.scriptingMemory = Object.assign({}, scriptingMemory)
           transcriptStep.stepEnd = new Date()
           transcriptStep.err = err
           convoStepDoneCb(err, transcriptStep)
@@ -279,7 +282,7 @@ class Convo {
 
           return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg })
             .then(() => this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg }))
-            .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`))
+            .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(meMsg, null, 2)}`))
             .then(() => new Promise(resolve => {
               if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
                 setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * meMsg.messageText.length)
@@ -290,7 +293,7 @@ class Convo {
             .then(() => {
               lastMeConvoStep = convoStep
               transcriptStep.botBegin = new Date()
-              if (!_.isNull(convoStep.messageText) || convoStep.sourceData || (convoStep.userInputs && convoStep.userInputs.length)) {
+              if (!_.isNull(meMsg.messageText) || meMsg.sourceData || (meMsg.userInputs && meMsg.userInputs.length)) {
                 transcriptStep.botBegin = new Date()
                 return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, meMsg))
                   .then(() => {
@@ -343,11 +346,12 @@ class Convo {
                 return convoStepDone(failErr)
               }
               const assertErrors = []
+              const scriptingMemoryUpdate = {}
               if (convoStep.messageText) {
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
                 const messageText = this._checkNormalizeText(container, convoStep.messageText)
-                ScriptingMemory.fill(container, scriptingMemory, response, messageText, this.scriptingEvents)
-                const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, messageText)
+                ScriptingMemory.fill(container, scriptingMemoryUpdate, response, messageText, this.scriptingEvents)
+                const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText)
                 if (convoStep.not) {
                   try {
                     this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
@@ -382,6 +386,7 @@ class Convo {
               }
               this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
                 .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
+                .then(() => Object.assign(scriptingMemory, scriptingMemoryUpdate))
                 .catch((err) => {
                   const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message}`, err)
                   debug(failErr)
@@ -483,7 +488,8 @@ class Convo {
     const utterances = this.scriptingEvents.resolveUtterance({ utterance })
 
     return utterances.reduce((acc, expected) => {
-      return acc.concat(expected.match(/\$\w+/g) || [])
+      if (_.isUndefined(expected)) return acc
+      else return acc.concat(toString(expected).match(/\$\w+/g) || [])
     }, [])
   }
 

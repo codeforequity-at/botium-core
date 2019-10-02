@@ -4,42 +4,15 @@ const path = require('path')
 const isClass = require('is-class')
 const debug = require('debug')('botium-asserterUtils')
 
-const { LOGIC_HOOK_INCLUDE } = require('./LogicHookConsts')
+const { DEFAULT_ASSERTERS, DEFAULT_LOGIC_HOOKS, DEFAULT_USER_INPUTS } = require('./LogicHookConsts')
 
-const DEFAULT_ASSERTERS = [
-  { name: 'BUTTONS', className: 'ButtonsAsserter' },
-  { name: 'MEDIA', className: 'MediaAsserter' },
-  { name: 'CARDS', className: 'CardsAsserter' },
-  { name: 'PAUSE_ASSERTER', className: 'PauseAsserter' },
-  { name: 'ENTITIES', className: 'EntitiesAsserter' },
-  { name: 'ENTITY_VALUES', className: 'EntityValuesAsserter' },
-  { name: 'INTENT', className: 'IntentAsserter' },
-  { name: 'INTENT_UNIQUE', className: 'IntentUniqueAsserter' },
-  { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' },
-  { name: 'JSON_PATH', className: 'JsonPathAsserter' }
-]
 DEFAULT_ASSERTERS.forEach((asserter) => {
   asserter.Class = require(`./asserter/${asserter.className}`)
 })
 
-const DEFAULT_LOGIC_HOOKS = [
-  { name: 'PAUSE', className: 'PauseLogicHook' },
-  { name: 'WAITFORBOT', className: 'WaitForBotLogicHook' },
-  { name: 'SET_SCRIPTING_MEMORY', className: 'SetScriptingMemoryLogicHook' },
-  { name: 'CLEAR_SCRIPTING_MEMORY', className: 'ClearScriptingMemoryLogicHook' },
-  { name: 'UPDATE_CUSTOM', className: 'UpdateCustomLogicHook' },
-  { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
-]
-
 DEFAULT_LOGIC_HOOKS.forEach((logicHook) => {
   logicHook.Class = require(`./logichooks/${logicHook.className}`)
 })
-
-const DEFAULT_USER_INPUTS = [
-  { name: 'BUTTON', className: 'ButtonInput' },
-  { name: 'MEDIA', className: 'MediaInput' },
-  { name: 'FORM', className: 'FormInput' }
-]
 
 DEFAULT_USER_INPUTS.forEach((userInput) => {
   userInput.Class = require(`./userinput/${userInput.className}`)
@@ -203,12 +176,18 @@ module.exports = class LogicHookUtils {
         const hookObject = Object.keys(src).reduce((result, key) => {
           result[key] = (args) => {
             const script = src[key]
-            try {
-              const sandbox = vm.createContext({ debug, console, ...args })
-              vm.runInContext(script, sandbox)
-              return sandbox.result || Promise.resolve()
-            } catch (err) {
-              throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
+            if (_.isFunction(script)) {
+              return script(args)
+            } else if (_.isString(script)) {
+              try {
+                const sandbox = vm.createContext({ debug, console, process, ...args })
+                vm.runInContext(script, sandbox)
+                return sandbox.result || Promise.resolve()
+              } catch (err) {
+                throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
+              }
+            } else {
+              throw new Error(`Script "${key}" is not valid - only functions and javascript code accepted`)
             }
           }
           return result

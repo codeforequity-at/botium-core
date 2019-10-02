@@ -1,0 +1,19 @@
+regexp
+
+#me
+Hi John Doe! I'm a Chatbot. Type **Help**.
+
+#bot
+Hi John Doe! I'm a .*
+
+#me
+I found 7 documents matching your criteria.
+
+#bot
+I found $count documents matching your criteria.
+
+#me
+the number is $count
+
+#bot
+the number is 7

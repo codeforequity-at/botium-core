@@ -1,7 +1,27 @@
+const path = require('path')
 const assert = require('chai').assert
 const expect = require('chai').expect
 const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
+
+describe('scriptingProvider.ReadScriptsFromDirectory', function () {
+  it('should read multiple files from dir', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const { convos } = await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos'))
+
+    assert.isArray(convos)
+    assert.equal(convos.length, 2)
+  })
+  it('should read single file from file path', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const { convos } = await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'convo1.convo.txt'))
+
+    assert.isArray(convos)
+    assert.equal(convos.length, 1)
+  })
+})
 
 describe('scriptingProvider._resolveUtterances', function () {
   it('should resolve utterance', async function () {
@@ -108,9 +128,11 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
     assert.equal(scriptingProvider.convos[0].conversation.length, 2)
     assert.equal(scriptingProvider.convos[0].header.name, 'utt1/utt1-L1')
     assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[0].toString(), '1 utt1/utt1-L1 (Expanded Utterances - utt1): Step 1 - tell utterance: #me - TEXT1 | Step 2 - check bot response: #bot - ')
     assert.equal(scriptingProvider.convos[1].conversation.length, 2)
     assert.equal(scriptingProvider.convos[1].header.name, 'utt1/utt1-L2')
     assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+    assert.equal(scriptingProvider.convos[1].toString(), '2 utt1/utt1-L2 (Expanded Utterances - utt1): Step 1 - tell utterance: #me - TEXT2 | Step 2 - check bot response: #bot - ')
   })
   it('should build incomprehension convos for utterance', async function () {
     const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_INCOMPREHENSION: 'INCOMPREHENSION' }))
