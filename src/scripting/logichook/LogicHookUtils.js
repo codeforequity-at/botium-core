@@ -6,7 +6,6 @@ const debug = require('debug')('botium-asserterUtils')
 
 const { DEFAULT_ASSERTERS, DEFAULT_LOGIC_HOOKS, DEFAULT_USER_INPUTS } = require('./LogicHookConsts')
 
-
 DEFAULT_ASSERTERS.forEach((asserter) => {
   asserter.Class = require(`./asserter/${asserter.className}`)
 })
