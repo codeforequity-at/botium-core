@@ -352,10 +352,18 @@ module.exports = class ScriptingProvider {
   }
 
   ReadScriptsFromDirectory (convoDir, globFilter) {
-    const filelist = glob.sync(globPattern, { cwd: convoDir })
-    if (globFilter) {
-      const filelistGlobbed = glob.sync(globFilter, { cwd: convoDir })
-      _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
+    let filelist = []
+
+    const convoDirStats = fs.statSync(convoDir)
+    if (convoDirStats.isFile()) {
+      filelist = [path.basename(convoDir)]
+      convoDir = path.dirname(convoDir)
+    } else {
+      filelist = glob.sync(globPattern, { cwd: convoDir })
+      if (globFilter) {
+        const filelistGlobbed = glob.sync(globFilter, { cwd: convoDir })
+        _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
+      }
     }
     debug(`ReadConvosFromDirectory(${convoDir}) found filenames: ${filelist}`)
 
