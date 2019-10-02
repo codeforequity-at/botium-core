@@ -1,6 +1,6 @@
 {
   "name": "botium-core",
-  "version": "1.5.4",
+  "version": "1.6.0",
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "module": "dist/botium-es.js",
@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/codeforequity-at/botium-core#readme",
   "dependencies": {
-    "@babel/runtime": "7.5.5",
+    "@babel/runtime": "^7.6.2",
     "async": "^3.1.0",
     "body-parser": "^1.19.0",
     "boolean": "^1.0.0",
@@ -70,10 +70,10 @@
     "yaml": "^1.6.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/node": "^7.5.5",
-    "@babel/plugin-transform-runtime": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
+    "@babel/core": "^7.6.2",
+    "@babel/node": "^7.6.2",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cross-env": "^5.2.1",
