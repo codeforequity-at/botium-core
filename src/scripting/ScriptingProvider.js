@@ -12,7 +12,7 @@ const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
-const { toString } = require('./helper')
+const { quoteRegexpString, toString } = require('./helper')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
 
@@ -293,17 +293,33 @@ module.exports = class ScriptingProvider {
     this.compilers[Constants.SCRIPTING_FORMAT_CSV].Validate()
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
-    if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp') {
+    if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
+      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
       this.matchFn = (botresponse, utterance) => {
         if (_.isUndefined(botresponse)) return false
-        return (new RegExp(utterance, 'i')).test(toString(botresponse))
+
+        const regexp = lc ? (new RegExp(utterance, 'i')) : (new RegExp(utterance, ''))
+        return regexp.test(toString(botresponse))
+      }
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase') {
+      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase')
+      this.matchFn = (botresponse, utterance) => {
+        if (_.isUndefined(botresponse)) {
+          if (utterance.trim() === '*') return true
+          else return false
+        }
+        const utteranceRe = quoteRegexpString(utterance).replace(/\\\*/g, '(.*)')
+
+        const botresponseStr = toString(botresponse)
+        const regexp = lc ? (new RegExp(utteranceRe, 'i')) : (new RegExp(utteranceRe, ''))
+        return regexp.test(botresponseStr)
       }
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include') {
       this.matchFn = (botresponse, utterance) => {
         if (_.isUndefined(botresponse)) return false
         return toString(botresponse).indexOf(utterance) >= 0
       }
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
       this.matchFn = (botresponse, utterance) => {
         if (_.isUndefined(botresponse)) return false
         return toString(botresponse).toLowerCase().indexOf(utterance.toLowerCase()) >= 0
