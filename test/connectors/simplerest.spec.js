@@ -4,13 +4,14 @@ chai.use(chaiAsPromised)
 const assert = chai.assert
 const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
+const SimpleRestContainer = require('../../src/containers/plugins/SimpleRestContainer')
 const nock = require('nock')
 
 const myCapsGet = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
   [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
   [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
-  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 const myCapsPost = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -18,7 +19,7 @@ const myCapsPost = {
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
   [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { BODY1: 'BODY1VALUE', BODY2: '{{msg.messageText}}' },
-  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 const myCapsScriptingMemory = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -31,14 +32,14 @@ const myCapsScriptingMemory = {
     USING_CODE: '{{#fnc.func}}1 + 2{{/fnc.func}}',
     VARIABLE: '{{msg.scriptingMemory.variable}}'
   },
-  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 const myCapsStringTemplate = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
   [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: '{ "timestamp": "{{fnc.now_DE}}" }',
-  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 const myCapsConvAndStepId = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -47,7 +48,7 @@ const myCapsConvAndStepId = {
   [Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]: '{{fnc.timestamp}}',
   [Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]: '{{#fnc.random}}7{{/fnc.random}}',
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { SESSION_ID: '{{botium.conversationId}}', MESSAGE_ID: '{{botium.stepId}}' },
-  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 
 const myCapsHookBase = {
@@ -55,7 +56,7 @@ const myCapsHookBase = {
   [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { SESSION_ID: '{{botium.conversationId}}', MESSAGE_ID: '{{botium.stepId}}' },
-  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$'
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 const myCapsRequestHookFromString = Object.assign({
   [Capabilities.SIMPLEREST_REQUEST_HOOK]: `
@@ -80,7 +81,7 @@ const myCapsRequestHookFromModule = Object.assign({
 }, myCapsHookBase)
 const myCapsResponseHook = Object.assign({
   [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
-    botMsg.messageText = responseJsonPathKey ? 'message text from hook' : ('messageText found by' + responseJsonPathKey)  
+    botMsg.messageText = 'message text from hook'  
   `
 }, myCapsHookBase)
 
@@ -119,7 +120,7 @@ describe('connectors.simplerest.nock', function () {
       [Capabilities.CONTAINERMODE]: 'simplerest',
       [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
       [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$'],
       [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingget'
     }
     const scope = nock('https://mock.com')
@@ -146,7 +147,7 @@ describe('connectors.simplerest.nock', function () {
       [Capabilities.CONTAINERMODE]: 'simplerest',
       [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
       [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$'],
       [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingpost',
       [Capabilities.SIMPLEREST_PING_RETRIES]: 2
 
@@ -175,7 +176,7 @@ describe('connectors.simplerest.nock', function () {
       [Capabilities.CONTAINERMODE]: 'simplerest',
       [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
       [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$'],
       [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingfail',
       [Capabilities.SIMPLEREST_PING_RETRIES]: 2
     }
@@ -397,5 +398,55 @@ describe('connectors.simplerest.processBody', function () {
     assert.equal(msgs[0].messageText, 'message text from hook')
 
     await container.Clean()
+  })
+})
+describe('connectors.simplerest.parseCapabilities', function () {
+  it('should get multiple cap values from array', async function () {
+    const container = new SimpleRestContainer({
+      caps: {
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: [
+          '$.1',
+          '$.2'
+        ]
+      }
+    })
+    const values = container._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
+    assert.lengthOf(values, 2)
+    assert.deepEqual(values, ['$.1', '$.2'])
+  })
+  it('should get multiple cap values from splitted string', async function () {
+    const container = new SimpleRestContainer({
+      caps: {
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.1,$.2'
+      }
+    })
+    const values = container._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
+    assert.lengthOf(values, 2)
+    assert.deepEqual(values, ['$.1', '$.2'])
+  })
+  it('should get multiple cap values from multiple string keys', async function () {
+    const container = new SimpleRestContainer({
+      caps: {
+        SIMPLEREST_RESPONSE_JSONPATH_0: '$.1,$.2',
+        SIMPLEREST_RESPONSE_JSONPATH_1: '$.3,$.4'
+      }
+    })
+    const values = container._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
+    assert.lengthOf(values, 4)
+    assert.deepEqual(values, ['$.1', '$.2', '$.3', '$.4'])
+  })
+  it('should get multiple cap values from mixed keys', async function () {
+    const container = new SimpleRestContainer({
+      caps: {
+        SIMPLEREST_RESPONSE_JSONPATH_0: [
+          '$.1',
+          '$.2'
+        ],
+        SIMPLEREST_RESPONSE_JSONPATH_1: '$.3,$.4'
+      }
+    })
+    const values = container._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
+    assert.lengthOf(values, 4)
+    assert.deepEqual(values, ['$.1', '$.2', '$.3', '$.4'])
   })
 })
