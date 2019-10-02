@@ -7,6 +7,7 @@ const vm = require('vm')
 const _ = require('lodash')
 
 const Capabilities = require('../Capabilities')
+const { quoteRegexpString, toString } = require('./helper')
 
 // If they got parameter, then it will be a string always.
 // the receiver can decide what to do with it,
@@ -131,6 +132,9 @@ const _longestFirst = (a, b) => b.length - a.length
 
 const _apply = (scriptingMemory, str) => {
   if (str) {
+    scriptingMemory = scriptingMemory || {}
+    str = toString(str)
+
     // merge all keys: longer is stronger, type does not matter
     // Not clean: what if a variable references other variable/function?
     const allKeys = Object.keys(SCRIPTING_FUNCTIONS).concat(Object.keys(scriptingMemory)).sort(_longestFirst)
@@ -173,9 +177,12 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
   if (result && _.isString(result) && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
     const utterances = scriptingEvents.resolveUtterance({ utterance })
     utterances.forEach(expected => {
+      if (_.isUndefined(expected)) return
+      expected = toString(expected)
+
       let reExpected = expected
-      if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
-        reExpected = _.isString(expected) ? expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&') : expected
+      if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp' && container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexpIgnoreCase') {
+        reExpected = _.isString(expected) ? quoteRegexpString(expected).replace(/\\\$/g, '$') : expected
       }
       const varMatches = ((_.isString(expected) ? expected.match(/\$[A-Za-z]\w+/g) : false) || []).sort(_longestFirst)
       for (let i = 0; i < varMatches.length; i++) {

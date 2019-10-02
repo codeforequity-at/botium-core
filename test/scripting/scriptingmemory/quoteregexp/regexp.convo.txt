@@ -1,0 +1,13 @@
+regexp
+
+#me
+Hi John Doe! I'm a Chatbot. Type **Help**.
+
+#bot
+Hi John Doe! I'm a .* Type \*\*Help\*\*\.
+
+#me
+I found 7 documents matching your criteria.
+
+#bot
+I found [0-9]+ documents matching your criteria.
