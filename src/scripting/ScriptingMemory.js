@@ -7,6 +7,7 @@ const vm = require('vm')
 const _ = require('lodash')
 
 const Capabilities = require('../Capabilities')
+const { toString } = require('./helper')
 
 // If they got parameter, then it will be a string always.
 // the receiver can decide what to do with it,
@@ -131,6 +132,7 @@ const _longestFirst = (a, b) => b.length - a.length
 
 const _apply = (scriptingMemory, str) => {
   if (str) {
+    str = toString(str)
     scriptingMemory = scriptingMemory || {}
 
     // merge all keys: longer is stronger, type does not matter
@@ -175,6 +177,9 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
   if (result && _.isString(result) && utterance && container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
     const utterances = scriptingEvents.resolveUtterance({ utterance })
     utterances.forEach(expected => {
+      if (_.isUndefined(expected)) return
+      expected = toString(expected)
+
       let reExpected = expected
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp') {
         reExpected = _.isString(expected) ? expected.replace(/[-\\^*+?.()|[\]{}]/g, '\\$&') : expected

@@ -12,6 +12,8 @@ const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
+const { toString } = require('./helper')
+
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
 
 const p = (fn) => new Promise((resolve, reject) => {
@@ -292,11 +294,20 @@ module.exports = class ScriptingProvider {
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
     if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp') {
-      this.matchFn = (botresponse, utterance) => (new RegExp(utterance, 'i')).test(botresponse)
+      this.matchFn = (botresponse, utterance) => {
+        if (_.isUndefined(botresponse)) return false
+        return (new RegExp(utterance, 'i')).test(toString(botresponse))
+      }
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include') {
-      this.matchFn = (botresponse, utterance) => botresponse.indexOf(utterance) >= 0
+      this.matchFn = (botresponse, utterance) => {
+        if (_.isUndefined(botresponse)) return false
+        return toString(botresponse).indexOf(utterance) >= 0
+      }
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
-      this.matchFn = (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+      this.matchFn = (botresponse, utterance) => {
+        if (_.isUndefined(botresponse)) return false
+        return toString(botresponse).toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+      }
     } else {
       this.matchFn = (botresponse, utterance) => botresponse === utterance
     }

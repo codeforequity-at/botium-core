@@ -1,4 +1,17 @@
+const _ = require('lodash')
 const isJSON = require('is-json')
+
+module.exports.toString = (value) => {
+  if (_.isUndefined(value)) return undefined
+  if (_.isString(value)) return value
+  if (_.isNumber(value)) return value.toString()
+  try {
+    return JSON.stringify(value)
+  } catch (err) {
+  }
+  if (value && value.toString) return value.toString()
+  return '' + value
+}
 
 module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
   const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false, sender }
