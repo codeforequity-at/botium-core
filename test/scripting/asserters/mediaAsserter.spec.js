@@ -68,9 +68,51 @@ describe('scripting.asserters.mediaAsserter', function () {
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.isArray(err.context.cause.expected)
+      assert.isNotTrue(err.context.cause.not)
       assert.deepEqual(err.context.cause.expected, ['test.jpg'])
       assert.deepEqual(err.context.cause.actual, [])
       assert.deepEqual(err.context.cause.diff, ['test.jpg'])
+    }
+  })
+  it('should succeed on not existing media', async function () {
+    await this.mediaAsserter.assertNotConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['test1.jpg'],
+      botMsg: {
+        media: [
+          {
+            mediaUri: 'test.jpg'
+          }
+        ]
+      }
+    })
+  })
+  it('should fail on unexpected media', async function () {
+    try {
+      await this.mediaAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['test1.jpg'],
+        botMsg: {
+          media: [
+            {
+              mediaUri: 'test1.jpg'
+            },
+            {
+              mediaUri: 'test2.jpg'
+            }
+          ]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Not expected media with uri "test1.jpg"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.isTrue(err.context.cause.not)
+      assert.deepEqual(err.context.cause.expected, ['test1.jpg'])
+      assert.deepEqual(err.context.cause.actual, ['test1.jpg', 'test2.jpg'])
+      assert.deepEqual(err.context.cause.diff, ['test1.jpg'])
     }
   })
 })

@@ -6,6 +6,7 @@ module.exports = class EntityValuesAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
+    this.name = 'EntityValuesAsserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
@@ -38,7 +39,7 @@ module.exports = class EntityValuesAsserter {
       `${convoStep.stepTag}: Wrong number of entity values. The difference is ${util.inspect(substractedAsArray)}`,
       {
         type: 'asserter',
-        source: 'EntityValuesAsserter',
+        source: this.name,
         context: {
           constructor: {
           },

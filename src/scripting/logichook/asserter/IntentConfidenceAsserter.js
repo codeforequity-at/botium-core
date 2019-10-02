@@ -17,6 +17,7 @@ module.exports = class IntentConfidenceAsserter {
         throw Error(`IntentConfidenceAsserter Excepted minimum is not valid ${this.globalExpectedMinimum}`)
       }
     }
+    this.name = 'IntentConfidenceAsserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg, isGlobal }) {
@@ -25,7 +26,7 @@ module.exports = class IntentConfidenceAsserter {
         {
           type: 'asserter',
           subtype: 'wrong parameters',
-          source: 'IntentConfidenceAsserter',
+          source: this.name,
           cause: { args }
         }
       ))
@@ -38,7 +39,7 @@ module.exports = class IntentConfidenceAsserter {
         {
           type: 'asserter',
           subtype: 'wrong parameters',
-          source: 'IntentConfidenceAsserter',
+          source: this.name,
           cause: {
             args,
             hasGlobalExpectedMinimum: this.hasGlobalExpectedMinimum,
@@ -56,7 +57,7 @@ module.exports = class IntentConfidenceAsserter {
           {
             type: 'asserter',
             subtype: 'wrong parameters',
-            source: 'IntentConfidenceAsserter',
+            source: this.name,
             cause: {
               args,
               expectedMinimum
@@ -72,7 +73,7 @@ module.exports = class IntentConfidenceAsserter {
       return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected confidence minimum "${expectedMinimum}" but found nothing`,
         {
           type: 'asserter',
-          source: 'IntentConfidenceAsserter',
+          source: this.name,
           cause: {
             expected: expectedMinimum,
             actual: null
@@ -87,7 +88,7 @@ module.exports = class IntentConfidenceAsserter {
         `${convoStep.stepTag}: Config error. Cant recognize as intent confidence: "${botMsg.nlp.intent.confidence}"`,
         {
           type: 'asserter',
-          source: 'IntentConfidenceAsserter',
+          source: this.name,
           cause: {
             expected: expectedMinimum,
             actual: confidence
@@ -101,7 +102,7 @@ module.exports = class IntentConfidenceAsserter {
         `${convoStep.stepTag}: Confidence expected minimum ${expectedMinimum} current "${confidence * 100}"`,
         {
           type: 'asserter',
-          source: 'IntentConfidenceAsserter',
+          source: this.name,
           context: {
             constructor: {
               expectedMinimum: this.globalExpectedMinimum

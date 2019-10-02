@@ -21,6 +21,14 @@ const p = (fn) => new Promise((resolve, reject) => {
     reject(err)
   }
 })
+const pnot = (fn, err) => new Promise((resolve, reject) => {
+  try {
+    fn()
+    reject(err)
+  } catch (err) {
+    resolve()
+  }
+})
 
 module.exports = class ScriptingProvider {
   constructor (caps = {}) {
@@ -115,11 +123,12 @@ module.exports = class ScriptingProvider {
           `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`,
           {
             type: 'asserter',
-            source: 'TextNotMatchAsserter',
+            source: 'TextMatchAsserter',
             context: {
               stepTag
             },
             cause: {
+              not: true,
               expected: nottomatch,
               actual: botresponse
             }
@@ -134,16 +143,51 @@ module.exports = class ScriptingProvider {
     if (!this._isValidAsserterType(asserterType)) {
       throw Error(`Unknown asserterType ${asserterType}`)
     }
+
+    const mapNot = {
+      assertConvoBegin: 'assertNotConvoBegin',
+      assertConvoStep: 'assertNotConvoStep',
+      assertConvoEnd: 'assertNotConvoEnd'
+    }
+    const callAsserter = (asserterSpec, asserter, params) => {
+      if (asserterSpec.not) {
+        const notAsserterType = mapNot[asserterType]
+        if (asserter[notAsserterType]) {
+          return p(() => asserter[notAsserterType](params))
+        } else {
+          return pnot(() => asserter[asserterType](params),
+            new BotiumError(
+              `${convoStep.stepTag}: Expected asserter ${asserter.name || asserterSpec.name} with args "${params.args}" to fail`,
+              {
+                type: 'asserter',
+                source: asserter.name || asserterSpec.name,
+                params: {
+                  args: params.args
+                },
+                cause: {
+                  not: true,
+                  expected: 'failed',
+                  actual: 'not failed'
+                }
+              }
+            )
+          )
+        }
+      } else {
+        return p(() => asserter[asserterType](params))
+      }
+    }
+
     const convoAsserter = asserters
       .filter(a => this.asserters[a.name][asserterType])
-      .map(a => p(() => this.asserters[a.name][asserterType]({
+      .map(a => callAsserter(a, this.asserters[a.name], {
         convo,
         convoStep,
         scriptingMemory,
         args: ScriptingMemory.applyToArgs(a.args, scriptingMemory),
         isGlobal: false,
         ...rest
-      })))
+      }))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
       .map(a => p(() => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
