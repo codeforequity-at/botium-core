@@ -1,0 +1,10 @@
+scripting_memory_progress
+
+#begin
+SET_SCRIPTING_MEMORY input|INPUT1
+
+#me
+sending input: $input
+
+#bot
+sending input: $input

@@ -1,0 +1,3 @@
+        | $productName
+product1| Bread
+product2| Beer

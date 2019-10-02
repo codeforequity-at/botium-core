@@ -266,6 +266,7 @@ class Convo {
           err: null
         })
         const convoStepDone = (err) => {
+          transcriptStep.scriptingMemory = Object.assign({}, scriptingMemory)
           transcriptStep.stepEnd = new Date()
           transcriptStep.err = err
           convoStepDoneCb(err, transcriptStep)
@@ -345,11 +346,12 @@ class Convo {
                 return convoStepDone(failErr)
               }
               const assertErrors = []
+              const scriptingMemoryUpdate = {}
               if (convoStep.messageText) {
                 const response = this._checkNormalizeText(container, saysmsg.messageText)
                 const messageText = this._checkNormalizeText(container, convoStep.messageText)
-                ScriptingMemory.fill(container, scriptingMemory, response, messageText, this.scriptingEvents)
-                const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, messageText)
+                ScriptingMemory.fill(container, scriptingMemoryUpdate, response, messageText, this.scriptingEvents)
+                const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText)
                 if (convoStep.not) {
                   try {
                     this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
@@ -384,6 +386,7 @@ class Convo {
               }
               this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
                 .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
+                .then(() => Object.assign(scriptingMemory, scriptingMemoryUpdate))
                 .catch((err) => {
                   const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message}`, err)
                   debug(failErr)

@@ -105,7 +105,7 @@ const SCRIPTING_FUNCTIONS = {
       throw Error('func function used without args!')
     }
     try {
-      return vm.runInNewContext(code, { debug: debug, console: console, require: require })
+      return vm.runInNewContext(code, { process: process, debug: debug, console: console, require: require })
     } catch (err) {
       throw Error(`func function execution failed - ${err}`)
     }
@@ -184,7 +184,7 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp' && container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexpIgnoreCase') {
         reExpected = _.isString(expected) ? quoteRegexpString(expected).replace(/\\\$/g, '$') : expected
       }
-      const varMatches = ((_.isString(expected) ? expected.match(/\$[A-Za-z]\w+/g) : false) || []).sort(_longestFirst)
+      const varMatches = ((_.isString(expected) ? expected.match(/\$[A-Za-z]\w+/g) : false) || [])
       for (let i = 0; i < varMatches.length; i++) {
         reExpected = reExpected.replace(varMatches[i], varRegex)
       }
