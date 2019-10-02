@@ -644,7 +644,8 @@ module.exports = class ScriptingProvider {
                 utt = util.format(utt, ...uttArgs)
               }
               currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: utt }))
-              const currentConvoLabeled = Object.assign(_.cloneDeep(currentConvo), { header: Object.assign({}, currentConvo.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) }) })
+              const currentConvoLabeled = _.cloneDeep(currentConvo)
+              Object.assign(currentConvoLabeled.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) })
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
             return
