@@ -176,12 +176,18 @@ module.exports = class LogicHookUtils {
         const hookObject = Object.keys(src).reduce((result, key) => {
           result[key] = (args) => {
             const script = src[key]
-            try {
-              const sandbox = vm.createContext({ debug, console, ...args })
-              vm.runInContext(script, sandbox)
-              return sandbox.result || Promise.resolve()
-            } catch (err) {
-              throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
+            if (_.isFunction(script)) {
+              return script(args)
+            } else if (_.isString(script)) {
+              try {
+                const sandbox = vm.createContext({ debug, console, process, ...args })
+                vm.runInContext(script, sandbox)
+                return sandbox.result || Promise.resolve()
+              } catch (err) {
+                throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
+              }
+            } else {
+              throw new Error(`Script "${key}" is not valid - only functions and javascript code accepted`)
             }
           }
           return result

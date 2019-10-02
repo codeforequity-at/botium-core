@@ -282,7 +282,7 @@ class Convo {
 
           return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg })
             .then(() => this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg }))
-            .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(convoStep, null, 2)}`))
+            .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(meMsg, null, 2)}`))
             .then(() => new Promise(resolve => {
               if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
                 setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * meMsg.messageText.length)
@@ -293,7 +293,7 @@ class Convo {
             .then(() => {
               lastMeConvoStep = convoStep
               transcriptStep.botBegin = new Date()
-              if (!_.isNull(convoStep.messageText) || convoStep.sourceData || (convoStep.userInputs && convoStep.userInputs.length)) {
+              if (!_.isNull(meMsg.messageText) || meMsg.sourceData || (meMsg.userInputs && meMsg.userInputs.length)) {
                 transcriptStep.botBegin = new Date()
                 return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, meMsg))
                   .then(() => {
