@@ -141,3 +141,27 @@ describe('matching.matchingmode.wildcardIgnoreCase', function () {
     assert.isTrue(this.compiler.Match('THIS IS A LONG TEXT', 'this is a * text'))
   })
 })
+
+describe('matching.matchingmode.include', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_MATCHING_MODE]: 'include'
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should match int response with string', async function () {
+    assert.isTrue(this.compiler.Match(123, '123'))
+  })
+
+  it('should match JSON response with string', async function () {
+    assert.isTrue(this.compiler.Match({ myvalue: 123 }, '123'))
+  })
+})

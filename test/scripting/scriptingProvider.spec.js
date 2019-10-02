@@ -1,7 +1,27 @@
+const path = require('path')
 const assert = require('chai').assert
 const expect = require('chai').expect
 const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
+
+describe('scriptingProvider.ReadScriptsFromDirectory', function () {
+  it('should read multiple files from dir', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const { convos } = await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos'))
+
+    assert.isArray(convos)
+    assert.equal(convos.length, 2)
+  })
+  it('should read single file from file path', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const { convos } = await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'convo1.convo.txt'))
+
+    assert.isArray(convos)
+    assert.equal(convos.length, 1)
+  })
+})
 
 describe('scriptingProvider._resolveUtterances', function () {
   it('should resolve utterance', async function () {
