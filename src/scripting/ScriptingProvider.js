@@ -91,7 +91,11 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => {
-          return this.matchFn(botresponse, utt)
+          if (_.isString(botresponse)) {
+            return this.matchFn(botresponse, utt)
+          } else {
+            return botresponse === utt
+          }
         })
         if (found === undefined) {
           throw new BotiumError(
@@ -297,8 +301,8 @@ module.exports = class ScriptingProvider {
         const regexp = lc ? (new RegExp(utterance, 'i')) : (new RegExp(utterance, ''))
         return regexp.test(toString(botresponse))
       }
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase') {
-      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase')
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase') {
+      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase')
       this.matchFn = (botresponse, utterance) => {
         if (_.isUndefined(botresponse)) {
           if (utterance.trim() === '*') return true

@@ -36,7 +36,7 @@ module.exports = {
     [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true,
     [Capabilities.SCRIPTING_ENABLE_MEMORY]: false,
     [Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]: false,
-    [Capabilities.SCRIPTING_MATCHING_MODE]: 'wildcardLowerCase',
+    [Capabilities.SCRIPTING_MATCHING_MODE]: 'wildcardIgnoreCase',
     [Capabilities.SCRIPTING_UTTEXPANSION_MODE]: 'all',
     [Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]: 1,
     [Capabilities.SCRIPTING_MEMORYEXPANSION_KEEP_ORIG]: false,
