@@ -91,11 +91,7 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => {
-          if (_.isString(botresponse)) {
-            return this.matchFn(botresponse, utt)
-          } else {
-            return botresponse === utt
-          }
+          return this.matchFn(botresponse, utt)
         })
         if (found === undefined) {
           throw new BotiumError(
