@@ -105,6 +105,9 @@ describe('matching.matchingmode.wildcard', function () {
     this.container && await this.container.Clean()
   })
 
+  it('should match response with substring', async function () {
+    assert.isTrue(this.compiler.Match('Interesting...', 'Interesting'))
+  })
   it('should match long response with wildcard', async function () {
     assert.isTrue(this.compiler.Match('this is a long text', 'this is a * text'))
   })
@@ -134,11 +137,25 @@ describe('matching.matchingmode.wildcardIgnoreCase', function () {
     this.container && await this.container.Clean()
   })
 
+  it('should match response with substring', async function () {
+    assert.isTrue(this.compiler.Match('You said: So.....', 'so...'))
+  })
   it('should match long response with wildcard', async function () {
     assert.isTrue(this.compiler.Match('this is a long text', 'this is a * text'))
   })
   it('should match long uppcercase response with wildcard', async function () {
     assert.isTrue(this.compiler.Match('THIS IS A LONG TEXT', 'this is a * text'))
+  })
+  it('should match response with utterances list', async function () {
+    this.compiler.scriptingEvents.assertBotResponse('So.....', [
+      'lol',
+      'okay',
+      'so...',
+      'go on',
+      'umm',
+      'interesting',
+      'really?'
+    ], 'test')
   })
 })
 
