@@ -116,6 +116,37 @@ describe('convo.scriptingmemory.convos', function () {
   })
 })
 
+describe('convo.scriptingMemory.args', function () {
+  it('should apply scripting memory to asserter args', async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'convo.scriptingmemory',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.ASSERTERS]: [
+        {
+          ref: 'CUSTOMASSERTER',
+          src: {
+            assertConvoStep: ({ botMsg, args }) => {
+              assert.lengthOf(args, 2)
+              assert.equal(args[0], 'question1')
+              assert.equal(args[1], 'question2')
+            }
+          }
+        }
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'applyscriptingmemorytoasserterargs.convo.txt')
+    assert.equal(compiler.convos.length, 1)
+
+    const transcript = await compiler.convos[0].Run(container)
+    assert.isObject(transcript.scriptingMemory)
+  })
+})
+
 describe('convo.scriptingMemory.api', function () {
   describe('convo.scriptingMemory.api.fill', function () {
     beforeEach(async function () {

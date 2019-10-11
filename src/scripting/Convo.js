@@ -384,9 +384,9 @@ class Convo {
                   }
                 }
               }
+              Object.assign(scriptingMemory, scriptingMemoryUpdate)
               this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
                 .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
-                .then(() => Object.assign(scriptingMemory, scriptingMemoryUpdate))
                 .catch((err) => {
                   const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message}`, err)
                   debug(failErr)
