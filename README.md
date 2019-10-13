@@ -14,6 +14,7 @@ All of the components in the Botium Stack build on top of Botium Core (except Bo
 
 ## News
 
+* __2019/10/13__ We are now at over 35.000 downloads of Botium Core - thanks to our awesome community!
 * __2019/01/20__ Chatbots are driving the industry. With Botium we are driving chatbots. After months of hard work we are finally there: we are proud to announce the __general availability of the newest Botium Stack member, the Botium Box__. Check out some game changing features for testing and training of chatbots with our [Community Edition](https://medium.com/@floriantreml/chatbot-testing-done-right-botium-box-available-now-550e40d3bdd0)!
 
 
@@ -36,3 +37,6 @@ See the [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/overview) 
 Botium Core provides the core functionality. For attaching Botium to your chatbot, there are lots of _connectors_ available for most important chatbot technologies, frameworks, APIs, SDKs, cloud services etc. Please follow these links to the connector repositories. Sample configurations and scripts are included with each connector.
 
 See [here](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/360553/Botium+Connectors) for the latest connector updates.
+
+## Contributions
+Contributions are welcome! Please read our [Contribution Guide](https://github.com/codeforequity-at/botium-core/blob/master/CONTRIBUTING.md)!
