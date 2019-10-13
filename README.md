@@ -1,5 +1,4 @@
-# Botium
-The Selenium for Chatbots
+# Botium - The Selenium for Chatbots
 
 [![NPM](https://nodei.co/npm/botium-core.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/testmybot/)
 
