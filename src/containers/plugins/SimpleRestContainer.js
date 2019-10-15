@@ -136,58 +136,72 @@ module.exports = class SimpleRestContainer {
 
     const result = []
     if (isFromUser) {
-      const media = []
-      const buttons = []
-
-      const jsonPathsMedia = this._getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH)
-      jsonPathsMedia.forEach(jsonPath => {
-        const responseMedia = jp.query(body, jsonPath)
-        if (responseMedia) {
-          (_.isArray(responseMedia) ? _.flattenDeep(responseMedia) : [responseMedia]).forEach(m =>
-            media.push({
-              mediaUri: m,
-              mimeType: mime.lookup(m) || 'application/unknown'
-            })
-          )
-          debug(`found response media: ${util.inspect(media)}`)
+      const jsonPathRoots = []
+      if (this.caps[Capabilities.SIMPLEREST_BODY_JSONPATH]) {
+        const rb = jp.query(body, this.caps[Capabilities.SIMPLEREST_BODY_JSONPATH])
+        if (_.isArray(rb)) {
+          rb.forEach(r => jsonPathRoots.push(r))
+        } else if (rb) {
+          jsonPathRoots.push(rb)
         }
-      })
-      const jsonPathsButtons = this._getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH)
-      jsonPathsButtons.forEach(jsonPath => {
-        const responseButtons = jp.query(body, jsonPath)
-        if (responseButtons) {
-          (_.isArray(responseButtons) ? _.flattenDeep(responseButtons) : [responseButtons]).forEach(b =>
-            buttons.push({
-              text: b
-            })
-          )
-          debug(`found response buttons: ${util.inspect(buttons)}`)
-        }
-      })
+      } else {
+        jsonPathRoots.push(body)
+      }
 
-      let hasMessageText = false
-      const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
-      jsonPathsTexts.forEach(jsonPath => {
-        debug(`eval json path ${jsonPath}`)
+      for (const jsonPathRoot of jsonPathRoots) {
+        const media = []
+        const buttons = []
 
-        const responseTexts = jp.query(body, jsonPath)
-        debug(`found response texts: ${util.inspect(responseTexts)}`)
+        const jsonPathsMedia = this._getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH)
+        jsonPathsMedia.forEach(jsonPath => {
+          const responseMedia = jp.query(jsonPathRoot, jsonPath)
+          if (responseMedia) {
+            (_.isArray(responseMedia) ? _.flattenDeep(responseMedia) : [responseMedia]).forEach(m =>
+              media.push({
+                mediaUri: m,
+                mimeType: mime.lookup(m) || 'application/unknown'
+              })
+            )
+            debug(`found response media: ${util.inspect(media)}`)
+          }
+        })
+        const jsonPathsButtons = this._getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH)
+        jsonPathsButtons.forEach(jsonPath => {
+          const responseButtons = jp.query(jsonPathRoot, jsonPath)
+          if (responseButtons) {
+            (_.isArray(responseButtons) ? _.flattenDeep(responseButtons) : [responseButtons]).forEach(b =>
+              buttons.push({
+                text: b
+              })
+            )
+            debug(`found response buttons: ${util.inspect(buttons)}`)
+          }
+        })
 
-        const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
-        messageTexts.forEach((messageText) => {
-          if (!messageText) return
+        let hasMessageText = false
+        const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
+        jsonPathsTexts.forEach(jsonPath => {
+          debug(`eval json path ${jsonPath}`)
 
-          hasMessageText = true
-          const botMsg = { sourceData: body, messageText, media, buttons }
+          const responseTexts = jp.query(jsonPathRoot, jsonPath)
+          debug(`found response texts: ${util.inspect(responseTexts)}`)
+
+          const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
+          messageTexts.forEach((messageText) => {
+            if (!messageText) return
+
+            hasMessageText = true
+            const botMsg = { sourceData: jsonPathRoot, messageText, media, buttons }
+            this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
+            result.push(botMsg)
+          })
+        })
+
+        if (!hasMessageText) {
+          const botMsg = { messageText: '', sourceData: jsonPathRoot, media, buttons }
           this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
           result.push(botMsg)
-        })
-      })
-
-      if (!hasMessageText) {
-        const botMsg = { messageText: '', sourceData: body, media, buttons }
-        this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
-        result.push(botMsg)
+        }
       }
     }
     return result
