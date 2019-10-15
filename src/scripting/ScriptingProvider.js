@@ -14,7 +14,7 @@ const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
 const { quoteRegexpString, toString } = require('./helper')
 
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json)'
 
 const p = (fn) => new Promise((resolve, reject) => {
   try {
@@ -291,6 +291,12 @@ module.exports = class ScriptingProvider {
     const CompilerCsv = require('./CompilerCsv')
     this.compilers[Constants.SCRIPTING_FORMAT_CSV] = new CompilerCsv(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_CSV].Validate()
+    const CompilerYaml = require('./CompilerYaml')
+    this.compilers[Constants.SCRIPTING_FORMAT_YAML] = new CompilerYaml(this._buildScriptContext(), this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_YAML].Validate()
+    const CompilerJson = require('./CompilerJson')
+    this.compilers[Constants.SCRIPTING_FORMAT_JSON] = new CompilerJson(this._buildScriptContext(), this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_JSON].Validate()
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
     if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
@@ -426,7 +432,18 @@ module.exports = class ScriptingProvider {
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
     } else if (filename.endsWith('.pconvo.csv')) {
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
+    } else if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
+      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_UTTERANCES)
+      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_PCONVO)
+      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_CONVO)
+      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+    } else if (filename.endsWith('.json')) {
+      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_UTTERANCES)
+      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
+      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
+      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
     }
+
     // Compilers saved the convos, and we alter here the saved version too
     if (fileConvos) {
       fileConvos.forEach((fileConvo) => {
