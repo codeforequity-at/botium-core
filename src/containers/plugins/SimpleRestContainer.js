@@ -197,6 +197,8 @@ module.exports = class SimpleRestContainer {
     return new Promise((resolve, reject) => {
       const requestOptions = this._buildRequest(msg)
       debug(`constructed requestOptions ${JSON.stringify(requestOptions, null, 2)}`)
+      msg.sourceData = msg.sourceData || {}
+      msg.sourceData.requestOptions = requestOptions
 
       request(requestOptions, (err, response, body) => {
         if (err) {
