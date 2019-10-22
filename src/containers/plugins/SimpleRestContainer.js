@@ -319,7 +319,7 @@ module.exports = class SimpleRestContainer {
         debug(`_waitForPingUrl on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
         await timeout(pingConfig.timeout)
       } else {
-        debug(`_waitForPingUrl success on url check ${pingConfig.uri}: ${err}`)
+        debug(`_waitForPingUrl success on url check ${pingConfig.uri}`)
         return response
       }
     }
