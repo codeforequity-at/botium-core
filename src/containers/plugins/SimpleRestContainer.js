@@ -5,6 +5,7 @@ const Mustache = require('mustache')
 const jp = require('jsonpath')
 const mime = require('mime-types')
 const uuidv4 = require('uuid/v4')
+const Redis = require('ioredis')
 const _ = require('lodash')
 const debug = require('debug')('botium-SimpleRestContainer')
 const path = require('path')
@@ -16,6 +17,8 @@ const botiumUtils = require('../../helpers/Utils')
 const Capabilities = require('../../Capabilities')
 const Defaults = require('../../Defaults')
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
+
+const REDIS_TOPIC = 'SIMPLEREST_INBOUND_SUBSCRIPTION'
 
 module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
@@ -123,7 +126,12 @@ module.exports = class SimpleRestContainer {
           } else {
             initComplete()
           }
+        },
+
+        (inboundListenerComplete) => {
+          inboundListenerComplete()
         }
+
       ], (err) => {
         if (err) {
           return reject(new Error(`Start failed ${util.inspect(err)}`))
@@ -138,9 +146,11 @@ module.exports = class SimpleRestContainer {
   }
 
   Stop () {
-    return this._executeHookWeak(this.stopHook, this.view).then(() => {
-      this.view = {}
-    })
+    return this._executeHookWeak(this.stopHook, this.view)
+      .then(() => this._unsubscribeRedis())
+      .then(() => {
+        this.view = {}
+      })
   }
 
   // Separated just for better module testing
@@ -418,4 +428,55 @@ module.exports = class SimpleRestContainer {
       return Mustache.render(template, this.view)
     }
   }
+
+  async _subscribeRedis () {
+    return new Promise((resolve, reject) => {
+      this.redis = new Redis(this.caps[Capabilities.FBWEBHOOK_REDISURL])
+      this.redis.on('connect', () => {
+        debug(`Redis connected to ${JSON.stringify(this.caps[Capabilities.FBWEBHOOK_REDISURL] || 'default')}`)
+        resolve()
+      })
+
+      this.redis.subscribe(this.facebookUserId, (err, count) => {
+        if (err) {
+          return reject(new Error(`Redis failed to subscribe channel ${this.facebookUserId}: ${err}`))
+        }
+        debug(`Redis subscribed to ${count} channels. Listening for updates on the ${this.facebookUserId} channel.`)
+        resolve()
+      })
+
+      this.redis.on('message', (channel, event) => {
+        if (!_.isString(event)) {
+          return debug(`WARNING: received non-string message from ${channel}, ignoring: ${event}`)
+        }
+        try {
+          event = JSON.parse(event)
+        } catch (err) {
+          return debug(`WARNING: received non-json message from ${channel}, ignoring: ${event}`)
+        }
+
+        const botMsg = { sender: 'bot', sourceData: event }
+
+        botMsg.messageText = event.body.message.text
+
+        debug(`Received a message to queue ${channel}: ${JSON.stringify(botMsg)}`)
+        setTimeout(() => this.queueBotSays(botMsg), 100)
+      })
+    })
+  }
+
+  async _unsubscribeRedis () {
+    if (this.redis) {
+      try {
+        await this.redis.unsubscribe(REDIS_TOPIC)
+        debug(`Redis unsubscribed from ${REDIS_TOPIC} channel.`)
+      } catch (err) {
+        debug(err)
+        throw new Error(`Redis failed to unsubscribe channel ${REDIS_TOPIC}: ${err.message || err}`)
+      }
+      this.redis.disconnect()
+      this.redis = null
+    }
+  }
 }
+module.exports.REDIS_TOPIC = REDIS_TOPIC
