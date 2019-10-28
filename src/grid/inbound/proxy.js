@@ -22,7 +22,7 @@ const buildRedisHandler = (redisurl, topic) => {
 }
 
 const setupEndpoints = ({ app, endpoint, processEvent }) => {
-  if (!endpoint.endsWith('/')) endpoint = endpoint + '/'
+  if (endpoint && !endpoint.endsWith('/')) endpoint = endpoint + '/'
 
   const handler = (req, res) => {
     if (req.body) {
@@ -48,9 +48,13 @@ const startProxy = async ({ port, endpoint, processEvent }) => {
   return new Promise((resolve, reject) => {
     const app = express()
 
-    app.use(endpoint, bodyParser.json())
-    app.use(endpoint, bodyParser.urlencoded({ extended: true }))
-
+    if (endpoint) {
+      app.use(endpoint, bodyParser.json())
+      app.use(endpoint, bodyParser.urlencoded({ extended: true }))
+    } else {
+      app.use(bodyParser.json())
+      app.use(bodyParser.urlencoded({ extended: true }))
+    }
     setupEndpoints({ app, endpoint, processEvent })
 
     const proxy = app.listen(port, () => {
