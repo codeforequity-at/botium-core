@@ -21,7 +21,7 @@ const buildRedisHandler = (redisurl, topic) => {
   }
 }
 
-const setupEndpoints = ({ app, endpoint, processEvent }) => {
+const setupEndpoints = ({ app, endpoint, middleware, processEvent }) => {
   if (endpoint && !endpoint.endsWith('/')) endpoint = endpoint + '/'
 
   const handler = (req, res) => {
@@ -37,10 +37,10 @@ const setupEndpoints = ({ app, endpoint, processEvent }) => {
     }
   }
   if (endpoint) {
-    app.all(endpoint, handler)
-    app.all(endpoint.endsWith('/') ? endpoint + '*' : endpoint + '/*', handler)
+    app.all(endpoint, ...(middleware || []), handler)
+    app.all(endpoint.endsWith('/') ? endpoint + '*' : endpoint + '/*', ...(middleware || []), handler)
   } else {
-    app.all(handler)
+    app.all(...(middleware || []), handler)
   }
 }
 
@@ -48,14 +48,15 @@ const startProxy = async ({ port, endpoint, processEvent }) => {
   return new Promise((resolve, reject) => {
     const app = express()
 
-    if (endpoint) {
-      app.use(endpoint, bodyParser.json())
-      app.use(endpoint, bodyParser.urlencoded({ extended: true }))
-    } else {
-      app.use(bodyParser.json())
-      app.use(bodyParser.urlencoded({ extended: true }))
-    }
-    setupEndpoints({ app, endpoint, processEvent })
+    setupEndpoints({
+      app,
+      middleware: [
+        bodyParser.json(),
+        bodyParser.urlencoded({ extended: true })
+      ],
+      endpoint: endpoint || '/',
+      processEvent
+    })
 
     const proxy = app.listen(port, () => {
       console.log(`Botium Inbound Messages proxy is listening on port ${port}`)
