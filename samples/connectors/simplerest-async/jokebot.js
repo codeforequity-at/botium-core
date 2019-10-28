@@ -6,7 +6,7 @@ const _ = require('lodash')
 const app = express()
 app.use(bodyParser.json())
 
-const callbackUri = 'http://127.0.0.1:1235/onemorejoke'
+const callbackUri = process.env.CALLBACK_URI || 'http://127.0.0.1:1235/onemorejoke'
 
 const jokes = [
   'Q: What did one watermelon say to the other on Valentine\'s Day?\nA: You\'re one in a melon!',
