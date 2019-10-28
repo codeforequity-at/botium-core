@@ -20,6 +20,7 @@ app.post('/joke', (req, res) => {
     return res.status(500).send('no body or no conversationId given')
   }
 
+  // synchronous response
   res.status(200).json({
     conversationId: req.body.conversationId,
     responses: [
@@ -32,6 +33,7 @@ app.post('/joke', (req, res) => {
     ]
   })
 
+  // aditional asynchronous response
   setTimeout(() => {
     request({
       method: 'POST',
