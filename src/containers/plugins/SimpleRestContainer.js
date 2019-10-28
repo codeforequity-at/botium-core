@@ -493,7 +493,7 @@ module.exports = class SimpleRestContainer {
   }
 
   async _buildInbound () {
-    if (this.caps[Capabilities.SIMPLEREST_INBOUND_REDISURL]) {
+    if (this.caps[Capabilities.SIMPLEREST_INBOUND_REDISURL] && this.caps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH] && this.caps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE]) {
       this.redis = new Redis(this.caps[Capabilities.SIMPLEREST_INBOUND_REDISURL])
       this.redis.on('connect', () => {
         debug(`Redis connected to ${JSON.stringify(this.caps[Capabilities.SIMPLEREST_INBOUND_REDISURL] || 'default')}`)
