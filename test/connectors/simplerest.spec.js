@@ -410,7 +410,7 @@ describe('connectors.simplerest.processBody', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const msgs = container.pluginInstance._processBodyAsyncImpl({
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({
       responses: [
         {
           text: 'text 1',
@@ -427,6 +427,7 @@ describe('connectors.simplerest.processBody', function () {
       ]
     }, true)
 
+    console.log(msgs)
     assert.exists(msgs)
     assert.equal(msgs.length, 3)
     assert.equal(msgs[0].messageText, 'text 1')

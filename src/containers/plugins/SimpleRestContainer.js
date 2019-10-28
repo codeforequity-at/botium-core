@@ -398,7 +398,9 @@ module.exports = class SimpleRestContainer {
           allCapValues.push(`${p}`.trim())
         })
       } else if (_.isString(jsonPath)) {
-        allCapValues.push(jsonPath)
+        jsonPath.split(',').forEach(p => {
+          allCapValues.push(p.trim())
+        })
       }
     })
     return allCapValues
