@@ -7,6 +7,7 @@ const app = express()
 app.use(bodyParser.json())
 
 const callbackUri = process.env.CALLBACK_URI || 'http://127.0.0.1:1235/onemorejoke'
+const callbackParam = process.env.CALLBACK_PARAM
 
 const jokes = [
   'Q: What did one watermelon say to the other on Valentine\'s Day?\nA: You\'re one in a melon!',
@@ -37,7 +38,7 @@ app.post('/joke', (req, res) => {
   setTimeout(() => {
     request({
       method: 'POST',
-      uri: callbackUri + '/' + req.body.conversationId,
+      uri: callbackUri + '/' + req.body.conversationId + (callbackParam ? `?${callbackParam}` : ''),
       body: {
         conversationId: req.body.conversationId,
         responses: [
