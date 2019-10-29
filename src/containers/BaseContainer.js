@@ -1,13 +1,12 @@
 const util = require('util')
 const async = require('async')
 const rimraf = require('rimraf')
-const _ = require('lodash')
 const debug = require('debug')('botium-BaseContainer')
 
 const Events = require('../Events')
 const Capabilities = require('../Capabilities')
 const Queue = require('../helpers/Queue')
-const ProcessUtils = require('../helpers/ProcessUtils')
+const { executeHook, getHook } = require('../helpers/HookUtils')
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 
 module.exports = class BaseContainer {
@@ -22,18 +21,18 @@ module.exports = class BaseContainer {
   }
 
   Validate () {
-    return new Promise((resolve, reject) => {
-      this._ValidateCustomHook(Capabilities.CUSTOMHOOK_ONBUILD)
-      this._ValidateCustomHook(Capabilities.CUSTOMHOOK_ONSTART)
-      this._ValidateCustomHook(Capabilities.CUSTOMHOOK_ONSTOP)
-      this._ValidateCustomHook(Capabilities.CUSTOMHOOK_ONCLEAN)
-      resolve(this)
-    })
+    this.onBuildHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONBUILD])
+    this.onStartHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONSTART])
+    this.onUserSaysHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONUSERSAYS])
+    this.onBotResponseHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONBOTRESPONSE])
+    this.onStopHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONSTOP])
+    this.onCleanHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONCLEAN])
+    return Promise.resolve()
   }
 
   Build () {
     return new Promise((resolve, reject) => {
-      this._RunCustomHook(Capabilities.CUSTOMHOOK_ONBUILD)
+      this._RunCustomHook('onBuild', this.onBuildHook)
         .then(() => resolve(this))
         .catch((err) => reject(err))
     })
@@ -42,18 +41,23 @@ module.exports = class BaseContainer {
   Start () {
     this.queues = {}
     return new Promise((resolve, reject) => {
-      this._RunCustomHook(Capabilities.CUSTOMHOOK_ONSTART)
+      this._RunCustomHook('onStart', this.onStartHook)
         .then(() => resolve(this))
         .catch((err) => reject(err))
     })
   }
 
   UserSaysText (text) {
-    const mockMsg = new BotiumMockMessage({ sender: 'me', messageText: text })
-    return this.UserSays(mockMsg)
+    const meMsg = new BotiumMockMessage({ sender: 'me', messageText: text })
+    return this.UserSays(meMsg)
   }
 
-  UserSays (msgMock) {
+  UserSays (meMsg) {
+    return this._RunCustomHook('onUserSays', this.onUserSaysHook, { meMsg })
+      .then(() => this.UserSaysImpl(meMsg))
+  }
+
+  UserSaysImpl (meMsg) {
     return Promise.resolve(this)
   }
 
@@ -105,7 +109,7 @@ module.exports = class BaseContainer {
 
   Stop () {
     return new Promise((resolve, reject) => {
-      this._RunCustomHook(Capabilities.CUSTOMHOOK_ONSTOP)
+      this._RunCustomHook('onStop', this.onStopHook)
         .then(() => resolve(this))
         .catch((err) => reject(err))
     })
@@ -115,7 +119,7 @@ module.exports = class BaseContainer {
     return new Promise((resolve, reject) => {
       async.series([
         (hookExecuted) => {
-          this._RunCustomHook(Capabilities.CUSTOMHOOK_ONCLEAN)
+          this._RunCustomHook('onClean', this.onCleanHook)
             .then(() => hookExecuted())
             .catch(() => hookExecuted())
         },
@@ -181,44 +185,19 @@ module.exports = class BaseContainer {
     if (!this.queues[botMsg.channel]) {
       this.queues[botMsg.channel] = new Queue()
     }
-
-    this.queues[botMsg.channel].push(botMsg)
-    this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
+    return this._RunCustomHook('onBotResponse', this.onBotResponseHook, { botMsg })
+      .then(() => {
+        this.queues[botMsg.channel].push(botMsg)
+        this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
+      })
   }
 
-  _ValidateCustomHook (capKey) {
-    if (this.caps[capKey]) {
-      if (!_.isFunction(this.caps[capKey]) && !_.isString(this.caps[capKey])) {
-        throw new Error(`Custom Hook ${capKey} has to be a function or a command line string`)
-      }
-    }
-  }
-
-  _RunCustomHook (capKey) {
-    if (this.caps[capKey]) {
-      if (_.isFunction(this.caps[capKey])) {
-        const hookFunction = this.caps[capKey]
-        debug(`_RunCustomHook(${capKey}) exec function`)
-
-        const hookResult = hookFunction(this)
-        return Promise.resolve(hookResult)
-          .then(() => debug(`_RunCustomHook ${capKey} finished`))
-          .catch((err) => debug(`_RunCustomHook ${capKey} finished with error: ${err}`))
-      } else if (_.isString(this.caps[capKey])) {
-        const hookCommand = this.caps[capKey]
-
-        debug(`_RunCustomHook(${capKey}) exec: ${hookCommand}`)
-        ProcessUtils.childCommandLineRun(hookCommand, true, { cwd: this.repo.workingDirectory })
-          .then(() => debug(`_RunCustomHook ${capKey} finished`))
-          .catch((err) => debug(`_RunCustomHook ${capKey} finished with error: ${err}`))
-
-        return Promise.resolve()
-      } else {
-        debug(`_RunCustomHook(${capKey}) invalid: ${this.caps[capKey]}`)
-        return Promise.reject(new Error(`_RunCustomHook(${capKey}) invalid: ${this.caps[capKey]}`))
-      }
-    } else {
-      return Promise.resolve()
+  async _RunCustomHook (name, hook, args) {
+    try {
+      await executeHook(hook, Object.assign({}, { container: this }, args))
+      debug(`_RunCustomHook ${name} finished`)
+    } catch (err) {
+      debug(`_RunCustomHook ${name} finished with error: ${err.message || util.inspect(err)}`)
     }
   }
 }

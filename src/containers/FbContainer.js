@@ -101,7 +101,7 @@ module.exports = class FbContainer extends BaseContainer {
     })
   }
 
-  UserSays (mockMsg) {
+  UserSaysImpl (mockMsg) {
     if (!this.fbapi) return Promise.reject(new Error('not built'))
 
     this.fbapi.sendMessage(mockMsg.messageText, this.caps[Capabilities.FB_PAGEID])

@@ -7,14 +7,11 @@ const mime = require('mime-types')
 const uuidv4 = require('uuid/v4')
 const _ = require('lodash')
 const debug = require('debug')('botium-SimpleRestContainer')
-const path = require('path')
-const fs = require('fs')
-const vm = require('vm')
-const esprima = require('esprima')
 
 const botiumUtils = require('../../helpers/Utils')
 const Capabilities = require('../../Capabilities')
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
+const { getHook, executeHook } = require('../../helpers/HookUtils')
 
 module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
@@ -29,8 +26,8 @@ module.exports = class SimpleRestContainer {
     if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
       _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
     }
-    this.requestHook = this._getHook(this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
-    this.responseHook = this._getHook(this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])
+    this.requestHook = getHook(this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
+    this.responseHook = getHook(this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])
   }
 
   Start () {
@@ -179,14 +176,14 @@ module.exports = class SimpleRestContainer {
 
           hasMessageText = true
           const botMsg = { sourceData: body, messageText, media, buttons }
-          this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
+          executeHook(this.responseHook, Object.assign({ botMsg }, this.view))
           result.push(botMsg)
         })
       })
 
       if (!hasMessageText) {
         const botMsg = { messageText: '', sourceData: body, media, buttons }
-        this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
+        executeHook(this.responseHook, Object.assign({ botMsg }, this.view))
         result.push(botMsg)
       }
     }
@@ -275,7 +272,7 @@ module.exports = class SimpleRestContainer {
         requestOptions.json = true
       }
     }
-    this._executeHookWeak(this.requestHook, Object.assign({ requestOptions }, this.view))
+    executeHook(this.requestHook, Object.assign({ requestOptions }, this.view))
 
     return requestOptions
   }
@@ -309,24 +306,6 @@ module.exports = class SimpleRestContainer {
     }
   }
 
-  _executeHookWeak (hook, args) {
-    if (!hook) {
-      return
-    }
-    if (_.isFunction(hook)) {
-      hook(args)
-      return
-    }
-    if (_.isString(hook)) {
-      // we let to alter args this way
-      vm.createContext(args)
-      vm.runInContext(hook, args)
-      return
-    }
-
-    throw new Error(`Unknown hook ${typeof hook}`)
-  }
-
   _getAllCapValues (capName) {
     const allCapValues = []
     const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(capName))
@@ -344,50 +323,5 @@ module.exports = class SimpleRestContainer {
       }
     })
     return allCapValues
-  }
-
-  _getHook (data) {
-    if (!data) {
-      return null
-    }
-
-    if (_.isFunction(data)) {
-      debug('found hook, type: function definition')
-      return data
-    }
-
-    let resultWithRequire
-    let tryLoadFile = path.resolve(process.cwd(), data)
-    if (fs.existsSync(tryLoadFile)) {
-      resultWithRequire = require(tryLoadFile)
-    }
-
-    tryLoadFile = data
-    try {
-      resultWithRequire = require(data)
-    } catch (err) {
-    }
-
-    if (resultWithRequire) {
-      if (_.isFunction(resultWithRequire)) {
-        debug('found hook, type: require')
-        return resultWithRequire
-      } else {
-        throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
-      }
-    }
-
-    if (_.isString(data)) {
-      try {
-        esprima.parseScript(data)
-      } catch (err) {
-        throw new Error(`Cant load hook, syntax is not valid - ${util.inspect(err)}`)
-      }
-
-      debug('Found hook, type: JavaScript as String')
-      return data
-    }
-
-    throw new Error(`Not valid hook ${util.inspect(data)}`)
   }
 }

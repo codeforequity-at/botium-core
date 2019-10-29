@@ -130,7 +130,7 @@ module.exports = class WebSpeechContainer extends BaseContainer {
     })
   }
 
-  UserSays (mockMsg) {
+  UserSaysImpl (mockMsg) {
     return new Promise((resolve, reject) => {
       if (this.clientSocket) {
         this.usersaidResolve = () => {

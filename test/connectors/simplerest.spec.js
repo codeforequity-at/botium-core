@@ -76,8 +76,7 @@ const myCapsRequestHookFromFunction = Object.assign({
   }
 }, myCapsHookBase)
 const myCapsRequestHookFromModule = Object.assign({
-  // path relative to SimpleRestContainer???
-  [Capabilities.SIMPLEREST_REQUEST_HOOK]: '../../../test/connectors/logicHook'
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'test/connectors/logicHook.js'
 }, myCapsHookBase)
 const myCapsResponseHook = Object.assign({
   [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
