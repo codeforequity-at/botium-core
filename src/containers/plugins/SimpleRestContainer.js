@@ -206,26 +206,26 @@ module.exports = class SimpleRestContainer {
 
         let hasMessageText = false
         const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
-      for (const jsonPath of jsonPathsTexts) {
+        for (const jsonPath of jsonPathsTexts) {
           debug(`eval json path ${jsonPath}`)
 
           const responseTexts = jp.query(jsonPathRoot, jsonPath)
           debug(`found response texts: ${util.inspect(responseTexts)}`)
 
           const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
-        for (const messageText of messageTexts) {
+          for (const messageText of messageTexts) {
             if (!messageText) return
 
             hasMessageText = true
             const botMsg = { sourceData: jsonPathRoot, messageText, media, buttons }
-          await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
+            await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
             result.push(botMsg)
+          }
         }
-      }
 
         if (!hasMessageText) {
           const botMsg = { messageText: '', sourceData: jsonPathRoot, media, buttons }
-        await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
+          await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
           result.push(botMsg)
         }
       }
@@ -237,8 +237,8 @@ module.exports = class SimpleRestContainer {
     return this._buildRequest(msg)
       .then((requestOptions) => new Promise((resolve, reject) => {
         debug(`constructed requestOptions ${JSON.stringify(requestOptions, null, 2)}`)
-      msg.sourceData = msg.sourceData || {}
-      msg.sourceData.requestOptions = requestOptions
+        msg.sourceData = msg.sourceData || {}
+        msg.sourceData.requestOptions = requestOptions
 
         request(requestOptions, (err, response, body) => {
           if (err) {
