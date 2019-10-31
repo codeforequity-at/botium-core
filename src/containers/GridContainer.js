@@ -150,7 +150,7 @@ module.exports = class GridContainer extends BaseContainer {
     })
   }
 
-  UserSays (mockMsg) {
+  UserSaysImpl (mockMsg) {
     return new Promise((resolve, reject) => {
       if (this.socket) {
         this.socket.emit(Commands.SENDTOBOT, mockMsg)

@@ -1,5 +1,5 @@
 const util = require('util')
-const opn = require('opn')
+const open = require('open')
 const path = require('path')
 const async = require('async')
 const findRoot = require('find-root')
@@ -99,20 +99,20 @@ module.exports = class WebSpeechContainer extends BaseContainer {
           super.Start().then(() => baseComplete()).catch(baseComplete)
         },
 
-        (opnComplete) => {
+        (openComplete) => {
           if (this.clientSocket) {
-            opnComplete()
+            openComplete()
           } else {
-            this.connectResolve = opnComplete
+            this.connectResolve = openComplete
 
-            const opnOptions = { }
+            const openOptions = { }
             if (this.caps[Capabilities.WEBSPEECH_BROWSER_APP]) {
-              opnOptions.app = this.caps[Capabilities.WEBSPEECH_BROWSER_APP]
+              openOptions.app = this.caps[Capabilities.WEBSPEECH_BROWSER_APP]
             }
 
             const browserUrl = `http://127.0.0.1:${this.caps[Capabilities.WEBSPEECH_SERVER_PORT]}/WebSpeechContainer.html`
             debug(`opening browser process to point to url ${browserUrl}`)
-            opn(browserUrl, opnOptions).then((cp) => {
+            open(browserUrl, openOptions).then((cp) => {
               debug('browser process running')
               this.clientProcess = cp
             })
@@ -130,7 +130,7 @@ module.exports = class WebSpeechContainer extends BaseContainer {
     })
   }
 
-  UserSays (mockMsg) {
+  UserSaysImpl (mockMsg) {
     return new Promise((resolve, reject) => {
       if (this.clientSocket) {
         this.usersaidResolve = () => {

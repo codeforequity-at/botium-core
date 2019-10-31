@@ -76,8 +76,7 @@ const myCapsRequestHookFromFunction = Object.assign({
   }
 }, myCapsHookBase)
 const myCapsRequestHookFromModule = Object.assign({
-  // path relative to SimpleRestContainer???
-  [Capabilities.SIMPLEREST_REQUEST_HOOK]: '../../../test/connectors/logicHook'
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'test/connectors/logicHook.js'
 }, myCapsHookBase)
 const myCapsResponseHook = Object.assign({
   [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
@@ -100,7 +99,7 @@ const _assertHook = async (myCaps) => {
   const container = await driver.Build()
 
   await container.Start()
-  const request = container.pluginInstance._buildRequest(msg)
+  const request = await container.pluginInstance._buildRequest(msg)
 
   assert.exists(request.body)
   assert.exists(request.body.bodyFieldRequestHook)
@@ -138,8 +137,8 @@ describe('connectors.simplerest.nock', function () {
       body: body,
       timeout: 10000
     }
-    const response = await container.pluginInstance._waitForPingUrl(pingConfig, 2)
-    assert.equal(response.body, '{"status":"ok"}')
+    const responseBody = await container.pluginInstance._waitForPingUrl(pingConfig, 2)
+    assert.equal(responseBody, '{"status":"ok"}')
     scope.persist(false)
   })
   it('post ping endpoint', async () => {
@@ -167,8 +166,8 @@ describe('connectors.simplerest.nock', function () {
       body: body,
       timeout: 100
     }
-    const response = await container.pluginInstance._waitForPingUrl(pingConfig, 2)
-    assert.equal(response.body, '{"status":"ok"}')
+    const responseBody = await container.pluginInstance._waitForPingUrl(pingConfig, 2)
+    assert.equal(responseBody, '{"status":"ok"}')
     scope.persist(false)
   })
   it('error case can\'t connect', async () => {
@@ -212,7 +211,7 @@ describe('connectors.simplerest.build', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container.pluginInstance._buildRequest(msg)
+    const request = await container.pluginInstance._buildRequest(msg)
 
     assert.isUndefined(request.json)
     assert.isObject(request.headers)
@@ -234,7 +233,7 @@ describe('connectors.simplerest.build', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container.pluginInstance._buildRequest(myMsg)
+    const request = await container.pluginInstance._buildRequest(myMsg)
     assert.isUndefined(request.json)
     assert.isObject(request.headers)
     assert.isUndefined(request.body)
@@ -251,7 +250,7 @@ describe('connectors.simplerest.build', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container.pluginInstance._buildRequest(msg)
+    const request = await container.pluginInstance._buildRequest(msg)
 
     assert.isTrue(request.json)
     assert.isObject(request.headers)
@@ -271,7 +270,7 @@ describe('connectors.simplerest.build', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container.pluginInstance._buildRequest(msg)
+    const request = await container.pluginInstance._buildRequest(msg)
 
     assert.isTrue(request.json)
     assert.isObject(request.headers)
@@ -292,7 +291,7 @@ describe('connectors.simplerest.build', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const request = container.pluginInstance._buildRequest(msg)
+    const request = await container.pluginInstance._buildRequest(msg)
     assert.isObject(request.headers)
     assert.isString(request.body)
     assert.equal(request.body, 'BODY1=BODY1VALUE&BODY2=messageText')
@@ -305,7 +304,7 @@ describe('connectors.simplerest.build', function () {
     const container = await driver.Build()
 
     await container.Start()
-    const request = container.pluginInstance._buildRequest(msg)
+    const request = await container.pluginInstance._buildRequest(msg)
 
     assert.isTrue(request.json)
     assert.exists(request.body)
@@ -333,7 +332,7 @@ describe('connectors.simplerest.build', function () {
     const container = await driver.Build()
 
     await container.Start()
-    const request = container.pluginInstance._buildRequest(msg)
+    const request = await container.pluginInstance._buildRequest(msg)
 
     assert.isTrue(request.json)
     assert.exists(request.body)
@@ -348,7 +347,7 @@ describe('connectors.simplerest.build', function () {
     const container = await driver.Build()
 
     await container.Start()
-    const request = container.pluginInstance._buildRequest(msg)
+    const request = await container.pluginInstance._buildRequest(msg)
 
     assert.isTrue(request.json)
     assert.exists(request.body)
@@ -384,18 +383,58 @@ describe('connectors.simplerest.build', function () {
   })
 })
 describe('connectors.simplerest.processBody', function () {
-  it('should build JSON GET url', async function () {
+  it('should process simple response from hook', async function () {
     const myCaps = Object.assign({}, myCapsResponseHook)
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const msgs = container.pluginInstance._processBodyAsyncImpl({}, true)
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 1)
     assert.equal(msgs[0].messageText, 'message text from hook')
+
+    await container.Clean()
+  })
+  it('should process multiple responses', async function () {
+    const myCaps = Object.assign({}, myCapsGet, {
+      [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+      [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media'
+    })
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({
+      responses: [
+        {
+          text: 'text 1',
+          media: 'http://botium.at/1.jpg'
+        },
+        {
+          text: 'text 2',
+          media: 'http://botium.at/2.jpg'
+        },
+        {
+          text: 'text 3',
+          media: 'http://botium.at/3.jpg'
+        }
+      ]
+    }, true)
+
+    console.log(msgs)
+    assert.exists(msgs)
+    assert.equal(msgs.length, 3)
+    assert.equal(msgs[0].messageText, 'text 1')
+    assert.equal(msgs[0].media[0].mediaUri, 'http://botium.at/1.jpg')
+    assert.equal(msgs[1].messageText, 'text 2')
+    assert.equal(msgs[1].media[0].mediaUri, 'http://botium.at/2.jpg')
+    assert.equal(msgs[2].messageText, 'text 3')
+    assert.equal(msgs[2].media[0].mediaUri, 'http://botium.at/3.jpg')
 
     await container.Clean()
   })

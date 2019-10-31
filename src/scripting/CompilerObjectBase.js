@@ -53,15 +53,15 @@ module.exports = class CompilerObjectBase extends CompilerBase {
       const conversation = []
       for (const convoStepRaw of (convoRaw.steps || [])) {
         convoStepLineIndex++
-        if (convoStepRaw.me && convoStepRaw.bot) {
-          throw new Error(`Use just one from 'me' and 'bot' fields in step ${JSON.stringify(convoStepRaw)}`)
+        if (Object.keys(convoStepRaw).length > 1) {
+          throw new Error(`Use just one from 'begin', 'me','bot' and 'end' fields in step ${JSON.stringify(convoStepRaw)}`)
         }
-        if (!convoStepRaw.me && !convoStepRaw.bot) {
-          throw new Error(`Use 'me' or 'bot' field in step ${JSON.stringify(convoStepRaw)}`)
+        if (!convoStepRaw.begin && !convoStepRaw.me && !convoStepRaw.bot && !convoStepRaw.end) {
+          throw new Error(`Use 'begin' or 'me' or 'bot' or 'end' field in step ${JSON.stringify(convoStepRaw)}`)
         }
 
-        const convoStepSender = convoStepRaw.me ? 'me' : 'bot'
-        const convoStepObject = convoStepRaw.me || convoStepRaw.bot
+        const convoStepSender = Object.keys(convoStepRaw)[0]
+        const convoStepObject = convoStepRaw[convoStepSender]
 
         conversation.push(Object.assign(
           {
@@ -93,7 +93,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
 
   _compileUtterances (utterancesRaw) {
     const result = []
-    const names = Object.keys(utterancesRaw)
+    const names = Object.keys(utterancesRaw || {})
     for (const name of names) {
       result.push(new Utterance({ name, utterances: utterancesRaw[name] }))
     }

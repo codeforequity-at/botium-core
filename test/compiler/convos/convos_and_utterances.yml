@@ -2,6 +2,8 @@ convos:
   - name: goodbye
     description: desc of convo goodbye
     steps:
+      - begin:
+          - PAUSE 500
       - me:
           - bye
       - bot:

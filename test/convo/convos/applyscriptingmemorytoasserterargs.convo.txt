@@ -1,0 +1,14 @@
+applyscriptingmemorytoasserterargs
+
+#me
+question1
+
+#bot
+$arg0
+
+#me
+question2
+
+#bot
+$arg1
+CUSTOMASSERTER $arg0|$arg1
