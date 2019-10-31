@@ -2,6 +2,7 @@ const util = require('util')
 const fs = require('fs')
 const path = require('path')
 const async = require('async')
+const rimraf = require('rimraf')
 const mkdirp = require('mkdirp')
 const slugify = require('slugify')
 const moment = require('moment')
@@ -149,6 +150,11 @@ module.exports = class BotDriver {
         if (err) {
           debug(`BotDriver Build error: ${err}`)
           this.eventEmitter.emit(Events.CONTAINER_BUILD_ERROR, err)
+          if (this.tempDirectory) {
+            rimraf(this.tempDirectory, (err) => {
+              if (err) debug(`Cleanup temp dir ${this.tempDirectory} failed: ${util.inspect(err)}`)
+            })
+          }
           return reject(err)
         }
         this.eventEmitter.emit(Events.CONTAINER_BUILT, container)
@@ -275,31 +281,27 @@ module.exports = class BotDriver {
 
   _validate () {
     return new Promise((resolve, reject) => {
-      if (!this.caps[Capabilities.PROJECTNAME]) {
-        throw new Error(`Capability property ${Capabilities.PROJECTNAME} not set`)
-      }
-      if (!this.caps[Capabilities.TEMPDIR]) {
-        throw new Error(`Capability property ${Capabilities.TEMPDIR} not set`)
-      }
-
-      async.series([
-        (tempdirCreated) => {
-          this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slugify(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
-
-          mkdirp(this.tempDirectory, (err) => {
-            if (err) {
-              return tempdirCreated(new Error(`Unable to create temp directory ${this.tempDirectory}: ${err}`))
-            }
-            tempdirCreated()
-          })
+      try {
+        if (!this.caps[Capabilities.PROJECTNAME]) {
+          throw new Error(`Capability property ${Capabilities.PROJECTNAME} not set`)
+        }
+        if (!this.caps[Capabilities.TEMPDIR]) {
+          throw new Error(`Capability property ${Capabilities.TEMPDIR} not set`)
+        }
+        if (!this.caps[Capabilities.CONTAINERMODE] && !this.caps[Capabilities.BOTIUMGRIDURL]) {
+          throw new Error(`Capability '${Capabilities.CONTAINERMODE}' or '${Capabilities.BOTIUMGRIDURL}' missing`)
         }
 
-      ], (err) => {
-        if (err) {
-          return reject(err)
+        this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slugify(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
+        try {
+          mkdirp.sync(this.tempDirectory)
+        } catch (err) {
+          throw new Error(`Unable to create temp directory ${this.tempDirectory}: ${err}`)
         }
         resolve(this)
-      })
+      } catch (err) {
+        reject(err)
+      }
     })
   }
 

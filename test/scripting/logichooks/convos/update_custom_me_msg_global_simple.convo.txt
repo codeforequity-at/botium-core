@@ -1,0 +1,7 @@
+update_context_global_me_msg
+
+#me
+HI
+
+#bot
+new message
