@@ -88,4 +88,31 @@ describe('UpdateCustomLogicHook', function () {
     assert.equal(transcript.steps[8].actual.custom.scalar1, true)
     assert.equal(transcript.steps[8].actual.custom.scalar2, true)
   })
+
+  it('should update me message global from skalar', async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.logichooks',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.LOGIC_HOOKS]: [
+        {
+          ref: 'SET_SIMPLE',
+          src: 'UpdateCustomLogicHook',
+          args: {
+            name: 'simpleField',
+            arg: 'new message'
+          },
+          global: true
+        }
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'update_custom_me_msg_global_simple.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    await this.compiler.convos[0].Run(this.container)
+  })
 })

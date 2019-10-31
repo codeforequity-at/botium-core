@@ -4,13 +4,44 @@ const _ = require('lodash')
 const { isStringJson } = require('../../../helpers/Utils')
 
 module.exports = class UpdateCustomLogicHook {
-  constructor (context, caps = {}) {
-    this.context = context
+  constructor (meMsg, caps = {}, globalArgs = {}) {
+    this.meMsg = meMsg
     this.caps = caps
+    this.globalArgs = globalArgs
   }
 
-  onMeStart ({ convo, convoStep, args, meMsg }) {
-    this._update(convoStep, args, meMsg)
+  onMeStart ({ convoStep, args, meMsg, isGlobal }) {
+    try {
+      if (isGlobal) {
+        if (!this.globalArgs) {
+          return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook no global args given`))
+        }
+        if (!this.globalArgs.name) {
+          return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook no global name arg given`))
+        }
+        if (!this.globalArgs.arg) {
+          return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook no global arg arg given`))
+        }
+        this._update(this.globalArgs, meMsg)
+      } else {
+        if (!args || args.length < 2) {
+          return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook Not enough arguments argument ${util.inspect(args)}`))
+        }
+        if (args.length > 3) {
+          return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook Too much arguments ${util.inspect(args)}`))
+        }
+        const updateArgs = {
+          name: args[0],
+          arg: args[1]
+        }
+        if (args.length > 2) updateArgs.value = args[2]
+
+        this._update(updateArgs, meMsg)
+      }
+    } catch (err) {
+      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook Failed to set context: ${err.message}`))
+    }
+    return Promise.resolve()
   }
 
   _getValue (raw) {
@@ -20,49 +51,37 @@ module.exports = class UpdateCustomLogicHook {
     return raw
   }
 
-  _update (convoStep, args, context) {
-    if (!args || args.length < 2) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook Not enough arguments argument ${util.inspect(args)}`))
-    }
-    if (args.length > 3) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook Too much arguments ${util.inspect(args)}`))
-    }
-
-    try {
-      if (args.length === 2) {
-        if (_.isUndefined(context[args[0]])) {
-          context[args[0]] = this._getValue(args[1])
-        } else {
-          if (_.isString(context[args[0]])) {
-            context[args[0]] = [
-              context[args[0]],
-              this._getValue(args[1])
-            ]
-          } else if (_.isArray(context[args[0]])) {
-            context[args[0]].push(this._getValue(args[1]))
-          } else {
-            context[args[0]][this._getValue(args[1])] = true
-          }
-        }
+  _update (args, meMsg) {
+    if (!_.has(args, 'value')) {
+      if (_.isUndefined(meMsg[args.name])) {
+        meMsg[args.name] = this._getValue(args.arg)
       } else {
-        if (_.isUndefined(context[args[0]])) {
-          context[args[0]] = {}
+        if (_.isString(meMsg[args.name])) {
+          meMsg[args.name] = [
+            meMsg[args.name],
+            this._getValue(args.arg)
+          ]
+        } else if (_.isArray(meMsg[args.name])) {
+          meMsg[args.name].push(this._getValue(args.arg))
         } else {
-          if (_.isString(context[args[0]])) {
-            const newVal = {}
-            newVal[context[args[0]]] = true
-            context[args[0]] = newVal
-          } else if (_.isArray(context[args[0]])) {
-            const newVal = {}
-            context[args[0]].forEach(a => { newVal[a] = true })
-            context[args[0]] = newVal
-          }
+          meMsg[args.name][args.arg] = true
         }
-        context[args[0]][args[1]] = this._getValue(args[2])
       }
-    } catch (err) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: UpdateCustomLogicHook Failed to set context. Arguments ${util.inspect(args)}`))
+    } else {
+      if (_.isUndefined(meMsg[args.name])) {
+        meMsg[args.name] = {}
+      } else {
+        if (_.isString(meMsg[args.name])) {
+          const newVal = {}
+          newVal[meMsg[args.name]] = true
+          meMsg[args.name] = newVal
+        } else if (_.isArray(meMsg[args.name])) {
+          const newVal = {}
+          meMsg[args.name].forEach(a => { newVal[a] = true })
+          meMsg[args.name] = newVal
+        }
+      }
+      meMsg[args.name][args.arg] = this._getValue(args.value)
     }
-    return Promise.resolve()
   }
 }
