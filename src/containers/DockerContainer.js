@@ -405,7 +405,7 @@ module.exports = class DockerContainer extends BaseContainer {
     })
   }
 
-  UserSays (mockMsg) {
+  UserSaysImpl (mockMsg) {
     return new Promise((resolve, reject) => {
       if (this.fbMock && this.fbMock.socket) {
         this.fbMock.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)

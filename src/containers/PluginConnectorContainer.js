@@ -154,7 +154,7 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
     }
   }
 
-  UserSays (mockMsg) {
+  UserSaysImpl (mockMsg) {
     try {
       return promiseRetry((retry, number) => {
         return (this.pluginInstance.UserSays(mockMsg) || Promise.resolve())
