@@ -80,7 +80,7 @@ module.exports = class SimpleRestContainer {
         },
 
         (startHookComplete) => {
-          this._executeHookWeak(this.startHook, this.view).then(() => startHookComplete()).catch(startHookComplete)
+          executeHook(this.startHook, this.view).then(() => startHookComplete()).catch(startHookComplete)
         },
 
         (pingComplete) => {
@@ -150,7 +150,7 @@ module.exports = class SimpleRestContainer {
   }
 
   Stop () {
-    return this._executeHookWeak(this.stopHook, this.view)
+    return executeHook(this.stopHook, this.view)
       .then(() => this._unsubscribeInbound())
       .then(() => {
         this.view = {}
