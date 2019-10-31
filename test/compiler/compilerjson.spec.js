@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const assert = require('chai').assert
-const Compiler = require('../../src/scripting/CompilerYaml')
+const Compiler = require('../../src/scripting/CompilerJson')
 const Constants = require('../../src/scripting/Constants')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 
@@ -30,9 +30,9 @@ const buildContext = () => {
   return result
 }
 
-describe('compiler.compileryml', function () {
+describe('compiler.compilerjson', function () {
   it('should read convos', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_and_utterances.yml'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_and_utterances.json'))
     const context = buildContext()
     const caps = {
     }
@@ -56,7 +56,7 @@ describe('compiler.compileryml', function () {
   })
 
   it('should read utterances', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_and_utterances.yml'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_and_utterances.json'))
     const context = buildContext()
     const caps = {
     }

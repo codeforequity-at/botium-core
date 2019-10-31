@@ -162,58 +162,72 @@ module.exports = class SimpleRestContainer {
 
     const result = []
     if (isFromUser) {
-      const media = []
-      const buttons = []
-
-      const jsonPathsMedia = this._getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH)
-      jsonPathsMedia.forEach(jsonPath => {
-        const responseMedia = jp.query(body, jsonPath)
-        if (responseMedia) {
-          (_.isArray(responseMedia) ? _.flattenDeep(responseMedia) : [responseMedia]).forEach(m =>
-            media.push({
-              mediaUri: m,
-              mimeType: mime.lookup(m) || 'application/unknown'
-            })
-          )
-          debug(`found response media: ${util.inspect(media)}`)
+      const jsonPathRoots = []
+      if (this.caps[Capabilities.SIMPLEREST_BODY_JSONPATH]) {
+        const rb = jp.query(body, this.caps[Capabilities.SIMPLEREST_BODY_JSONPATH])
+        if (_.isArray(rb)) {
+          rb.forEach(r => jsonPathRoots.push(r))
+        } else if (rb) {
+          jsonPathRoots.push(rb)
         }
-      })
-      const jsonPathsButtons = this._getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH)
-      jsonPathsButtons.forEach(jsonPath => {
-        const responseButtons = jp.query(body, jsonPath)
-        if (responseButtons) {
-          (_.isArray(responseButtons) ? _.flattenDeep(responseButtons) : [responseButtons]).forEach(b =>
-            buttons.push({
-              text: b
-            })
-          )
-          debug(`found response buttons: ${util.inspect(buttons)}`)
-        }
-      })
+      } else {
+        jsonPathRoots.push(body)
+      }
 
-      let hasMessageText = false
-      const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
+      for (const jsonPathRoot of jsonPathRoots) {
+        const media = []
+        const buttons = []
+
+        const jsonPathsMedia = this._getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH)
+        jsonPathsMedia.forEach(jsonPath => {
+          const responseMedia = jp.query(jsonPathRoot, jsonPath)
+          if (responseMedia) {
+            (_.isArray(responseMedia) ? _.flattenDeep(responseMedia) : [responseMedia]).forEach(m =>
+              media.push({
+                mediaUri: m,
+                mimeType: mime.lookup(m) || 'application/unknown'
+              })
+            )
+            debug(`found response media: ${util.inspect(media)}`)
+          }
+        })
+        const jsonPathsButtons = this._getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH)
+        jsonPathsButtons.forEach(jsonPath => {
+          const responseButtons = jp.query(jsonPathRoot, jsonPath)
+          if (responseButtons) {
+            (_.isArray(responseButtons) ? _.flattenDeep(responseButtons) : [responseButtons]).forEach(b =>
+              buttons.push({
+                text: b
+              })
+            )
+            debug(`found response buttons: ${util.inspect(buttons)}`)
+          }
+        })
+
+        let hasMessageText = false
+        const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
       for (const jsonPath of jsonPathsTexts) {
-        debug(`eval json path ${jsonPath}`)
+          debug(`eval json path ${jsonPath}`)
 
-        const responseTexts = jp.query(body, jsonPath)
-        debug(`found response texts: ${util.inspect(responseTexts)}`)
+          const responseTexts = jp.query(jsonPathRoot, jsonPath)
+          debug(`found response texts: ${util.inspect(responseTexts)}`)
 
-        const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
+          const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
         for (const messageText of messageTexts) {
-          if (!messageText) return
+            if (!messageText) return
 
-          hasMessageText = true
-          const botMsg = { sourceData: body, messageText, media, buttons }
+            hasMessageText = true
+            const botMsg = { sourceData: jsonPathRoot, messageText, media, buttons }
           await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
-          result.push(botMsg)
+            result.push(botMsg)
         }
       }
 
-      if (!hasMessageText) {
-        const botMsg = { messageText: '', sourceData: body, media, buttons }
+        if (!hasMessageText) {
+          const botMsg = { messageText: '', sourceData: jsonPathRoot, media, buttons }
         await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
-        result.push(botMsg)
+          result.push(botMsg)
+        }
       }
     }
     return result
@@ -223,6 +237,8 @@ module.exports = class SimpleRestContainer {
     return this._buildRequest(msg)
       .then((requestOptions) => new Promise((resolve, reject) => {
         debug(`constructed requestOptions ${JSON.stringify(requestOptions, null, 2)}`)
+      msg.sourceData = msg.sourceData || {}
+      msg.sourceData.requestOptions = requestOptions
 
         request(requestOptions, (err, response, body) => {
           if (err) {
@@ -322,7 +338,7 @@ module.exports = class SimpleRestContainer {
         debug(`_waitForPingUrl on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
         await timeout(pingConfig.timeout)
       } else {
-        debug(`_waitForPingUrl success on url check ${pingConfig.uri}: ${err}`)
+        debug(`_waitForPingUrl success on url check ${pingConfig.uri}`)
         return body
       }
     }

@@ -1,0 +1,64 @@
+{
+    "convos": [
+      {
+        "name": "goodbye",
+        "description": "desc of convo goodbye",
+        "steps": [
+          {
+            "begin": [
+              "PAUSE 500"
+            ]
+          },
+          {
+            "me": [
+              "bye"
+            ]
+          },
+          {
+            "bot": [
+              "goodbye!"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "convo 1 name",
+        "description": "desc of convo",
+        "steps": [
+          {
+            "me": [
+              "hi",
+              "PAUSE 500"
+            ]
+          },
+          {
+            "bot": [
+              "TEXT hello",
+              "INTENT intent_greeting"
+            ]
+          },
+          {
+            "bot": [
+              "what can i do for you?"
+            ]
+          },
+          {
+            "me": [
+              "nothing"
+            ]
+          },
+          {
+            "bot": [
+              "thanks"
+            ]
+          }
+        ]
+      }
+    ],
+    "utterances": {
+      "GREETING": [
+        "hi",
+        "hello!"
+      ]
+    }
+  }

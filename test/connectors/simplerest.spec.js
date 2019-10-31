@@ -384,7 +384,7 @@ describe('connectors.simplerest.build', function () {
   })
 })
 describe('connectors.simplerest.processBody', function () {
-  it('should build JSON GET url', async function () {
+  it('should process simple response from hook', async function () {
     const myCaps = Object.assign({}, myCapsResponseHook)
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
@@ -396,6 +396,45 @@ describe('connectors.simplerest.processBody', function () {
     assert.exists(msgs)
     assert.equal(msgs.length, 1)
     assert.equal(msgs[0].messageText, 'message text from hook')
+
+    await container.Clean()
+  })
+  it('should process multiple responses', async function () {
+    const myCaps = Object.assign({}, myCapsGet, {
+      [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+      [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media'
+    })
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const msgs = container.pluginInstance._processBodyAsyncImpl({
+      responses: [
+        {
+          text: 'text 1',
+          media: 'http://botium.at/1.jpg'
+        },
+        {
+          text: 'text 2',
+          media: 'http://botium.at/2.jpg'
+        },
+        {
+          text: 'text 3',
+          media: 'http://botium.at/3.jpg'
+        }
+      ]
+    }, true)
+
+    assert.exists(msgs)
+    assert.equal(msgs.length, 3)
+    assert.equal(msgs[0].messageText, 'text 1')
+    assert.equal(msgs[0].media[0].mediaUri, 'http://botium.at/1.jpg')
+    assert.equal(msgs[1].messageText, 'text 2')
+    assert.equal(msgs[1].media[0].mediaUri, 'http://botium.at/2.jpg')
+    assert.equal(msgs[2].messageText, 'text 3')
+    assert.equal(msgs[2].media[0].mediaUri, 'http://botium.at/3.jpg')
 
     await container.Clean()
   })
