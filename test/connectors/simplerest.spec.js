@@ -427,6 +427,7 @@ describe('connectors.simplerest.processBody', function () {
       ]
     }, true)
 
+    console.log(msgs)
     assert.exists(msgs)
     assert.equal(msgs.length, 3)
     assert.equal(msgs[0].messageText, 'text 1')

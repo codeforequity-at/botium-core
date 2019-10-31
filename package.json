@@ -41,6 +41,7 @@
     "facebook-chat-api": "^1.6.1",
     "find-root": "^1.1.0",
     "glob": "^7.1.4",
+    "ioredis": "^4.14.1",
     "is-class": "0.0.7",
     "is-json": "^2.0.1",
     "jsonpath": "^1.0.2",

@@ -5,6 +5,7 @@ const Mustache = require('mustache')
 const jp = require('jsonpath')
 const mime = require('mime-types')
 const uuidv4 = require('uuid/v4')
+const Redis = require('ioredis')
 const _ = require('lodash')
 const debug = require('debug')('botium-SimpleRestContainer')
 const path = require('path')
@@ -12,10 +13,13 @@ const fs = require('fs')
 const vm = require('vm')
 const esprima = require('esprima')
 
+const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
 const Capabilities = require('../../Capabilities')
 const Defaults = require('../../Defaults')
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
+
+const REDIS_TOPIC = 'SIMPLEREST_INBOUND_SUBSCRIPTION'
 
 module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
@@ -34,6 +38,10 @@ module.exports = class SimpleRestContainer {
     this.stopHook = this._getHook(this.caps[Capabilities.SIMPLEREST_STOP_HOOK])
     this.requestHook = this._getHook(this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
     this.responseHook = this._getHook(this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])
+  }
+
+  Build () {
+    return this._buildInbound()
   }
 
   Start () {
@@ -123,7 +131,14 @@ module.exports = class SimpleRestContainer {
           } else {
             initComplete()
           }
+        },
+
+        (inboundListenerComplete) => {
+          this._subscribeInbound()
+            .then(() => inboundListenerComplete())
+            .catch(inboundListenerComplete)
         }
+
       ], (err) => {
         if (err) {
           return reject(new Error(`Start failed ${util.inspect(err)}`))
@@ -138,9 +153,15 @@ module.exports = class SimpleRestContainer {
   }
 
   Stop () {
-    return this._executeHookWeak(this.stopHook, this.view).then(() => {
-      this.view = {}
-    })
+    return this._executeHookWeak(this.stopHook, this.view)
+      .then(() => this._unsubscribeInbound())
+      .then(() => {
+        this.view = {}
+      })
+  }
+
+  Clean () {
+    return this._cleanInbound()
   }
 
   // Separated just for better module testing
@@ -158,17 +179,21 @@ module.exports = class SimpleRestContainer {
     } else {
       Object.assign(this.view.context, body)
     }
-    debug(`curren session context: ${util.inspect(this.view.context)}`)
+    debug(`current session context: ${util.inspect(this.view.context)}`)
 
     const result = []
     if (isFromUser) {
       const jsonPathRoots = []
-      if (this.caps[Capabilities.SIMPLEREST_BODY_JSONPATH]) {
-        const rb = jp.query(body, this.caps[Capabilities.SIMPLEREST_BODY_JSONPATH])
-        if (_.isArray(rb)) {
-          rb.forEach(r => jsonPathRoots.push(r))
-        } else if (rb) {
-          jsonPathRoots.push(rb)
+
+      const jsonPathsBody = this._getAllCapValues(Capabilities.SIMPLEREST_BODY_JSONPATH)
+      if (jsonPathsBody.length > 0) {
+        for (const jsonPathBody of jsonPathsBody) {
+          const rb = jp.query(body, jsonPathBody)
+          if (_.isArray(rb)) {
+            rb.forEach(r => jsonPathRoots.push(r))
+          } else if (rb) {
+            jsonPathRoots.push(rb)
+          }
         }
       } else {
         jsonPathRoots.push(body)
@@ -204,6 +229,11 @@ module.exports = class SimpleRestContainer {
           }
         })
 
+        const sourceData = {
+          body,
+          jsonPathRoot
+        }
+
         let hasMessageText = false
         const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
         for (const jsonPath of jsonPathsTexts) {
@@ -217,14 +247,14 @@ module.exports = class SimpleRestContainer {
             if (!messageText) return
 
             hasMessageText = true
-            const botMsg = { sourceData: jsonPathRoot, messageText, media, buttons }
+            const botMsg = { sourceData, messageText, media, buttons }
             await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
             result.push(botMsg)
           }
         }
 
         if (!hasMessageText) {
-          const botMsg = { messageText: '', sourceData: jsonPathRoot, media, buttons }
+          const botMsg = { messageText: '', sourceData, media, buttons }
           await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
           result.push(botMsg)
         }
@@ -428,10 +458,112 @@ module.exports = class SimpleRestContainer {
 
   _getMustachedCap (capName, json) {
     const template = _.isString(this.caps[capName]) ? this.caps[capName] : JSON.stringify(this.caps[capName])
+    return this._getMustachedVal(template, json)
+  }
+
+  _getMustachedVal (template, json) {
     if (json) {
       return JSON.parse(Mustache.render(template, this.view))
     } else {
       return Mustache.render(template, this.view)
     }
   }
+
+  _processInboundEvent (event) {
+    const jsonPathValue = this.caps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE]
+    const jsonPathsSelector = this._getAllCapValues(Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH)
+    if (jsonPathsSelector && jsonPathsSelector.length > 0) {
+      let isSelected = false
+      for (const jsonPathTemplate of jsonPathsSelector) {
+        const jsonPath = this._getMustachedVal(jsonPathTemplate, false)
+        const hasResult = jp.query(event, jsonPath)
+        if (hasResult && hasResult.length > 0) {
+          const check = jsonPathValue && this._getMustachedVal(jsonPathValue, false)
+          if (check) {
+            if (hasResult[0] === check) {
+              isSelected = true
+              break
+            }
+          } else {
+            isSelected = true
+            break
+          }
+        }
+      }
+      if (!isSelected) return
+    }
+
+    debug(`Received an inbound message: ${JSON.stringify(event)}`)
+    setTimeout(() => this._processBodyAsync(event.body, true), 0)
+  }
+
+  async _buildInbound () {
+    if (this.caps[Capabilities.SIMPLEREST_INBOUND_REDISURL] && this.caps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH] && this.caps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE]) {
+      this.redis = new Redis(this.caps[Capabilities.SIMPLEREST_INBOUND_REDISURL])
+      this.redis.on('connect', () => {
+        debug(`Redis connected to ${JSON.stringify(this.caps[Capabilities.SIMPLEREST_INBOUND_REDISURL] || 'default')}`)
+      })
+      this.redis.on('message', (channel, event) => {
+        if (!_.isString(event)) {
+          return debug(`WARNING: received non-string message from ${channel}, ignoring: ${event}`)
+        }
+        try {
+          event = JSON.parse(event)
+        } catch (err) {
+          return debug(`WARNING: received non-json message from ${channel}, ignoring: ${event}`)
+        }
+        this._processInboundEvent(event)
+      })
+    } else if (this.caps[Capabilities.SIMPLEREST_INBOUND_PORT]) {
+      this.proxy = await startProxy({
+        port: this.caps[Capabilities.SIMPLEREST_INBOUND_PORT],
+        endpoint: this.caps[Capabilities.SIMPLEREST_INBOUND_ENDPOINT],
+        processEvent: (event) => {
+          if (this.processingEvents) {
+            debug('Got Inbound Event:')
+            debug(JSON.stringify(event, null, 2))
+            this._processInboundEvent(event)
+          }
+        }
+      })
+    }
+  }
+
+  async _subscribeInbound () {
+    this.processingEvents = true
+    if (this.redis) {
+      try {
+        const count = await this.redis.subscribe(REDIS_TOPIC)
+        debug(`Redis subscribed to ${count} channels. Listening for inbound messages on the ${REDIS_TOPIC} channel.`)
+      } catch (err) {
+        debug(err)
+        throw new Error(`Redis failed to subscribe channel ${REDIS_TOPIC}: ${err.message || err}`)
+      }
+    }
+  }
+
+  async _unsubscribeInbound () {
+    this.processingEvents = false
+    if (this.redis) {
+      try {
+        await this.redis.unsubscribe(REDIS_TOPIC)
+        debug(`Redis unsubscribed from ${REDIS_TOPIC} channel.`)
+      } catch (err) {
+        debug(err)
+        throw new Error(`Redis failed to unsubscribe channel ${REDIS_TOPIC}: ${err.message || err}`)
+      }
+    }
+  }
+
+  async _cleanInbound () {
+    if (this.redis) {
+      this.redis.disconnect()
+      this.redis = null
+    }
+    if (this.proxy) {
+      this.proxy.close()
+      this.proxy = null
+    }
+  }
 }
+module.exports.REDIS_TOPIC = REDIS_TOPIC
