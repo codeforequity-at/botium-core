@@ -14,6 +14,7 @@ const esprima = require('esprima')
 
 const botiumUtils = require('../../helpers/Utils')
 const Capabilities = require('../../Capabilities')
+const Defaults = require('../../Defaults')
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 
 module.exports = class SimpleRestContainer {
@@ -29,6 +30,8 @@ module.exports = class SimpleRestContainer {
     if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
       _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
     }
+    this.startHook = this._getHook(this.caps[Capabilities.SIMPLEREST_START_HOOK])
+    this.stopHook = this._getHook(this.caps[Capabilities.SIMPLEREST_STOP_HOOK])
     this.requestHook = this._getHook(this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
     this.responseHook = this._getHook(this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])
   }
@@ -56,8 +59,7 @@ module.exports = class SimpleRestContainer {
           }
 
           if (this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]) {
-            const template = _.isString(this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE])
-            this.view.botium.conversationId = Mustache.render(template, this.view)
+            this.view.botium.conversationId = this._getMustachedCap(Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE, false)
           } else {
             this.view.botium.conversationId = uuidv4()
           }
@@ -72,20 +74,44 @@ module.exports = class SimpleRestContainer {
           contextInitComplete()
         },
 
+        (startHookComplete) => {
+          this._executeHookWeak(this.startHook, this.view).then(() => startHookComplete()).catch(startHookComplete)
+        },
+
         (pingComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
             const uri = this.caps[Capabilities.SIMPLEREST_PING_URL]
             const verb = this.caps[Capabilities.SIMPLEREST_PING_VERB]
-            const timeout = this.caps[Capabilities.SIMPLEREST_PING_TIMEOUT]
-            const { body } = botiumUtils.optionalJson(this.caps[Capabilities.SIMPLEREST_PING_BODY])
+            const timeout = this.caps[Capabilities.SIMPLEREST_PING_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_PING_TIMEOUT]
             const pingConfig = {
               method: verb,
               uri: uri,
-              body: body,
               timeout: timeout
             }
-            const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES]
-            this._waitForPingUrl(pingConfig, retries).then(() => pingComplete()).catch(pingComplete)
+            if (this.caps[Capabilities.SIMPLEREST_PING_HEADERS]) {
+              try {
+                pingConfig.headers = this._getMustachedCap(Capabilities.SIMPLEREST_PING_HEADERS, true)
+              } catch (err) {
+                return pingComplete(`composing headers from SIMPLEREST_PING_HEADERS failed (${util.inspect(err)})`)
+              }
+            }
+            if (this.caps[Capabilities.SIMPLEREST_PING_BODY]) {
+              try {
+                pingConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_PING_BODY, !this.caps[Capabilities.SIMPLEREST_PING_BODY_RAW])
+              } catch (err) {
+                return pingComplete(`composing body from SIMPLEREST_PING_BODY failed (${util.inspect(err)})`)
+              }
+            }
+
+            const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES] || Defaults[Capabilities.SIMPLEREST_PING_RETRIES]
+            this._waitForPingUrl(pingConfig, retries).then((response) => {
+              if (botiumUtils.isJson(response)) {
+                const body = JSON.parse(response)
+                debug(`Ping Uri ${uri} returned JSON response ${util.inspect(response)}, using it as session context`)
+                Object.assign(this.view.context, body)
+              }
+              pingComplete()
+            }).catch(pingComplete)
           } else {
             pingComplete()
           }
@@ -112,27 +138,27 @@ module.exports = class SimpleRestContainer {
   }
 
   Stop () {
-    this.view = {}
+    return this._executeHookWeak(this.stopHook, this.view).then(() => {
+      this.view = {}
+    })
   }
 
   // Separated just for better module testing
-  _processBodyAsync (body, isFromUser) {
-    this._processBodyAsyncImpl(body, isFromUser).forEach(entry => this.queueBotSays(entry))
+  async _processBodyAsync (body, isFromUser) {
+    (await this._processBodyAsyncImpl(body, isFromUser)).forEach(entry => this.queueBotSays(entry))
   }
 
   // Separated just for better module testing
-  _processBodyAsyncImpl (body, isFromUser) {
+  async _processBodyAsyncImpl (body, isFromUser) {
     if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
       const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
       if (_.isArray(contextNodes) && contextNodes.length > 0) {
-        this.view.context = contextNodes[0]
-        debug(`found context: ${util.inspect(this.view.context)}`)
-      } else {
-        this.view.context = {}
+        Object.assign(this.view.context, contextNodes[0])
       }
     } else {
-      this.view.context = body
+      Object.assign(this.view.context, body)
     }
+    debug(`curren session context: ${util.inspect(this.view.context)}`)
 
     const result = []
     if (isFromUser) {
@@ -180,26 +206,26 @@ module.exports = class SimpleRestContainer {
 
         let hasMessageText = false
         const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
-        jsonPathsTexts.forEach(jsonPath => {
+        for (const jsonPath of jsonPathsTexts) {
           debug(`eval json path ${jsonPath}`)
 
           const responseTexts = jp.query(jsonPathRoot, jsonPath)
           debug(`found response texts: ${util.inspect(responseTexts)}`)
 
           const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
-          messageTexts.forEach((messageText) => {
+          for (const messageText of messageTexts) {
             if (!messageText) return
 
             hasMessageText = true
             const botMsg = { sourceData: jsonPathRoot, messageText, media, buttons }
-            this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
+            await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
             result.push(botMsg)
-          })
-        })
+          }
+        }
 
         if (!hasMessageText) {
           const botMsg = { messageText: '', sourceData: jsonPathRoot, media, buttons }
-          this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
+          await this._executeHookWeak(this.responseHook, Object.assign({ botMsg }, this.view))
           result.push(botMsg)
         }
       }
@@ -208,45 +234,45 @@ module.exports = class SimpleRestContainer {
   }
 
   _doRequest (msg, isFromUser) {
-    return new Promise((resolve, reject) => {
-      const requestOptions = this._buildRequest(msg)
-      debug(`constructed requestOptions ${JSON.stringify(requestOptions, null, 2)}`)
-      msg.sourceData = msg.sourceData || {}
-      msg.sourceData.requestOptions = requestOptions
+    return this._buildRequest(msg)
+      .then((requestOptions) => new Promise((resolve, reject) => {
+        debug(`constructed requestOptions ${JSON.stringify(requestOptions, null, 2)}`)
+        msg.sourceData = msg.sourceData || {}
+        msg.sourceData.requestOptions = requestOptions
 
-      request(requestOptions, (err, response, body) => {
-        if (err) {
-          reject(new Error(`rest request failed: ${util.inspect(err)}`))
-        } else {
-          if (response.statusCode >= 400) {
-            debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
-            return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))
-          }
+        request(requestOptions, (err, response, body) => {
+          if (err) {
+            reject(new Error(`rest request failed: ${util.inspect(err)}`))
+          } else {
+            if (response.statusCode >= 400) {
+              debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
+              return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))
+            }
 
-          if (body) {
-            debug(`got response body: ${JSON.stringify(body, null, 2)}`)
+            if (body) {
+              debug(`got response body: ${JSON.stringify(body, null, 2)}`)
 
-            if (_.isString(body)) {
-              try {
-                body = JSON.parse(body)
-              } catch (err) {
-                return reject(new Error(`No valid JSON response, parse error occurred: ${err}`))
+              if (_.isString(body)) {
+                try {
+                  body = JSON.parse(body)
+                } catch (err) {
+                  return reject(new Error(`No valid JSON response, parse error occurred: ${err}`))
+                }
               }
+              if (!_.isObject(body)) {
+                return reject(new Error(`Body not an object, cannot continue. Found type: ${typeof body}`))
+              }
+              // dont block caller process with responding in its time
+              setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
             }
-            if (!_.isObject(body)) {
-              return reject(new Error(`Body not an object, cannot continue. Found type: ${typeof body}`))
-            }
-            // dont block caller process with responding in its time
-            setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
-          }
 
-          resolve(this)
-        }
-      })
-    })
+            resolve(this)
+          }
+        })
+      }))
   }
 
-  _buildRequest (msg) {
+  async _buildRequest (msg) {
     this.view.msg = Object.assign({}, msg)
 
     const nonEncodedMessage = this.view.msg.messageText
@@ -255,13 +281,12 @@ module.exports = class SimpleRestContainer {
     }
 
     if (this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]) {
-      const template = _.isString(this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE])
-      this.view.botium.stepId = Mustache.render(template, this.view)
+      this.view.botium.stepId = this._getMustachedCap(Capabilities.SIMPLEREST_STEP_ID_TEMPLATE, false)
     } else {
       this.view.botium.stepId = uuidv4()
     }
 
-    const uri = Mustache.render(this.caps[Capabilities.SIMPLEREST_URL], this.view)
+    const uri = this._getMustachedCap(Capabilities.SIMPLEREST_URL, false)
 
     const requestOptions = {
       uri,
@@ -271,27 +296,21 @@ module.exports = class SimpleRestContainer {
       this.view.msg.messageText = nonEncodedMessage
     }
     if (this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) {
-      const headersTemplate = _.isString(this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE])
       try {
-        requestOptions.headers = JSON.parse(Mustache.render(headersTemplate, this.view))
+        requestOptions.headers = this._getMustachedCap(Capabilities.SIMPLEREST_HEADERS_TEMPLATE, true)
       } catch (err) {
         throw new Error(`composing headers from SIMPLEREST_HEADERS_TEMPLATE failed (${util.inspect(err)})`)
       }
     }
     if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
-      const bodyTemplate = _.isString(this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) ? this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE] : JSON.stringify(this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE])
-
       try {
-        requestOptions.body = Mustache.render(bodyTemplate, this.view)
+        requestOptions.body = this._getMustachedCap(Capabilities.SIMPLEREST_BODY_TEMPLATE, !this.caps[Capabilities.SIMPLEREST_BODY_RAW])
+        requestOptions.json = !this.caps[Capabilities.SIMPLEREST_BODY_RAW]
       } catch (err) {
         throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${util.inspect(err)})`)
       }
-      if (!this.caps[Capabilities.SIMPLEREST_BODY_RAW]) {
-        requestOptions.body = JSON.parse(requestOptions.body)
-        requestOptions.json = true
-      }
     }
-    this._executeHookWeak(this.requestHook, Object.assign({ requestOptions }, this.view))
+    await this._executeHookWeak(this.requestHook, Object.assign({ requestOptions }, this.view))
 
     return requestOptions
   }
@@ -307,7 +326,7 @@ module.exports = class SimpleRestContainer {
         throw new Error(`Failed to ping bot after ${retries} retries`)
       }
       tries++
-      const { err, response } = await new Promise((resolve) => {
+      const { err, response, body } = await new Promise((resolve) => {
         request(pingConfig, (err, response, body) => {
           resolve({ err, response, body })
         })
@@ -320,17 +339,17 @@ module.exports = class SimpleRestContainer {
         await timeout(pingConfig.timeout)
       } else {
         debug(`_waitForPingUrl success on url check ${pingConfig.uri}`)
-        return response
+        return body
       }
     }
   }
 
-  _executeHookWeak (hook, args) {
+  async _executeHookWeak (hook, args) {
     if (!hook) {
       return
     }
     if (_.isFunction(hook)) {
-      hook(args)
+      await hook(args)
       return
     }
     if (_.isString(hook)) {
@@ -405,5 +424,14 @@ module.exports = class SimpleRestContainer {
     }
 
     throw new Error(`Not valid hook ${util.inspect(data)}`)
+  }
+
+  _getMustachedCap (capName, json) {
+    const template = _.isString(this.caps[capName]) ? this.caps[capName] : JSON.stringify(this.caps[capName])
+    if (json) {
+      return JSON.parse(Mustache.render(template, this.view))
+    } else {
+      return Mustache.render(template, this.view)
+    }
   }
 }
