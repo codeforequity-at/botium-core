@@ -90,13 +90,7 @@ module.exports = class ScriptingProvider {
           tomatch = [tomatch]
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
-        const found = _.find(tomatch, (utt) => {
-          if (_.isString(botresponse)) {
-            return this.matchFn(botresponse, utt)
-          } else {
-            return botresponse === utt
-          }
-        })
+        const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt))
         if (found === undefined) {
           throw new BotiumError(
             `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
@@ -302,6 +296,7 @@ module.exports = class ScriptingProvider {
     if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
       const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
       this.matchFn = (botresponse, utterance) => {
+        utterance = toString(utterance)
         if (_.isUndefined(botresponse)) return false
 
         const regexp = lc ? (new RegExp(utterance, 'i')) : (new RegExp(utterance, ''))
@@ -310,6 +305,7 @@ module.exports = class ScriptingProvider {
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase') {
       const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase')
       this.matchFn = (botresponse, utterance) => {
+        utterance = toString(utterance)
         if (_.isUndefined(botresponse)) {
           if (utterance.trim() === '*') return true
           else return false
@@ -322,11 +318,13 @@ module.exports = class ScriptingProvider {
       }
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include') {
       this.matchFn = (botresponse, utterance) => {
+        utterance = toString(utterance)
         if (_.isUndefined(botresponse)) return false
         return toString(botresponse).indexOf(utterance) >= 0
       }
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
       this.matchFn = (botresponse, utterance) => {
+        utterance = toString(utterance)
         if (_.isUndefined(botresponse)) return false
         return toString(botresponse).toLowerCase().indexOf(utterance.toLowerCase()) >= 0
       }
