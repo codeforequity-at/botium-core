@@ -226,11 +226,6 @@ module.exports = class SimpleRestContainer {
           }
         })
 
-        const sourceData = {
-          body,
-          jsonPathRoot
-        }
-
         let hasMessageText = false
         const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
         for (const jsonPath of jsonPathsTexts) {
@@ -244,14 +239,14 @@ module.exports = class SimpleRestContainer {
             if (!messageText) return
 
             hasMessageText = true
-            const botMsg = { sourceData, messageText, media, buttons }
+            const botMsg = { sourceData: body, messageText, media, buttons }
             await executeHook(this.responseHook, Object.assign({ botMsg }, this.view))
             result.push(botMsg)
           }
         }
 
         if (!hasMessageText) {
-          const botMsg = { messageText: '', sourceData, media, buttons }
+          const botMsg = { messageText: '', sourceData: body, media, buttons }
           await executeHook(this.responseHook, Object.assign({ botMsg }, this.view))
           result.push(botMsg)
         }
