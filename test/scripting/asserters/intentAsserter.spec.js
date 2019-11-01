@@ -6,7 +6,7 @@ const util = require('util')
 const IntentAsserter = require('../../../src/scripting/logichook/asserter/IntentAsserter')
 const asserter = new IntentAsserter(null, {})
 
-describe('IntentAsserter', function () {
+describe('scripting.asserters.intentAsserter', function () {
   it('positive case for intent asserter', async function () {
     return _assert(
       'greetings',

@@ -6,7 +6,7 @@ const util = require('util')
 const EntityValuesAsserter = require('../../../src/scripting/logichook/asserter/EntityValuesAsserter')
 const asserter = new EntityValuesAsserter(null, {})
 
-describe('EntitiesAsserter', function () {
+describe('scripting.asserters.entityValuesAsserter', function () {
   it('expected 0 entities, found 1 entities, negative case', async function () {
     return _assert(
       [],
