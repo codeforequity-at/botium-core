@@ -266,6 +266,13 @@ class Convo {
           err: null
         })
         const convoStepDone = (err) => {
+          if (err && lastMeConvoStep) {
+            if (err instanceof BotiumError && err.context) {
+              err.context.input = new ConvoStep(lastMeConvoStep)
+            } else {
+              err.input = new ConvoStep(lastMeConvoStep)
+            }
+          }
           transcriptStep.scriptingMemory = Object.assign({}, scriptingMemory)
           transcriptStep.stepEnd = new Date()
           transcriptStep.err = err
