@@ -109,27 +109,28 @@ module.exports = class ScriptingProvider {
         }
       },
       assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg) => {
-        debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
-        try {
-          this.scriptingEvents.assertBotResponse(botresponse, nottomatch, stepTag)
-        } catch (err) {
-          return
+        if (!_.isArray(nottomatch)) {
+          nottomatch = [nottomatch]
         }
-        throw new BotiumError(
-          `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`,
-          {
-            type: 'asserter',
-            source: 'TextMatchAsserter',
-            context: {
-              stepTag
-            },
-            cause: {
-              not: true,
-              expected: nottomatch,
-              actual: botresponse
+        debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
+        const found = _.find(nottomatch, (utt) => this.matchFn(botresponse, utt))
+        if (found) {
+          throw new BotiumError(
+            `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match "${found}"`,
+            {
+              type: 'asserter',
+              source: 'TextMatchAsserter',
+              context: {
+                stepTag
+              },
+              cause: {
+                not: true,
+                expected: nottomatch,
+                actual: botresponse
+              }
             }
-          }
-        )
+          )
+        }
       },
       fail: null
     }
