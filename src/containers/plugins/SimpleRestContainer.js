@@ -110,7 +110,7 @@ module.exports = class SimpleRestContainer {
 
             const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES] || Defaults[Capabilities.SIMPLEREST_PING_RETRIES]
             this._waitForPingUrl(pingConfig, retries).then((response) => {
-              if (botiumUtils.isJson(response)) {
+              if (botiumUtils.isStringJson(response)) {
                 const body = JSON.parse(response)
                 debug(`Ping Uri ${uri} returned JSON response ${util.inspect(response)}, using it as session context`)
                 Object.assign(this.view.context, body)
@@ -236,7 +236,7 @@ module.exports = class SimpleRestContainer {
 
           const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
           for (const messageText of messageTexts) {
-            if (!messageText) return
+            if (!messageText) continue
 
             hasMessageText = true
             const botMsg = { sourceData: body, messageText, media, buttons }
