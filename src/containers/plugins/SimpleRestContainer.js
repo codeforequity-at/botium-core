@@ -22,6 +22,7 @@ module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
     this.queueBotSays = queueBotSays
     this.caps = caps
+    this.processResponse = false
   }
 
   Validate () {
@@ -140,6 +141,7 @@ module.exports = class SimpleRestContainer {
         if (err) {
           return reject(new Error(`Start failed ${util.inspect(err)}`))
         }
+        this.processResponse = true
         resolve()
       })
     })
@@ -150,6 +152,7 @@ module.exports = class SimpleRestContainer {
   }
 
   Stop () {
+    this.processResponse = false
     return executeHook(this.stopHook, this.view)
       .then(() => this._unsubscribeInbound())
       .then(() => {
@@ -168,6 +171,8 @@ module.exports = class SimpleRestContainer {
 
   // Separated just for better module testing
   async _processBodyAsyncImpl (body, isFromUser) {
+    if (!this.processResponse) return []
+
     if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
       const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
       if (_.isArray(contextNodes) && contextNodes.length > 0) {
