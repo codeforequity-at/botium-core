@@ -104,6 +104,7 @@ module.exports = class SimpleRestContainer {
             if (this.caps[Capabilities.SIMPLEREST_PING_BODY]) {
               try {
                 pingConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_PING_BODY, !this.caps[Capabilities.SIMPLEREST_PING_BODY_RAW])
+                pingConfig.json = !this.caps[Capabilities.SIMPLEREST_PING_BODY_RAW]
               } catch (err) {
                 return pingComplete(`composing body from SIMPLEREST_PING_BODY failed (${util.inspect(err)})`)
               }
@@ -111,8 +112,8 @@ module.exports = class SimpleRestContainer {
 
             const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES] || Defaults[Capabilities.SIMPLEREST_PING_RETRIES]
             this._waitForPingUrl(pingConfig, retries).then((response) => {
-              if (botiumUtils.isStringJson(response)) {
-                const body = JSON.parse(response)
+              if (_.isObject(response) || botiumUtils.isStringJson(response)) {
+                const body = _.isObject(response) ? response : JSON.parse(response)
                 debug(`Ping Uri ${uri} returned JSON response ${util.inspect(response)}, using it as session context`)
                 Object.assign(this.view.context, body)
               }
