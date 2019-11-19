@@ -278,20 +278,21 @@ module.exports = class SimpleRestContainer {
             }
 
             if (body) {
-              debug(`got response body: ${JSON.stringify(body, null, 2)}`)
-
+              debug(`got response code: ${response.statusCode}, body: ${JSON.stringify(body, null, 2)}`)
               if (_.isString(body)) {
                 try {
                   body = JSON.parse(body)
+                  setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
                 } catch (err) {
-                  return reject(new Error(`No valid JSON response, parse error occurred: ${err}`))
+                  debug(`ignoring not JSON formatted response body (${err.message})`)
                 }
+              } else if (_.isObject(body)) {
+                setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
+              } else {
+                debug('ignoring response body (no string and no JSON object)')
               }
-              if (!_.isObject(body)) {
-                return reject(new Error(`Body not an object, cannot continue. Found type: ${typeof body}`))
-              }
-              // dont block caller process with responding in its time
-              setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
+            } else {
+              debug(`got response code: ${response.statusCode}, empty body`)
             }
 
             resolve(this)
@@ -318,7 +319,8 @@ module.exports = class SimpleRestContainer {
 
     const requestOptions = {
       uri,
-      method: this.caps[Capabilities.SIMPLEREST_METHOD]
+      method: this.caps[Capabilities.SIMPLEREST_METHOD],
+      followAllRedirects: true
     }
     if (this.view.msg.messageText) {
       this.view.msg.messageText = nonEncodedMessage
