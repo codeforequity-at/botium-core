@@ -496,7 +496,7 @@ class Convo {
 
     return utterances.reduce((acc, expected) => {
       if (_.isUndefined(expected)) return acc
-      else return acc.concat(toString(expected).match(/\$\w+/g) || [])
+      else return acc.concat(ScriptingMemory.extractVarNames(toString(expected)) || [])
     }, [])
   }
 
