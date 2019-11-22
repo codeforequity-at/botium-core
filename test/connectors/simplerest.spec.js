@@ -426,7 +426,6 @@ describe('connectors.simplerest.processBody', function () {
       ]
     }, true)
 
-    console.log(msgs)
     assert.exists(msgs)
     assert.equal(msgs.length, 3)
     assert.equal(msgs[0].messageText, 'text 1')
@@ -487,5 +486,44 @@ describe('connectors.simplerest.parseCapabilities', function () {
     const values = container._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
     assert.lengthOf(values, 4)
     assert.deepEqual(values, ['$.1', '$.2', '$.3', '$.4'])
+  })
+})
+
+describe('connectors.simplerest.inbound', function () {
+  it('should accept inbound message with matching jsonpath', async function () {
+    const myCaps = Object.assign({}, myCapsGet)
+    myCaps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH] = '$.text'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH] = '$.body.conversationId'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE] = '{{botium.conversationId}}'
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    await container.Start()
+
+    let resultResolve, resultReject
+    const result = new Promise((resolve, reject) => {
+      resultResolve = resolve
+      resultReject = reject
+    })
+
+    container.pluginInstance.queueBotSays = (botMsg) => {
+      try {
+        assert.isDefined(botMsg)
+        assert.isDefined(botMsg.sourceData.conversationId)
+        container.Clean().then(resultResolve)
+      } catch (err) {
+        resultReject(err)
+      }
+    }
+    container.pluginInstance._processInboundEvent({
+      originalUrl: '/api/inbound/xxxx',
+      originalMethod: 'POST',
+      body: {
+        conversationId: container.pluginInstance.view.botium.conversationId,
+        text: 'hallo'
+      }
+    })
+
+    return result
   })
 })
