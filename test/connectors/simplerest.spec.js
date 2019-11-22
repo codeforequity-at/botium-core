@@ -527,3 +527,36 @@ describe('connectors.simplerest.inbound', function () {
     return result
   })
 })
+
+describe('connectors.simplerest.polling', function () {
+  it('should poll HTTP url', async () => {
+    const caps = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: 'https://mock.com/endpoint',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
+      [Capabilities.SIMPLEREST_POLL_URL]: 'https://mock.com/poll'
+    }
+    const scope = nock('https://mock.com')
+      .get('/endpoint')
+      .reply(200, {
+        text: 'you called me'
+      })
+      .get('/poll')
+      .reply(200, {
+        text: 'you called me'
+      })
+      .persist()
+
+    const driver = new BotDriver(caps)
+    const container = await driver.Build()
+    await container.Start()
+
+    await container.UserSays({ text: 'hallo' })
+    await container.WaitBotSays()
+    await container.WaitBotSays()
+
+    await container.Stop()
+    await container.Clean()
+    scope.persist(false)
+  }).timeout(5000)
+})
