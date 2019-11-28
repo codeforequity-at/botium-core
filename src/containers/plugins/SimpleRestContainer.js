@@ -248,19 +248,19 @@ module.exports = class SimpleRestContainer {
           debug(`found response texts: ${util.inspect(responseTexts)}`)
 
           const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
-          for (const messageText of messageTexts) {
+          for (const [messageTextIndex, messageText] of messageTexts.entries()) {
             if (!messageText) continue
 
             hasMessageText = true
             const botMsg = { sourceData: body, messageText, media, buttons }
-            await executeHook(this.responseHook, Object.assign({ botMsg }, this.view))
+            await executeHook(this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot, messageTextIndex }, this.view))
             result.push(botMsg)
           }
         }
 
         if (!hasMessageText) {
           const botMsg = { messageText: '', sourceData: body, media, buttons }
-          await executeHook(this.responseHook, Object.assign({ botMsg }, this.view))
+          await executeHook(this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
           result.push(botMsg)
         }
       }
