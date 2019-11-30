@@ -163,7 +163,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       script += this.eol
 
       script += '#' + set.sender
-      if (set.channel) {
+      if (set.channel && set.channel !== 'default') {
         script += ' ' + set.channel
       }
       script += this.eol
