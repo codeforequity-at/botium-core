@@ -40,10 +40,6 @@ module.exports = {
     [Capabilities.SCRIPTING_UTTEXPANSION_MODE]: 'all',
     [Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]: 1,
     [Capabilities.SCRIPTING_MEMORYEXPANSION_KEEP_ORIG]: false,
-    [Capabilities.RETRY_USERSAYS_ONERROR_REGEXP]: [],
-    [Capabilities.RETRY_USERSAYS_NUMRETRIES]: 1,
-    [Capabilities.RETRY_USERSAYS_FACTOR]: 1,
-    [Capabilities.RETRY_USERSAYS_MINTIMEOUT]: 1000,
     [Capabilities.ASSERTERS]: [],
     [Capabilities.LOGIC_HOOKS]: [],
     [Capabilities.USER_INPUTS]: []

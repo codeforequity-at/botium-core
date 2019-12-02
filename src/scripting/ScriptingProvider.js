@@ -4,6 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const glob = require('glob')
 const _ = require('lodash')
+const promiseRetry = require('promise-retry')
 require('promise.allsettled').shim()
 const debug = require('debug')('botium-ScriptingProvider')
 
@@ -13,24 +14,60 @@ const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
 const { quoteRegexpString, toString } = require('./helper')
+const RetryHelper = require('../helpers/RetryHelper')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json)'
 
-const p = (fn) => new Promise((resolve, reject) => {
-  try {
-    resolve(fn())
-  } catch (err) {
-    reject(err)
+const p = (retryHelper, fn) => {
+  const promise = () => new Promise((resolve, reject) => {
+    try {
+      resolve(fn())
+    } catch (err) {
+      reject(err)
+    }
+  })
+
+  if (retryHelper) {
+    return promiseRetry((retry, number) => {
+      return promise().catch(err => {
+        if (retryHelper.shouldRetry(err)) {
+          debug(`Asserter trial #${number} failed, retry activated`)
+          retry(err)
+        } else {
+          throw err
+        }
+      })
+    }, retryHelper.retrySettings)
+  } else {
+    return promise()
   }
-})
-const pnot = (fn, err) => new Promise((resolve, reject) => {
-  try {
-    fn()
-    reject(err)
-  } catch (err) {
-    resolve()
+}
+
+const pnot = (retryHelper, fn, errTemplate) => {
+  const promise = () => new Promise((resolve, reject) => {
+    try {
+      fn()
+      reject(errTemplate)
+    } catch (err) {
+      resolve()
+    }
+  })
+
+  if (retryHelper) {
+    return promiseRetry((retry, number) => {
+      return promise().catch(() => {
+        if (retryHelper.shouldRetry(errTemplate)) {
+          debug(`Asserter trial #${number} failed, !retry activated`)
+          retry(errTemplate)
+        } else {
+          throw errTemplate
+        }
+      })
+    }, retryHelper.retrySettings)
+  } else {
+    return promise()
   }
-})
+}
 
 module.exports = class ScriptingProvider {
   constructor (caps = {}) {
@@ -134,6 +171,9 @@ module.exports = class ScriptingProvider {
       },
       fail: null
     }
+    this.retryHelperAsserter = new RetryHelper(this.caps, 'ASSERTER')
+    this.retryHelperLogicHook = new RetryHelper(this.caps, 'LOGICHOOK')
+    this.retryHelperUserInput = new RetryHelper(this.caps, 'USERINPUT')
   }
 
   _createAsserterPromises ({ asserterType, asserters, convo, convoStep, scriptingMemory, ...rest }) {
@@ -150,9 +190,9 @@ module.exports = class ScriptingProvider {
       if (asserterSpec.not) {
         const notAsserterType = mapNot[asserterType]
         if (asserter[notAsserterType]) {
-          return p(() => asserter[notAsserterType](params))
+          return p(this.retryHelperAsserter, () => asserter[notAsserterType](params))
         } else {
-          return pnot(() => asserter[asserterType](params),
+          return pnot(this.retryHelperAsserter, () => asserter[asserterType](params),
             new BotiumError(
               `${convoStep.stepTag}: Expected asserter ${asserter.name || asserterSpec.name} with args "${params.args}" to fail`,
               {
@@ -171,7 +211,7 @@ module.exports = class ScriptingProvider {
           )
         }
       } else {
-        return p(() => asserter[asserterType](params))
+        return p(this.retryHelperAsserter, () => asserter[asserterType](params))
       }
     }
 
@@ -187,7 +227,7 @@ module.exports = class ScriptingProvider {
       }))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
-      .map(a => p(() => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
+      .map(a => p(this.retryHelperAsserter, () => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoAsserter, ...globalAsserter]
     if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
@@ -211,7 +251,7 @@ module.exports = class ScriptingProvider {
 
     const convoStepPromises = (logicHooks || [])
       .filter(l => this.logicHooks[l.name][hookType])
-      .map(l => p(() => this.logicHooks[l.name][hookType]({
+      .map(l => p(this.retryHelperLogicHook, () => this.logicHooks[l.name][hookType]({
         convo,
         convoStep,
         scriptingMemory,
@@ -222,7 +262,7 @@ module.exports = class ScriptingProvider {
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
-      .map(l => p(() => l[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
+      .map(l => p(this.retryHelperLogicHook, () => l[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)
@@ -231,7 +271,7 @@ module.exports = class ScriptingProvider {
   _createUserInputPromises ({ convo, convoStep, scriptingMemory, ...rest }) {
     const convoStepPromises = (convoStep.userInputs || [])
       .filter(ui => this.userInputs[ui.name])
-      .map(ui => p(() => this.userInputs[ui.name].setUserInput({
+      .map(ui => p(this.retryHelperUserInput, () => this.userInputs[ui.name].setUserInput({
         convo,
         convoStep,
         scriptingMemory,
