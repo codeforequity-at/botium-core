@@ -29,11 +29,18 @@ module.exports = class BotDriver {
     this.sources = _.cloneDeep(Defaults.Sources)
     this.envs = _.cloneDeep(Defaults.Envs)
 
-    this._fetchConfigFromFiles(['./botium.json', './botium.local.json'])
+    this._fetchConfigFromFiles([
+      './botium.json', process.env.NODE_ENV && `./botium.${process.env.NODE_ENV}.json`,
+      './botium.local.json', process.env.NODE_ENV && `./botium.${process.env.NODE_ENV}.local.json`])
 
     const botiumConfigEnv = process.env.BOTIUM_CONFIG
     if (botiumConfigEnv) {
-      if (!this._fetchConfigFromFiles([botiumConfigEnv])) {
+      const checkDir = path.dirname(botiumConfigEnv)
+      const checkFileBase = path.basename(botiumConfigEnv, '.json')
+      if (!this._fetchConfigFromFiles([
+        botiumConfigEnv, process.env.NODE_ENV && path.join(checkDir, `${checkFileBase}.${process.env.NODE_ENV}.json`),
+        path.join(checkDir, `${checkFileBase}.local.json`), process.env.NODE_ENV && path.join(checkDir, `${checkFileBase}.${process.env.NODE_ENV}.local.json`)
+      ])) {
         throw new Error(`FAILED: Botium configuration file ${botiumConfigEnv} not available`)
       }
     }
@@ -199,7 +206,7 @@ module.exports = class BotDriver {
   // fetches config from files ordered by priority later files overwrite previous
   _fetchConfigFromFiles (files) {
     return files
-      .filter(file => fs.existsSync(file))
+      .filter(file => file && fs.existsSync(file))
       .map(file => {
         this._loadConfigFile(file)
         return file
