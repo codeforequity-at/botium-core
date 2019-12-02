@@ -203,7 +203,7 @@ describe('compiler.compilerxlsx', function () {
         compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
         assert.fail('expected error')
       } catch (err) {
-        assert.equal(err.message, 'Failed to parse conversation. Invalid text: \'Hello\' in convo:\n PAUSE 100\nHello')
+        assert.equal(err.message, 'Failed to parse conversation. No text expected here: \'Hello\' in convo:\n PAUSE 100\nHello')
       }
     })
   })
