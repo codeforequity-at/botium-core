@@ -108,7 +108,11 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       }
       return this.pluginInstance.Validate ? (this.pluginInstance.Validate() || Promise.resolve()) : Promise.resolve()
     }).then(() => {
-      this.retryHelper = new RetryHelper(this.caps)
+      this.retryHelperBuild = new RetryHelper(this.caps, 'BUILD')
+      this.retryHelperStart = new RetryHelper(this.caps, 'START')
+      this.retryHelperUserSays = new RetryHelper(this.caps, 'USERSAYS')
+      this.retryHelperStop = new RetryHelper(this.caps, 'STOP')
+      this.retryHelperClean = new RetryHelper(this.caps, 'CLEAN')
     })
   }
 
@@ -117,14 +121,14 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return super.Build().then(() => promiseRetry((retry, number) => {
         return (this.pluginInstance.Build ? (this.pluginInstance.Build() || Promise.resolve()) : Promise.resolve())
           .catch((err) => {
-            if (this.retryHelper.shouldRetryUserSays(err)) {
+            if (this.retryHelperBuild.shouldRetry(err)) {
               debug(`Build trial #${number} failed, retry activated`)
               retry(err)
             } else {
               throw err
             }
           })
-      }, this.retryHelper.retrySettings))
+      }, this.retryHelperBuild.retrySettings))
         .then(() => this)
     } catch (err) {
       return Promise.reject(new Error(`Build - Botium plugin failed: ${util.inspect(err)}`))
@@ -138,14 +142,14 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return super.Start().then(() => promiseRetry((retry, number) => {
         return (this.pluginInstance.Start ? (this.pluginInstance.Start() || Promise.resolve()) : Promise.resolve())
           .catch((err) => {
-            if (this.retryHelper.shouldRetryUserSays(err)) {
+            if (this.retryHelperStart.shouldRetry(err)) {
               debug(`Start trial #${number} failed, retry activated`)
               retry(err)
             } else {
               throw err
             }
           })
-      }, this.retryHelper.retrySettings))
+      }, this.retryHelperStart.retrySettings))
         .then((context) => {
           this.eventEmitter.emit(Events.CONTAINER_STARTED, this, context)
           return this
@@ -164,14 +168,14 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return promiseRetry((retry, number) => {
         return (this.pluginInstance.UserSays(mockMsg) || Promise.resolve())
           .catch((err) => {
-            if (this.retryHelper.shouldRetryUserSays(err)) {
+            if (this.retryHelperUserSays.shouldRetry(err)) {
               debug(`UserSays trial #${number} failed, retry activated`)
               retry(err)
             } else {
               throw err
             }
           })
-      }, this.retryHelper.retrySettings)
+      }, this.retryHelperUserSays.retrySettings)
         .then(() => {
           this.eventEmitter.emit(Events.MESSAGE_SENTTOBOT, this, mockMsg)
           return this
@@ -188,14 +192,14 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return super.Stop().then(() => promiseRetry((retry, number) => {
         return (this.pluginInstance.Stop ? (this.pluginInstance.Stop() || Promise.resolve()) : Promise.resolve())
           .catch((err) => {
-            if (this.retryHelper.shouldRetryUserSays(err)) {
+            if (this.retryHelperStop.shouldRetry(err)) {
               debug(`Stop trial #${number} failed, retry activated`)
               retry(err)
             } else {
               throw err
             }
           })
-      }, this.retryHelper.retrySettings))
+      }, this.retryHelperStop.retrySettings))
         .then((context) => {
           this.eventEmitter.emit(Events.CONTAINER_STOPPED, this, context)
           return this
@@ -215,14 +219,14 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return promiseRetry((retry, number) => {
         return (this.pluginInstance.Clean ? (this.pluginInstance.Clean() || Promise.resolve()) : Promise.resolve())
           .catch((err) => {
-            if (this.retryHelper.shouldRetryUserSays(err)) {
+            if (this.retryHelperClean.shouldRetry(err)) {
               debug(`Clean trial #${number} failed, retry activated`)
               retry(err)
             } else {
               throw err
             }
           })
-      }, this.retryHelper.retrySettings)
+      }, this.retryHelperClean.retrySettings)
         .then(() => super.Clean()).then(() => {
           this.eventEmitter.emit(Events.CONTAINER_CLEANED, this)
           return this
