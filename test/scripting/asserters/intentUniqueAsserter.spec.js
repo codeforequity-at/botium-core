@@ -5,7 +5,7 @@ chai.use(require('chai-as-promised'))
 const IntentUniqueAsserter = require('../../../src/scripting/logichook/asserter/IntentUniqueAsserter')
 const asserter = new IntentUniqueAsserter(null, {})
 
-describe('IntentUniqueAsserter', function () {
+describe('scripting.asserters.intentUniqueAsserter', function () {
   it('positive case for intent unique asserter, no alternate', async function () {
     await asserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
