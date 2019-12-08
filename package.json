@@ -33,6 +33,7 @@
     "async": "^3.1.0",
     "body-parser": "^1.19.0",
     "boolean": "^1.0.0",
+    "bottleneck": "^2.19.5",
     "copy-dir": "^1.1.0",
     "csv-parse": "^4.4.6",
     "debug": "^4.1.1",
