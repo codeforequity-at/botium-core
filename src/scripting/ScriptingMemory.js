@@ -159,6 +159,10 @@ const _apply = (scriptingMemory, str) => {
   return str
 }
 
+const extractVarNames = (text) => {
+  return ((_.isString(text) ? text.match(/\$[A-Za-z]\w+/g) : false) || [])
+}
+
 const fill = (container, scriptingMemory, result, utterance, scriptingEvents) => {
   debug(`fill start: ${util.inspect(scriptingMemory)}`)
   let varRegex
@@ -184,7 +188,7 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       if (container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexp' && container.caps[Capabilities.SCRIPTING_MATCHING_MODE] !== 'regexpIgnoreCase') {
         reExpected = _.isString(expected) ? quoteRegexpString(expected).replace(/\\\$/g, '$') : expected
       }
-      const varMatches = ((_.isString(expected) ? expected.match(/\$[A-Za-z]\w+/g) : false) || [])
+      const varMatches = extractVarNames(expected)
       for (let i = 0; i < varMatches.length; i++) {
         reExpected = reExpected.replace(varMatches[i], varRegex)
       }
@@ -208,6 +212,7 @@ module.exports = {
   apply,
   applyToArgs,
   fill,
+  extractVarNames,
   RESERVED_WORDS,
   SCRIPTING_FUNCTIONS
 }

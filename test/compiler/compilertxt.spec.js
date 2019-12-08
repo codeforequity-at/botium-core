@@ -197,7 +197,7 @@ describe('compiler.compilertxt', function () {
         compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
         assert.fail('expected error')
       } catch (err) {
-        assert.equal(err.message, 'Failed to parse conversation. Invalid text: \'Hi!\' in convo:\n PAUSE 100\nHi!\n')
+        assert.equal(err.message, 'Failed to parse conversation. No text expected here: \'Hi!\' in convo:\n PAUSE 100\nHi!\n')
       }
     })
     it('should consider modificator for asserter', async function () {

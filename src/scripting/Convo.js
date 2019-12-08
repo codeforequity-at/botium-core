@@ -395,7 +395,7 @@ class Convo {
               this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
                 .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
                 .catch((err) => {
-                  const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message}`, err)
+                  const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message || err}`, err)
                   debug(failErr)
                   try {
                     this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
@@ -496,7 +496,7 @@ class Convo {
 
     return utterances.reduce((acc, expected) => {
       if (_.isUndefined(expected)) return acc
-      else return acc.concat(toString(expected).match(/\$\w+/g) || [])
+      else return acc.concat(ScriptingMemory.extractVarNames(toString(expected)) || [])
     }, [])
   }
 

@@ -22,11 +22,12 @@ module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
     this.queueBotSays = queueBotSays
     this.caps = caps
+    this.processResponse = false
   }
 
   Validate () {
     if (!this.caps[Capabilities.SIMPLEREST_URL]) throw new Error('SIMPLEREST_URL capability required')
-    if (!this.caps[Capabilities.SIMPLEREST_METHOD]) throw new Error('SIMPLEREST_METHOD capability required')
+    if (!this.caps[Capabilities.SIMPLEREST_METHOD] && !this.caps[Capabilities.SIMPLEREST_VERB]) throw new Error('SIMPLEREST_METHOD/SIMPLEREST_VERB capability required')
     if (_.keys(this.caps).findIndex(k => k.startsWith(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)) < 0 && !this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK]) throw new Error('SIMPLEREST_RESPONSE_JSONPATH or SIMPLEREST_RESPONSE_HOOK capability required')
     if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
       _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
@@ -85,7 +86,7 @@ module.exports = class SimpleRestContainer {
 
         (pingComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
-            const uri = this.caps[Capabilities.SIMPLEREST_PING_URL]
+            const uri = this._getMustachedCap(Capabilities.SIMPLEREST_PING_URL, false)
             const verb = this.caps[Capabilities.SIMPLEREST_PING_VERB]
             const timeout = this.caps[Capabilities.SIMPLEREST_PING_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_PING_TIMEOUT]
             const pingConfig = {
@@ -103,6 +104,7 @@ module.exports = class SimpleRestContainer {
             if (this.caps[Capabilities.SIMPLEREST_PING_BODY]) {
               try {
                 pingConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_PING_BODY, !this.caps[Capabilities.SIMPLEREST_PING_BODY_RAW])
+                pingConfig.json = !this.caps[Capabilities.SIMPLEREST_PING_BODY_RAW]
               } catch (err) {
                 return pingComplete(`composing body from SIMPLEREST_PING_BODY failed (${util.inspect(err)})`)
               }
@@ -110,9 +112,9 @@ module.exports = class SimpleRestContainer {
 
             const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES] || Defaults[Capabilities.SIMPLEREST_PING_RETRIES]
             this._waitForPingUrl(pingConfig, retries).then((response) => {
-              if (botiumUtils.isStringJson(response)) {
-                const body = JSON.parse(response)
-                debug(`Ping Uri ${uri} returned JSON response ${util.inspect(response)}, using it as session context`)
+              if (_.isObject(response) || botiumUtils.isStringJson(response)) {
+                debug(`Ping Uri ${uri} returned JSON response, using it as session context: ${botiumUtils.shortenJsonString(response)}`)
+                const body = _.isObject(response) ? response : JSON.parse(response)
                 Object.assign(this.view.context, body)
               }
               pingComplete()
@@ -134,12 +136,19 @@ module.exports = class SimpleRestContainer {
           this._subscribeInbound()
             .then(() => inboundListenerComplete())
             .catch(inboundListenerComplete)
+        },
+
+        (startPollingComplete) => {
+          this._startPolling()
+            .then(() => startPollingComplete())
+            .catch(startPollingComplete)
         }
 
       ], (err) => {
         if (err) {
           return reject(new Error(`Start failed ${util.inspect(err)}`))
         }
+        this.processResponse = true
         resolve()
       })
     })
@@ -150,8 +159,10 @@ module.exports = class SimpleRestContainer {
   }
 
   Stop () {
+    this.processResponse = false
     return executeHook(this.stopHook, this.view)
       .then(() => this._unsubscribeInbound())
+      .then(() => this._stopPolling())
       .then(() => {
         this.view = {}
       })
@@ -168,6 +179,8 @@ module.exports = class SimpleRestContainer {
 
   // Separated just for better module testing
   async _processBodyAsyncImpl (body, isFromUser) {
+    if (!this.processResponse) return []
+
     if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
       const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
       if (_.isArray(contextNodes) && contextNodes.length > 0) {
@@ -235,19 +248,19 @@ module.exports = class SimpleRestContainer {
           debug(`found response texts: ${util.inspect(responseTexts)}`)
 
           const messageTexts = (_.isArray(responseTexts) ? _.flattenDeep(responseTexts) : [responseTexts])
-          for (const messageText of messageTexts) {
+          for (const [messageTextIndex, messageText] of messageTexts.entries()) {
             if (!messageText) continue
 
             hasMessageText = true
             const botMsg = { sourceData: body, messageText, media, buttons }
-            await executeHook(this.responseHook, Object.assign({ botMsg }, this.view))
+            await executeHook(this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot, messageTextIndex }, this.view))
             result.push(botMsg)
           }
         }
 
         if (!hasMessageText) {
           const botMsg = { messageText: '', sourceData: body, media, buttons }
-          await executeHook(this.responseHook, Object.assign({ botMsg }, this.view))
+          await executeHook(this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
           result.push(botMsg)
         }
       }
@@ -272,20 +285,21 @@ module.exports = class SimpleRestContainer {
             }
 
             if (body) {
-              debug(`got response body: ${JSON.stringify(body, null, 2)}`)
-
+              debug(`got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}`)
               if (_.isString(body)) {
                 try {
                   body = JSON.parse(body)
+                  setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
                 } catch (err) {
-                  return reject(new Error(`No valid JSON response, parse error occurred: ${err}`))
+                  debug(`ignoring not JSON formatted response body (${err.message})`)
                 }
+              } else if (_.isObject(body)) {
+                setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
+              } else {
+                debug('ignoring response body (no string and no JSON object)')
               }
-              if (!_.isObject(body)) {
-                return reject(new Error(`Body not an object, cannot continue. Found type: ${typeof body}`))
-              }
-              // dont block caller process with responding in its time
-              setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
+            } else {
+              debug(`got response code: ${response.statusCode}, empty body`)
             }
 
             resolve(this)
@@ -309,10 +323,13 @@ module.exports = class SimpleRestContainer {
     }
 
     const uri = this._getMustachedCap(Capabilities.SIMPLEREST_URL, false)
+    const timeout = this.caps[Capabilities.SIMPLEREST_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_TIMEOUT]
 
     const requestOptions = {
       uri,
-      method: this.caps[Capabilities.SIMPLEREST_METHOD]
+      method: this.caps[Capabilities.SIMPLEREST_VERB] || this.caps[Capabilities.SIMPLEREST_METHOD],
+      followAllRedirects: true,
+      timeout
     }
     if (this.view.msg.messageText) {
       this.view.msg.messageText = nonEncodedMessage
@@ -492,6 +509,76 @@ module.exports = class SimpleRestContainer {
     if (this.proxy) {
       this.proxy.close()
       this.proxy = null
+    }
+  }
+
+  _runPolling () {
+    if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
+      const uri = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_URL, false)
+      const verb = this.caps[Capabilities.SIMPLEREST_POLL_VERB]
+      const timeout = this.caps[Capabilities.SIMPLEREST_POLL_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_POLL_TIMEOUT]
+      const pollConfig = {
+        method: verb,
+        uri: uri,
+        timeout: timeout
+      }
+      if (this.caps[Capabilities.SIMPLEREST_POLL_HEADERS]) {
+        try {
+          pollConfig.headers = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_HEADERS, true)
+        } catch (err) {
+          debug(`_runPolling: composing headers from SIMPLEREST_POLL_HEADERS failed (${util.inspect(err)})`)
+          return
+        }
+      }
+      if (this.caps[Capabilities.SIMPLEREST_POLL_BODY]) {
+        try {
+          pollConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_BODY, !this.caps[Capabilities.SIMPLEREST_POLL_BODY_RAW])
+          pollConfig.json = !this.caps[Capabilities.SIMPLEREST_POLL_BODY_RAW]
+        } catch (err) {
+          debug(`_runPolling: composing body from SIMPLEREST_POLL_BODY failed (${util.inspect(err)})`)
+          return
+        }
+      }
+
+      request(pollConfig, (err, response, body) => {
+        if (err) {
+          debug(`_runPolling: rest request failed: ${util.inspect(err)}, request: ${JSON.stringify(pollConfig)}`)
+        } else {
+          if (response.statusCode >= 400) {
+            debug(`_runPolling: got error response: ${response.statusCode}/${response.statusMessage}, request: ${JSON.stringify(pollConfig)}`)
+          } else if (body) {
+            debug(`_runPolling: got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}`)
+            if (_.isString(body)) {
+              try {
+                body = JSON.parse(body)
+                setTimeout(() => this._processBodyAsync(body, true), 0)
+              } catch (err) {
+                debug(`_runPolling: ignoring not JSON formatted response body (${err.message})`)
+              }
+            } else if (_.isObject(body)) {
+              setTimeout(() => this._processBodyAsync(body, true), 0)
+            } else {
+              debug('_runPolling: ignoring response body (no string and no JSON object)')
+            }
+          } else {
+            debug(`_runPolling: got response code: ${response.statusCode}, empty body`)
+          }
+        }
+      })
+    }
+  }
+
+  async _startPolling () {
+    if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
+      this.pollInterval = setInterval(this._runPolling.bind(this), this.caps[Capabilities.SIMPLEREST_POLL_INTERVAL])
+      debug(`Started HTTP polling. Listening for inbound messages on the ${this.caps[Capabilities.SIMPLEREST_POLL_URL]}, interval: ${this.caps[Capabilities.SIMPLEREST_POLL_INTERVAL]}.`)
+    }
+  }
+
+  async _stopPolling () {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval)
+      this.pollInterval = null
     }
   }
 }

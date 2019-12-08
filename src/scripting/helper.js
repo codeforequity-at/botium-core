@@ -51,7 +51,7 @@ module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode =
       if (sender === 'me') {
         if (!textLinesAccepted) {
           if (rawLine.trim().length) {
-            throw new Error(`Failed to parse conversation. Invalid text: '${rawLine.trim()}' in convo:\n ${lines.join('\n')}`)
+            throw new Error(`Failed to parse conversation. No text expected here: '${rawLine.trim()}' in convo:\n ${lines.join('\n')}`)
           } else {
             // skip empty lines
           }

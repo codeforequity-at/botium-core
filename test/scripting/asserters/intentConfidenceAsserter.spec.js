@@ -7,7 +7,7 @@ const IntentConfidenceAsserter = require('../../../src/scripting/logichook/asser
 const asserterWithGlobal = new IntentConfidenceAsserter(null, null, { expectedMinimum: 70 })
 const asserterWithoutGlobal = new IntentConfidenceAsserter(null)
 
-describe('IntentAsserter', function () {
+describe('scripting.asserters.intentConfidenceAsserter', function () {
   // useWithGlobal, expected (minimum), found, negative (expect reject)
   const cases = [
     [true, null, null, true],

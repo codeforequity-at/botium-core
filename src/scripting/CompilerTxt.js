@@ -163,7 +163,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       script += this.eol
 
       script += '#' + set.sender
-      if (set.channel) {
+      if (set.channel && set.channel !== 'default') {
         script += ' ' + set.channel
       }
       script += this.eol
@@ -189,6 +189,7 @@ module.exports = class CompilerTxt extends CompilerBase {
         if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
         if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
         if (set.cards && set.cards.length > 0) {
+          script += 'CARDS ' + set.cards.map(c => c.text).join('|') + this.eol
           set.cards.forEach(c => {
             if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
             if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol

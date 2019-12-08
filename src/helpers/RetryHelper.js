@@ -2,28 +2,29 @@ const util = require('util')
 const _ = require('lodash')
 
 module.exports = class RetryHelper {
-  constructor (caps) {
+  constructor (caps, section) {
     this.retrySettings = {
-      retries: caps.RETRY_USERSAYS_NUMRETRIES,
-      factor: caps.RETRY_USERSAYS_FACTOR,
-      minTimeout: caps.RETRY_USERSAYS_MINTIMEOUT
+      retries: caps[`RETRY_${section.toUpperCase()}_NUMRETRIES`] || 1,
+      factor: caps[`RETRY_${section.toUpperCase()}_FACTOR`] || 1,
+      minTimeout: caps[`RETRY_${section.toUpperCase()}_MINTIMEOUT`] || 1000
     }
     this.retryErrorPatterns = []
-    if (caps.RETRY_USERSAYS_ONERROR_REGEXP) {
-      if (_.isArray(caps.RETRY_USERSAYS_ONERROR_REGEXP)) {
-        caps.RETRY_USERSAYS_ONERROR_REGEXP.forEach(r => {
+    const onErrorRegexp = caps[`RETRY_${section.toUpperCase()}_ONERROR_REGEXP`] || []
+    if (onErrorRegexp) {
+      if (_.isArray(onErrorRegexp)) {
+        onErrorRegexp.forEach(r => {
           if (_.isString(r)) this.retryErrorPatterns.push(new RegExp(r, 'i'))
           else this.retryErrorPatterns.push(r)
         })
-      } else if (_.isString(caps.RETRY_USERSAYS_ONERROR_REGEXP)) {
-        this.retryErrorPatterns.push(new RegExp(caps.RETRY_USERSAYS_ONERROR_REGEXP, 'i'))
+      } else if (_.isString(onErrorRegexp)) {
+        this.retryErrorPatterns.push(new RegExp(onErrorRegexp, 'i'))
       } else {
-        this.retryErrorPatterns.push(caps.RETRY_USERSAYS_ONERROR_REGEXP)
+        this.retryErrorPatterns.push(onErrorRegexp)
       }
     }
   }
 
-  shouldRetryUserSays (err) {
+  shouldRetry (err) {
     if (!err || this.retryErrorPatterns.length === 0) return false
     const errString = util.inspect(err)
     for (const re of this.retryErrorPatterns) {

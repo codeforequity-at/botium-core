@@ -1,3 +1,5 @@
+const _ = require('lodash')
+
 const isStringJson = (string) => {
   try {
     JSON.parse(string)
@@ -30,4 +32,13 @@ const optionalJson = (json) => {
   return body ? { 'content-type': 'application/json', body: body } : { 'content-type': 'text/plain', body: json }
 }
 
-module.exports = { optionalJson, isJson, isJsonObject, isStringJson }
+const shortenJsonString = (obj) => {
+  let str = _.isString(obj) ? obj : JSON.stringify(obj, null, 2)
+  const length = str.length
+  if (length > 1000) {
+    str = `${str.substr(0, 1000)} ... (${length - 1000} chars more)`
+  }
+  return str
+}
+
+module.exports = { optionalJson, isJson, isJsonObject, isStringJson, shortenJsonString }
