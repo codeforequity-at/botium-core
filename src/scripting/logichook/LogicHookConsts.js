@@ -8,6 +8,7 @@ module.exports = {
     { name: 'PAUSE_ASSERTER', className: 'PauseAsserter' },
     { name: 'ENTITIES', className: 'EntitiesAsserter' },
     { name: 'ENTITY_VALUES', className: 'EntityValuesAsserter' },
+    { name: 'ENTITY_CONTENT', className: 'EntityContentAsserter' },
     { name: 'INTENT', className: 'IntentAsserter' },
     { name: 'INTENT_UNIQUE', className: 'IntentUniqueAsserter' },
     { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' },
