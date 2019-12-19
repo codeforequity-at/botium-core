@@ -94,6 +94,11 @@ const msg = {
   }
 }
 
+const msgSpecial = {
+  messageText: '{"\n',
+  token: '{"\n'
+}
+
 const _assertHook = async (myCaps) => {
   const driver = new BotDriver(myCaps)
   const container = await driver.Build()
@@ -257,6 +262,24 @@ describe('connectors.simplerest.build', function () {
     assert.isObject(request.body)
     assert.equal(request.headers.HEADER2, msg.token)
     assert.equal(request.body.BODY2, msg.messageText)
+
+    await container.Clean()
+  })
+  it('should build JSON POST request body with special chars', async function () {
+    const myCaps = Object.assign({}, myCapsPost)
+    myCaps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE] = { HEADER1: 'HEADER1VALUE', HEADER2: '{{#fnc.jsonify}}{{msg.token}}{{/fnc.jsonify}}' }
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const request = await container.pluginInstance._buildRequest(msgSpecial)
+    assert.isTrue(request.json)
+    assert.isObject(request.headers)
+    assert.isObject(request.body)
+    assert.equal(request.headers.HEADER2, msgSpecial.token)
+    assert.equal(request.body.BODY2, msgSpecial.messageText)
 
     await container.Clean()
   })

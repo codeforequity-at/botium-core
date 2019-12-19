@@ -15,6 +15,9 @@ const Capabilities = require('../../Capabilities')
 const Defaults = require('../../Defaults')
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 const { getHook, executeHook } = require('../../helpers/HookUtils')
+const { escapeJSONString } = require('../../helpers/Utils')
+
+Mustache.escape = s => s
 
 const REDIS_TOPIC = 'SIMPLEREST_INBOUND_SUBSCRIPTION'
 
@@ -62,6 +65,9 @@ module.exports = class SimpleRestContainer {
             fnc: _.mapValues(_.mapKeys(SCRIPTING_FUNCTIONS, (value, key) => key.substring(1)), (theFunction) => {
               return theFunction.length ? function () { return (text, render) => theFunction(render(text)) } : theFunction
             })
+          }
+          this.view.fnc.jsonify = () => (val, render) => {
+            return escapeJSONString(render(val))
           }
 
           if (this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]) {
@@ -312,9 +318,8 @@ module.exports = class SimpleRestContainer {
     this.view.msg = Object.assign({}, msg)
 
     const nonEncodedMessage = this.view.msg.messageText
-    if (this.view.msg.messageText) {
-      this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
-    }
+
+    this.view.msg.messageText = nonEncodedMessage && encodeURIComponent(nonEncodedMessage)
 
     if (this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]) {
       this.view.botium.stepId = this._getMustachedCap(Capabilities.SIMPLEREST_STEP_ID_TEMPLATE, false)
@@ -331,10 +336,9 @@ module.exports = class SimpleRestContainer {
       followAllRedirects: true,
       timeout
     }
-    if (this.view.msg.messageText) {
-      this.view.msg.messageText = nonEncodedMessage
-    }
+
     if (this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) {
+      this.view.msg.messageText = nonEncodedMessage
       try {
         requestOptions.headers = this._getMustachedCap(Capabilities.SIMPLEREST_HEADERS_TEMPLATE, true)
       } catch (err) {
@@ -342,6 +346,11 @@ module.exports = class SimpleRestContainer {
       }
     }
     if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
+      if (this.caps[Capabilities.SIMPLEREST_BODY_RAW]) {
+        this.view.msg.messageText = nonEncodedMessage
+      } else {
+        this.view.msg.messageText = nonEncodedMessage && escapeJSONString(nonEncodedMessage)
+      }
       try {
         requestOptions.body = this._getMustachedCap(Capabilities.SIMPLEREST_BODY_TEMPLATE, !this.caps[Capabilities.SIMPLEREST_BODY_RAW])
         requestOptions.json = !this.caps[Capabilities.SIMPLEREST_BODY_RAW]
@@ -349,6 +358,8 @@ module.exports = class SimpleRestContainer {
         throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${util.inspect(err)})`)
       }
     }
+
+    this.view.msg.messageText = nonEncodedMessage
     await executeHook(this.requestHook, Object.assign({ requestOptions }, this.view))
 
     return requestOptions
