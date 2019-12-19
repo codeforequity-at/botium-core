@@ -115,4 +115,19 @@ describe('UpdateCustomLogicHook', function () {
 
     await this.compiler.convos[0].Run(this.container)
   })
+  it('should update me message from begin section skalar', async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.logichooks',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'update_custom_me_msg_begin.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    await this.compiler.convos[0].Run(this.container)
+  })
 })
