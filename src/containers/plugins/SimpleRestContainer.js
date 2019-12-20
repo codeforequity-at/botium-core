@@ -50,6 +50,7 @@ module.exports = class SimpleRestContainer {
       async.series([
         (contextInitComplete) => {
           this.view = {
+            container: this,
             context: {},
             msg: {},
             botium: {
@@ -420,7 +421,11 @@ module.exports = class SimpleRestContainer {
 
   _getMustachedVal (template, json) {
     if (json) {
-      return JSON.parse(Mustache.render(template, this.view))
+      try {
+        return JSON.parse(Mustache.render(template, this.view))
+      } catch (err) {
+        return new Error(`JSON parsing failed - try to use {{#fnc.jsonify}}{{xxx}}{{/fnc.jsonify}} to escape JSON special characters (ERR: ${err.message})`)
+      }
     } else {
       return Mustache.render(template, this.view)
     }
