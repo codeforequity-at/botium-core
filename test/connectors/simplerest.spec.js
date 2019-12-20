@@ -142,7 +142,7 @@ describe('connectors.simplerest.nock', function () {
       body: body,
       timeout: 10000
     }
-    const responseBody = await container.pluginInstance._waitForPingUrl(pingConfig, 2)
+    const responseBody = await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
     assert.equal(responseBody, '{"status":"ok"}')
     scope.persist(false)
   })
@@ -171,8 +171,31 @@ describe('connectors.simplerest.nock', function () {
       body: body,
       timeout: 100
     }
-    const responseBody = await container.pluginInstance._waitForPingUrl(pingConfig, 2)
+    const responseBody = await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
     assert.equal(responseBody, '{"status":"ok"}')
+    scope.persist(false)
+  })
+  it('post stop endpoint', async () => {
+    const caps = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
+      [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$'],
+      [Capabilities.SIMPLEREST_STOP_URL]: 'https://mock.com/stoppost',
+      [Capabilities.SIMPLEREST_STOP_RETRIES]: 2,
+      [Capabilities.SIMPLEREST_STOP_VERB]: 'POST',
+      [Capabilities.SIMPLEREST_STOP_BODY]: { status: 'ok?' }
+    }
+    const scope = nock('https://mock.com')
+      .post('/stoppost', { status: 'ok?' }, null)
+      .reply(200, {
+        status: 'ok'
+      })
+      .persist()
+    const driver = new BotDriver(caps)
+    const container = await driver.Build()
+    const responseBody = await container.pluginInstance._makeCall('SIMPLEREST_STOP')
+    assert.equal(responseBody.status, 'ok')
     scope.persist(false)
   })
   it('error case can\'t connect', async () => {
@@ -200,7 +223,7 @@ describe('connectors.simplerest.nock', function () {
       timeout: 100
     }
     try {
-      await container.pluginInstance._waitForPingUrl(pingConfig, 2)
+      await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
       assert.fail('expected ping error')
     } catch (err) {
     }

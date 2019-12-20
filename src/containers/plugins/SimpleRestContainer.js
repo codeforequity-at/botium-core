@@ -93,39 +93,17 @@ module.exports = class SimpleRestContainer {
 
         (pingComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
-            const uri = this._getMustachedCap(Capabilities.SIMPLEREST_PING_URL, false)
-            const verb = this.caps[Capabilities.SIMPLEREST_PING_VERB]
-            const timeout = this.caps[Capabilities.SIMPLEREST_PING_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_PING_TIMEOUT]
-            const pingConfig = {
-              method: verb,
-              uri: uri,
-              timeout: timeout
-            }
-            if (this.caps[Capabilities.SIMPLEREST_PING_HEADERS]) {
-              try {
-                pingConfig.headers = this._getMustachedCap(Capabilities.SIMPLEREST_PING_HEADERS, true)
-              } catch (err) {
-                return pingComplete(`composing headers from SIMPLEREST_PING_HEADERS failed (${util.inspect(err)})`)
-              }
-            }
-            if (this.caps[Capabilities.SIMPLEREST_PING_BODY]) {
-              try {
-                pingConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_PING_BODY, !this.caps[Capabilities.SIMPLEREST_PING_BODY_RAW])
-                pingConfig.json = !this.caps[Capabilities.SIMPLEREST_PING_BODY_RAW]
-              } catch (err) {
-                return pingComplete(`composing body from SIMPLEREST_PING_BODY failed (${util.inspect(err)})`)
-              }
-            }
-
-            const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES] || Defaults[Capabilities.SIMPLEREST_PING_RETRIES]
-            this._waitForPingUrl(pingConfig, retries).then((response) => {
+            try {
+              const response = this._makeCall('SIMPLEREST_PING')
               if (_.isObject(response) || botiumUtils.isStringJson(response)) {
-                debug(`Ping Uri ${uri} returned JSON response, using it as session context: ${botiumUtils.shortenJsonString(response)}`)
+                debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} returned JSON response, using it as session context: ${botiumUtils.shortenJsonString(response)}`)
                 const body = _.isObject(response) ? response : JSON.parse(response)
                 Object.assign(this.view.context, body)
               }
               pingComplete()
-            }).catch(pingComplete)
+            } catch (err) {
+              pingComplete(err.message)
+            }
           } else {
             pingComplete()
           }
@@ -165,14 +143,19 @@ module.exports = class SimpleRestContainer {
     return this._doRequest(mockMsg, true)
   }
 
-  Stop () {
+  async Stop () {
     this.processResponse = false
-    return executeHook(this.stopHook, this.view)
-      .then(() => this._unsubscribeInbound())
-      .then(() => this._stopPolling())
-      .then(() => {
-        this.view = {}
-      })
+    if (this.caps[Capabilities.SIMPLEREST_STOP_URL]) {
+      try {
+        await this._makeCall('SIMPLEREST_STOP')
+      } catch (err) {
+        throw new Error(`Failed to call url ${this.caps[Capabilities.SIMPLEREST_STOP_URL]} to stop session: ${err.message}`)
+      }
+    }
+    await executeHook(this.stopHook, this.view)
+    await this._unsubscribeInbound()
+    await this._stopPolling()
+    this.view = {}
   }
 
   Clean () {
@@ -383,13 +366,13 @@ module.exports = class SimpleRestContainer {
     return requestOptions
   }
 
-  async _waitForPingUrl (pingConfig, retries) {
+  async _waitForUrlResponse (pingConfig, retries) {
     const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
 
     let tries = 0
 
     while (true) {
-      debug(`_waitForPingUrl checking url ${pingConfig.uri} before proceed`)
+      debug(`_waitForUrlResponse checking url ${pingConfig.uri} before proceed`)
       if (tries > retries) {
         throw new Error(`Failed to ping bot after ${retries} retries`)
       }
@@ -400,13 +383,13 @@ module.exports = class SimpleRestContainer {
         })
       })
       if (err) {
-        debug(`_waitForPingUrl error on url check ${pingConfig.uri}: ${err}`)
+        debug(`_waitForUrlResponse error on url check ${pingConfig.uri}: ${err}`)
         await timeout(pingConfig.timeout)
       } else if (response.statusCode >= 400) {
-        debug(`_waitForPingUrl on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
+        debug(`_waitForUrlResponse on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
         await timeout(pingConfig.timeout)
       } else {
-        debug(`_waitForPingUrl success on url check ${pingConfig.uri}`)
+        debug(`_waitForUrlResponse success on url check ${pingConfig.uri}`)
         return body
       }
     }
@@ -613,6 +596,36 @@ module.exports = class SimpleRestContainer {
       clearInterval(this.pollInterval)
       this.pollInterval = null
     }
+  }
+
+  async _makeCall (capPrefix) {
+    const uri = this._getMustachedCap(`${capPrefix}_URL`, false)
+    const verb = this.caps[`${capPrefix}_VERB`]
+    const timeout = this.caps[`${capPrefix}_TIMEOUT`] || Defaults[`${capPrefix}_TIMEOUT`]
+    const httpConfig = {
+      method: verb,
+      uri: uri,
+      timeout: timeout
+    }
+    if (this.caps[`${capPrefix}_HEADERS`]) {
+      try {
+        httpConfig.headers = this._getMustachedCap(`${capPrefix}_HEADERS`, true)
+      } catch (err) {
+        throw new Error(`composing headers from ${capPrefix}_HEADERS failed (${err.message})`)
+      }
+    }
+    if (this.caps[`${capPrefix}_BODY`]) {
+      try {
+        httpConfig.body = this._getMustachedCap(`${capPrefix}_BODY`, !this.caps[`${capPrefix}_BODY_RAW`])
+        httpConfig.json = !this.caps[`${capPrefix}_BODY_RAW`]
+      } catch (err) {
+        throw new Error(`composing body from ${capPrefix}_BODY failed (${err.message})`)
+      }
+    }
+
+    const retries = this.caps[`${capPrefix}_RETRIES`] || Defaults[`${capPrefix}_RETRIES`]
+    const response = await this._waitForUrlResponse(httpConfig, retries)
+    return response
   }
 }
 module.exports.REDIS_TOPIC = REDIS_TOPIC
