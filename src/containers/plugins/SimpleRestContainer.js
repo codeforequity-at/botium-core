@@ -359,8 +359,25 @@ module.exports = class SimpleRestContainer {
         throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${util.inspect(err)})`)
       }
     }
-
     this.view.msg.messageText = nonEncodedMessage
+
+    if (msg.ADD_QUERY_PARAM && Object.keys(msg.ADD_QUERY_PARAM).length > 0) {
+      const appendToUri = Object.keys(msg.ADD_QUERY_PARAM).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(this._getMustachedVal(msg.ADD_QUERY_PARAM[key], false))}`).join('&')
+      if (requestOptions.uri.indexOf('?') > 0) {
+        requestOptions.uri = `${requestOptions.uri}&${appendToUri}`
+      } else {
+        requestOptions.uri = `${requestOptions.uri}?${appendToUri}`
+      }
+    }
+    if (msg.ADD_HEADER && Object.keys(msg.ADD_HEADER).length > 0) {
+      requestOptions.headers = requestOptions.headers || {}
+
+      for (const headerKey of Object.keys(msg.ADD_HEADER)) {
+        const headerValue = this._getMustachedVal(msg.ADD_HEADER[headerKey], false)
+        requestOptions.headers[headerKey] = headerValue
+      }
+    }
+
     await executeHook(this.requestHook, Object.assign({ requestOptions }, this.view))
 
     return requestOptions

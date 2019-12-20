@@ -404,6 +404,65 @@ describe('connectors.simplerest.build', function () {
       assert.isTrue(err.message.includes('Cant load hook, syntax is not valid'))
     }
   })
+  it('should query params from UPDATE_CUSTOM (without "?")', async function () {
+    const myCaps = Object.assign({}, myCapsGet)
+    const myMsg = Object.assign({}, msg)
+    myMsg.ADD_QUERY_PARAM = {
+      queryparam1: 'valueparam1',
+      queryparam2: '{{msg.messageText}}'
+    }
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const request = await container.pluginInstance._buildRequest(myMsg)
+    assert.isObject(request.headers)
+    assert.equal(request.uri, 'http://my-host.com/api/endpoint/messageText?queryparam1=valueparam1&queryparam2=messageText')
+
+    await container.Clean()
+  })
+  it('should query params from UPDATE_CUSTOM (with "?")', async function () {
+    const myCaps = Object.assign({}, myCapsGet)
+    myCaps.SIMPLEREST_URL = 'http://my-host.com/api/endpoint/messageText?const1=const1'
+    const myMsg = Object.assign({}, msg)
+    myMsg.ADD_QUERY_PARAM = {
+      queryparam1: 'valueparam1',
+      queryparam2: '{{msg.messageText}}'
+    }
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const request = await container.pluginInstance._buildRequest(myMsg)
+    assert.isObject(request.headers)
+    assert.equal(request.uri, 'http://my-host.com/api/endpoint/messageText?const1=const1&queryparam1=valueparam1&queryparam2=messageText')
+
+    await container.Clean()
+  })
+  it('should add header from UPDATE_CUSTOM', async function () {
+    const myCaps = Object.assign({}, myCapsGet)
+    const myMsg = Object.assign({}, msg)
+    myMsg.ADD_HEADER = {
+      headerparam1: 'headerparam1',
+      headerparam2: '{{msg.messageText}}'
+    }
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const request = await container.pluginInstance._buildRequest(myMsg)
+    assert.isObject(request.headers)
+    assert.equal(request.headers.headerparam1, 'headerparam1')
+    assert.equal(request.headers.headerparam2, 'messageText')
+
+    await container.Clean()
+  })
 })
 describe('connectors.simplerest.processBody', function () {
   it('should process simple response from hook', async function () {
