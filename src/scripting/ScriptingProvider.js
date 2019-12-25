@@ -13,8 +13,8 @@ const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
-const { quoteRegexpString, toString } = require('./helper')
 const RetryHelper = require('../helpers/RetryHelper')
+const MatchFunctions = require('./MatchFunctions')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json)'
 
@@ -335,40 +335,11 @@ module.exports = class ScriptingProvider {
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
     if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
-      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
-      this.matchFn = (botresponse, utterance) => {
-        utterance = toString(utterance)
-        if (_.isUndefined(botresponse)) return false
-
-        const regexp = lc ? (new RegExp(utterance, 'i')) : (new RegExp(utterance, ''))
-        return regexp.test(toString(botresponse))
-      }
+      this.matchFn = MatchFunctions.regexp(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase') {
-      const lc = (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase')
-      this.matchFn = (botresponse, utterance) => {
-        utterance = toString(utterance)
-        if (_.isUndefined(botresponse)) {
-          if (utterance.trim() === '*') return true
-          else return false
-        }
-        const utteranceRe = quoteRegexpString(utterance).replace(/\\\*/g, '(.*)')
-
-        const botresponseStr = toString(botresponse)
-        const regexp = lc ? (new RegExp(utteranceRe, 'i')) : (new RegExp(utteranceRe, ''))
-        return regexp.test(botresponseStr)
-      }
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include') {
-      this.matchFn = (botresponse, utterance) => {
-        utterance = toString(utterance)
-        if (_.isUndefined(botresponse)) return false
-        return toString(botresponse).indexOf(utterance) >= 0
-      }
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
-      this.matchFn = (botresponse, utterance) => {
-        utterance = toString(utterance)
-        if (_.isUndefined(botresponse)) return false
-        return toString(botresponse).toLowerCase().indexOf(utterance.toLowerCase()) >= 0
-      }
+      this.matchFn = MatchFunctions.wildcard(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase')
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
+      this.matchFn = MatchFunctions.include(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase')
     } else {
       this.matchFn = (botresponse, utterance) => botresponse === utterance
     }
