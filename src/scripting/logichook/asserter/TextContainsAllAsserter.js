@@ -1,10 +1,11 @@
 const { BotiumError } = require('../../BotiumError')
 const MatchFunctions = require('../../MatchFunctions')
 
-module.exports = class TextContainsAnyAsserter {
+module.exports = class TextContainsAllAsserter {
   constructor (context, caps = {}, ignoreCase = false) {
     this.context = context
     this.caps = caps
+    this.ignoreCase = ignoreCase
     this.matchFn = MatchFunctions.include(ignoreCase)
   }
 
@@ -15,11 +16,11 @@ module.exports = class TextContainsAnyAsserter {
       allUtterances = allUtterances.concat(utterances)
     }
     for (const utterance of allUtterances) {
-      if (this.matchFn(botMsg, utterance)) {
-        return { found: true, allUtterances }
+      if (!this.matchFn(botMsg, utterance)) {
+        return { found: false, allUtterances }
       }
     }
-    return { found: false, allUtterances }
+    return { found: true, allUtterances }
   }
 
   assertNotConvoStep ({ convo, convoStep, args, botMsg }) {
@@ -27,7 +28,7 @@ module.exports = class TextContainsAnyAsserter {
       const { found, allUtterances } = this._evalText(convo, args, botMsg)
       if (found) {
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Not expected any text in response "${allUtterances}"`,
+          `${convoStep.stepTag}: Not expected texts in response "${allUtterances}"`,
           {
             type: 'asserter',
             source: this.name,
@@ -51,7 +52,7 @@ module.exports = class TextContainsAnyAsserter {
       const { found, allUtterances } = this._evalText(convo, args, botMsg)
       if (!found) {
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Expected any text in response "${allUtterances}"`,
+          `${convoStep.stepTag}: Expected texts in response "${allUtterances}"`,
           {
             type: 'asserter',
             source: this.name,

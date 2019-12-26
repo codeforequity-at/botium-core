@@ -13,10 +13,10 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('scripting.asserters.textContainsAnyAsserter', function () {
+describe('scripting.asserters.textContainsAllAsserter', function () {
   beforeEach(async function () {
     const myCaps = {
-      [Capabilities.PROJECTNAME]: 'scripting.asserters.textContainsAnyAsserter',
+      [Capabilities.PROJECTNAME]: 'scripting.asserters.textContainsAllAsserter',
       [Capabilities.CONTAINERMODE]: echoConnector
     }
     const driver = new BotDriver(myCaps)
@@ -28,7 +28,7 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
   })
 
   it('ok, base', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_ok_base.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_ok_base.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -36,7 +36,7 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
   })
 
   it('ok, more words', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_ok_more_words.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_ok_more_words.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -44,7 +44,7 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
   })
 
   it('ok, utterances', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_ok_utterances.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_ok_utterances.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -52,7 +52,7 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
   })
 
   it('ok, ignore case', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_ok_ignore_case.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_ok_ignore_case.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -60,7 +60,7 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
   })
 
   it('ok, negate', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_ok_negate.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_ok_negate.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -68,7 +68,7 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
   })
 
   it('nok, base', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_nok_base.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_nok_base.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -77,12 +77,12 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_any_nok_base/Line 2: assertion error - Line 2: Expected any text in response "word3"')
+      assert.equal(err.message, 'text_contains_all_nok_base/Line 2: assertion error - Line 2: Expected texts in response "word3"')
     }
   })
 
   it('nok, more words', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_nok_more_words.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_nok_more_words.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -91,12 +91,26 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_any_nok_more_words/Line 2: assertion error - Line 2: Expected any text in response "word3,word4,word5"')
+      assert.equal(err.message, 'text_contains_all_nok_more_words/Line 2: assertion error - Line 2: Expected texts in response "word3,word4,word5"')
+    }
+  })
+
+  it('nok, more words, partial match', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_nok_more_words_partial_match.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'text_contains_all_nok_more_words/Line 2: assertion error - Line 2: Expected texts in response "word2,word3,word4"')
     }
   })
 
   it('nok, utterances', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_nok_utterances.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_nok_utterances.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -105,12 +119,12 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_any_nok_utterances/Line 2: assertion error - Line 2: Expected any text in response "word3,word4,hi,hello!"')
+      assert.equal(err.message, 'text_contains_all_nok_utterances/Line 2: assertion error - Line 2: Expected texts in response "word3,word4,hi,hello!"')
     }
   })
 
   it('nok, ignore case', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_nok_ignore_case.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_nok_ignore_case.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -119,12 +133,12 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_any_nok_ignore_case/Line 2: assertion error - Line 2: Expected any text in response "Word3"')
+      assert.equal(err.message, 'text_contains_all_nok_ignore_case/Line 2: assertion error - Line 2: Expected texts in response "Word3"')
     }
   })
 
   it('nok, negate', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_any_nok_negate.yml'))
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_contains_all_nok_negate.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -133,8 +147,7 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_any_nok_negate/Line 2: assertion error - Line 2: Not expected any text in response "word2"')
+      assert.equal(err.message, 'text_contains_all_nok_negate/Line 2: assertion error - Line 2: Not expected texts in response "word2"')
     }
   })
-
 })

@@ -15,7 +15,9 @@ module.exports = {
     { name: 'JSON_PATH', className: 'JsonPathAsserter' },
     { name: 'RESPONSE_LENGTH', className: 'ResponseLengthAsserter' },
     { name: 'TEXT_CONTAINS_ANY', className: 'TextContainsAnyAsserter' },
-    { name: 'TEXT_CONTAINS_ANY_IC', className: 'TextContainsAnyICAsserter' }
+    { name: 'TEXT_CONTAINS_ANY_IC', className: 'TextContainsAnyICAsserter' },
+    { name: 'TEXT_CONTAINS_ALL', className: 'TextContainsAllAsserter' },
+    { name: 'TEXT_CONTAINS_ALL_IC', className: 'TextContainsAllICAsserter' }
   ],
   DEFAULT_LOGIC_HOOKS: [
     { name: 'PAUSE', className: 'PauseLogicHook' },
