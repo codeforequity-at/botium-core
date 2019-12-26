@@ -13,7 +13,9 @@ module.exports = {
     { name: 'INTENT_UNIQUE', className: 'IntentUniqueAsserter' },
     { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' },
     { name: 'JSON_PATH', className: 'JsonPathAsserter' },
-    { name: 'RESPONSE_LENGTH', className: 'ResponseLengthAsserter' }
+    { name: 'RESPONSE_LENGTH', className: 'ResponseLengthAsserter' },
+    { name: 'TEXT_CONTAINS_ANY', className: 'TextContainsAnyAsserter' },
+    { name: 'TEXT_CONTAINS_ANY_IC', className: 'TextContainsAnyICAsserter' }
   ],
   DEFAULT_LOGIC_HOOKS: [
     { name: 'PAUSE', className: 'PauseLogicHook' },
