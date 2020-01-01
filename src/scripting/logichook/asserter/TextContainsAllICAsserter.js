@@ -1,7 +1,8 @@
-const TextContainsAllAsserter = require('./TextContainsAllAsserter')
+const BaseTextAsserter = require('./BaseTextAsserter')
+const MatchFunctions = require('../../MatchFunctions')
 
-module.exports = class TextContainsAllICAsserter extends TextContainsAllAsserter {
+module.exports = class TextContainsAnyAsserter extends BaseTextAsserter {
   constructor (context, caps = {}) {
-    super(context, caps, true)
+    super(context, caps, MatchFunctions.include(true), 'all')
   }
 }

@@ -1,8 +1,8 @@
 const BaseTextAsserter = require('./BaseTextAsserter')
 const MatchFunctions = require('../../MatchFunctions')
 
-module.exports = class TextContainsAnyAsserter extends BaseTextAsserter {
+module.exports = class TextRegexpAnyAsserter extends BaseTextAsserter {
   constructor (context, caps = {}) {
-    super(context, caps, MatchFunctions.include(false), 'any')
+    super(context, caps, MatchFunctions.regexp(false), 'all')
   }
 }

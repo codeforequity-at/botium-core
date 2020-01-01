@@ -17,7 +17,15 @@ module.exports = {
     { name: 'TEXT_CONTAINS_ANY', className: 'TextContainsAnyAsserter' },
     { name: 'TEXT_CONTAINS_ANY_IC', className: 'TextContainsAnyICAsserter' },
     { name: 'TEXT_CONTAINS_ALL', className: 'TextContainsAllAsserter' },
-    { name: 'TEXT_CONTAINS_ALL_IC', className: 'TextContainsAllICAsserter' }
+    { name: 'TEXT_CONTAINS_ALL_IC', className: 'TextContainsAllICAsserter' },
+    { name: 'TEXT_WILDCARD_ANY', className: 'TextWildcardAnyAsserter' },
+    { name: 'TEXT_WILDCARD_ANY_IC', className: 'TextWildcardAnyICAsserter' },
+    { name: 'TEXT_WILDCARD_ALL', className: 'TextWildcardAllAsserter' },
+    { name: 'TEXT_WILDCARD_ALL_IC', className: 'TextWildcardAllICAsserter' },
+    { name: 'TEXT_REGEXP_ANY', className: 'TextRegexpAnyAsserter' },
+    { name: 'TEXT_REGEXP_ANY_IC', className: 'TextRegexpAnyICAsserter' },
+    { name: 'TEXT_REGEXP_ALL', className: 'TextRegexpAllAsserter' },
+    { name: 'TEXT_REGEXP_ALL_IC', className: 'TextRegexpAllICAsserter' }
   ],
   DEFAULT_LOGIC_HOOKS: [
     { name: 'PAUSE', className: 'PauseLogicHook' },
