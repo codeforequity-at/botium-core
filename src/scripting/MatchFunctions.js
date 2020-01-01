@@ -34,3 +34,15 @@ module.exports.include = (ignoreCase) => (botresponse, utterance) => {
   }
   return botresponse.indexOf(utterance) >= 0
 }
+
+module.exports.equals = (ignoreCase) => (botresponse, utterance) => {
+  if (_.isUndefined(botresponse)) return false
+  utterance = toString(utterance)
+  botresponse = botresponse.messageText || ''
+
+  if (ignoreCase) {
+    utterance = utterance.toLowerCase()
+    botresponse = botresponse.toLowerCase()
+  }
+  return botresponse === utterance
+}

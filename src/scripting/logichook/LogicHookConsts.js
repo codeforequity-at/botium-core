@@ -25,7 +25,12 @@ module.exports = {
     { name: 'TEXT_REGEXP_ANY', className: 'TextRegexpAnyAsserter' },
     { name: 'TEXT_REGEXP_ANY_IC', className: 'TextRegexpAnyICAsserter' },
     { name: 'TEXT_REGEXP_ALL', className: 'TextRegexpAllAsserter' },
-    { name: 'TEXT_REGEXP_ALL_IC', className: 'TextRegexpAllICAsserter' }
+    { name: 'TEXT_REGEXP_ALL_IC', className: 'TextRegexpAllICAsserter' },
+    { name: 'TEXT_EQUALS', className: 'TextEqualsAnyAsserter' },
+    { name: 'TEXT_EQUALS_IC', className: 'TextEqualsAnyICAsserter' },
+    { name: 'TEXT', className: 'TextEqualsAnyAsserter' },
+    { name: 'TEXT_IC', className: 'TextEqualsAnyICAsserter' }
+
   ],
   DEFAULT_LOGIC_HOOKS: [
     { name: 'PAUSE', className: 'PauseLogicHook' },

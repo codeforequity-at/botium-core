@@ -341,7 +341,7 @@ module.exports = class ScriptingProvider {
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
       this.matchFn = MatchFunctions.include(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase')
     } else {
-      this.matchFn = (botresponse, utterance) => botresponse === utterance
+      this.matchFn = MatchFunctions.equals(false)
     }
     const logicHookUtils = new LogicHookUtils({ buildScriptContext: this._buildScriptContext(), caps: this.caps })
     this.asserters = logicHookUtils.asserters

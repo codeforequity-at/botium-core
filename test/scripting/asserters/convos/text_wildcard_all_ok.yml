@@ -5,6 +5,3 @@ convos:
           - Im Joe, my number is 12345, and my ID is id1_123
       - bot:
           - TEXT_WILDCARD_ALL id1_*3|1*5
-utterances:
-  NAME:
-    - Joe
