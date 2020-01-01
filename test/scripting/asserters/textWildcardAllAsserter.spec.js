@@ -45,7 +45,7 @@ describe('scripting.asserters.textWildcardAllAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_wildcard_all_nok/Line 2: assertion error - Line 2: Expected texts in response "id2_*3,1*5"')
+      assert.equal(err.message, 'text_wildcard_all_nok/Line 2: assertion error - Line 2: Expected texts in response "id2_*3"')
     }
   })
 })

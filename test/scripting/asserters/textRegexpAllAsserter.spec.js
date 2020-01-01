@@ -45,7 +45,7 @@ describe('scripting.asserters.textRegexpAllAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_regexp_all_nok/Line 2: assertion error - Line 2: Expected texts in response "id2_\\d\\d\\d,[0-9]+"')
+      assert.equal(err.message, 'text_regexp_all_nok/Line 2: assertion error - Line 2: Expected texts in response "id2_\\d\\d\\d"')
     }
   })
 })

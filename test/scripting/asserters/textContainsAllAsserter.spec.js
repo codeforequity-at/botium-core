@@ -105,7 +105,7 @@ describe('scripting.asserters.textContainsAllAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_all_nok_more_words/Line 2: assertion error - Line 2: Expected texts in response "word2,word3,word4"')
+      assert.equal(err.message, 'text_contains_all_nok_more_words/Line 2: assertion error - Line 2: Expected texts in response "word3,word4"')
     }
   })
 

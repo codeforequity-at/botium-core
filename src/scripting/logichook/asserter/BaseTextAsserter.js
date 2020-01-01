@@ -17,29 +17,36 @@ module.exports = class TextContainsAllAsserter {
       const utterances = convo.scriptingEvents.resolveUtterance({ utterance: arg })
       allUtterances = allUtterances.concat(utterances)
     }
-    if (this.mode === 'all') {
-      for (const utterance of allUtterances) {
-        if (!this.matchFn(botMsg, utterance)) {
-          return { found: false, allUtterances }
-        }
-      }
-      return { found: true, allUtterances }
-    } else if (this.mode === 'any') {
-      for (const utterance of allUtterances) {
-        if (this.matchFn(botMsg, utterance)) {
-          return { found: true, allUtterances }
-        }
-      }
-      return { found: false, allUtterances }
+    const founds = []
+    const notFounds = []
+    for (const utterance of allUtterances) {
+      (this.matchFn(botMsg, utterance) ? founds : notFounds).push(utterance)
     }
+    return { found: (this.mode === 'all' ? notFounds.length === 0 : founds.length > 0), allUtterances, founds, notFounds }
+
+    // if (this.mode === 'all') {
+    //   for (const utterance of allUtterances) {
+    //     if (!this.matchFn(botMsg, utterance)) {
+    //       return { found: false, allUtterances }
+    //     }
+    //   }
+    //   return { found: true, allUtterances }
+    // } else if (this.mode === 'any') {
+    //   for (const utterance of allUtterances) {
+    //     if (this.matchFn(botMsg, utterance)) {
+    //       return { found: true, allUtterances }
+    //     }
+    //   }
+    //   return { found: false, allUtterances }
+    // }
   }
 
   assertNotConvoStep ({ convo, convoStep, args, botMsg }) {
     if (args && args.length > 0) {
-      const { found, allUtterances } = this._evalText(convo, args, botMsg)
+      const { found, allUtterances, founds } = this._evalText(convo, args, botMsg)
       if (found) {
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Not expected ${this.mode === 'all' ? 'texts' : 'any text'} in response "${allUtterances}"`,
+          `${convoStep.stepTag}: Not expected ${this.mode === 'all' ? 'texts' : 'any text'} in response "${founds}"`,
           {
             type: 'asserter',
             source: this.name,
@@ -60,10 +67,10 @@ module.exports = class TextContainsAllAsserter {
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (args && args.length > 0) {
-      const { found, allUtterances } = this._evalText(convo, args, botMsg)
+      const { found, allUtterances, notFounds } = this._evalText(convo, args, botMsg)
       if (!found) {
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Expected ${this.mode === 'all' ? 'texts' : 'any text'} in response "${allUtterances}"`,
+          `${convoStep.stepTag}: Expected ${this.mode === 'all' ? 'texts' : 'any text'} in response "${notFounds}"`,
           {
             type: 'asserter',
             source: this.name,
