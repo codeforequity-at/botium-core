@@ -136,5 +136,4 @@ describe('scripting.asserters.textContainsAnyAsserter', function () {
       assert.equal(err.message, 'text_contains_any_nok_negate/Line 2: assertion error - Line 2: Not expected any text in response "word2"')
     }
   })
-
 })
