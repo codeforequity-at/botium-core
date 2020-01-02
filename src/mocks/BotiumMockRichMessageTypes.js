@@ -19,6 +19,7 @@ class BotiumMockCard {
     this.text = fromJson.text
     this.subtext = fromJson.subtext
     this.content = fromJson.content
+    this.sourceData = fromJson.sourceData
     this.image = (fromJson.image ? new BotiumMockMedia(fromJson.image) : null)
     this.buttons = (fromJson.buttons ? fromJson.buttons.map((a) => new BotiumMockButton(a)) : null)
     this.media = (fromJson.media ? fromJson.media.map((a) => new BotiumMockMedia(a)) : null)
