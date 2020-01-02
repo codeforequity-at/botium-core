@@ -6,14 +6,17 @@ module.exports = {
     { name: 'MEDIA', className: 'MediaAsserter' },
     { name: 'CARDS', className: 'CardsAsserter' },
     { name: 'PAUSE_ASSERTER', className: 'PauseAsserter' },
+    { name: 'JSON_PATH', className: 'JsonPathAsserter' },
+    { name: 'RESPONSE_LENGTH', className: 'ResponseLengthAsserter' },
+    { name: 'FORMS', className: 'FormsAsserter' },
+
     { name: 'ENTITIES', className: 'EntitiesAsserter' },
     { name: 'ENTITY_VALUES', className: 'EntityValuesAsserter' },
     { name: 'ENTITY_CONTENT', className: 'EntityContentAsserter' },
+
     { name: 'INTENT', className: 'IntentAsserter' },
     { name: 'INTENT_UNIQUE', className: 'IntentUniqueAsserter' },
-    { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' },
-    { name: 'JSON_PATH', className: 'JsonPathAsserter' },
-    { name: 'RESPONSE_LENGTH', className: 'ResponseLengthAsserter' }
+    { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' }
   ],
   DEFAULT_LOGIC_HOOKS: [
     { name: 'PAUSE', className: 'PauseLogicHook' },

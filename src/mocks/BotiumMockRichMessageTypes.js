@@ -29,6 +29,17 @@ class BotiumMockForm {
   constructor (fromJson = {}) {
     this.name = fromJson.name
     this.value = fromJson.value
+
+    this.label = fromJson.label
+    this.type = fromJson.type
+    this.options = (fromJson.options ? fromJson.options.map((c) => new BotiumMockChoice(c)) : null)
+  }
+}
+
+class BotiumMockChoice {
+  constructor (fromJson = {}) {
+    this.title = fromJson.title
+    this.value = fromJson.value
   }
 }
 
