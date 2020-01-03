@@ -25,7 +25,7 @@ module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
     this.queueBotSays = queueBotSays
     this.caps = caps
-    this.processResponse = false
+    this.processInbound = false
   }
 
   Validate () {
@@ -79,7 +79,7 @@ module.exports = class SimpleRestContainer {
 
           if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
             try {
-              this.view.context = _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) ? this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT] : JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
+              this.view.context = _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) ? _.cloneDeep(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) : JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
             } catch (err) {
               contextInitComplete(`parsing SIMPLEREST_INIT_CONTEXT failed, no JSON detected (${util.inspect(err)})`)
             }
@@ -133,7 +133,7 @@ module.exports = class SimpleRestContainer {
         if (err) {
           return reject(new Error(`Start failed ${util.inspect(err)}`))
         }
-        this.processResponse = true
+        this.processInbound = true
         resolve()
       })
     })
@@ -144,7 +144,7 @@ module.exports = class SimpleRestContainer {
   }
 
   async Stop () {
-    this.processResponse = false
+    this.processInbound = false
     if (this.caps[Capabilities.SIMPLEREST_STOP_URL]) {
       try {
         await this._makeCall('SIMPLEREST_STOP')
@@ -169,8 +169,6 @@ module.exports = class SimpleRestContainer {
 
   // Separated just for better module testing
   async _processBodyAsyncImpl (body, isFromUser) {
-    if (!this.processResponse) return []
-
     if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
       const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
       if (_.isArray(contextNodes) && contextNodes.length > 0) {
@@ -279,12 +277,12 @@ module.exports = class SimpleRestContainer {
               if (_.isString(body)) {
                 try {
                   body = JSON.parse(body)
-                  setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
+                  setTimeout(() => this._processBodyAsync(body, isFromUser, false), 0)
                 } catch (err) {
                   debug(`ignoring not JSON formatted response body (${err.message})`)
                 }
               } else if (_.isObject(body)) {
-                setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
+                setTimeout(() => this._processBodyAsync(body, isFromUser, false), 0)
               } else {
                 debug('ignoring response body (no string and no JSON object)')
               }
@@ -432,6 +430,8 @@ module.exports = class SimpleRestContainer {
   }
 
   _processInboundEvent (event) {
+    if (!this.processInbound) return
+
     const jsonPathValue = this.caps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE]
     const jsonPathsSelector = this._getAllCapValues(Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH)
     if (jsonPathsSelector && jsonPathsSelector.length > 0) {
@@ -529,6 +529,8 @@ module.exports = class SimpleRestContainer {
   }
 
   _runPolling () {
+    if (!this.processInbound) return
+
     if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
       const uri = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_URL, false)
       const verb = this.caps[Capabilities.SIMPLEREST_POLL_VERB]
@@ -567,12 +569,12 @@ module.exports = class SimpleRestContainer {
             if (_.isString(body)) {
               try {
                 body = JSON.parse(body)
-                setTimeout(() => this._processBodyAsync(body, true), 0)
+                setTimeout(() => this._processBodyAsync(body, true, true), 0)
               } catch (err) {
                 debug(`_runPolling: ignoring not JSON formatted response body (${err.message})`)
               }
             } else if (_.isObject(body)) {
-              setTimeout(() => this._processBodyAsync(body, true), 0)
+              setTimeout(() => this._processBodyAsync(body, true, true), 0)
             } else {
               debug('_runPolling: ignoring response body (no string and no JSON object)')
             }
