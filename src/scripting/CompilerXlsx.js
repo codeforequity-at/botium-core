@@ -23,13 +23,13 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
   Validate () {
     super.Validate()
-    this._AssertCapabilityExists(Capabilities.SCRIPTING_XLSX_STARTROW)
-    this._AssertCapabilityExists(Capabilities.SCRIPTING_XLSX_STARTCOL)
 
-    if (_.isString(this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]) && this.colnames.findIndex((c) => c === this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]) < 0) {
-      throw new Error(`SCRIPTING_XLSX_STARTCOL ${this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]} invalid (A-Z)`)
-    } else if (this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL] < 1 || this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL] > this.colnames.length) {
-      throw new Error(`SCRIPTING_XLSX_STARTCOL ${this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]} invalid (1-${this.colnames.length})`)
+    if (this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL] !== undefined) {
+      if (_.isString(this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]) && this.colnames.findIndex((c) => c === this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]) < 0) {
+        throw new Error(`SCRIPTING_XLSX_STARTCOL ${this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]} invalid (A-Z)`)
+      } else if (this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL] < 1 || this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL] > this.colnames.length) {
+        throw new Error(`SCRIPTING_XLSX_STARTCOL ${this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]} invalid (1-${this.colnames.length})`)
+      }
     }
   }
 
@@ -44,25 +44,25 @@ module.exports = class CompilerXlsx extends CompilerBase {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
         sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES])
       } else {
-        sheetnames = workbook.SheetNames || []
+        sheetnames = workbook.SheetNames.filter(s => /convo/i.test(s) && !/partial/i.test(s)) || []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS]) {
         sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS])
       } else {
-        sheetnames = []
+        sheetnames = workbook.SheetNames.filter(s => /partial/i.test(s)) || []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
         sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES])
       } else {
-        sheetnames = []
+        sheetnames = workbook.SheetNames.filter(s => /utter/i.test(s)) || []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY) {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]) {
         sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY])
       } else {
-        sheetnames = []
+        sheetnames = workbook.SheetNames.filter(s => /memory/i.test(s) || /scripting/i.test(s)) || []
       }
     } else {
       throw Error(`Invalid script type ${scriptType}`)
@@ -76,11 +76,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       const sheet = workbook.Sheets[sheetname]
       if (!sheet) return
 
-      let rowindex = this.caps[Capabilities.SCRIPTING_XLSX_STARTROW]
-      let colindex = this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL] - 1
-      if (_.isString(this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL])) {
-        colindex = this.colnames.findIndex((c) => c === this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL])
-      }
+      let { rowindex, colindex } = this._findOrigin(sheet, scriptType)
       debug(`evaluating sheet name for ${scriptType}: ${util.inspect(sheetname)}, rowindex ${rowindex}, colindex ${colindex}`)
 
       if (scriptType === Constants.SCRIPTING_TYPE_CONVO || scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
@@ -351,5 +347,69 @@ module.exports = class CompilerXlsx extends CompilerBase {
     XLSX.utils.book_append_sheet(wb, ws, sheetname)
     const xlsxOutput = XLSX.write(wb, { type: 'buffer' })
     return xlsxOutput
+  }
+
+  _get (sheet, rowindex, colindex) {
+    const cell = this.colnames[colindex] + rowindex
+    const cellValue = sheet[cell] && sheet[cell].v
+    return cellValue
+  }
+
+  _findOrigin (sheet, scriptType) {
+    let rowindex = this.caps[Capabilities.SCRIPTING_XLSX_STARTROW]
+    let colindex = this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]
+
+    if (_.isString(this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL])) {
+      colindex = this.colnames.findIndex((c) => c === this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL])
+    } else if (colindex !== undefined) {
+      colindex = colindex - 1
+    }
+
+    if (rowindex === undefined && colindex === undefined) {
+      // eslint-disable-next-line no-labels
+      NestedLoop:
+      for (let cr = 1; cr < 1000; cr++) {
+        for (let cc = 0; cc < this.colnames.length; cc++) {
+          if (this._get(sheet, cr, cc)) {
+            if (scriptType === Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY) {
+              if (cc > 0 && this._get(sheet, cr + 1, cc - 1)) {
+                rowindex = cr
+                colindex = cc - 1
+                // eslint-disable-next-line no-labels
+                break NestedLoop
+              }
+            } else {
+              rowindex = cr
+              colindex = cc
+              // eslint-disable-next-line no-labels
+              break NestedLoop
+            }
+          }
+        }
+      }
+      if (scriptType !== Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY) {
+        if (rowindex !== undefined && this.caps[Capabilities.SCRIPTING_XLSX_HASHEADERS]) {
+          rowindex++
+        }
+      }
+    } else if (rowindex === undefined && colindex !== undefined) {
+      for (let i = 1; i < 1000; i++) {
+        if (this._get(sheet, i, colindex)) {
+          rowindex = i
+          break
+        }
+      }
+      if (this.caps[Capabilities.SCRIPTING_XLSX_HASHEADERS]) {
+        rowindex++
+      }
+    } else if (rowindex !== undefined && colindex === undefined) {
+      for (let i = 0; i < this.colnames.length; i++) {
+        if (this._get(sheet, rowindex, i)) {
+          colindex = i
+          break
+        }
+      }
+    }
+    return { rowindex, colindex }
   }
 }
