@@ -32,14 +32,14 @@ describe('UserInputs.defaults.buttonInput', function () {
       assert.instanceOf(err, Error)
     }
   })
-  it('should set button in message', async function () {
+  it('should set button in message as payload', async function () {
     const bi = new ButtonInput()
 
     const meMsg = {}
     await bi.setUserInput({ convoStep, args: ['Test1'], meMsg })
     assert.isArray(meMsg.buttons)
     assert.lengthOf(meMsg.buttons, 1)
-    assert.equal(meMsg.buttons[0].text, 'Test1')
+    assert.equal(meMsg.buttons[0].payload, 'Test1')
   })
 })
 
