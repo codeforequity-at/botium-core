@@ -176,6 +176,9 @@ module.exports = class CompilerTxt extends CompilerBase {
         } else if (set.messageText) {
           script += set.messageText + this.eol
         }
+        set.forms && set.forms.map((form) => {
+          script += `FORM ${form.name}|${form.value}` + this.eol
+        })
         set.logicHooks && set.logicHooks.map((logicHook) => {
           script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
         })
