@@ -7,14 +7,24 @@ module.exports = class MediaAsserter {
     this.name = 'MediaAsserter'
   }
 
+  _mediaFromCardsRecursive (cards) {
+    let result = []
+    for (const card of cards) {
+      result = result.concat(card.image ? [card.image.mediaUri] : [])
+      result = result.concat(card.media ? card.media.map(media => media.mediaUri) : [])
+      card.cards && (result = result.concat(this._mediaFromCardsRecursive(card.cards)))
+    }
+
+    return result
+  }
+
   _evalMedia (args, botMsg) {
     let allMedia = []
     if (botMsg.media) {
       allMedia = allMedia.concat(botMsg.media.map(mb => mb.mediaUri))
     }
     if (botMsg.cards) {
-      allMedia = allMedia.concat(botMsg.cards.filter(mc => mc.image).map(mc => mc.image.mediaUri))
-      allMedia = allMedia.concat(botMsg.cards.filter(mc => mc.media).reduce((acc, mc) => acc.concat(mc.media.map(mcm => mcm.mediaUri)), []))
+      allMedia = allMedia.concat(this._mediaFromCardsRecursive(botMsg.cards))
     }
 
     const mediaNotFound = []

@@ -7,8 +7,18 @@ module.exports = class ButtonsAsserter {
     this.name = 'ButtonsAsserter'
   }
 
+  _buttonTextsFromCardsRecursive (cards) {
+    let result = []
+    for (const card of cards) {
+      result = result.concat(card.buttons ? card.buttons.map(b => b.text) : [])
+      card.cards && (result = result.concat(this._buttonTextsFromCardsRecursive(card.cards)))
+    }
+
+    return result
+  }
+
   _evalButtons (args, botMsg) {
-    const allButtons = (botMsg.buttons ? botMsg.buttons.map(b => b.text) : []).concat(botMsg.cards ? botMsg.cards.reduce((acc, mc) => acc.concat(mc.buttons ? mc.buttons.map(b => b.text) : []), []) : [])
+    const allButtons = (botMsg.buttons ? botMsg.buttons.map(b => b.text) : []).concat(this._buttonTextsFromCardsRecursive(botMsg.cards))
     const buttonsNotFound = []
     const buttonsFound = []
     for (let i = 0; i < (args || []).length; i++) {

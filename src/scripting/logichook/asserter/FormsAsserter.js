@@ -9,6 +9,16 @@ module.exports = class FormsAsserter {
     this.name = 'FormsAsserter'
   }
 
+  _formsFromCardsRecursive (cards) {
+    let result = []
+    for (const card of cards) {
+      result = result.concat(card.forms ? card.forms.map(form => form.name) : [])
+      card.cards && (result = result.concat(this._formsFromCardsRecursive(card.cards)))
+    }
+
+    return result
+  }
+
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     let acceptMoreForms = false
     if (args.length > 0 && ((args[args.length - 1] === '..') || (args[args.length - 1] === '...'))) {
@@ -18,7 +28,8 @@ module.exports = class FormsAsserter {
 
     const expectedForms = _extractCount(args)
 
-    const currentForms = _.has(botMsg, 'forms') ? _extractCount(botMsg.forms.map((entity) => entity.name)) : {}
+    const allForms = (botMsg.forms ? botMsg.forms.map(form => form.name) : []).concat(this._formsFromCardsRecursive(botMsg.cards))
+    const currentForms = _.has(botMsg, 'forms') ? _extractCount(allForms) : {}
 
     const { substracted, hasMissingEntityEntity } = _substract(currentForms, expectedForms)
 
@@ -54,7 +65,7 @@ module.exports = class FormsAsserter {
         },
         cause: {
           expected: args,
-          actual: botMsg.forms && botMsg.forms.map((entity) => entity.name),
+          actual: allForms,
           diff: substractedAsArray
         }
       }
