@@ -6,14 +6,18 @@ module.exports = {
     { name: 'MEDIA', className: 'MediaAsserter' },
     { name: 'CARDS', className: 'CardsAsserter' },
     { name: 'PAUSE_ASSERTER', className: 'PauseAsserter' },
+    { name: 'JSON_PATH', className: 'JsonPathAsserter' },
+    { name: 'RESPONSE_LENGTH', className: 'ResponseLengthAsserter' },
+    { name: 'FORMS', className: 'FormsAsserter' },
+
     { name: 'ENTITIES', className: 'EntitiesAsserter' },
     { name: 'ENTITY_VALUES', className: 'EntityValuesAsserter' },
     { name: 'ENTITY_CONTENT', className: 'EntityContentAsserter' },
+
     { name: 'INTENT', className: 'IntentAsserter' },
     { name: 'INTENT_UNIQUE', className: 'IntentUniqueAsserter' },
     { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' },
-    { name: 'JSON_PATH', className: 'JsonPathAsserter' },
-    { name: 'RESPONSE_LENGTH', className: 'ResponseLengthAsserter' },
+
     { name: 'TEXT_CONTAINS_ANY', className: 'TextContainsAnyAsserter' },
     { name: 'TEXT_CONTAINS_ANY_IC', className: 'TextContainsAnyICAsserter' },
     { name: 'TEXT_CONTAINS_ALL', className: 'TextContainsAllAsserter' },
@@ -30,7 +34,6 @@ module.exports = {
     { name: 'TEXT_EQUALS_IC', className: 'TextEqualsAnyICAsserter' },
     { name: 'TEXT', className: 'TextEqualsAnyAsserter' },
     { name: 'TEXT_IC', className: 'TextEqualsAnyICAsserter' }
-
   ],
   DEFAULT_LOGIC_HOOKS: [
     { name: 'PAUSE', className: 'PauseLogicHook' },
