@@ -170,7 +170,11 @@ module.exports = class CompilerTxt extends CompilerBase {
 
       if (set.sender === 'me') {
         if (set.buttons && set.buttons.length > 0) {
-          script += 'BUTTON ' + (set.buttons[0].payload || set.buttons[0].text) + this.eol
+          script += `BUTTON ${set.buttons[0].text}`
+          if (set.buttons[0].payload) {
+            script += `|${set.buttons[0].payload}`
+          }
+          script += this.eol
         } else if (set.media && set.media.length > 0) {
           script += 'MEDIA ' + set.media[0].mediaUri + this.eol
         } else if (set.messageText) {

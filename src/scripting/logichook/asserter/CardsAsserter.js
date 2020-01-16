@@ -10,7 +10,7 @@ module.exports = class CardsAsserter {
   _cardsRecursive (cards) {
     let result = cards
     for (const card of cards) {
-      card.cards && (result = result.concat(this._mediaFromCardsRecursive(card.cards)))
+      card.cards && (result = result.concat(this._cardsRecursive(card.cards)))
     }
 
     return result
