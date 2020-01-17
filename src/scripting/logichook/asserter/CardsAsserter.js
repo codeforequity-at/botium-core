@@ -8,6 +8,9 @@ module.exports = class CardsAsserter {
   }
 
   _cardsRecursive (cards) {
+    if (!cards) {
+      return []
+    }
     let result = cards
     for (const card of cards) {
       card.cards && (result = result.concat(this._cardsRecursive(card.cards)))

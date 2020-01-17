@@ -202,7 +202,7 @@ myasserter arg1|arg2
     assert.equal(script, `test convo
 
 #me
-BUTTON buttonpayload
+BUTTON buttontext|buttonpayload
 `
     )
   })
@@ -304,9 +304,10 @@ MEDIA test1.png
     assert.equal(script, `test convo
 
 #bot
-CARDS text of card|text of card2
+CARDS text of card
 BUTTONS text of button|text of button2
 MEDIA mediaUri
+CARDS text of card2
 `
     )
   })

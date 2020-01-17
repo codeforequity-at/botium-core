@@ -8,10 +8,13 @@ module.exports = class ButtonsAsserter {
   }
 
   _buttonTextsFromCardsRecursive (cards) {
+    if (!cards) {
+      return []
+    }
     let result = []
     for (const card of cards) {
       result = result.concat(card.buttons ? card.buttons.map(b => b.text) : [])
-      card.cards && (result = result.concat(this._buttonTextsFromCardsRecursive(card.cards)))
+      result = result.concat(this._buttonTextsFromCardsRecursive(card.cards))
     }
 
     return result

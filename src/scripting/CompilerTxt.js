@@ -197,7 +197,7 @@ module.exports = class CompilerTxt extends CompilerBase {
         if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
         if (set.cards && set.cards.length > 0) {
           set.cards.forEach(c => {
-            if (c.text) script += 'CARDS ' + c.text.join('|') + this.eol
+            if (c.text) script += 'CARDS ' + (_.isArray(c.text) ? c.text : [c.text]).join('|') + this.eol
             if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
             if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
           })

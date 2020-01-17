@@ -8,6 +8,9 @@ module.exports = class MediaAsserter {
   }
 
   _mediaFromCardsRecursive (cards) {
+    if (!cards) {
+      return []
+    }
     let result = []
     for (const card of cards) {
       result = result.concat(card.image ? [card.image.mediaUri] : [])
