@@ -1,0 +1,7 @@
+convos:
+  - name: text_ok
+    steps:
+      - me:
+          - Im Joe
+      - bot:
+          - TEXT Im Joe|Im George

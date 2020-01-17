@@ -1,0 +1,7 @@
+convos:
+  - name: text_regexp_all_nok
+    steps:
+      - me:
+          - Im Joe, my number is 12345, and my ID is id1_123
+      - bot:
+          - TEXT_REGEXP_ALL id2_\d\d\d|[0-9]+

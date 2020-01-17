@@ -1,0 +1,7 @@
+convos:
+  - name: text_contains_any_ok_negate
+    steps:
+      - me:
+          - word1 word2
+      - bot:
+          - "!TEXT_CONTAINS_ANY word3"

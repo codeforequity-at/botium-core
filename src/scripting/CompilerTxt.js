@@ -169,8 +169,15 @@ module.exports = class CompilerTxt extends CompilerBase {
       script += this.eol
 
       if (set.sender === 'me') {
+        set.forms && set.forms.filter(form => form.value).map((form) => {
+          script += `FORM ${form.name}|${form.value}${this.eol}`
+        })
         if (set.buttons && set.buttons.length > 0) {
-          script += 'BUTTON ' + (set.buttons[0].payload || set.buttons[0].text) + this.eol
+          script += `BUTTON ${set.buttons[0].text}`
+          if (set.buttons[0].payload) {
+            script += `|${set.buttons[0].payload}`
+          }
+          script += this.eol
         } else if (set.media && set.media.length > 0) {
           script += 'MEDIA ' + set.media[0].mediaUri + this.eol
         } else if (set.messageText) {
@@ -189,8 +196,8 @@ module.exports = class CompilerTxt extends CompilerBase {
         if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
         if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
         if (set.cards && set.cards.length > 0) {
-          script += 'CARDS ' + set.cards.map(c => c.text).join('|') + this.eol
           set.cards.forEach(c => {
+            if (c.text) script += 'CARDS ' + (_.isArray(c.text) ? c.text : [c.text]).join('|') + this.eol
             if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
             if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
           })
