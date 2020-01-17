@@ -169,6 +169,9 @@ module.exports = class CompilerTxt extends CompilerBase {
       script += this.eol
 
       if (set.sender === 'me') {
+        set.forms && set.forms.filter(form => form.value).map((form) => {
+          script += `FORM ${form.name}|${form.value}${this.eol}`
+        })
         if (set.buttons && set.buttons.length > 0) {
           script += `BUTTON ${set.buttons[0].text}`
           if (set.buttons[0].payload) {
