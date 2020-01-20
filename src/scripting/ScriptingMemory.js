@@ -141,7 +141,8 @@ const _apply = (scriptingMemory, str) => {
     for (const key of allKeys) {
       // scripting memory is stronger
       if (scriptingMemory[key]) {
-        str = str.replace(key, scriptingMemory[key])
+        const keyRegexp = new RegExp(`\\${key}`, 'g')
+        str = str.replace(keyRegexp, scriptingMemory[key])
       } else {
         const regex = `\\${key}(\\(.+(?<!\\\\)\\))?`
         const matches = str.match(new RegExp(regex, 'g')) || []
@@ -190,7 +191,8 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
       }
       const varMatches = extractVarNames(expected)
       for (let i = 0; i < varMatches.length; i++) {
-        reExpected = reExpected.replace(varMatches[i], varRegex)
+        const varMatchesRegexp = new RegExp(`\\${varMatches[i]}`, 'g')
+        reExpected = reExpected.replace(varMatchesRegexp, varRegex)
       }
       const resultMatches = result.match(reExpected) || []
       for (let i = 1; i < resultMatches.length; i++) {
