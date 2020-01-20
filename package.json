@@ -1,11 +1,11 @@
 {
   "name": "botium-core",
-  "version": "1.7.5",
+  "version": "1.8.0",
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "module": "dist/botium-es.js",
   "engines": {
-    "node": ">=8.10.0"
+    "node": ">=8.13.0"
   },
   "scripts": {
     "build": "npm run eslint && nyc npm test && nyc check-coverage --lines 50 --functions 50 --branches 35 && rollup -c",
