@@ -44,7 +44,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
         sheetnames = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES])
       } else {
-        sheetnames = workbook.SheetNames.filter(s => /convo/i.test(s) && !/partial/i.test(s)) || []
+        sheetnames = workbook.SheetNames.filter(s => (/convo/i.test(s) || /dialog/i.test(s)) && !/partial/i.test(s)) || []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS]) {
