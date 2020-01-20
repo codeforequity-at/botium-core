@@ -202,7 +202,7 @@ myasserter arg1|arg2
     assert.equal(script, `test convo
 
 #me
-BUTTON buttontext|buttonpayload
+BUTTON buttonpayload|buttontext
 `
     )
   })
