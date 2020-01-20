@@ -70,7 +70,7 @@ describe('compiler.compilerxlsx', function () {
       assert.equal(context.utterances[0].name, 'TESTUTT1')
       assert.equal(context.utterances[1].name, 'TESTUTT2')
     })
-    it('should read no utterances', async function () {
+    it('should read utterances from default worksheet', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_2utterances.xlsx'))
       const context = buildContext()
 
@@ -80,7 +80,7 @@ describe('compiler.compilerxlsx', function () {
 
       compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
       assert.lengthOf(context.convos, 0)
-      assert.lengthOf(context.utterances, 0)
+      assert.lengthOf(context.utterances, 2)
     })
     it('should read 2 utterances', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_2utterances.xlsx'))

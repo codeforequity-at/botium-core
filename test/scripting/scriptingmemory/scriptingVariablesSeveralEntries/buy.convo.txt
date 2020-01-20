@@ -1,0 +1,10 @@
+scripting variables several entries
+
+#begin
+SET_SCRIPTING_MEMORY productName|Schnitzel
+
+#me
+What would you like to eat?
+
+#bot
+I'd like to have a $productName and one more $productName

@@ -27,6 +27,16 @@ const echoShopConnector = ({ queueBotSays }) => {
   }
 }
 
+const multipleVariableEntriesConnector = ({ queueBotSays }) => {
+  return {
+    UserSays (msg) {
+      const response = 'I\'d like to have Schnitzel and one more Schnitzel'
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: response }
+      queueBotSays(botMsg)
+    }
+  }
+}
+
 describe('scripting.useScriptingMemoryForAssertion.simpleassertion', function () {
   beforeEach(async function () {
     const myCaps = {
@@ -86,5 +96,34 @@ describe('scripting.useScriptingMemoryForAssertion.multiplefiles', function () {
     assert.lengthOf(transcript1.steps, 4)
     assert.equal(transcript1.steps[0].scriptingMemory.$available_products, 'Bread, Beer, Eggs')
     assert.equal(transcript1.steps[0].scriptingMemory.$productName, 'Beer')
+  })
+})
+
+describe('scripting.useScriptingMemoryForAssertion.mulipleVariableEntries', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',
+      [Capabilities.CONTAINERMODE]: multipleVariableEntriesConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should use scripting memory for assertion several variables entries', async function () {
+    // scripting variables replaced in every entry
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'scriptingVariablesSeveralEntries'))
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected bot response (on Line 6: #me - What would you like to eat?) "I\'d like to have Schnitzel and one more Schnitzel" to match one of "I\'d like to have a Schnitzel and one more Schnitzel"') >= 0)
+    }
   })
 })

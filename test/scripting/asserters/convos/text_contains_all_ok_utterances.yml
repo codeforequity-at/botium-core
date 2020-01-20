@@ -1,0 +1,11 @@
+convos:
+  - name: text_contains_all_ok_utterances
+    steps:
+      - me:
+          - Joe word1 word2 hi hello!
+      - bot:
+          - TEXT_CONTAINS_ALL word1|word2|GREETING
+utterances:
+  GREETING:
+    - hi
+    - hello!

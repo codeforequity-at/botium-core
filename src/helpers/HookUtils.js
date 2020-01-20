@@ -11,12 +11,20 @@ const executeHook = async (hook, args) => {
     return
   }
   if (_.isFunction(hook)) {
-    return hook(args)
+    try {
+      return hook(args)
+    } catch (err) {
+      throw new Error(`Calling Hook function failed: ${err.message}`)
+    }
   }
   if (_.isString(hook)) {
-    const sandbox = vm.createContext({ debug, console, process, ...args })
-    vm.runInContext(hook, sandbox)
-    return sandbox.result
+    try {
+      const sandbox = vm.createContext({ debug, console, process, ...args })
+      vm.runInContext(hook, sandbox)
+      return sandbox.result
+    } catch (err) {
+      throw new Error(`Calling Hook Javascript code failed: ${err.message}`)
+    }
   }
   throw new Error(`Unknown hook ${typeof hook}`)
 }

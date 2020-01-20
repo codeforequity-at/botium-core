@@ -1,0 +1,7 @@
+convos:
+  - name: text_equals_ok_base
+    steps:
+      - me:
+          - Im Joe
+      - bot:
+          - TEXT_EQUALS Im Joe|Im George

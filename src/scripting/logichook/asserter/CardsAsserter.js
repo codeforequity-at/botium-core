@@ -7,8 +7,20 @@ module.exports = class CardsAsserter {
     this.name = 'CardsAsserter'
   }
 
+  _cardsRecursive (cards) {
+    if (!cards) {
+      return []
+    }
+    let result = cards
+    for (const card of cards) {
+      card.cards && (result = result.concat(this._cardsRecursive(card.cards)))
+    }
+
+    return result
+  }
+
   _evalCards (args, botMsg) {
-    const allCards = botMsg.cards ? botMsg.cards.reduce((acc, mc) => acc.concat([mc.text, mc.subtext, mc.content].filter(t => t)), []) : []
+    const allCards = botMsg.cards ? this._cardsRecursive(botMsg.cards).reduce((acc, mc) => acc.concat([mc.text, mc.subtext, mc.content].filter(t => t)), []) : []
     const cardsNotFound = []
     const cardsFound = []
     for (let i = 0; i < (args || []).length; i++) {

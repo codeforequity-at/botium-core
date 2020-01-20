@@ -1,4 +1,4 @@
 button
 
 #me
-BUTTON ButtonText
+BUTTON ButtonPayload
