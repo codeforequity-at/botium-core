@@ -1,0 +1,16 @@
+update_context_me_msg
+
+#begin
+UPDATE_CUSTOM simpleField|new message from begin
+
+#me
+HI
+
+#bot
+new message from begin
+
+#me
+one more step
+
+#bot
+new message from begin

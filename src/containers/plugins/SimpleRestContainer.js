@@ -15,6 +15,9 @@ const Capabilities = require('../../Capabilities')
 const Defaults = require('../../Defaults')
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 const { getHook, executeHook } = require('../../helpers/HookUtils')
+const { escapeJSONString } = require('../../helpers/Utils')
+
+Mustache.escape = s => s
 
 const REDIS_TOPIC = 'SIMPLEREST_INBOUND_SUBSCRIPTION'
 
@@ -22,7 +25,7 @@ module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
     this.queueBotSays = queueBotSays
     this.caps = caps
-    this.processResponse = false
+    this.processInbound = false
   }
 
   Validate () {
@@ -47,6 +50,7 @@ module.exports = class SimpleRestContainer {
       async.series([
         (contextInitComplete) => {
           this.view = {
+            container: this,
             context: {},
             msg: {},
             botium: {
@@ -63,6 +67,9 @@ module.exports = class SimpleRestContainer {
               return theFunction.length ? function () { return (text, render) => theFunction(render(text)) } : theFunction
             })
           }
+          this.view.fnc.jsonify = () => (val, render) => {
+            return escapeJSONString(render(val))
+          }
 
           if (this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]) {
             this.view.botium.conversationId = this._getMustachedCap(Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE, false)
@@ -72,7 +79,7 @@ module.exports = class SimpleRestContainer {
 
           if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
             try {
-              this.view.context = _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) ? this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT] : JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
+              this.view.context = _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) ? _.cloneDeep(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) : JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
             } catch (err) {
               contextInitComplete(`parsing SIMPLEREST_INIT_CONTEXT failed, no JSON detected (${util.inspect(err)})`)
             }
@@ -86,39 +93,17 @@ module.exports = class SimpleRestContainer {
 
         (pingComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
-            const uri = this._getMustachedCap(Capabilities.SIMPLEREST_PING_URL, false)
-            const verb = this.caps[Capabilities.SIMPLEREST_PING_VERB]
-            const timeout = this.caps[Capabilities.SIMPLEREST_PING_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_PING_TIMEOUT]
-            const pingConfig = {
-              method: verb,
-              uri: uri,
-              timeout: timeout
-            }
-            if (this.caps[Capabilities.SIMPLEREST_PING_HEADERS]) {
-              try {
-                pingConfig.headers = this._getMustachedCap(Capabilities.SIMPLEREST_PING_HEADERS, true)
-              } catch (err) {
-                return pingComplete(`composing headers from SIMPLEREST_PING_HEADERS failed (${util.inspect(err)})`)
-              }
-            }
-            if (this.caps[Capabilities.SIMPLEREST_PING_BODY]) {
-              try {
-                pingConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_PING_BODY, !this.caps[Capabilities.SIMPLEREST_PING_BODY_RAW])
-                pingConfig.json = !this.caps[Capabilities.SIMPLEREST_PING_BODY_RAW]
-              } catch (err) {
-                return pingComplete(`composing body from SIMPLEREST_PING_BODY failed (${util.inspect(err)})`)
-              }
-            }
-
-            const retries = this.caps[Capabilities.SIMPLEREST_PING_RETRIES] || Defaults[Capabilities.SIMPLEREST_PING_RETRIES]
-            this._waitForPingUrl(pingConfig, retries).then((response) => {
+            try {
+              const response = this._makeCall('SIMPLEREST_PING')
               if (_.isObject(response) || botiumUtils.isStringJson(response)) {
-                debug(`Ping Uri ${uri} returned JSON response, using it as session context: ${botiumUtils.shortenJsonString(response)}`)
+                debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} returned JSON response, using it as session context: ${botiumUtils.shortenJsonString(response)}`)
                 const body = _.isObject(response) ? response : JSON.parse(response)
                 Object.assign(this.view.context, body)
               }
               pingComplete()
-            }).catch(pingComplete)
+            } catch (err) {
+              pingComplete(err.message)
+            }
           } else {
             pingComplete()
           }
@@ -148,7 +133,7 @@ module.exports = class SimpleRestContainer {
         if (err) {
           return reject(new Error(`Start failed ${util.inspect(err)}`))
         }
-        this.processResponse = true
+        this.processInbound = true
         resolve()
       })
     })
@@ -158,14 +143,19 @@ module.exports = class SimpleRestContainer {
     return this._doRequest(mockMsg, true)
   }
 
-  Stop () {
-    this.processResponse = false
-    return executeHook(this.stopHook, this.view)
-      .then(() => this._unsubscribeInbound())
-      .then(() => this._stopPolling())
-      .then(() => {
-        this.view = {}
-      })
+  async Stop () {
+    this.processInbound = false
+    if (this.caps[Capabilities.SIMPLEREST_STOP_URL]) {
+      try {
+        await this._makeCall('SIMPLEREST_STOP')
+      } catch (err) {
+        throw new Error(`Failed to call url ${this.caps[Capabilities.SIMPLEREST_STOP_URL]} to stop session: ${err.message}`)
+      }
+    }
+    await executeHook(this.stopHook, this.view)
+    await this._unsubscribeInbound()
+    await this._stopPolling()
+    this.view = {}
   }
 
   Clean () {
@@ -179,8 +169,6 @@ module.exports = class SimpleRestContainer {
 
   // Separated just for better module testing
   async _processBodyAsyncImpl (body, isFromUser) {
-    if (!this.processResponse) return []
-
     if (this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH]) {
       const contextNodes = jp.query(body, this.caps[Capabilities.SIMPLEREST_CONTEXT_JSONPATH])
       if (_.isArray(contextNodes) && contextNodes.length > 0) {
@@ -289,12 +277,12 @@ module.exports = class SimpleRestContainer {
               if (_.isString(body)) {
                 try {
                   body = JSON.parse(body)
-                  setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
+                  setTimeout(() => this._processBodyAsync(body, isFromUser, false), 0)
                 } catch (err) {
                   debug(`ignoring not JSON formatted response body (${err.message})`)
                 }
               } else if (_.isObject(body)) {
-                setTimeout(() => this._processBodyAsync(body, isFromUser), 0)
+                setTimeout(() => this._processBodyAsync(body, isFromUser, false), 0)
               } else {
                 debug('ignoring response body (no string and no JSON object)')
               }
@@ -312,9 +300,8 @@ module.exports = class SimpleRestContainer {
     this.view.msg = Object.assign({}, msg)
 
     const nonEncodedMessage = this.view.msg.messageText
-    if (this.view.msg.messageText) {
-      this.view.msg.messageText = encodeURIComponent(this.view.msg.messageText)
-    }
+
+    this.view.msg.messageText = nonEncodedMessage && encodeURIComponent(nonEncodedMessage)
 
     if (this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]) {
       this.view.botium.stepId = this._getMustachedCap(Capabilities.SIMPLEREST_STEP_ID_TEMPLATE, false)
@@ -331,10 +318,9 @@ module.exports = class SimpleRestContainer {
       followAllRedirects: true,
       timeout
     }
-    if (this.view.msg.messageText) {
-      this.view.msg.messageText = nonEncodedMessage
-    }
+
     if (this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) {
+      this.view.msg.messageText = nonEncodedMessage
       try {
         requestOptions.headers = this._getMustachedCap(Capabilities.SIMPLEREST_HEADERS_TEMPLATE, true)
       } catch (err) {
@@ -342,6 +328,11 @@ module.exports = class SimpleRestContainer {
       }
     }
     if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
+      if (this.caps[Capabilities.SIMPLEREST_BODY_RAW]) {
+        this.view.msg.messageText = nonEncodedMessage
+      } else {
+        this.view.msg.messageText = nonEncodedMessage && escapeJSONString(nonEncodedMessage)
+      }
       try {
         requestOptions.body = this._getMustachedCap(Capabilities.SIMPLEREST_BODY_TEMPLATE, !this.caps[Capabilities.SIMPLEREST_BODY_RAW])
         requestOptions.json = !this.caps[Capabilities.SIMPLEREST_BODY_RAW]
@@ -349,18 +340,37 @@ module.exports = class SimpleRestContainer {
         throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${util.inspect(err)})`)
       }
     }
+    this.view.msg.messageText = nonEncodedMessage
+
+    if (msg.ADD_QUERY_PARAM && Object.keys(msg.ADD_QUERY_PARAM).length > 0) {
+      const appendToUri = Object.keys(msg.ADD_QUERY_PARAM).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(this._getMustachedVal(msg.ADD_QUERY_PARAM[key], false))}`).join('&')
+      if (requestOptions.uri.indexOf('?') > 0) {
+        requestOptions.uri = `${requestOptions.uri}&${appendToUri}`
+      } else {
+        requestOptions.uri = `${requestOptions.uri}?${appendToUri}`
+      }
+    }
+    if (msg.ADD_HEADER && Object.keys(msg.ADD_HEADER).length > 0) {
+      requestOptions.headers = requestOptions.headers || {}
+
+      for (const headerKey of Object.keys(msg.ADD_HEADER)) {
+        const headerValue = this._getMustachedVal(msg.ADD_HEADER[headerKey], false)
+        requestOptions.headers[headerKey] = headerValue
+      }
+    }
+
     await executeHook(this.requestHook, Object.assign({ requestOptions }, this.view))
 
     return requestOptions
   }
 
-  async _waitForPingUrl (pingConfig, retries) {
+  async _waitForUrlResponse (pingConfig, retries) {
     const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
 
     let tries = 0
 
     while (true) {
-      debug(`_waitForPingUrl checking url ${pingConfig.uri} before proceed`)
+      debug(`_waitForUrlResponse checking url ${pingConfig.uri} before proceed`)
       if (tries > retries) {
         throw new Error(`Failed to ping bot after ${retries} retries`)
       }
@@ -371,13 +381,13 @@ module.exports = class SimpleRestContainer {
         })
       })
       if (err) {
-        debug(`_waitForPingUrl error on url check ${pingConfig.uri}: ${err}`)
+        debug(`_waitForUrlResponse error on url check ${pingConfig.uri}: ${err}`)
         await timeout(pingConfig.timeout)
       } else if (response.statusCode >= 400) {
-        debug(`_waitForPingUrl on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
+        debug(`_waitForUrlResponse on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
         await timeout(pingConfig.timeout)
       } else {
-        debug(`_waitForPingUrl success on url check ${pingConfig.uri}`)
+        debug(`_waitForUrlResponse success on url check ${pingConfig.uri}`)
         return body
       }
     }
@@ -409,13 +419,19 @@ module.exports = class SimpleRestContainer {
 
   _getMustachedVal (template, json) {
     if (json) {
-      return JSON.parse(Mustache.render(template, this.view))
+      try {
+        return JSON.parse(Mustache.render(template, this.view))
+      } catch (err) {
+        return new Error(`JSON parsing failed - try to use {{#fnc.jsonify}}{{xxx}}{{/fnc.jsonify}} to escape JSON special characters (ERR: ${err.message})`)
+      }
     } else {
       return Mustache.render(template, this.view)
     }
   }
 
   _processInboundEvent (event) {
+    if (!this.processInbound) return
+
     const jsonPathValue = this.caps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE]
     const jsonPathsSelector = this._getAllCapValues(Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH)
     if (jsonPathsSelector && jsonPathsSelector.length > 0) {
@@ -513,6 +529,8 @@ module.exports = class SimpleRestContainer {
   }
 
   _runPolling () {
+    if (!this.processInbound) return
+
     if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
       const uri = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_URL, false)
       const verb = this.caps[Capabilities.SIMPLEREST_POLL_VERB]
@@ -551,12 +569,12 @@ module.exports = class SimpleRestContainer {
             if (_.isString(body)) {
               try {
                 body = JSON.parse(body)
-                setTimeout(() => this._processBodyAsync(body, true), 0)
+                setTimeout(() => this._processBodyAsync(body, true, true), 0)
               } catch (err) {
                 debug(`_runPolling: ignoring not JSON formatted response body (${err.message})`)
               }
             } else if (_.isObject(body)) {
-              setTimeout(() => this._processBodyAsync(body, true), 0)
+              setTimeout(() => this._processBodyAsync(body, true, true), 0)
             } else {
               debug('_runPolling: ignoring response body (no string and no JSON object)')
             }
@@ -580,6 +598,36 @@ module.exports = class SimpleRestContainer {
       clearInterval(this.pollInterval)
       this.pollInterval = null
     }
+  }
+
+  async _makeCall (capPrefix) {
+    const uri = this._getMustachedCap(`${capPrefix}_URL`, false)
+    const verb = this.caps[`${capPrefix}_VERB`]
+    const timeout = this.caps[`${capPrefix}_TIMEOUT`] || Defaults[`${capPrefix}_TIMEOUT`]
+    const httpConfig = {
+      method: verb,
+      uri: uri,
+      timeout: timeout
+    }
+    if (this.caps[`${capPrefix}_HEADERS`]) {
+      try {
+        httpConfig.headers = this._getMustachedCap(`${capPrefix}_HEADERS`, true)
+      } catch (err) {
+        throw new Error(`composing headers from ${capPrefix}_HEADERS failed (${err.message})`)
+      }
+    }
+    if (this.caps[`${capPrefix}_BODY`]) {
+      try {
+        httpConfig.body = this._getMustachedCap(`${capPrefix}_BODY`, !this.caps[`${capPrefix}_BODY_RAW`])
+        httpConfig.json = !this.caps[`${capPrefix}_BODY_RAW`]
+      } catch (err) {
+        throw new Error(`composing body from ${capPrefix}_BODY failed (${err.message})`)
+      }
+    }
+
+    const retries = this.caps[`${capPrefix}_RETRIES`] || Defaults[`${capPrefix}_RETRIES`]
+    const response = await this._waitForUrlResponse(httpConfig, retries)
+    return response
   }
 }
 module.exports.REDIS_TOPIC = REDIS_TOPIC

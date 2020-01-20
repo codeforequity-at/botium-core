@@ -4,10 +4,23 @@ const _ = require('lodash')
 const { isStringJson } = require('../../../helpers/Utils')
 
 module.exports = class UpdateCustomLogicHook {
-  constructor (meMsg, caps = {}, globalArgs = {}) {
-    this.meMsg = meMsg
+  constructor (context, caps = {}, globalArgs = {}) {
+    this.context = context
     this.caps = caps
     this.globalArgs = globalArgs
+  }
+
+  onConvoBegin ({ convo, args, isGlobal }) {
+    if (isGlobal) return
+
+    const validConvoSteps = convo.conversation.filter(s => s.sender === 'me')
+    for (const convoStep of validConvoSteps) {
+      convoStep.logicHooks = (convoStep.logicHooks || [])
+      convoStep.logicHooks.push({
+        name: 'UPDATE_CUSTOM',
+        args
+      })
+    }
   }
 
   onMeStart ({ convoStep, args, meMsg, isGlobal }) {
