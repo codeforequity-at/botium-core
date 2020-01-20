@@ -173,9 +173,13 @@ module.exports = class CompilerTxt extends CompilerBase {
           script += `FORM ${form.name}|${form.value}${this.eol}`
         })
         if (set.buttons && set.buttons.length > 0) {
-          script += `BUTTON ${set.buttons[0].text}`
           if (set.buttons[0].payload) {
-            script += `|${set.buttons[0].payload}`
+            script += `BUTTON ${set.buttons[0].payload}`
+            if (set.buttons[0].text) {
+              script += `|${set.buttons[0].text}`
+            }
+          } else {
+            script += `BUTTON ${set.buttons[0].text}`
           }
           script += this.eol
         } else if (set.media && set.media.length > 0) {
