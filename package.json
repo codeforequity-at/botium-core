@@ -51,7 +51,6 @@
     "mkdirp": "^0.5.1",
     "moment": "^2.24.0",
     "mustache": "^3.0.1",
-    "open": "^6.0.0",
     "promise-retry": "^1.1.1",
     "promise.allsettled": "^1.0.1",
     "randomatic": "^3.1.1",
