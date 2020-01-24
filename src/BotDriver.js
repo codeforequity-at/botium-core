@@ -344,10 +344,6 @@ module.exports = class BotDriver {
       const FbContainer = require('./containers/FbContainer')
       return new FbContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'webspeech') {
-      const WebSpeechContainer = require('./containers/WebSpeechContainer')
-      return new WebSpeechContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
-    }
     if (this.caps[Capabilities.CONTAINERMODE] === 'inprocess') {
       const InProcessContainer = require('./containers/InProcessContainer')
       return new InProcessContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
