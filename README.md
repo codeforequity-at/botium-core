@@ -13,8 +13,7 @@
 ## Botium Core, the heart and brain of Botium
 All of the components in the Botium Stack build on top of Botium Core (except Botium Core itself, naturally), the heart and brain of Botium. Just as the heart and brain in your body are vital parts with very low chances to ever see or touch them, you most likely won’t ever get in touch with Botium Core directly: _it’s the fuel, the nuts and bolts, the core technology, the heart and brain of Botium._
 
-**As cool as Botium Core is, you most likely don't want to use Botium Core directly, but one of the other [Botium Stack Members](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack) - see [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack)**
-
+**As awesome as Botium Core is, you most likely don't want to use Botium Core directly, but [one of the user interfaces of the Botium Stack Members](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack) - see [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack) or [Selenium for Chatbots — Introducing Botium](https://medium.com/p/selenium-for-chatbots-introducing-botium-1f1f0b3d4164)**
 
 ## News
 
