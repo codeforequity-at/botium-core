@@ -5,6 +5,8 @@
 [ ![Codeship Status for codeforequity-at/botium-core](https://app.codeship.com/projects/0389ad40-cecc-0135-2ddc-161d5c3cc5fd/status?branch=master)](https://app.codeship.com/projects/262204)
 [![npm version](https://badge.fury.io/js/botium-core.svg)](https://badge.fury.io/js/testmybot)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
+[![pullrequests](https://img.shields.io/badge/PR-welcome-green.svg)]()
+[![awesome](https://img.shields.io/badge/Awesome-for%20sure!-green.svg)]()
 
 **_IF YOU LIKE WHAT YOU SEE, PLEASE CONSIDER GIVING US A STAR ON GITHUB!_**
 
