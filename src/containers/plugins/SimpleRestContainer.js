@@ -110,7 +110,7 @@ module.exports = class SimpleRestContainer {
         },
 
         (initComplete) => {
-          if (this.caps[Capabilities.SIMPLEREST_INIT_TEXT]) {
+          if (_.isString(this.caps[Capabilities.SIMPLEREST_INIT_TEXT])) {
             this._doRequest({ messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }, false).then(() => initComplete()).catch(initComplete)
           } else {
             initComplete()
