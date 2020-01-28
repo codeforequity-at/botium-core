@@ -18,6 +18,7 @@ All of the components in the Botium Stack build on top of Botium Core (except Bo
 
 ## News
 
+* __2020/01/28__ We hit the 50.000 downloads of Botium - that's so awesome!!!!!!
 * __2019/10/13__ We are now at over 35.000 downloads of Botium Core - thanks to our awesome community!
 * __2019/01/20__ Chatbots are driving the industry. With Botium we are driving chatbots. After months of hard work we are finally there: we are proud to announce the __general availability of the newest Botium Stack member, the Botium Box__. Check out some game changing features for testing and training of chatbots with our [Community Edition](https://medium.com/@floriantreml/chatbot-testing-done-right-botium-box-available-now-550e40d3bdd0)!
 
