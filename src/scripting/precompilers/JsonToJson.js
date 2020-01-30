@@ -13,18 +13,23 @@ module.exports.precompile = (scriptBuffer, capSuffixAndVal, filename) => {
     return
   }
 
-  const {
-    CHECKER_JSONPATH: checkerJsonpath,
-    ROOT_JSONPATH: rootJsonpath,
-    INTENTS_JSONPATH: intentsJsonpath,
-    UTTERANCES_JSONPATH: utterancesJsonpath
-  } = capSuffixAndVal
-
+  // this name can be in cap name, or in cap value. Reading it dynamical
+  const checkerJsonpath = capSuffixAndVal.CHECKER_JSONPATH || capSuffixAndVal.checkerJsonpath
+  const rootJsonpath = capSuffixAndVal.ROOT_JSONPATH || capSuffixAndVal.rootJsonpath
+  const intentsJsonpath = capSuffixAndVal.INTENTS_JSONPATH || capSuffixAndVal.intentsJsonpath
+  const utterancesJsonpath = capSuffixAndVal.UTTERANCES_JSONPATH || capSuffixAndVal.utterancesJsonpath
   let scriptData = scriptBuffer
-  if (Buffer.isBuffer(scriptBuffer)) {
+  if (Buffer.isBuffer(scriptData)) {
     scriptData = scriptData.toString()
   }
-  if (!checkerJsonpath) {
+  if (_.isString(scriptData)) {
+    try {
+      scriptData = JSON.parse(scriptData)
+    } catch (err) {
+      throw new Error(`Cant convert to JSON ${filename}`)
+    }
+  }
+  if (checkerJsonpath) {
     const scouldExist = jp.query(scriptData, rootJsonpath)
     if (!scouldExist || scouldExist.length === 0) {
       return

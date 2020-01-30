@@ -11,13 +11,13 @@ module.exports.execute = (scriptBuffer, options) => {
   const ownCaps = flatCababilities(caps, CAPABILITY_PREFIX)
 
   for (const capSuffixAndVal of ownCaps) {
-    if (!capSuffixAndVal.NAME) {
+    if (!(capSuffixAndVal.NAME || capSuffixAndVal.name)) {
       throw new Error(`Precompiler name not defined in ${util.inspect(capSuffixAndVal)}`)
     }
-    const provider = PROVIDERS[capSuffixAndVal.NAME]
+    const provider = PROVIDERS[capSuffixAndVal.NAME || capSuffixAndVal.name]
 
     if (!provider) {
-      throw new Error(`Precompiler ${util.inspect(capSuffixAndVal.name)} not found using caps ${util.inspect(capSuffixAndVal)}`)
+      throw new Error(`Precompiler ${util.inspect(capSuffixAndVal.NAME || capSuffixAndVal.name)} not found using caps ${util.inspect(capSuffixAndVal)}`)
     }
 
     const result = provider.precompile(scriptBuffer, capSuffixAndVal, filename)
