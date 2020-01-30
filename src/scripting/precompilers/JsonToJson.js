@@ -1,17 +1,6 @@
 const _ = require('lodash')
 const jp = require('jsonpath')
 
-module.exports.JsonToJsonJsonPathPrecompiler = class {
-  constructor (context, caps = {}) {
-    this.context = context
-    this.caps = caps
-  }
-
-  Validate () {
-    super.Validate()
-  }
-}
-
 const _ensureList = (queryResult) => {
   if (_.isArray(queryResult)) {
     return queryResult
@@ -19,11 +8,29 @@ const _ensureList = (queryResult) => {
   return [queryResult]
 }
 
-module.exports.precompile = ({ scriptBuffer, rootJsonpath, intentsJsonpath, utterancesJsonpath }) => {
+module.exports.precompile = (scriptBuffer, capSuffixAndVal, filename) => {
+  if (!filename.endsWith('.json')) {
+    return
+  }
+
+  const {
+    CHECKER_JSONPATH: checkerJsonpath,
+    ROOT_JSONPATH: rootJsonpath,
+    INTENTS_JSONPATH: intentsJsonpath,
+    UTTERANCES_JSONPATH: utterancesJsonpath
+  } = capSuffixAndVal
+
   let scriptData = scriptBuffer
   if (Buffer.isBuffer(scriptBuffer)) {
     scriptData = scriptData.toString()
   }
+  if (!checkerJsonpath) {
+    const scouldExist = jp.query(scriptData, rootJsonpath)
+    if (!scouldExist || scouldExist.length === 0) {
+      return
+    }
+  }
+
   if (!rootJsonpath) {
     scriptData = [scriptData]
   } else {
@@ -61,12 +68,5 @@ module.exports.precompile = ({ scriptBuffer, rootJsonpath, intentsJsonpath, utte
     }
   }
 
-  return { utterances: result }
+  return { scriptBuffer: JSON.stringify({ utterances: result }) }
 }
-
-console.log(module.exports.precompile({
-  scriptBuffer: require('./benchmark_data_small'),
-  rootJsonpath: '$.domains[*].intents[*]',
-  intentsJsonpath: '$.name',
-  utterancesJsonpath: '$.queries[*].text'
-}))

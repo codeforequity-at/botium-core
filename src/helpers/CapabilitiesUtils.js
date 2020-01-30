@@ -28,7 +28,7 @@ module.exports.getAllCapValues = (capNamePrefix, caps) => {
  * @param prefix
  * @returns {Array}
  */
-module.exports.flat = (caps, prefix) => {
+module.exports.flatCababilities = (caps, prefix) => {
   const result = []
   let capNames = []
   for (const name of Object.keys(caps)) {

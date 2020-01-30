@@ -15,6 +15,7 @@ const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
 const RetryHelper = require('../helpers/RetryHelper')
 const MatchFunctions = require('./MatchFunctions')
+const precompilers = require('./precompilers')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json)'
 
@@ -423,7 +424,12 @@ module.exports = class ScriptingProvider {
     let filePartialConvos = []
     let fileScriptingMemories = []
 
-    const scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
+    let scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
+
+    const precompResponse = precompilers.execute(scriptBuffer, { convoDir, filename, caps: this.caps })
+    if (precompResponse) {
+      scriptBuffer = precompResponse.scriptBuffer
+    }
 
     if (filename.endsWith('.xlsx')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
