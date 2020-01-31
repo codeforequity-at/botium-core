@@ -7,6 +7,10 @@ const _ = require('lodash')
 const debug = require('debug')('botium-HookUtils')
 
 const executeHook = async (hook, args) => {
+  return executeHookSync
+}
+
+const executeHookSync = (hook, args) => {
   if (!hook) {
     return
   }
@@ -28,7 +32,6 @@ const executeHook = async (hook, args) => {
   }
   throw new Error(`Unknown hook ${typeof hook}`)
 }
-
 const getHook = (data) => {
   if (!data) {
     return null
@@ -79,5 +82,6 @@ const getHook = (data) => {
 
 module.exports = {
   getHook,
-  executeHook
+  executeHook,
+  executeHookSync
 }

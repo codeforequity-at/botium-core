@@ -12,17 +12,21 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('compiler.precompiler.json', function () {
+describe('compiler.precompiler.script', function () {
   beforeEach(async function () {
     const myCaps = {
-      [Capabilities.PROJECTNAME]: 'compiler.precompiler.json',
+      [Capabilities.PROJECTNAME]: 'compiler.precompiler.script',
       [Capabilities.CONTAINERMODE]: echoConnector,
       [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
       PRECOMPILERS: {
-        name: 'JSON_TO_JSON_JSONPATH',
-        rootJsonpath: '$.domains[*].intents[*]',
-        intentsJsonpath: '$.name',
-        utterancesJsonpath: '$.queries[*].text'
+        name: 'SCRIPT',
+        script: `
+          const utterances = {}
+          for (const entry of scriptData) {
+            utterances[entry.intent] = entry.sentences
+          }
+          result = {utterances}
+          `
       }
     }
     const driver = new BotDriver(myCaps)
@@ -34,15 +38,15 @@ describe('compiler.precompiler.json', function () {
   })
 
   it('should execute non-standard json', async function () {
-    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_json_to_json_jsonpath.json')
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()
-    assert.equal(this.compiler.convos.length, 4)
+    assert.equal(this.compiler.convos.length, 3)
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.equal(transcript.steps.length, 2)
     assert.equal(transcript.steps[0].actual.sender, 'me')
-    assert.equal(transcript.steps[0].actual.messageText, 'What\'s the best hotel between Soho Grand and Paramount Hotel?')
+    assert.equal(transcript.steps[0].actual.messageText, 'goodbye')
     assert.equal(transcript.steps[1].actual.sender, 'bot')
-    assert.equal(transcript.steps[1].actual.messageText, 'Response of What\'s the best hotel between Soho Grand and Paramount Hotel?')
+    assert.equal(transcript.steps[1].actual.messageText, 'Response of goodbye')
   })
 })

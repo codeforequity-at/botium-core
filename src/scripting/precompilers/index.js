@@ -1,7 +1,10 @@
 const _ = require('lodash')
 const util = require('util')
+const {isJson} = require('../../helpers/Utils')
+
 const PROVIDERS = {
-  JSON_TO_JSON_JSONPATH: require('./JsonToJson')
+  JSON_TO_JSON_JSONPATH: require('./JsonToJson'),
+  SCRIPT: require('./Script')
 }
 const CAPABILITY_PREFIX = 'PRECOMPILERS'
 const { flatCababilities } = require('../../helpers/CapabilitiesUtils')
@@ -22,6 +25,11 @@ module.exports.execute = (scriptBuffer, options) => {
 
     const result = provider.precompile(scriptBuffer, capSuffixAndVal, filename)
     if (result) {
+      if (!result.scriptBuffer) {
+        return null
+      }
+      result.scriptBuffer = isJson(result.scriptBuffer)
+
       return result
     }
   }
