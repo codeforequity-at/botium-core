@@ -1,6 +1,5 @@
-const _ = require('lodash')
 const util = require('util')
-const {isJson} = require('../../helpers/Utils')
+const { isJson } = require('../../helpers/Utils')
 
 const PROVIDERS = {
   JSON_TO_JSON_JSONPATH: require('./JsonToJson'),

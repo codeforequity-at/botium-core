@@ -7,7 +7,7 @@ const _ = require('lodash')
 const debug = require('debug')('botium-HookUtils')
 
 const executeHook = async (hook, args) => {
-  return executeHookSync
+  return executeHookSync(hook, args)
 }
 
 const executeHookSync = (hook, args) => {

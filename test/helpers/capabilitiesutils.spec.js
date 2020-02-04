@@ -1,6 +1,6 @@
 const assert = require('chai').assert
 
-const { flat } = require('../../src/helpers/CapabilitiesUtils')
+const { flatCababilities } = require('../../src/helpers/CapabilitiesUtils')
 
 const EXPECTED = [
   {
@@ -23,7 +23,7 @@ const EXPECTED_SINGLE = [ACTUAL_SINGLE]
 describe('scripting.asserters.textAsserter', function () {
   describe('supported datatypes to read', function () {
     it('suffix', async function () {
-      const actual = flat({
+      const actual = flatCababilities({
         'PRECOMP.0.FIRST': 'FIRST_VALUE0',
         'PRECOMP.0.SECOND': 'SECOND_VALUE0',
         'PRECOMP.1.FIRST': 'FIRST_VALUE1',
@@ -32,7 +32,7 @@ describe('scripting.asserters.textAsserter', function () {
       assert.deepEqual(actual, EXPECTED)
     })
     it('suffix and json', async function () {
-      const actual = flat({
+      const actual = flatCababilities({
         'PRECOMP.0': {
           FIRST: 'FIRST_VALUE0',
           SECOND: 'SECOND_VALUE0'
@@ -45,19 +45,19 @@ describe('scripting.asserters.textAsserter', function () {
       assert.deepEqual(actual, EXPECTED)
     })
     it('global and json', async function () {
-      const actual = flat({
+      const actual = flatCababilities({
         PRECOMP: ACTUAL_SINGLE
       }, 'PRECOMP')
       assert.deepEqual(actual, EXPECTED_SINGLE)
     })
     it('global and jsonstring', async function () {
-      const actual = flat({
+      const actual = flatCababilities({
         PRECOMP: JSON.stringify(ACTUAL_SINGLE)
       }, 'PRECOMP')
       assert.deepEqual(actual, EXPECTED_SINGLE)
     })
     it('global and array', async function () {
-      const actual = flat({
+      const actual = flatCababilities({
         PRECOMP: JSON.stringify(EXPECTED)
       }, 'PRECOMP')
       assert.deepEqual(actual, EXPECTED)
@@ -65,14 +65,14 @@ describe('scripting.asserters.textAsserter', function () {
   })
   describe('key types', function () {
     it('prefix is shorter', async function () {
-      const actual = flat({
+      const actual = flatCababilities({
         'PRECOMP_SOMETHINGELSE.0.FIRST': 'FIRST_VALUE0'
       }, 'PRECOMP')
       assert.deepEqual(actual, [])
     })
     it('global is not unique', async function () {
       try {
-        flat({
+        flatCababilities({
           'PRECOMP.0.FIRST': 'FIRST_VALUE0',
           PRECOMP: 'precomp value'
         }, 'PRECOMP')
