@@ -10,6 +10,7 @@
   "scripts": {
     "build": "npm run eslint && nyc npm test && nyc check-coverage --lines 50 --functions 50 --branches 35 && rollup -c",
     "eslint": "eslint \"./src/**/*.js\" \"./test/**/*.js\"",
+    "eslint-fix": "eslint --fix \"./src/**/*.js\" \"./test/**/*.js\"",
     "newpatch": "npm version patch",
     "agent": "node ./src/grid/agent/agent.js",
     "agent-jsdoc": "swagger-jsdoc -d ./src/grid/agent/swaggerDef.json -o ./src/grid/agent/swagger.json ./src/grid/agent/routes.js",
