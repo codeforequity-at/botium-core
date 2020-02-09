@@ -7,7 +7,7 @@ const mime = require('mime-types')
 const uuidv4 = require('uuid/v4')
 const Redis = require('ioredis')
 const _ = require('lodash')
-const debug = require('debug')('botium-SimpleRestContainer')
+const debug = require('debug')('botium-connector-simplerest')
 
 const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
@@ -172,8 +172,12 @@ module.exports = class SimpleRestContainer {
         }
       }
     }
-    if (this.waitProcessQueue) this.waitProcessQueue.push(p)
-    else await p()
+    if (this.waitProcessQueue) {
+      this.waitProcessQueue.push(p)
+      debug('Async body is queued for processing.')
+    } else {
+      await p()
+    }
   }
 
   async _emptyWaitProcessQueue () {
@@ -184,7 +188,6 @@ module.exports = class SimpleRestContainer {
     }
     this.waitProcessQueue = null
   }
-
 
   // Separated just for better module testing
   async _processBodyAsyncImpl (body, isFromUser) {
