@@ -47,6 +47,7 @@
     "is-json": "^2.0.1",
     "jsonpath": "^1.0.2",
     "lodash": "^4.17.15",
+    "markdown-it": "^10.0.0",
     "mime-types": "^2.1.24",
     "mkdirp": "^0.5.1",
     "moment": "^2.24.0",

@@ -17,7 +17,7 @@ const RetryHelper = require('../helpers/RetryHelper')
 const MatchFunctions = require('./MatchFunctions')
 const precompilers = require('./precompilers')
 
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md)'
 
 const p = (retryHelper, fn) => {
   const promise = () => new Promise((resolve, reject) => {
@@ -429,6 +429,10 @@ module.exports = class ScriptingProvider {
     const precompResponse = precompilers.execute(scriptBuffer, { convoDir, filename, caps: this.caps })
     if (precompResponse) {
       scriptBuffer = precompResponse.scriptBuffer
+      debug(`File ${filename} precompiled by ${precompResponse.precompiler}` +
+        (precompResponse.filename ? ` and filename changed to ${precompResponse.filename}` : '')
+      )
+      filename = precompResponse.filename || filename
     }
 
     if (filename.endsWith('.xlsx')) {
@@ -458,6 +462,8 @@ module.exports = class ScriptingProvider {
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
       fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+    } else {
+      debug(`ReadScript - dropped file: ${filename}`)
     }
 
     // Compilers saved the convos, and we alter here the saved version too
