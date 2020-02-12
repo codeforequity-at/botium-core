@@ -5,7 +5,8 @@ const debug = require('debug')('botium-Precompilers')
 const PROVIDERS = {
   JSON_TO_JSON_JSONPATH: require('./JsonToJson'),
   SCRIPT: require('./Script'),
-  MARKDOWN: require('./Markdown')
+  MARKDOWN: require('./Markdown'),
+  MARKDOWN_RASA: require('./MarkdownRasa')
 }
 const CAPABILITY_PREFIX = 'PRECOMPILERS'
 const { flatCababilities } = require('../../helpers/CapabilitiesUtils')
