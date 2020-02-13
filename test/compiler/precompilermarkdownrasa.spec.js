@@ -54,7 +54,7 @@ describe('compiler.precompiler.markdown', function () {
   })
 
   it('should execute RASA markdown without extra parameters', async function () {
-    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_nlu_data.md')
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_markdown_rasa.md')
     this.compiler.ExpandConvos()
     assert.equal(this.compiler.convos.length, 7)
     // const transcript = await this.compiler.convos[0].Run(this.container)

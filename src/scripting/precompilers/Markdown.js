@@ -1,4 +1,5 @@
 const MarkdownIt = require('markdown-it')
+const md = new MarkdownIt()
 const debug = require('debug')('botium-PrecompilerMarkdown')
 const util = require('util')
 const _ = require('lodash')
@@ -7,120 +8,78 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
   if (!filename.endsWith('.md')) {
     return
   }
-
-  const md = new MarkdownIt()
   const parsed = md.parse(scriptBuffer, {})
 
-  const _utteranceKey = (entityName) => {
-    return `UTTERANCE_${entityName}`
-  }
+  const _toStructuredMarkdown = (parsed) => {
+    let depth = null
+    const struct = [{ children: [] }, null, null, null, null, null]
 
-  const _extractFromRasaSentence = (rasaSentence) => {
-    const regex = /\[([^\]]+)\]\(([a-zA-Z][_:\-a-zA-Z0-9]+)\)/
-    let matched = rasaSentence.match(regex)
-    const utterances = []
-    while (matched) {
-      const value = matched[1]
-      const splitted = matched[2].split(':')
-      const [name] = splitted
-      if (splitted.length > 1) {
-        debug(`Entity synonim ${splitted[1]} ignored in sentence ${rasaSentence} `)
-      }
-      const key = _utteranceKey(name)
-      utterances.push({ name: key, value })
-      rasaSentence = rasaSentence.replace(matched[0], key)
-      matched = rasaSentence.match(regex)
+    const _add = (entry) => {
+      struct[depth].children.push(entry)
+      entry.children = []
+      struct[depth + 1] = entry
     }
-    return { meText: rasaSentence, utterances }
-  }
 
-  const _toConvos = (intent, meTexts, options) => {
-    return meTexts.map(meText => ({
-      name: `${intent}/${meText}`,
-      description: `${intent}/${meText}`,
-      steps: [
-        {
-          me: [
-            meText
-          ]
-        },
-        {
-          bot: [
-            `INTENT ${intent}`
-          ]
-        }
-      ]
-    }))
-  }
-  const convos = []
-  const utterances = {}
-  let meTexts = []
-  let intent = null
-  // state got every possible value, but just few are used. Could be simplified.
-  let state = 'START'
-  let processLeafs = null
-  for (const entry of parsed) {
-    if (entry.type === 'heading_open') {
-      state = 'heading_open'
-    } else if (entry.type === 'inline' && entry.content.startsWith('intent:')) {
-      intent = entry.content.substring('intent:'.length)
-      processLeafs = true
-      state = 'inline_intent'
-    } else if (entry.type === 'inline' && entry.content.startsWith('synonym:')) {
-      processLeafs = false
-      debug(`Synonym "${entry.content}" ignored`)
-      state = 'inline_synonym'
-    } else if (entry.type === 'inline' && entry.content.startsWith('regex:')) {
-      processLeafs = false
-      debug(`Regex "${entry.content}" ignored`)
-      state = 'inline_regex'
-    } else if (entry.type === 'inline' && entry.content.startsWith('lookup:')) {
-      processLeafs = false
-      debug(`Lookup "${entry.content}" ignored`)
-      state = 'inline_lookup'
-    } else if (entry.type === 'heading_close') {
-      state = 'heading_close'
-    } else if (entry.type === 'bullet_list_open') {
-      state = 'bullet_list_open'
-    } else if (entry.type === 'list_item_open') {
-      state = 'list_item_open'
-    } else if (entry.type === 'paragraph_open') {
-      state = 'paragraph_open'
-    } else if (entry.type === 'inline' && state === 'paragraph_open') {
-      if (processLeafs) {
-        const { meText, utterances: utterancesSub } = _extractFromRasaSentence(entry.content)
-        meTexts.push(meText)
-        for (const utterance of utterancesSub) {
-          utterances[utterance.name] = (utterances[utterance.name] || []).concat([utterance.value])
-        }
-      }
-      state = 'inline_leaf'
-    } else if (entry.type === 'paragraph_close') {
-      state = 'paragraph_close'
-    } else if (entry.type === 'list_item_close') {
-      state = 'list_item_close'
-    } else if (entry.type === 'bullet_list_close') {
-      state = 'bullet_list_close'
-      if (meTexts.length) {
-        if (!intent) {
-          debug(`Intent not found, dropping me texts ${JSON.stringify(meTexts)}`)
+    for (const entry of parsed) {
+      if (entry.type === 'heading_open') {
+        if (entry.tag === 'h1') {
+          depth = 0
+        } else if (entry.tag === 'h2') {
+          depth = 1
         } else {
-          meTexts = _.uniq(meTexts).sort()
-          convos.push(..._toConvos(intent, meTexts))
+          debug(`Markdown entry "${util.inspect(entry)}" ignored. Unknown heading`)
+        }
+      } else if (entry.type === 'bullet_list_open') {
+        depth++
+        if (depth > 4) {
+          throw new Error('Bullet list depth 3 not supported')
+        }
+      } else if (entry.type === 'bullet_list_close') {
+        depth--
+      } else if (entry.type === 'inline') {
+        _add(entry)
+      }
+    }
+    return struct[0]
+  }
+
+  const structured = _toStructuredMarkdown(parsed)
+  const convosBotium = []
+  const utterancesBotium = {}
+  for (const convosOrUtterances of structured.children) {
+    if (convosOrUtterances.content === 'Convos') {
+      for (const convo of convosOrUtterances.children) {
+        const convoBotium = { name: convo.content, steps: [] }
+        convosBotium.push(convoBotium)
+        for (const step of convo.children) {
+          const sender = step.content.toLowerCase()
+          if (['me', 'bot'].includes(sender)) {
+            // handle booth:
+            //   - BUTTONS checkbutton|checkbutton2
+            // and
+            // - BUTTONS
+            //   - checkbutton
+            //   - checkbutton2
+            convoBotium.steps.push({
+              [sender]: step.children.map(child => child.content +
+                (child.children ? ' ' + child.children.map(child => child.content).join('|') : ''))
+            })
+          } else {
+            debug(`Expected "me" or "bot" but found ${sender}`)
+          }
         }
       }
-      intent = null
-      meTexts = []
+    } else if (convosOrUtterances.content === 'Utterances') {
+      for (const utteranceStruct of convosOrUtterances.children) {
+        utterancesBotium[utteranceStruct.content] = utteranceStruct.children.map(child => child.content)
+      }
     } else {
-      debug(`Markdown entry ignored ${util.inspect(entry)}`)
+      debug(`Expected "Convos" or "Utterances" but found ${convosOrUtterances.content}`)
     }
   }
 
-  for (const [key, values] of Object.entries(utterances)) {
-    utterances[key] = _.uniq(values.sort())
-  }
   return {
-    scriptBuffer: { convos, utterances },
+    scriptBuffer: { convos: convosBotium, utterances: utterancesBotium },
     filename: `${filename}.json`
   }
 }
