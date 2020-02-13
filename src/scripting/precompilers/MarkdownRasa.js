@@ -94,7 +94,7 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
         if (!intent) {
           debug(`Intent not found, dropping me texts ${JSON.stringify(meTexts)}`)
         } else {
-          meTexts = _.uniq(meTexts)//.sort()
+          meTexts = _.uniq(meTexts)
           convos.push(..._toConvos(intent, meTexts))
         }
       }
