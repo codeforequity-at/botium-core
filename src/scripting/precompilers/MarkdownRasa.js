@@ -80,7 +80,7 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
       state = 'paragraph_open'
     } else if (entry.type === 'inline' && state === 'paragraph_open') {
       if (processLeafs) {
-        const { meText} = _extractFromRasaSentence(entry.content)
+        const { meText } = _extractFromRasaSentence(entry.content)
         meTexts.push(meText)
       }
       state = 'inline_leaf'
