@@ -11,27 +11,20 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
   const md = new MarkdownIt()
   const parsed = md.parse(scriptBuffer, {})
 
-  const _utteranceKey = (entityName) => {
-    return `UTTERANCE_${entityName}`
-  }
-
   const _extractFromRasaSentence = (rasaSentence) => {
     const regex = /\[([^\]]+)\]\(([a-zA-Z][_:\-a-zA-Z0-9]+)\)/
     let matched = rasaSentence.match(regex)
-    const utterances = []
     while (matched) {
       const value = matched[1]
       const splitted = matched[2].split(':')
-      const [name] = splitted
+      // const [name] = splitted
       if (splitted.length > 1) {
         debug(`Entity synonim ${splitted[1]} ignored in sentence ${rasaSentence} `)
       }
-      const key = _utteranceKey(name)
-      utterances.push({ name: key, value })
-      rasaSentence = rasaSentence.replace(matched[0], key)
+      rasaSentence = rasaSentence.replace(matched[0], value)
       matched = rasaSentence.match(regex)
     }
-    return { meText: rasaSentence, utterances }
+    return { meText: rasaSentence }
   }
 
   const _toConvos = (intent, meTexts, options) => {
@@ -53,7 +46,6 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
     }))
   }
   const convos = []
-  const utterances = {}
   let meTexts = []
   let intent = null
   // state got every possible value, but just few are used. Could be simplified.
@@ -88,11 +80,8 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
       state = 'paragraph_open'
     } else if (entry.type === 'inline' && state === 'paragraph_open') {
       if (processLeafs) {
-        const { meText, utterances: utterancesSub } = _extractFromRasaSentence(entry.content)
+        const { meText} = _extractFromRasaSentence(entry.content)
         meTexts.push(meText)
-        for (const utterance of utterancesSub) {
-          utterances[utterance.name] = (utterances[utterance.name] || []).concat([utterance.value])
-        }
       }
       state = 'inline_leaf'
     } else if (entry.type === 'paragraph_close') {
@@ -105,7 +94,7 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
         if (!intent) {
           debug(`Intent not found, dropping me texts ${JSON.stringify(meTexts)}`)
         } else {
-          meTexts = _.uniq(meTexts).sort()
+          meTexts = _.uniq(meTexts)//.sort()
           convos.push(..._toConvos(intent, meTexts))
         }
       }
@@ -116,11 +105,8 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
     }
   }
 
-  for (const [key, values] of Object.entries(utterances)) {
-    utterances[key] = _.uniq(values.sort())
-  }
   return {
-    scriptBuffer: { convos, utterances },
+    scriptBuffer: { convos },
     filename: `${filename}.json`
   }
 }
