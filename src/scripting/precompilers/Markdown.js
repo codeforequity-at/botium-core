@@ -2,7 +2,6 @@ const MarkdownIt = require('markdown-it')
 const md = new MarkdownIt()
 const debug = require('debug')('botium-PrecompilerMarkdown')
 const util = require('util')
-const _ = require('lodash')
 
 module.exports.precompile = (scriptBuffer, options, filename) => {
   if (!filename.endsWith('.md')) {
