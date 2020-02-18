@@ -14,11 +14,11 @@ describe('scripting.asserters.formsAsserter', function () {
   it('should succeed on existing form', async function () {
     await this.formsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: ['test'],
+      args: ['test1'],
       botMsg: {
         forms: [
           {
-            name: 'test'
+            name: 'test1'
           }
         ]
       }
@@ -27,13 +27,13 @@ describe('scripting.asserters.formsAsserter', function () {
   it('should succeed on existing card form', async function () {
     await this.formsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: ['test'],
+      args: ['test1'],
       botMsg: {
         cards: [
           {
             forms: [
               {
-                name: 'test'
+                name: 'test1'
               }
             ]
           }
@@ -44,11 +44,11 @@ describe('scripting.asserters.formsAsserter', function () {
   it('should succeed on existing card forms', async function () {
     await this.formsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
-      args: ['test', 'test1'],
+      args: ['test1', 'test1'],
       botMsg: {
         forms: [
           {
-            name: 'test'
+            name: 'test1'
           }
         ],
         cards: [
@@ -63,29 +63,84 @@ describe('scripting.asserters.formsAsserter', function () {
       }
     })
   })
+  it('should succeed on existing card form (by label)', async function () {
+    await this.formsAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['test1', 'test2'],
+      botMsg: {
+        forms: [
+          {
+            name: 'test1'
+          },
+          {
+            name: 'otherform',
+            label: 'test2'
+          }
+        ]
+      }
+    })
+  })
   it('should fail on missing form', async function () {
     try {
       await this.formsAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: ['test', 'test1'],
+        args: ['test1', 'test2'],
         botMsg: {
           forms: [
             {
-              name: 'test'
+              name: 'test1'
             }
           ]
         }
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf("test: Wrong number of forms. The difference is [ { form: 'test1', diff: -1 } ]") >= 0)
+      assert.isTrue(err.message.indexOf('Expected form(s) with text "test2"') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.isArray(err.context.cause.expected)
       assert.isNotTrue(err.context.cause.not)
-      assert.deepEqual(err.context.cause.expected, ['test', 'test1'])
-      assert.deepEqual(err.context.cause.actual, ['test'])
-      assert.deepEqual(err.context.cause.diff, [{ form: 'test1', diff: -1 }])
+      assert.deepEqual(err.context.cause.expected, ['test1', 'test2'])
+      assert.deepEqual(err.context.cause.actual, [{ name: 'test1' }])
+      assert.deepEqual(err.context.cause.diff, ['test2'])
+    }
+  })
+  it('should succeed on not existing form', async function () {
+    await this.formsAsserter.assertNotConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['test2'],
+      botMsg: {
+        forms: [
+          {
+            name: 'test1'
+          }
+        ]
+      }
+    })
+  })
+  it('should fail on unexpected form', async function () {
+    try {
+      await this.formsAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['test1', 'test2'],
+        botMsg: {
+          forms: [
+            {
+              name: 'test1'
+            }
+          ]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Not expected form(s) with text "test1"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.isTrue(err.context.cause.not)
+      assert.deepEqual(err.context.cause.expected, ['test1', 'test2'])
+      assert.deepEqual(err.context.cause.actual, [{ name: 'test1' }])
+      assert.deepEqual(err.context.cause.diff, ['test1'])
     }
   })
 })
