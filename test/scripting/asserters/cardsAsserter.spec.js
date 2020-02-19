@@ -204,5 +204,4 @@ describe('scripting.asserters.cardsAsserter', function () {
       assert.deepEqual(err.context.cause.actual, ['test'])
     }
   })
-
 })
