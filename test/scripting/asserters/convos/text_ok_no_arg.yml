@@ -1,0 +1,7 @@
+convos:
+  - name: text_ok_no_arg
+    steps:
+      - me:
+          - Im Joe
+      - bot:
+          - TEXT
