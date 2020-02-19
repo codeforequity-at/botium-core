@@ -8,9 +8,6 @@ describe('scripting.asserters.formsAsserter', function () {
     }, {})
   })
 
-  it('should do nothing on no arg', async function () {
-    await this.formsAsserter.assertConvoStep({ })
-  })
   it('should succeed on existing form', async function () {
     await this.formsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
@@ -74,7 +71,7 @@ describe('scripting.asserters.formsAsserter', function () {
           },
           {
             name: 'otherform',
-            label: 'test2'
+            label: 'Test2'
           }
         ]
       }
@@ -141,6 +138,60 @@ describe('scripting.asserters.formsAsserter', function () {
       assert.deepEqual(err.context.cause.expected, ['test1', 'test2'])
       assert.deepEqual(err.context.cause.actual, [{ name: 'test1' }])
       assert.deepEqual(err.context.cause.diff, ['test1'])
+    }
+  })
+  it('should succeed on existing form if has no arg', async function () {
+    await this.formsAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: [],
+      botMsg: {
+        forms: [
+          {
+            name: 'test'
+          }
+        ]
+      }
+    })
+  })
+  it('should fail on no form if has no arg', async function () {
+    try {
+      await this.formsAsserter.assertConvoStep({ convoStep: { stepTag: 'test' } })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected some form(s)') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.isNotTrue(err.context.cause.not)
+      assert.deepEqual(err.context.cause.expected, [])
+      assert.deepEqual(err.context.cause.actual, [])
+    }
+  })
+  it('should succeed on not existing form if has no arg and negated', async function () {
+    await this.formsAsserter.assertNotConvoStep({ convoStep: { stepTag: 'test' } })
+  })
+  it('should fail on form if has no arg and negated', async function () {
+    try {
+      await this.formsAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: [],
+        botMsg: {
+          forms: [
+            {
+              name: 'test'
+            }
+          ]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Not expected form(s) with text "test"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.isTrue(err.context.cause.not)
+      assert.deepEqual(err.context.cause.expected, [])
+      assert.deepEqual(err.context.cause.actual, [{ name: 'test' }])
     }
   })
 })
