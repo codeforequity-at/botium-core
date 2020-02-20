@@ -19,10 +19,10 @@ describe('compiler.precompiler.script', function () {
       [Capabilities.CONTAINERMODE]: echoConnector,
       [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
       PRECOMPILERS: {
-        name: 'SCRIPT',
-        script: `
+        NAME: 'SCRIPT',
+        SCRIPT: `
           const utterances = {}
-          for (const entry of scriptData) {
+          for (const entry of filecontent) {
             utterances[entry.intent] = entry.sentences
           }
           result = {utterances}

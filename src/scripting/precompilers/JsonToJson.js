@@ -8,20 +8,17 @@ const _ensureList = (queryResult) => {
   return [queryResult]
 }
 
-module.exports.precompile = (scriptBuffer, capSuffixAndVal, filename) => {
+module.exports.precompile = (scriptBuffer, options, filename) => {
   if (!filename.endsWith('.json')) {
     return
   }
 
   // this name can be in cap name, or in cap value. Reading it dynamical
-  const checkerJsonpath = capSuffixAndVal.CHECKER_JSONPATH || capSuffixAndVal.checkerJsonpath
-  const rootJsonpath = capSuffixAndVal.ROOT_JSONPATH || capSuffixAndVal.rootJsonpath
-  const intentsJsonpath = capSuffixAndVal.INTENTS_JSONPATH || capSuffixAndVal.intentsJsonpath
-  const utterancesJsonpath = capSuffixAndVal.UTTERANCES_JSONPATH || capSuffixAndVal.utterancesJsonpath
+  const checkerJsonpath = options.CHECKER_JSONPATH || options.checkerJsonpath
+  const rootJsonpath = options.ROOT_JSONPATH || options.rootJsonpath
+  const intentsJsonpath = options.INTENTS_JSONPATH || options.intentsJsonpath
+  const utterancesJsonpath = options.UTTERANCES_JSONPATH || options.utterancesJsonpath
   let scriptData = scriptBuffer
-  if (Buffer.isBuffer(scriptData)) {
-    scriptData = scriptData.toString()
-  }
   if (_.isString(scriptData)) {
     try {
       scriptData = JSON.parse(scriptData)
