@@ -7,7 +7,7 @@ const mime = require('mime-types')
 const uuidv4 = require('uuid/v4')
 const Redis = require('ioredis')
 const _ = require('lodash')
-const debug = require('debug')('botium-SimpleRestContainer')
+const debug = require('debug')('botium-connector-simplerest')
 
 const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
@@ -165,12 +165,29 @@ module.exports = class SimpleRestContainer {
 
   // Separated just for better module testing
   async _processBodyAsync (body, isFromUser) {
-    const results = await this._processBodyAsyncImpl(body, isFromUser)
-    if (results) {
-      for (const result of results) {
-        setTimeout(() => this.queueBotSays(result), 0)
+    const p = async () => {
+      const results = await this._processBodyAsyncImpl(body, isFromUser)
+      if (results) {
+        for (const result of results) {
+          setTimeout(() => this.queueBotSays(result), 0)
+        }
       }
     }
+    if (this.waitProcessQueue) {
+      this.waitProcessQueue.push(p)
+      debug('Async body is queued for processing.')
+    } else {
+      await p()
+    }
+  }
+
+  async _emptyWaitProcessQueue () {
+    if (this.waitProcessQueue && this.waitProcessQueue.length > 0) {
+      for (const p of this.waitProcessQueue) {
+        await p()
+      }
+    }
+    this.waitProcessQueue = null
   }
 
   // Separated just for better module testing
@@ -269,6 +286,8 @@ module.exports = class SimpleRestContainer {
         msg.sourceData = msg.sourceData || {}
         msg.sourceData.requestOptions = requestOptions
 
+        this.waitProcessQueue = []
+
         request(requestOptions, (err, response, body) => {
           if (err) {
             reject(new Error(`rest request failed: ${util.inspect(err)}`))
@@ -283,20 +302,20 @@ module.exports = class SimpleRestContainer {
               if (_.isString(body)) {
                 try {
                   body = JSON.parse(body.trim())
-                  this._processBodyAsync(body, isFromUser).then(() => resolve(this))
+                  this._processBodyAsync(body, isFromUser).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
                 } catch (err) {
                   debug(`ignoring not JSON formatted response body (${err.message})`)
-                  resolve(this)
+                  resolve(this).then(() => this._emptyWaitProcessQueue())
                 }
               } else if (_.isObject(body)) {
-                this._processBodyAsync(body, isFromUser).then(() => resolve(this))
+                this._processBodyAsync(body, isFromUser).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
               } else {
                 debug('ignoring response body (no string and no JSON object)')
-                resolve(this)
+                resolve(this).then(() => this._emptyWaitProcessQueue())
               }
             } else {
               debug(`got response code: ${response.statusCode}, empty body`)
-              resolve(this)
+              resolve(this).then(() => this._emptyWaitProcessQueue())
             }
           }
         })
