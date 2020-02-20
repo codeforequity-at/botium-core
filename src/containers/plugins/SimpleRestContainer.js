@@ -11,6 +11,7 @@ const debug = require('debug')('botium-connector-simplerest')
 
 const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
+const { getAllCapValues } = require('../../helpers/CapabilitiesUtils')
 const Capabilities = require('../../Capabilities')
 const Defaults = require('../../Defaults')
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
@@ -205,7 +206,7 @@ module.exports = class SimpleRestContainer {
     if (isFromUser) {
       const jsonPathRoots = []
 
-      const jsonPathsBody = this._getAllCapValues(Capabilities.SIMPLEREST_BODY_JSONPATH)
+      const jsonPathsBody = getAllCapValues(Capabilities.SIMPLEREST_BODY_JSONPATH, this.caps)
       if (jsonPathsBody.length > 0) {
         for (const jsonPathBody of jsonPathsBody) {
           const rb = jp.query(body, jsonPathBody)
@@ -223,7 +224,7 @@ module.exports = class SimpleRestContainer {
         const media = []
         const buttons = []
 
-        const jsonPathsMedia = this._getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH)
+        const jsonPathsMedia = getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH, this.caps)
         jsonPathsMedia.forEach(jsonPath => {
           const responseMedia = jp.query(jsonPathRoot, jsonPath)
           if (responseMedia) {
@@ -236,7 +237,7 @@ module.exports = class SimpleRestContainer {
             debug(`found response media: ${util.inspect(media)}`)
           }
         })
-        const jsonPathsButtons = this._getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH)
+        const jsonPathsButtons = getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH, this.caps)
         jsonPathsButtons.forEach(jsonPath => {
           const responseButtons = jp.query(jsonPathRoot, jsonPath)
           if (responseButtons) {
@@ -250,7 +251,7 @@ module.exports = class SimpleRestContainer {
         })
 
         let hasMessageText = false
-        const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
+        const jsonPathsTexts = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, this.caps)
         for (const jsonPath of jsonPathsTexts) {
           debug(`eval json path ${jsonPath}`)
 
@@ -418,25 +419,6 @@ module.exports = class SimpleRestContainer {
     }
   }
 
-  _getAllCapValues (capName) {
-    const allCapValues = []
-    const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(capName))
-    _(jsonPathCaps).keys().sort().each((key) => {
-      const jsonPath = this.caps[key]
-
-      if (_.isArray(jsonPath)) {
-        jsonPath.forEach(p => {
-          allCapValues.push(`${p}`.trim())
-        })
-      } else if (_.isString(jsonPath)) {
-        jsonPath.split(',').forEach(p => {
-          allCapValues.push(p.trim())
-        })
-      }
-    })
-    return allCapValues
-  }
-
   _getMustachedCap (capName, json) {
     const template = _.isString(this.caps[capName]) ? this.caps[capName] : JSON.stringify(this.caps[capName])
     return this._getMustachedVal(template, json)
@@ -458,7 +440,7 @@ module.exports = class SimpleRestContainer {
     if (!this.processInbound) return
 
     const jsonPathValue = this.caps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE]
-    const jsonPathsSelector = this._getAllCapValues(Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH)
+    const jsonPathsSelector = getAllCapValues(Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH, this.caps)
     if (jsonPathsSelector && jsonPathsSelector.length > 0) {
       let isSelected = false
       for (const jsonPathTemplate of jsonPathsSelector) {

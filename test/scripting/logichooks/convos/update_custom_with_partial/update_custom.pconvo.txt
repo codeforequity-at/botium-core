@@ -1,0 +1,7 @@
+update_custom_partial
+
+#me
+partial hi
+
+#bot
+new message from begin

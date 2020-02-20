@@ -27,6 +27,14 @@ const isJson = (json) => {
   return null
 }
 
+const toJsonWeak = (stringOrNot) => {
+  try {
+    return JSON.parse(stringOrNot)
+  } catch (e) {
+    return stringOrNot
+  }
+}
+
 const optionalJson = (json) => {
   const body = isJson(json)
   return body ? { 'content-type': 'application/json', body: body } : { 'content-type': 'text/plain', body: json }
@@ -66,4 +74,4 @@ const escapeJSONString = (string) => {
   }
 }
 
-module.exports = { optionalJson, isJson, isJsonObject, isStringJson, shortenJsonString, escapeJSONString }
+module.exports = { optionalJson, isJson, isJsonObject, isStringJson, shortenJsonString, escapeJSONString, toJsonWeak }
