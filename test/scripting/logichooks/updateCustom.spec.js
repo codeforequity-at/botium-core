@@ -130,4 +130,19 @@ describe('UpdateCustomLogicHook', function () {
 
     await this.compiler.convos[0].Run(this.container)
   })
+  it('should update me message from begin section in partial convo', async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.logichooks',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'update_custom_with_partial'))
+    assert.equal(this.compiler.convos.length, 1)
+
+    await this.compiler.convos[0].Run(this.container)
+  })
 })

@@ -1,5 +1,4 @@
 const util = require('util')
-const async = require('async')
 const _ = require('lodash')
 const debug = require('debug')('botium-Convo')
 
@@ -183,78 +182,64 @@ class Convo {
     return this.header.toString() + (this.sourceTag ? ` (${util.inspect(this.sourceTag)})` : '') + ': ' + this.conversation.map((c) => c.toString()).join(' | ')
   }
 
-  Run (container) {
-    return new Promise((resolve, reject) => {
-      const scriptingMemory = {}
-
-      async.waterfall([
-        // onConvoBegin first or assertConvoBegin? If onConvoBegin, then it is possible to assert it too
-        (cb) => {
-          this.scriptingEvents.onConvoBegin({ convo: this, container, scriptingMemory })
-            .then(() => cb())
-            .catch((err) => cb(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err)))
-        },
-        (cb) => {
-          this.scriptingEvents.assertConvoBegin({ convo: this, container, scriptingMemory })
-            .then(() => cb())
-            .catch((err) => cb(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err)))
-        },
-        (cb) => {
-          this.runConversation(container, scriptingMemory, (transcript) => {
-            if (transcript.err) {
-              cb(transcript.err, transcript)
-            } else {
-              cb(null, transcript)
-            }
-          })
-        },
-        // onConvoEnd first or assertConvoEnd? If onConvoEnd, then it is possible to assert it too
-        (transcript, cb) => {
-          this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
-            .then(() => cb(null, transcript))
-            .catch((err) => cb(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript))
-        },
-        (transcript, cb) => {
-          this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
-            .then(() => cb(null, transcript))
-            .catch((err) => cb(botiumErrorFromErr(`${this.header.name}: error end asserter - ${err.message}`, err), transcript))
-        }
-      ],
-      (err, transcript) => {
-        container.eventEmitter.emit(Events.MESSAGE_TRANSCRIPT, container, transcript)
-
-        if (err) {
-          return reject(new TranscriptError(err, transcript))
-        } else {
-          resolve(transcript)
-        }
-      }
-      )
-    })
-  }
-
-  runConversation (container, scriptingMemory, cb) {
+  async Run (container) {
     const transcript = new Transcript({
       steps: [],
       convoBegin: new Date(),
       convoEnd: null,
       err: null
     })
+    const scriptingMemory = {}
 
-    let lastMeConvoStep = null
-    let effectiveConversation
     try {
-      effectiveConversation = this._getEffectiveConversation()
+      try {
+        const effectiveConversation = this._getEffectiveConversation()
+        this.originConversation = this.conversation
+        this.conversation = effectiveConversation
+      } catch (err) {
+        transcript.err = err
+        transcript.scriptingMemory = scriptingMemory
+        transcript.convoEnd = new Date()
+        throw new TranscriptError(err, transcript)
+      }
+      try {
+        // onConvoBegin first or assertConvoBegin? If onConvoBegin, then it is possible to assert it too
+        await this.scriptingEvents.onConvoBegin({ convo: this, container, scriptingMemory })
+      } catch (err) {
+        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err), transcript)
+      }
+      try {
+        await this.scriptingEvents.assertConvoBegin({ convo: this, container, scriptingMemory })
+      } catch (err) {
+        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err), transcript)
+      }
+      await this.runConversation(container, scriptingMemory, transcript)
+      if (transcript.err) {
+        throw new TranscriptError(transcript.err, transcript)
+      }
+      try {
+        // onConvoEnd first or assertConvoEnd? If onConvoEnd, then it is possible to assert it too
+        await this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
+      } catch (err) {
+        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
+      }
+      try {
+        await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
+      } catch (err) {
+        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
+      }
+      return transcript
     } catch (err) {
-      transcript.err = err
-      transcript.scriptingMemory = scriptingMemory
-      transcript.convoEnd = new Date()
-      cb(transcript)
-      return
+      container.eventEmitter.emit(Events.MESSAGE_TRANSCRIPT, container, transcript)
+      throw err
     }
-    return async.mapSeries(effectiveConversation,
-      (convoStep, convoStepDoneCb) => {
-        const currentStepIndex = this.conversation.indexOf(convoStep)
+  }
+
+  async runConversation (container, scriptingMemory, transcript) {
+    const transcriptSteps = []
+    try {
+      let lastMeConvoStep = null
+      for (const [currentStepIndex, convoStep] of this.conversation.entries()) {
         const transcriptStep = new TranscriptStep({
           expected: new BotiumMockMessage(convoStep),
           not: convoStep.not,
@@ -265,59 +250,41 @@ class Convo {
           botEnd: null,
           err: null
         })
-        const convoStepDone = (err) => {
-          if (err && lastMeConvoStep) {
-            if (err instanceof BotiumError && err.context) {
-              err.context.input = new ConvoStep(lastMeConvoStep)
-            } else {
-              err.input = new ConvoStep(lastMeConvoStep)
-            }
-          }
-          transcriptStep.scriptingMemory = Object.assign({}, scriptingMemory)
-          transcriptStep.stepEnd = new Date()
-          transcriptStep.err = err
-          convoStepDoneCb(err, transcriptStep)
-        }
 
-        if (convoStep.sender === 'begin' || convoStep.sender === 'end') {
-          convoStepDoneCb()
-        } else if (convoStep.sender === 'me') {
-          const meMsg = new BotiumMockMessage(convoStep)
-          meMsg.messageText = ScriptingMemory.apply(container, scriptingMemory, meMsg.messageText)
-          convoStep.messageText = meMsg.messageText
-          transcriptStep.actual = meMsg
+        try {
+          if (convoStep.sender === 'begin' || convoStep.sender === 'end') {
+            continue
+          } else if (convoStep.sender === 'me') {
+            const meMsg = new BotiumMockMessage(convoStep)
+            meMsg.messageText = ScriptingMemory.apply(container, scriptingMemory, meMsg.messageText)
+            convoStep.messageText = meMsg.messageText
+            transcriptStep.actual = meMsg
 
-          return this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg })
-            .then(() => this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg }))
-            .then(() => debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(meMsg, null, 2)}`))
-            .then(() => new Promise(resolve => {
-              if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
-                setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * meMsg.messageText.length)
-              } else {
-                resolve()
-              }
-            }))
-            .then(() => {
+            try {
+              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg })
+              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
+              debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(meMsg, null, 2)}`)
+              await new Promise(resolve => {
+                if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
+                  setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * meMsg.messageText.length)
+                } else {
+                  resolve()
+                }
+              })
               lastMeConvoStep = convoStep
               transcriptStep.botBegin = new Date()
               if (!_.isNull(meMsg.messageText) || meMsg.sourceData || (meMsg.userInputs && meMsg.userInputs.length)) {
                 transcriptStep.botBegin = new Date()
-                return container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, meMsg))
-                  .then(() => {
-                    transcriptStep.botEnd = new Date()
-                    return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
-                  })
-                  .then(() => convoStepDone())
+                await container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, meMsg))
+                transcriptStep.botEnd = new Date()
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
+                continue
               } else {
                 debug(`${this.header.name}/${convoStep.stepTag}: message not found in #me section, message not sent to container ${util.inspect(convoStep)}`)
-                return Promise.resolve()
-                  .then(() => {
-                    return this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
-                  })
-                  .then(() => convoStepDone())
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
+                continue
               }
-            })
-            .catch((err) => {
+            } catch (err) {
               transcriptStep.botEnd = new Date()
 
               const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: error sending to bot - ${err.message || err}`, err)
@@ -326,15 +293,15 @@ class Convo {
                 this.scriptingEvents.fail && this.scriptingEvents.fail(failErr)
               } catch (failErr) {
               }
-              convoStepDone(failErr)
-            })
-        } else if (convoStep.sender === 'bot') {
-          debug(`${this.header.name} wait for bot ${util.inspect(convoStep.channel)}`)
-          return this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory })
-            .then(() => {
+              throw failErr
+            }
+          } else if (convoStep.sender === 'bot') {
+            let saysmsg = null
+            try {
+              debug(`${this.header.name} wait for bot ${convoStep.channel || ''}`)
+              await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory })
               transcriptStep.botBegin = new Date()
-              return container.WaitBotSays(convoStep.channel)
-            }).then((saysmsg) => {
+              saysmsg = await container.WaitBotSays(convoStep.channel)
               transcriptStep.botEnd = new Date()
               transcriptStep.actual = new BotiumMockMessage(saysmsg)
 
@@ -343,84 +310,7 @@ class Convo {
                 'sourceData'
               ])
               debug(`${this.header.name}: bot says (cleaned by attachments and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
-              if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData && !saysmsg.nlp)) {
-                const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
-                debug(failErr)
-                try {
-                  this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
-                } catch (failErr) {
-                }
-                return convoStepDone(failErr)
-              }
-              const assertErrors = []
-              const scriptingMemoryUpdate = {}
-              if (convoStep.messageText) {
-                const response = this._checkNormalizeText(container, saysmsg.messageText)
-                const messageText = this._checkNormalizeText(container, convoStep.messageText)
-                ScriptingMemory.fill(container, scriptingMemoryUpdate, response, messageText, this.scriptingEvents)
-                const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText)
-                if (convoStep.not) {
-                  try {
-                    this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
-                  } catch (err) {
-                    if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                      assertErrors.push(err)
-                    } else {
-                      return convoStepDone(err)
-                    }
-                  }
-                } else {
-                  try {
-                    this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
-                  } catch (err) {
-                    if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                      assertErrors.push(err)
-                    } else {
-                      return convoStepDone(err)
-                    }
-                  }
-                }
-              } else if (convoStep.sourceData) {
-                try {
-                  this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
-                } catch (err) {
-                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                    assertErrors.push(err)
-                  } else {
-                    return convoStepDone(err)
-                  }
-                }
-              }
-              Object.assign(scriptingMemory, scriptingMemoryUpdate)
-              this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
-                .then(() => this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg }))
-                .catch((err) => {
-                  const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message || err}`, err)
-                  debug(failErr)
-                  try {
-                    this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
-                  } catch (failErr) {
-                  }
-                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS] && err instanceof BotiumError) {
-                    assertErrors.push(err)
-                  } else {
-                    return convoStepDone(failErr)
-                  }
-                })
-                .then(() => {
-                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                    if (assertErrors.length === 0) {
-                      convoStepDone()
-                    } else {
-                      return convoStepDone(botiumErrorFromList(assertErrors, {}))
-                    }
-                  } else {
-                    if (!transcriptStep.stepEnd) {
-                      convoStepDone()
-                    }
-                  }
-                })
-            }).catch((err) => {
+            } catch (err) {
               transcriptStep.botEnd = new Date()
 
               const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: error waiting for bot - ${err.message}`, err)
@@ -429,25 +319,117 @@ class Convo {
                 this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
               } catch (failErr) {
               }
-              convoStepDone(failErr)
-            })
-        } else {
-          const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: invalid sender - ${util.inspect(convoStep.sender)}`)
-          debug(failErr)
-          try {
-            this.scriptingEvents.fail && this.scriptingEvents.fail(failErr)
-          } catch (failErr) {
+              throw failErr
+            }
+
+            if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData && !saysmsg.nlp)) {
+              const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
+              debug(failErr)
+              try {
+                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
+              } catch (failErr) {
+              }
+              throw failErr
+            }
+            const assertErrors = []
+            const scriptingMemoryUpdate = {}
+            if (convoStep.messageText) {
+              const response = this._checkNormalizeText(container, saysmsg.messageText)
+              const messageText = this._checkNormalizeText(container, convoStep.messageText)
+              ScriptingMemory.fill(container, scriptingMemoryUpdate, response, messageText, this.scriptingEvents)
+              const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText)
+              if (convoStep.not) {
+                try {
+                  this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
+                } catch (err) {
+                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                    assertErrors.push(err)
+                  } else {
+                    throw err
+                  }
+                }
+              } else {
+                try {
+                  this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
+                } catch (err) {
+                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                    assertErrors.push(err)
+                  } else {
+                    throw err
+                  }
+                }
+              }
+            } else if (convoStep.sourceData) {
+              try {
+                this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
+              } catch (err) {
+                if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                  assertErrors.push(err)
+                } else {
+                  throw err
+                }
+              }
+            }
+            Object.assign(scriptingMemory, scriptingMemoryUpdate)
+            try {
+              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
+              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
+            } catch (err) {
+              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message || err}`, err)
+              debug(failErr)
+              try {
+                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
+              } catch (failErr) {
+              }
+              if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS] && err instanceof BotiumError) {
+                assertErrors.push(err)
+              } else {
+                throw failErr
+              }
+            }
+            if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+              if (assertErrors.length > 0) {
+                throw botiumErrorFromList(assertErrors, {})
+              }
+            } else {
+              if (!transcriptStep.stepEnd) {
+                continue
+              }
+            }
+          } else {
+            const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: invalid sender - ${util.inspect(convoStep.sender)}`)
+            debug(failErr)
+            try {
+              this.scriptingEvents.fail && this.scriptingEvents.fail(failErr)
+            } catch (failErr) {
+            }
+            throw failErr
           }
-          convoStepDone(failErr)
+        } catch (err) {
+          if (lastMeConvoStep) {
+            if (err instanceof BotiumError && err.context) {
+              err.context.input = new ConvoStep(lastMeConvoStep)
+            } else {
+              err.input = new ConvoStep(lastMeConvoStep)
+            }
+          }
+          transcriptStep.err = err
+          throw err
+        } finally {
+          if (convoStep.sender !== 'begin' && convoStep.sender !== 'end') {
+            transcriptStep.scriptingMemory = Object.assign({}, scriptingMemory)
+            transcriptStep.stepEnd = new Date()
+            transcriptSteps.push(transcriptStep)
+          }
         }
-      },
-      (err, transcriptSteps) => {
-        transcript.err = err
-        transcript.steps = transcriptSteps.filter(s => s)
-        transcript.scriptingMemory = scriptingMemory
-        transcript.convoEnd = new Date()
-        cb(transcript)
-      })
+      }
+    } catch (err) {
+      transcript.err = err
+    } finally {
+      transcript.steps = transcriptSteps.filter(s => s)
+      transcript.scriptingMemory = scriptingMemory
+      transcript.convoEnd = new Date()
+    }
   }
 
   _compareObject (container, scriptingMemory, convoStep, result, expected) {
