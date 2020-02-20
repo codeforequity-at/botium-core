@@ -7,8 +7,22 @@ const Capabilities = require('../../../').Capabilities
 const echoConnector = ({ queueBotSays }) => {
   return {
     UserSays (msg) {
-      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: msg.messageText }
-      queueBotSays(botMsg)
+      if (msg.messageText === 'button') {
+        queueBotSays({
+          sender: 'bot',
+          sourceData: msg.sourceData,
+          messageText: '',
+          buttons:
+            [
+              {
+                text: 'Push me!',
+                payload: 'Push me!'
+              }
+            ]
+        })
+      }
+
+      queueBotSays({ sender: 'bot', sourceData: msg.sourceData, messageText: msg.messageText })
     }
   }
 }
@@ -35,6 +49,22 @@ describe('scripting.asserters.textAsserter', function () {
     await this.compiler.convos[0].Run(this.container)
   })
 
+  it('ok, no arg', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_ok_no_arg.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+    await this.compiler.convos[0].Run(this.container)
+  })
+
+  it('ok, no arg, negate', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_ok_no_arg_negate.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+    await this.compiler.convos[0].Run(this.container)
+  })
+
   it('nok', async function () {
     this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_nok.yml'))
 
@@ -46,6 +76,34 @@ describe('scripting.asserters.textAsserter', function () {
       assert.fail('expected error')
     } catch (err) {
       assert.equal(err.message, 'text_nok/Line 2: assertion error - Line 2: Expected any text in response "Im Jane,Im George"')
+    }
+  })
+
+  it('nok no arg', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_nok_no_arg.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'text_nok_no_arg/Line 2: assertion error - Line 2: Expected not empty response')
+    }
+  })
+
+  it('nok no arg, negate', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'text_nok_no_arg_negate.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'text_nok_no_arg_negate/Line 2: assertion error - Line 2: Expected empty response')
     }
   })
 })

@@ -1,0 +1,7 @@
+convos:
+  - name: text_nok_no_arg
+    steps:
+      - me:
+          - button
+      - bot:
+          - TEXT

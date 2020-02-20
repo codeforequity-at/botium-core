@@ -22,6 +22,9 @@ module.exports = class FormsAsserter {
 
   _evalForms (args, botMsg) {
     const allForms = (botMsg.forms || []).concat(this._formTextsFromCardsRecursive(botMsg.cards))
+    if (!args || args.length === 0) {
+      return { allForms, formsNotFound: [], formsFound: allForms.map(form => form.name) }
+    }
     const formsNotFound = []
     const formsFound = []
     for (let i = 0; i < (args || []).length; i++) {
@@ -37,53 +40,66 @@ module.exports = class FormsAsserter {
     return { allForms, formsNotFound, formsFound }
   }
 
-  assertNotConvoStep ({ convo, convoStep, args, botMsg }) {
-    if (args && args.length > 0) {
-      const { allForms, formsFound } = this._evalForms(args, botMsg)
+  assertNotConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allForms, formsFound } = this._evalForms(args, botMsg)
 
-      if (formsFound.length > 0) {
-        return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Not expected form(s) with text "${formsFound}"`,
-          {
-            type: 'asserter',
-            source: this.name,
-            params: {
-              args
-            },
-            cause: {
-              not: true,
-              expected: args,
-              actual: allForms,
-              diff: formsFound
-            }
+    if (formsFound.length > 0) {
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Not expected form(s) with text "${formsFound}"`,
+        {
+          type: 'asserter',
+          source: this.name,
+          params: {
+            args
+          },
+          cause: {
+            not: true,
+            expected: args,
+            actual: allForms,
+            diff: formsFound
           }
-        ))
-      }
+        }
+      ))
     }
     return Promise.resolve()
   }
 
-  assertConvoStep ({ convo, convoStep, args, botMsg }) {
-    if (args && args.length > 0) {
-      const { allForms, formsNotFound } = this._evalForms(args, botMsg)
-      if (formsNotFound.length > 0) {
-        return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Expected form(s) with text "${formsNotFound}"`,
-          {
-            type: 'asserter',
-            source: this.name,
-            params: {
-              args
-            },
-            cause: {
-              not: false,
-              expected: args,
-              actual: allForms,
-              diff: formsNotFound
-            }
+  assertConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allForms, formsNotFound, formsFound } = this._evalForms(args, botMsg)
+    if (!formsFound.length) {
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Expected some form(s)`,
+        {
+          type: 'asserter',
+          source: this.name,
+          params: {
+            args
+          },
+          cause: {
+            not: false,
+            expected: args,
+            actual: allForms,
+            diff: formsNotFound
           }
-        ))
-      }
+        }
+      ))
+    } else if (formsNotFound.length > 0) {
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Expected form(s) with text "${formsNotFound}"`,
+        {
+          type: 'asserter',
+          source: this.name,
+          params: {
+            args
+          },
+          cause: {
+            not: false,
+            expected: args,
+            actual: allForms,
+            diff: formsNotFound
+          }
+        }
+      ))
     }
     return Promise.resolve()
   }
