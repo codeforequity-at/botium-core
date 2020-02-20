@@ -1,0 +1,13 @@
+update_custom_me_msg
+
+#begin
+UPDATE_CUSTOM simpleField|new message from begin
+
+#me
+HI
+
+#bot
+new message from begin
+
+#me
+INCLUDE update_custom_partial
