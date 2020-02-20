@@ -2,9 +2,9 @@ const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 const assert = chai.assert
+const { getAllCapValues } = require('../../src/helpers/CapabilitiesUtils')
 const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
-const SimpleRestContainer = require('../../src/containers/plugins/SimpleRestContainer')
 const nock = require('nock')
 
 const myCapsGet = {
@@ -545,50 +545,38 @@ describe('connectors.simplerest.processBody', function () {
 })
 describe('connectors.simplerest.parseCapabilities', function () {
   it('should get multiple cap values from array', async function () {
-    const container = new SimpleRestContainer({
-      caps: {
-        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: [
-          '$.1',
-          '$.2'
-        ]
-      }
+    const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: [
+        '$.1',
+        '$.2'
+      ]
     })
-    const values = container._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
     assert.lengthOf(values, 2)
     assert.deepEqual(values, ['$.1', '$.2'])
   })
   it('should get multiple cap values from splitted string', async function () {
-    const container = new SimpleRestContainer({
-      caps: {
-        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.1,$.2'
-      }
+    const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.1,$.2'
     })
-    const values = container._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
     assert.lengthOf(values, 2)
     assert.deepEqual(values, ['$.1', '$.2'])
   })
   it('should get multiple cap values from multiple string keys', async function () {
-    const container = new SimpleRestContainer({
-      caps: {
-        SIMPLEREST_RESPONSE_JSONPATH_0: '$.1,$.2',
-        SIMPLEREST_RESPONSE_JSONPATH_1: '$.3,$.4'
-      }
+    const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
+      SIMPLEREST_RESPONSE_JSONPATH_0: '$.1,$.2',
+      SIMPLEREST_RESPONSE_JSONPATH_1: '$.3,$.4'
     })
-    const values = container._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
     assert.lengthOf(values, 4)
     assert.deepEqual(values, ['$.1', '$.2', '$.3', '$.4'])
   })
   it('should get multiple cap values from mixed keys', async function () {
-    const container = new SimpleRestContainer({
-      caps: {
-        SIMPLEREST_RESPONSE_JSONPATH_0: [
-          '$.1',
-          '$.2'
-        ],
-        SIMPLEREST_RESPONSE_JSONPATH_1: '$.3,$.4'
-      }
+    const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
+      SIMPLEREST_RESPONSE_JSONPATH_0: [
+        '$.1',
+        '$.2'
+      ],
+      SIMPLEREST_RESPONSE_JSONPATH_1: '$.3,$.4'
     })
-    const values = container._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
     assert.lengthOf(values, 4)
     assert.deepEqual(values, ['$.1', '$.2', '$.3', '$.4'])
   })
