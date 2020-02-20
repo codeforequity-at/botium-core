@@ -22,6 +22,9 @@ module.exports = class ButtonsAsserter {
 
   _evalButtons (args, botMsg) {
     const allButtons = (botMsg.buttons ? botMsg.buttons.map(b => b.text) : []).concat(this._buttonTextsFromCardsRecursive(botMsg.cards))
+    if (!args || args.length === 0) {
+      return { allButtons, buttonsNotFound: [], buttonsFound: allButtons }
+    }
     const buttonsNotFound = []
     const buttonsFound = []
     for (let i = 0; i < (args || []).length; i++) {
@@ -34,12 +37,11 @@ module.exports = class ButtonsAsserter {
     return { allButtons, buttonsNotFound, buttonsFound }
   }
 
-  assertNotConvoStep ({ convo, convoStep, args, botMsg }) {
-    if (args && args.length > 0) {
-      const { allButtons, buttonsFound } = this._evalButtons(args, botMsg)
+  assertNotConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allButtons, buttonsFound } = this._evalButtons(args, botMsg)
 
-      if (buttonsFound.length > 0) {
-        return Promise.reject(new BotiumError(
+    if (buttonsFound.length > 0) {
+      return Promise.reject(new BotiumError(
         `${convoStep.stepTag}: Not expected button(s) with text "${buttonsFound}"`,
         {
           type: 'asserter',
@@ -54,18 +56,18 @@ module.exports = class ButtonsAsserter {
             diff: buttonsFound
           }
         }
-        ))
-      }
+      ))
     }
     return Promise.resolve()
   }
 
-  assertConvoStep ({ convo, convoStep, args, botMsg }) {
-    if (args && args.length > 0) {
-      const { allButtons, buttonsNotFound } = this._evalButtons(args, botMsg)
-      if (buttonsNotFound.length > 0) {
+  assertConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allButtons, buttonsNotFound, buttonsFound } = this._evalButtons(args, botMsg)
+
+    if (!args || args.length === 0) {
+      if (!buttonsFound.length) {
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Expected button(s) with text "${buttonsNotFound}"`,
+          `${convoStep.stepTag}: Expected some button(s)`,
           {
             type: 'asserter',
             source: this.name,
@@ -81,6 +83,23 @@ module.exports = class ButtonsAsserter {
           }
         ))
       }
+    } else if (buttonsNotFound.length > 0) {
+      return Promise.reject(new BotiumError(
+          `${convoStep.stepTag}: Expected button(s) with text "${buttonsNotFound}"`,
+          {
+            type: 'asserter',
+            source: this.name,
+            params: {
+              args
+            },
+            cause: {
+              not: false,
+              expected: args,
+              actual: allButtons,
+              diff: buttonsNotFound
+            }
+          }
+      ))
     }
     return Promise.resolve()
   }

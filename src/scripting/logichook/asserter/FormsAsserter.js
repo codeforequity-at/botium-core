@@ -1,5 +1,3 @@
-const _ = require('lodash')
-const util = require('util')
 const { BotiumError } = require('../../BotiumError')
 
 module.exports = class FormsAsserter {
@@ -9,106 +7,100 @@ module.exports = class FormsAsserter {
     this.name = 'FormsAsserter'
   }
 
-  _formsFromCardsRecursive (cards) {
+  _formTextsFromCardsRecursive (cards) {
+    if (!cards) {
+      return []
+    }
     let result = []
     for (const card of cards) {
-      result = result.concat(card.forms ? card.forms.map(form => form.name) : [])
-      card.cards && (result = result.concat(this._formsFromCardsRecursive(card.cards)))
+      result = result.concat(card.forms || [])
+      result = result.concat(this._formTextsFromCardsRecursive(card.cards))
     }
 
     return result
   }
 
-  assertConvoStep ({ convo, convoStep, args, botMsg }) {
-    let acceptMoreForms = false
-    if (args.length > 0 && ((args[args.length - 1] === '..') || (args[args.length - 1] === '...'))) {
-      acceptMoreForms = true
-      args = args.slice(0, args.length - 1)
+  _evalForms (args, botMsg) {
+    const allForms = (botMsg.forms || []).concat(this._formTextsFromCardsRecursive(botMsg.cards))
+    if (!args || args.length === 0) {
+      return { allForms, formsNotFound: [], formsFound: allForms.map(form => form.name) }
     }
-
-    const expectedForms = _extractCount(args)
-
-    const allForms = (botMsg.forms ? botMsg.forms.map(form => form.name) : []).concat(this._formsFromCardsRecursive(botMsg.cards))
-    const currentForms = _.has(botMsg, 'forms') ? _extractCount(allForms) : {}
-
-    const { substracted, hasMissingEntityEntity } = _substract(currentForms, expectedForms)
-
-    if (Object.keys(substracted).length === 0 || (acceptMoreForms && !hasMissingEntityEntity)) {
-      return Promise.resolve()
-    }
-
-    const substractedAsArray = []
-    Object.keys(substracted).forEach((key) => substractedAsArray.push({ entity: key, diff: substracted[key] }))
-    substractedAsArray.sort(
-      (o1, o2) => {
-        if (o1.entity < o2.entity) { return -1 }
-        if (o1.entity > o2.entity) { return 1 }
-        return 0
+    const formsNotFound = []
+    const formsFound = []
+    for (let i = 0; i < (args || []).length; i++) {
+      if (
+        allForms.findIndex(b => b.name && b.name.toLowerCase() === args[i].toLowerCase()) >= 0 ||
+        allForms.findIndex(b => b.label && b.label.toLowerCase().startsWith(args[i].toLowerCase())) >= 0
+      ) {
+        formsFound.push(args[i])
+      } else {
+        formsNotFound.push(args[i])
       }
-    )
-    return Promise.reject(new BotiumError(
-      `${convoStep.stepTag}: Wrong number of forms. The difference is ${util.inspect(substractedAsArray)}`,
-      {
-        type: 'asserter',
-        source: this.name,
-        context: {
-          constructor: {
-          },
+    }
+    return { allForms, formsNotFound, formsFound }
+  }
+
+  assertNotConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allForms, formsFound } = this._evalForms(args, botMsg)
+
+    if (formsFound.length > 0) {
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Not expected form(s) with text "${formsFound}"`,
+        {
+          type: 'asserter',
+          source: this.name,
           params: {
             args
           },
-          calculation: {
-            acceptMoreForms,
-            currentForms,
-            expectedForms
+          cause: {
+            not: true,
+            expected: args,
+            actual: allForms,
+            diff: formsFound
           }
-        },
-        cause: {
-          expected: args,
-          actual: allForms,
-          diff: substractedAsArray
         }
-      }
-    ))
-  }
-}
-
-const _extractCount = (toCount) => {
-  const result = {}
-  toCount.forEach((item) => {
-    if (result[item]) {
-      result[item] += result[item]
-    } else {
-      result[item] = 1
+      ))
     }
-  })
+    return Promise.resolve()
+  }
 
-  return result
-}
-
-const _substract = (first, second) => {
-  const substracted = {}
-  let hasMissingEntity = false
-
-  for (const key in first) {
-    if (second[key]) {
-      if (first[key] - second[key] !== 0) {
-        substracted[key] = first[key] - second[key]
-        if (substracted[key] < 0) {
-          hasMissingEntity = true
+  assertConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allForms, formsNotFound, formsFound } = this._evalForms(args, botMsg)
+    if (!formsFound.length) {
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Expected some form(s)`,
+        {
+          type: 'asserter',
+          source: this.name,
+          params: {
+            args
+          },
+          cause: {
+            not: false,
+            expected: args,
+            actual: allForms,
+            diff: formsNotFound
+          }
         }
-      }
-    } else {
-      substracted[key] = first[key]
+      ))
+    } else if (formsNotFound.length > 0) {
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Expected form(s) with text "${formsNotFound}"`,
+        {
+          type: 'asserter',
+          source: this.name,
+          params: {
+            args
+          },
+          cause: {
+            not: false,
+            expected: args,
+            actual: allForms,
+            diff: formsNotFound
+          }
+        }
+      ))
     }
+    return Promise.resolve()
   }
-
-  for (const key in second) {
-    if (!first[key]) {
-      substracted[key] = -second[key]
-      hasMissingEntity = true
-    }
-  }
-
-  return { substracted, hasMissingEntity }
 }

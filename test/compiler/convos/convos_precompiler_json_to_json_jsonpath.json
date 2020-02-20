@@ -1,0 +1,89 @@
+{
+  "domains": [
+    {
+      "description": "Queries that are related to places (restaurants, shops, concert halls, etc), as well as to the user's location.",
+      "@type": "domain",
+      "intents": [
+        {
+          "description": "The user wants to share his/her current location with someone.",
+          "benchmark": {
+          },
+          "queries": [
+            {
+              "text": "Share my location with Hillary's sister",
+              "results_per_service": {
+              }
+            },
+            {
+              "text": "Send my current location to my father",
+              "results_per_service": {
+                "Snips": {
+                  "slots": [
+                    {
+                      "name": "contact",
+                      "matching_slots": [
+                        {
+                          "slot": "contact",
+                          "service": "Snips"
+                        }
+                      ],
+                      "value": "my father",
+                      "slot_entity": "Contact",
+                      "supervision": "True Positives",
+                      "expected_a_value": "true"
+                    },
+                    {
+                      "name": "sharingDuration",
+                      "matching_slots": [
+                        {
+                          "slot": "sharingDuration",
+                          "service": "Snips"
+                        }
+                      ],
+                      "value": "",
+                      "slot_entity": "Duration",
+                      "supervision": "Not Applicable",
+                      "expected_a_value": "Not Applicable"
+                    }
+                  ],
+                  "classified_intent": "ShareCurrentLocationQuery"
+                }
+              }
+            },
+            {
+              "text": "Share my current location with Jim",
+              "results_per_service": {
+              }
+            }
+          ],
+          "slots": [
+          ],
+          "@type": "intent",
+          "name": "ShareCurrentLocation"
+        }
+      ],
+      "name": "places"
+    },
+    {
+      "description": "Queries that are related to places (restaurants, shops, concert halls, etc), as well as to the user's location.",
+      "@type": "domain",
+      "intents": [
+        {
+          "description": "The user wants to know how two places compare, either generally or on a given criterion.",
+          "benchmark": {
+          },
+          "queries": [
+            {
+              "text": "What's the best hotel between Soho Grand and Paramount Hotel?"
+            }
+          ],
+          "@type": "intent",
+          "name": "ComparePlaces"
+        }
+      ],
+      "name": "places"
+    }
+
+  ],
+  "version": "0.0.1"
+}

@@ -8,9 +8,6 @@ describe('scripting.asserters.cardsAsserter', function () {
     }, {})
   })
 
-  it('should do nothing on no arg', async function () {
-    await this.cardsAsserter.assertConvoStep({ })
-  })
   it('should succeed on existing card text', async function () {
     await this.cardsAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
@@ -151,6 +148,60 @@ describe('scripting.asserters.cardsAsserter', function () {
       assert.deepEqual(err.context.cause.expected, ['existingcard', 'missingcard'])
       assert.deepEqual(err.context.cause.actual, ['existingcard', 'cardtext2'])
       assert.deepEqual(err.context.cause.diff, ['existingcard'])
+    }
+  })
+  it('should succeed on existing card if has no arg', async function () {
+    await this.cardsAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: [],
+      botMsg: {
+        cards: [
+          {
+            text: 'test'
+          }
+        ]
+      }
+    })
+  })
+  it('should fail on no card if has no arg', async function () {
+    try {
+      await this.cardsAsserter.assertConvoStep({ convoStep: { stepTag: 'test' } })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected some card(s)') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.isNotTrue(err.context.cause.not)
+      assert.deepEqual(err.context.cause.expected, [])
+      assert.deepEqual(err.context.cause.actual, [])
+    }
+  })
+  it('should succeed on not existing card if has no arg and negated', async function () {
+    await this.cardsAsserter.assertNotConvoStep({ convoStep: { stepTag: 'test' } })
+  })
+  it('should fail on card if has no arg and negated', async function () {
+    try {
+      await this.cardsAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: [],
+        botMsg: {
+          cards: [
+            {
+              text: 'test'
+            }
+          ]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Not expected card(s) with text "test"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.isTrue(err.context.cause.not)
+      assert.deepEqual(err.context.cause.expected, [])
+      assert.deepEqual(err.context.cause.actual, ['test'])
     }
   })
 })

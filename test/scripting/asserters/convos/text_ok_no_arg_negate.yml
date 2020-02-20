@@ -1,0 +1,7 @@
+convos:
+  - name: text_ok_no_arg_negate
+    steps:
+      - me:
+          - button
+      - bot:
+          - "!TEXT"

@@ -21,6 +21,9 @@ module.exports = class CardsAsserter {
 
   _evalCards (args, botMsg) {
     const allCards = botMsg.cards ? this._cardsRecursive(botMsg.cards).reduce((acc, mc) => acc.concat([mc.text, mc.subtext, mc.content].filter(t => t)), []) : []
+    if (!args || args.length === 0) {
+      return { allCards, cardsNotFound: [], cardsFound: allCards }
+    }
     const cardsNotFound = []
     const cardsFound = []
     for (let i = 0; i < (args || []).length; i++) {
@@ -33,11 +36,10 @@ module.exports = class CardsAsserter {
     return { allCards, cardsNotFound, cardsFound }
   }
 
-  assertNotConvoStep ({ convo, convoStep, args, botMsg }) {
-    if (args && args.length > 0) {
-      const { allCards, cardsFound } = this._evalCards(args, botMsg)
-      if (cardsFound.length > 0) {
-        return Promise.reject(new BotiumError(
+  assertNotConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allCards, cardsFound } = this._evalCards(args, botMsg)
+    if (cardsFound.length > 0) {
+      return Promise.reject(new BotiumError(
           `${convoStep.stepTag}: Not expected card(s) with text "${cardsFound}"`,
           {
             type: 'asserter',
@@ -52,18 +54,17 @@ module.exports = class CardsAsserter {
               diff: cardsFound
             }
           }
-        ))
-      }
+      ))
     }
     return Promise.resolve()
   }
 
-  assertConvoStep ({ convo, convoStep, args, botMsg }) {
-    if (args && args.length > 0) {
-      const { allCards, cardsNotFound } = this._evalCards(args, botMsg)
-      if (cardsNotFound.length > 0) {
+  assertConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allCards, cardsNotFound, cardsFound } = this._evalCards(args, botMsg)
+    if (!args || args.length === 0) {
+      if (!cardsFound.length) {
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Expected card(s) with text "${cardsNotFound}"`,
+          `${convoStep.stepTag}: Expected some card(s)`,
           {
             type: 'asserter',
             source: this.name,
@@ -79,6 +80,23 @@ module.exports = class CardsAsserter {
           }
         ))
       }
+    } else if (cardsNotFound.length > 0) {
+      return Promise.reject(new BotiumError(
+          `${convoStep.stepTag}: Expected card(s) with text "${cardsNotFound}"`,
+          {
+            type: 'asserter',
+            source: this.name,
+            params: {
+              args
+            },
+            cause: {
+              not: false,
+              expected: args,
+              actual: allCards,
+              diff: cardsNotFound
+            }
+          }
+      ))
     }
     return Promise.resolve()
   }

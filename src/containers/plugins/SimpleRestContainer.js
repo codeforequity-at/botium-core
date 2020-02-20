@@ -7,10 +7,11 @@ const mime = require('mime-types')
 const uuidv4 = require('uuid/v4')
 const Redis = require('ioredis')
 const _ = require('lodash')
-const debug = require('debug')('botium-SimpleRestContainer')
+const debug = require('debug')('botium-connector-simplerest')
 
 const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
+const { getAllCapValues } = require('../../helpers/CapabilitiesUtils')
 const Capabilities = require('../../Capabilities')
 const Defaults = require('../../Defaults')
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
@@ -110,7 +111,7 @@ module.exports = class SimpleRestContainer {
         },
 
         (initComplete) => {
-          if (this.caps[Capabilities.SIMPLEREST_INIT_TEXT]) {
+          if (_.isString(this.caps[Capabilities.SIMPLEREST_INIT_TEXT])) {
             this._doRequest({ messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }, false).then(() => initComplete()).catch(initComplete)
           } else {
             initComplete()
@@ -164,7 +165,29 @@ module.exports = class SimpleRestContainer {
 
   // Separated just for better module testing
   async _processBodyAsync (body, isFromUser) {
-    (await this._processBodyAsyncImpl(body, isFromUser)).forEach(entry => this.queueBotSays(entry))
+    const p = async () => {
+      const results = await this._processBodyAsyncImpl(body, isFromUser)
+      if (results) {
+        for (const result of results) {
+          setTimeout(() => this.queueBotSays(result), 0)
+        }
+      }
+    }
+    if (this.waitProcessQueue) {
+      this.waitProcessQueue.push(p)
+      debug('Async body is queued for processing.')
+    } else {
+      await p()
+    }
+  }
+
+  async _emptyWaitProcessQueue () {
+    if (this.waitProcessQueue && this.waitProcessQueue.length > 0) {
+      for (const p of this.waitProcessQueue) {
+        await p()
+      }
+    }
+    this.waitProcessQueue = null
   }
 
   // Separated just for better module testing
@@ -183,7 +206,7 @@ module.exports = class SimpleRestContainer {
     if (isFromUser) {
       const jsonPathRoots = []
 
-      const jsonPathsBody = this._getAllCapValues(Capabilities.SIMPLEREST_BODY_JSONPATH)
+      const jsonPathsBody = getAllCapValues(Capabilities.SIMPLEREST_BODY_JSONPATH, this.caps)
       if (jsonPathsBody.length > 0) {
         for (const jsonPathBody of jsonPathsBody) {
           const rb = jp.query(body, jsonPathBody)
@@ -201,7 +224,7 @@ module.exports = class SimpleRestContainer {
         const media = []
         const buttons = []
 
-        const jsonPathsMedia = this._getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH)
+        const jsonPathsMedia = getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH, this.caps)
         jsonPathsMedia.forEach(jsonPath => {
           const responseMedia = jp.query(jsonPathRoot, jsonPath)
           if (responseMedia) {
@@ -214,7 +237,7 @@ module.exports = class SimpleRestContainer {
             debug(`found response media: ${util.inspect(media)}`)
           }
         })
-        const jsonPathsButtons = this._getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH)
+        const jsonPathsButtons = getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH, this.caps)
         jsonPathsButtons.forEach(jsonPath => {
           const responseButtons = jp.query(jsonPathRoot, jsonPath)
           if (responseButtons) {
@@ -228,7 +251,7 @@ module.exports = class SimpleRestContainer {
         })
 
         let hasMessageText = false
-        const jsonPathsTexts = this._getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH)
+        const jsonPathsTexts = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, this.caps)
         for (const jsonPath of jsonPathsTexts) {
           debug(`eval json path ${jsonPath}`)
 
@@ -263,6 +286,8 @@ module.exports = class SimpleRestContainer {
         msg.sourceData = msg.sourceData || {}
         msg.sourceData.requestOptions = requestOptions
 
+        this.waitProcessQueue = []
+
         request(requestOptions, (err, response, body) => {
           if (err) {
             reject(new Error(`rest request failed: ${util.inspect(err)}`))
@@ -276,21 +301,22 @@ module.exports = class SimpleRestContainer {
               debug(`got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}`)
               if (_.isString(body)) {
                 try {
-                  body = JSON.parse(body)
-                  setTimeout(() => this._processBodyAsync(body, isFromUser, false), 0)
+                  body = JSON.parse(body.trim())
+                  this._processBodyAsync(body, isFromUser).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
                 } catch (err) {
                   debug(`ignoring not JSON formatted response body (${err.message})`)
+                  resolve(this).then(() => this._emptyWaitProcessQueue())
                 }
               } else if (_.isObject(body)) {
-                setTimeout(() => this._processBodyAsync(body, isFromUser, false), 0)
+                this._processBodyAsync(body, isFromUser).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
               } else {
                 debug('ignoring response body (no string and no JSON object)')
+                resolve(this).then(() => this._emptyWaitProcessQueue())
               }
             } else {
               debug(`got response code: ${response.statusCode}, empty body`)
+              resolve(this).then(() => this._emptyWaitProcessQueue())
             }
-
-            resolve(this)
           }
         })
       }))
@@ -393,25 +419,6 @@ module.exports = class SimpleRestContainer {
     }
   }
 
-  _getAllCapValues (capName) {
-    const allCapValues = []
-    const jsonPathCaps = _.pickBy(this.caps, (v, k) => k.startsWith(capName))
-    _(jsonPathCaps).keys().sort().each((key) => {
-      const jsonPath = this.caps[key]
-
-      if (_.isArray(jsonPath)) {
-        jsonPath.forEach(p => {
-          allCapValues.push(`${p}`.trim())
-        })
-      } else if (_.isString(jsonPath)) {
-        jsonPath.split(',').forEach(p => {
-          allCapValues.push(p.trim())
-        })
-      }
-    })
-    return allCapValues
-  }
-
   _getMustachedCap (capName, json) {
     const template = _.isString(this.caps[capName]) ? this.caps[capName] : JSON.stringify(this.caps[capName])
     return this._getMustachedVal(template, json)
@@ -433,7 +440,7 @@ module.exports = class SimpleRestContainer {
     if (!this.processInbound) return
 
     const jsonPathValue = this.caps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE]
-    const jsonPathsSelector = this._getAllCapValues(Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH)
+    const jsonPathsSelector = getAllCapValues(Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH, this.caps)
     if (jsonPathsSelector && jsonPathsSelector.length > 0) {
       let isSelected = false
       for (const jsonPathTemplate of jsonPathsSelector) {
@@ -569,12 +576,12 @@ module.exports = class SimpleRestContainer {
             if (_.isString(body)) {
               try {
                 body = JSON.parse(body)
-                setTimeout(() => this._processBodyAsync(body, true, true), 0)
+                setTimeout(() => this._processBodyAsync(body, true), 0)
               } catch (err) {
                 debug(`_runPolling: ignoring not JSON formatted response body (${err.message})`)
               }
             } else if (_.isObject(body)) {
-              setTimeout(() => this._processBodyAsync(body, true, true), 0)
+              setTimeout(() => this._processBodyAsync(body, true), 0)
             } else {
               debug('_runPolling: ignoring response body (no string and no JSON object)')
             }

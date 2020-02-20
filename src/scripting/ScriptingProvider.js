@@ -15,8 +15,9 @@ const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
 const RetryHelper = require('../helpers/RetryHelper')
 const MatchFunctions = require('./MatchFunctions')
+const precompilers = require('./precompilers')
 
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md)'
 
 const p = (retryHelper, fn) => {
   const promise = () => new Promise((resolve, reject) => {
@@ -332,6 +333,9 @@ module.exports = class ScriptingProvider {
     const CompilerJson = require('./CompilerJson')
     this.compilers[Constants.SCRIPTING_FORMAT_JSON] = new CompilerJson(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_JSON].Validate()
+    const CompilerMarkdown = require('./CompilerMarkdown')
+    this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN] = new CompilerMarkdown(this._buildScriptContext(), this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN].Validate()
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
     if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
@@ -423,7 +427,16 @@ module.exports = class ScriptingProvider {
     let filePartialConvos = []
     let fileScriptingMemories = []
 
-    const scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
+    let scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
+
+    const precompResponse = precompilers.execute(scriptBuffer, { convoDir, filename, caps: this.caps })
+    if (precompResponse) {
+      scriptBuffer = precompResponse.scriptBuffer
+      debug(`File ${filename} precompiled by ${precompResponse.precompiler}` +
+        (precompResponse.filename ? ` and filename changed to ${precompResponse.filename}` : '')
+      )
+      filename = precompResponse.filename || filename
+    }
 
     if (filename.endsWith('.xlsx')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
@@ -452,6 +465,11 @@ module.exports = class ScriptingProvider {
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
       fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+    } else if (filename.endsWith('.markdown')) {
+      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
+      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
+    } else {
+      debug(`ReadScript - dropped file: ${filename}`)
     }
 
     // Compilers saved the convos, and we alter here the saved version too
