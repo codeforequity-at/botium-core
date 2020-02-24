@@ -5,6 +5,7 @@
 [ ![Codeship Status for codeforequity-at/botium-core](https://app.codeship.com/projects/0389ad40-cecc-0135-2ddc-161d5c3cc5fd/status?branch=master)](https://app.codeship.com/projects/262204)
 [![npm version](https://badge.fury.io/js/botium-core.svg)](https://badge.fury.io/js/testmybot)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
+![Discord](https://img.shields.io/discord/593736460516196353)
 [![pullrequests](https://img.shields.io/badge/PR-welcome-green.svg)]()
 [![awesome](https://img.shields.io/badge/Awesome-for%20sure!-green.svg)]()
 
@@ -31,7 +32,7 @@ All of the components in the Botium Stack build on top of Botium Core (except Bo
 * If you think you found a bug in Botium, please use the Github issue tracker.
 * **The documentation can be found in the [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/overview).**
 * For asking questions please use Stackoverflow - we are monitoring and answering questions there.
-* For our VIP users, there is also a Slack workspace available (coming soon).
+* Enter our Discord channel [![Discord](https://img.shields.io/discord/593736460516196353)](https://discordapp.com/widget?id=593736460516196353&theme=dark)
 
 ## Using Botium Core
 
