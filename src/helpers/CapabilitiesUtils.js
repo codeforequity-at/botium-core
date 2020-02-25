@@ -46,7 +46,7 @@ module.exports.flatCababilities = (caps, prefix) => {
       result.push(val)
     }
   } else {
-    const prefixRegexp = new RegExp(`^${prefix}\\.\\d+`)
+    const regexpPrefixAndGroup = new RegExp(`^${prefix}\\.\\d+`)
     let currentGroup
     let currentObject = {}
     for (const capName of capNames) {
@@ -57,33 +57,30 @@ module.exports.flatCababilities = (caps, prefix) => {
         debug(`From flatten result skipped capability ${capName} using prefix ${prefix}`)
         continue
       }
-      let capGroup = capName.match(prefixRegexp)
-      if (!capGroup.length) {
-        throw new Error(`Capability name invalid. No valid grouping found in capability ${capName} using prefix ${prefix}`)
-      }
-      capGroup = capGroup[0]
+      let capPrefixAndGroup = capName.match(regexpPrefixAndGroup)
+      capPrefixAndGroup = (capPrefixAndGroup && capPrefixAndGroup.length) ? capPrefixAndGroup[0] : prefix
 
-      if (capGroup === capName) {
+      if (capPrefixAndGroup === capName) {
         const val = toJsonWeak(caps[capName])
         result.push(val)
       } else {
-        if (capName.charAt(capGroup.length) !== '.') {
+        if (capPrefixAndGroup && capName.charAt(capPrefixAndGroup.length) !== '.') {
           throw new Error(`Capability name invalid. No valid grouping found in capability ${capName} using prefix ${prefix}`)
         }
 
-        const key = capName.substr(capGroup.length + 1)
+        const key = capName.substr(capPrefixAndGroup.length + 1)
 
         if (!key.length) {
           throw new Error(`Capability name invalid. No key after grouping in capability ${capName} using prefix ${prefix}`)
         }
 
-        if (currentGroup && currentGroup !== capGroup) {
+        if (currentGroup && currentGroup !== capPrefixAndGroup) {
           result.push(currentObject)
           currentObject = {}
         }
 
         currentObject[key] = toJsonWeak(caps[capName])
-        currentGroup = capGroup
+        currentGroup = capPrefixAndGroup
       }
     }
     if (currentObject && currentGroup) {

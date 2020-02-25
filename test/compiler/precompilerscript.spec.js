@@ -12,32 +12,34 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
-describe('compiler.precompiler.script', function () {
-  beforeEach(async function () {
-    const myCaps = {
-      [Capabilities.PROJECTNAME]: 'compiler.precompiler.script',
-      [Capabilities.CONTAINERMODE]: echoConnector,
-      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-      PRECOMPILERS: {
-        name: 'SCRIPT',
-        script: `
-          const utterances = {}
-          for (const entry of scriptData) {
-            utterances[entry.intent] = entry.sentences
-          }
-          result = {utterances}
-          `
-      }
+const beforeCustom = async (thisParam, script) => {
+  const myCaps = {
+    [Capabilities.PROJECTNAME]: 'compiler.precompiler.script',
+    [Capabilities.CONTAINERMODE]: echoConnector,
+    [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+    PRECOMPILERS: {
+      name: 'SCRIPT',
+      script
     }
-    const driver = new BotDriver(myCaps)
-    this.compiler = driver.BuildCompiler()
-    this.container = await driver.Build()
-  })
-  afterEach(async function () {
-    this.container && await this.container.Clean()
-  })
+  }
+  const driver = new BotDriver(myCaps)
+  thisParam.compiler = driver.BuildCompiler()
+  thisParam.container = await driver.Build()
+}
 
+const afterCustom = async (thisParam) => {
+  this.container && await this.container.Clean()
+}
+
+describe('compiler.precompiler.script', function () {
   it('should execute non-standard json', async function () {
+    await beforeCustom(this, `
+      const utterances = {}
+      for (const entry of scriptData) {
+        utterances[entry.intent] = entry.sentences
+      }
+      result = {utterances}
+    `)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()
@@ -48,5 +50,105 @@ describe('compiler.precompiler.script', function () {
     assert.equal(transcript.steps[0].actual.messageText, 'goodbye')
     assert.equal(transcript.steps[1].actual.sender, 'bot')
     assert.equal(transcript.steps[1].actual.messageText, 'Response of goodbye')
+    await afterCustom(this)
   })
+
+  it('should filter by extension, accepted', async function () {
+    await beforeCustom(this, `
+    if (filename.endsWith('.json')) {
+        const utterances = {}
+        for (const entry of scriptData) {
+          utterances[entry.intent] = entry.sentences
+        }
+        result = {utterances}
+      }
+    `)
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
+    this.compiler.ExpandUtterancesToConvos()
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 3)
+    await afterCustom(this)
+  })
+
+  it('should filter by extension, rejected', async function () {
+    await beforeCustom(this, `
+    if (filename.endsWith('.xxx')) {
+        const utterances = {}
+        for (const entry of scriptData) {
+          utterances[entry.intent] = entry.sentences
+        }
+        result = {utterances}
+      }
+    `)
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
+    this.compiler.ExpandUtterancesToConvos()
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 0)
+    await afterCustom(this)
+  })
+
+  it('should filter by content, accepted', async function () {
+    await beforeCustom(this, `
+      if (scriptData) {
+        const utterances = {}
+        for (const entry of scriptData) {
+          utterances[entry.intent] = entry.sentences
+        }
+        result = {utterances}
+        }
+    `)
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
+    this.compiler.ExpandUtterancesToConvos()
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 3)
+    await afterCustom(this)
+  })
+
+  it('should filter by content, rejected', async function () {
+    await beforeCustom(this, `
+      if (scriptData.utterances) {
+        const utterances = {}
+        for (const entry of scriptData.utterances) {
+          utterances[entry.intent] = entry.sentences
+        }
+        result = {utterances}
+      }
+  `)
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
+    this.compiler.ExpandUtterancesToConvos()
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 0)
+    await afterCustom(this)
+  })
+
+  it('should change extension', async function () {
+    await beforeCustom(this, `
+      const utterances = {}
+      for (const entry of scriptData) {
+        utterances[entry.intent] = entry.sentences
+      }
+      result = { scriptBuffer:{utterances}, filename: filename + ".json" }
+  `)
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json.txt')
+    this.compiler.ExpandUtterancesToConvos()
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 3)
+    await afterCustom(this)
+  })
+
+  it('should not read anything without extension change', async function () {
+    await beforeCustom(this, `
+      const utterances = {}
+      for (const entry of scriptData) {
+        utterances[entry.intent] = entry.sentences
+      }
+      result = { scriptBuffer:{utterances} }
+  `)
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json.txt')
+    this.compiler.ExpandUtterancesToConvos()
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 0)
+    await afterCustom(this)
+  })
+
 })

@@ -1,0 +1,15 @@
+[
+  {
+    "intent": "greeting",
+    "sentences": [
+      "hello",
+      "hi"
+    ]
+  },
+  {
+    "intent": "goodbye",
+    "sentences": [
+      "goodbye"
+    ]
+  }
+]

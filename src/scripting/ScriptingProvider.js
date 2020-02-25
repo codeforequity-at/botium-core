@@ -429,6 +429,7 @@ module.exports = class ScriptingProvider {
     const precompResponse = precompilers.execute(scriptBuffer, { convoDir, filename, caps: this.caps })
     if (precompResponse) {
       scriptBuffer = precompResponse.scriptBuffer
+      filename = precompResponse.filename || filename
     }
 
     if (filename.endsWith('.xlsx')) {
