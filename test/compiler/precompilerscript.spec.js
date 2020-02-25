@@ -18,8 +18,8 @@ const beforeCustom = async (thisParam, script) => {
     [Capabilities.CONTAINERMODE]: echoConnector,
     [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
     PRECOMPILERS: {
-      name: 'SCRIPT',
-      script
+      NAME: 'SCRIPT',
+      SCRIPT: script
     }
   }
   const driver = new BotDriver(myCaps)
@@ -150,5 +150,4 @@ describe('compiler.precompiler.script', function () {
     assert.equal(this.compiler.convos.length, 0)
     await afterCustom(this)
   })
-
 })

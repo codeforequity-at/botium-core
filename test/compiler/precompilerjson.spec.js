@@ -19,10 +19,10 @@ describe('compiler.precompiler.json', function () {
       [Capabilities.CONTAINERMODE]: echoConnector,
       [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
       PRECOMPILERS: {
-        name: 'JSON_TO_JSON_JSONPATH',
-        rootJsonpath: '$.domains[*].intents[*]',
-        intentsJsonpath: '$.name',
-        utterancesJsonpath: '$.queries[*].text'
+        NAME: 'JSON_TO_JSON_JSONPATH',
+        ROOT_JSONPATH: '$.domains[*].intents[*]',
+        UTTERANCE_REF_JSONPATH: '$.name',
+        UTTERANCES_JSONPATH: '$.queries[*].text'
       }
     }
     const driver = new BotDriver(myCaps)

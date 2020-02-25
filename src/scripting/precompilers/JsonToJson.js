@@ -8,19 +8,16 @@ const _ensureList = (queryResult) => {
   return [queryResult]
 }
 
-module.exports.precompile = (scriptBuffer, capSuffixAndVal, filename) => {
+module.exports.precompile = (scriptBuffer, options, filename) => {
   if (!filename.endsWith('.json')) {
     return
   }
 
-  const checkerJsonpath = capSuffixAndVal.CHECKER_JSONPATH
-  const rootJsonpath = capSuffixAndVal.ROOT_JSONPATH
-  const utteranceRefsJsonpath = capSuffixAndVal.UTTERANCE_REF_JSONPATH
-  const utterancesJsonpath = capSuffixAndVal.UTTERANCES_JSONPATH
+  const checkerJsonpath = options.CHECKER_JSONPATH
+  const rootJsonpath = options.ROOT_JSONPATH
+  const utteranceRefsJsonpath = options.UTTERANCE_REF_JSONPATH
+  const utterancesJsonpath = options.UTTERANCES_JSONPATH
   let scriptData = scriptBuffer
-  if (Buffer.isBuffer(scriptData)) {
-    scriptData = scriptData.toString()
-  }
   if (_.isString(scriptData)) {
     try {
       scriptData = JSON.parse(scriptData)

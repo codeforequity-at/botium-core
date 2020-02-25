@@ -7,7 +7,7 @@ const mime = require('mime-types')
 const uuidv4 = require('uuid/v4')
 const Redis = require('ioredis')
 const _ = require('lodash')
-const debug = require('debug')('botium-SimpleRestContainer')
+const debug = require('debug')('botium-connector-simplerest')
 
 const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
@@ -111,7 +111,7 @@ module.exports = class SimpleRestContainer {
         },
 
         (initComplete) => {
-          if (this.caps[Capabilities.SIMPLEREST_INIT_TEXT]) {
+          if (_.isString(this.caps[Capabilities.SIMPLEREST_INIT_TEXT])) {
             this._doRequest({ messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }, false).then(() => initComplete()).catch(initComplete)
           } else {
             initComplete()
@@ -165,7 +165,29 @@ module.exports = class SimpleRestContainer {
 
   // Separated just for better module testing
   async _processBodyAsync (body, isFromUser) {
-    (await this._processBodyAsyncImpl(body, isFromUser)).forEach(entry => this.queueBotSays(entry))
+    const p = async () => {
+      const results = await this._processBodyAsyncImpl(body, isFromUser)
+      if (results) {
+        for (const result of results) {
+          setTimeout(() => this.queueBotSays(result), 0)
+        }
+      }
+    }
+    if (this.waitProcessQueue) {
+      this.waitProcessQueue.push(p)
+      debug('Async body is queued for processing.')
+    } else {
+      await p()
+    }
+  }
+
+  async _emptyWaitProcessQueue () {
+    if (this.waitProcessQueue && this.waitProcessQueue.length > 0) {
+      for (const p of this.waitProcessQueue) {
+        await p()
+      }
+    }
+    this.waitProcessQueue = null
   }
 
   // Separated just for better module testing
@@ -264,6 +286,8 @@ module.exports = class SimpleRestContainer {
         msg.sourceData = msg.sourceData || {}
         msg.sourceData.requestOptions = requestOptions
 
+        this.waitProcessQueue = []
+
         request(requestOptions, (err, response, body) => {
           if (err) {
             reject(new Error(`rest request failed: ${util.inspect(err)}`))
@@ -277,21 +301,22 @@ module.exports = class SimpleRestContainer {
               debug(`got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}`)
               if (_.isString(body)) {
                 try {
-                  body = JSON.parse(body)
-                  setTimeout(() => this._processBodyAsync(body, isFromUser, false), 0)
+                  body = JSON.parse(body.trim())
+                  this._processBodyAsync(body, isFromUser).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
                 } catch (err) {
                   debug(`ignoring not JSON formatted response body (${err.message})`)
+                  resolve(this).then(() => this._emptyWaitProcessQueue())
                 }
               } else if (_.isObject(body)) {
-                setTimeout(() => this._processBodyAsync(body, isFromUser, false), 0)
+                this._processBodyAsync(body, isFromUser).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
               } else {
                 debug('ignoring response body (no string and no JSON object)')
+                resolve(this).then(() => this._emptyWaitProcessQueue())
               }
             } else {
               debug(`got response code: ${response.statusCode}, empty body`)
+              resolve(this).then(() => this._emptyWaitProcessQueue())
             }
-
-            resolve(this)
           }
         })
       }))
@@ -551,12 +576,12 @@ module.exports = class SimpleRestContainer {
             if (_.isString(body)) {
               try {
                 body = JSON.parse(body)
-                setTimeout(() => this._processBodyAsync(body, true, true), 0)
+                setTimeout(() => this._processBodyAsync(body, true), 0)
               } catch (err) {
                 debug(`_runPolling: ignoring not JSON formatted response body (${err.message})`)
               }
             } else if (_.isObject(body)) {
-              setTimeout(() => this._processBodyAsync(body, true, true), 0)
+              setTimeout(() => this._processBodyAsync(body, true), 0)
             } else {
               debug('_runPolling: ignoring response body (no string and no JSON object)')
             }

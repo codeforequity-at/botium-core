@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const assert = require('chai').assert
 const Compiler = require('../../src/scripting/CompilerCsv')
+const Capabilities = require('../../src/Capabilities')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 
 const buildContext = () => {
@@ -39,6 +40,9 @@ describe('compiler.compilercsv', function () {
       const context = buildContext()
 
       const caps = {
+        [Capabilities.SCRIPTING_CSV_MULTIROW_COLUMN_CONVERSATION_ID]: 'conversationId',
+        [Capabilities.SCRIPTING_CSV_MULTIROW_COLUMN_SENDER]: 'sender',
+        [Capabilities.SCRIPTING_CSV_MULTIROW_COLUMN_TEXT]: 'text'
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -54,9 +58,9 @@ describe('compiler.compilercsv', function () {
       const context = buildContext()
 
       const caps = {
-        SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_CONVERSATION_ID: 'alter conversationId',
-        SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_SENDER: 'alter sender',
-        SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_TEXT: 'alter text'
+        [Capabilities.SCRIPTING_CSV_MULTIROW_COLUMN_CONVERSATION_ID]: 'alter conversationId',
+        [Capabilities.SCRIPTING_CSV_MULTIROW_COLUMN_SENDER]: 'alter sender',
+        [Capabilities.SCRIPTING_CSV_MULTIROW_COLUMN_TEXT]: 'alter text'
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -72,9 +76,9 @@ describe('compiler.compilercsv', function () {
       const context = buildContext()
 
       const caps = {
-        SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_CONVERSATION_ID: 1,
-        SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_SENDER: 0,
-        SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_TEXT: 2
+        [Capabilities.SCRIPTING_CSV_MULTIROW_COLUMN_CONVERSATION_ID]: 1,
+        [Capabilities.SCRIPTING_CSV_MULTIROW_COLUMN_SENDER]: 0,
+        [Capabilities.SCRIPTING_CSV_MULTIROW_COLUMN_TEXT]: 2
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -90,7 +94,7 @@ describe('compiler.compilercsv', function () {
       const context = buildContext()
 
       const caps = {
-        SCRIPTING_CSV_USE_HEADER: false
+        SCRIPTING_CSV_SKIP_HEADER: false
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -136,68 +140,6 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
   })
-  describe('ROW_PER_MESSAGE mode, 1 col', function () {
-    it('should read basic case', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_just_text_basic.csv'))
-      const context = buildContext()
-
-      const caps = {
-      }
-      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
-
-      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
-      assert.lengthOf(context.convos, 2)
-      assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
-      assert.equal(context.convos[0].conversation[0].sender, 'me')
-      assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
-      assert.equal(context.convos[0].conversation[1].sender, 'bot')
-      assert.equal(context.convos[1].conversation[0].messageText, 'test 3')
-      assert.equal(context.convos[1].conversation[0].sender, 'me')
-      assert.equal(context.convos[1].conversation[1].messageText, 'test 4')
-      assert.equal(context.convos[1].conversation[1].sender, 'bot')
-    })
-    it('should read no header', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_just_text_no_header.csv'))
-      const context = buildContext()
-
-      const caps = {
-        SCRIPTING_CSV_USE_HEADER: false
-      }
-      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
-
-      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
-      assert.lengthOf(context.convos, 2)
-      assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
-      assert.equal(context.convos[0].conversation[0].sender, 'me')
-      assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
-      assert.equal(context.convos[0].conversation[1].sender, 'bot')
-      assert.equal(context.convos[1].conversation[0].messageText, 'test 3')
-      assert.equal(context.convos[1].conversation[0].sender, 'me')
-      assert.equal(context.convos[1].conversation[1].messageText, 'test 4')
-      assert.equal(context.convos[1].conversation[1].sender, 'bot')
-    })
-    it('should read no header_4cols', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_just_text_no_header_4cols.csv'))
-      const context = buildContext()
-
-      const caps = {
-        SCRIPTING_CSV_USE_HEADER: false,
-        SCRIPTING_CSV_MODE_ROW_PER_MESSAGE_COL_TEXT: 0
-      }
-      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
-
-      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
-      assert.lengthOf(context.convos, 2)
-      assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
-      assert.equal(context.convos[0].conversation[0].sender, 'me')
-      assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
-      assert.equal(context.convos[0].conversation[1].sender, 'bot')
-      assert.equal(context.convos[1].conversation[0].messageText, 'test 3')
-      assert.equal(context.convos[1].conversation[0].sender, 'me')
-      assert.equal(context.convos[1].conversation[1].messageText, 'test 4')
-      assert.equal(context.convos[1].conversation[1].sender, 'bot')
-    })
-  })
   describe('QUESTION_ANSWER mode', function () {
     it('should read basic case', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_basic.csv'))
@@ -214,11 +156,13 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
-    it('should read different sequence and extra row', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_sequence_and_extra_row.csv'))
+    it('should read different sequence', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_sequence.csv'))
       const context = buildContext()
 
       const caps = {
+        SCRIPTING_CSV_QA_COLUMN_QUESTION: 'question',
+        SCRIPTING_CSV_QA_COLUMN_ANSWER: 'answer'
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -230,12 +174,12 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read by name', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_sequence_and_extra_row_no_def_colname.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_sequence_no_def_colname.csv'))
       const context = buildContext()
 
       const caps = {
-        SCRIPTING_CSV_MODE_QUESTION_ANSWER_COL_QUESTION: 'alter question',
-        SCRIPTING_CSV_MODE_QUESTION_ANSWER_COL_ANSWER: 'alter answer'
+        SCRIPTING_CSV_QA_COLUMN_QUESTION: 'alter question',
+        SCRIPTING_CSV_QA_COLUMN_ANSWER: 'alter answer'
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -247,12 +191,12 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read by index', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_sequence_and_extra_row_no_def_colname.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_sequence_no_def_colname.csv'))
       const context = buildContext()
 
       const caps = {
-        SCRIPTING_CSV_MODE_QUESTION_ANSWER_COL_QUESTION: 1,
-        SCRIPTING_CSV_MODE_QUESTION_ANSWER_COL_ANSWER: 0
+        SCRIPTING_CSV_QA_COLUMN_QUESTION: 1,
+        SCRIPTING_CSV_QA_COLUMN_ANSWER: 0
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -268,8 +212,7 @@ describe('compiler.compilercsv', function () {
       const context = buildContext()
 
       const caps = {
-        SCRIPTING_CSV_MODE: 'QUESTION_ANSWER',
-        SCRIPTING_CSV_USE_HEADER: false
+        SCRIPTING_CSV_SKIP_HEADER: false
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -285,7 +228,6 @@ describe('compiler.compilercsv', function () {
       const context = buildContext()
 
       const caps = {
-        SCRIPTING_CSV_MODE: 'QUESTION_ANSWER'
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
@@ -305,6 +247,8 @@ describe('compiler.compilercsv', function () {
       const context = buildContext()
 
       const caps = {
+        SCRIPTING_CSV_QA_COLUMN_QUESTION: 'user',
+        SCRIPTING_CSV_QA_COLUMN_ANSWER: 'bot'
       }
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 

@@ -1,25 +1,21 @@
 const _ = require('lodash')
 const { executeHookSync, getHook } = require('../../helpers/HookUtils')
 
-module.exports.precompile = (scriptBuffer, capSuffixAndVal, filename) => {
-  if (!(capSuffixAndVal.script || capSuffixAndVal.SCRIPT)) {
+module.exports.precompile = (scriptBuffer, options, filename) => {
+  if (!(options.script || options.SCRIPT)) {
     throw new Error('Script is not defined')
   }
 
-  let scriptData = scriptBuffer
-  if (Buffer.isBuffer(scriptData)) {
-    scriptData = scriptData.toString()
-  }
-  if (_.isString(scriptData)) {
+  if (_.isString(scriptBuffer)) {
     try {
-      scriptData = JSON.parse(scriptData)
+      scriptBuffer = JSON.parse(scriptBuffer)
     } catch (err) {
     }
   }
 
-  const hook = getHook(capSuffixAndVal.script || capSuffixAndVal.SCRIPT)
+  const hook = getHook(options.SCRIPT)
 
-  const response = executeHookSync(hook, { scriptData, filename })
+  const response = executeHookSync(hook, { scriptData: scriptBuffer, filename })
 
   if (!response) {
     return

@@ -29,6 +29,9 @@ module.exports = class MediaAsserter {
     if (botMsg.cards) {
       allMedia = allMedia.concat(this._mediaFromCardsRecursive(botMsg.cards))
     }
+    if (!args || args.length === 0) {
+      return { allMedia, mediaNotFound: [], mediaFound: allMedia }
+    }
 
     const mediaNotFound = []
     const mediaFound = []
@@ -42,41 +45,39 @@ module.exports = class MediaAsserter {
     return { allMedia, mediaNotFound, mediaFound }
   }
 
-  assertNotConvoStep ({ convo, convoStep, args, botMsg }) {
-    if (args && args.length > 0) {
-      const { allMedia, mediaFound } = this._evalMedia(args, botMsg)
-      if (mediaFound.length > 0) {
-        return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Not expected media with uri "${mediaFound}"`,
-          {
-            type: 'asserter',
-            source: this.name,
-            context: {
-              // effective arguments getting from constructor
-              constructor: {},
-              params: {
-                args
-              }
-            },
-            cause: {
-              not: true,
-              expected: args,
-              actual: allMedia,
-              diff: mediaFound
+  assertNotConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allMedia, mediaFound } = this._evalMedia(args, botMsg)
+    if (mediaFound.length > 0) {
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Not expected media with uri "${mediaFound}"`,
+        {
+          type: 'asserter',
+          source: this.name,
+          context: {
+            // effective arguments getting from constructor
+            constructor: {},
+            params: {
+              args
             }
+          },
+          cause: {
+            not: true,
+            expected: args,
+            actual: allMedia,
+            diff: mediaFound
           }
-        ))
-      }
+        }
+      ))
     }
     return Promise.resolve()
   }
 
-  assertConvoStep ({ convo, convoStep, args, botMsg }) {
-    if (args && args.length > 0) {
-      const { allMedia, mediaNotFound } = this._evalMedia(args, botMsg)
-      if (mediaNotFound.length > 0) {
+  assertConvoStep ({ convo, convoStep, args = [], botMsg = [] }) {
+    const { allMedia, mediaNotFound, mediaFound } = this._evalMedia(args, botMsg)
+    if (!args || args.length === 0) {
+      if (!mediaFound.length) {
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Expected media with uri "${mediaNotFound}"`,
+          `${convoStep.stepTag}: Expected some media`,
           {
             type: 'asserter',
             source: this.name,
@@ -96,6 +97,27 @@ module.exports = class MediaAsserter {
           }
         ))
       }
+    } else if (mediaNotFound.length > 0) {
+      return Promise.reject(new BotiumError(
+        `${convoStep.stepTag}: Expected media with uri "${mediaNotFound}"`,
+        {
+          type: 'asserter',
+          source: this.name,
+          context: {
+            // effective arguments getting from constructor
+            constructor: {},
+            params: {
+              args
+            }
+          },
+          cause: {
+            not: false,
+            expected: args,
+            actual: allMedia,
+            diff: mediaNotFound
+          }
+        }
+      ))
     }
     return Promise.resolve()
   }
