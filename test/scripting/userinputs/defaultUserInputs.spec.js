@@ -48,6 +48,10 @@ describe('UserInputs.defaults.mediaInput', function () {
     const mi = new MediaInput()
     await mi.setUserInput({ convoStep, args: ['Test1'], meMsg: {}, convo: { sourceTag: { filename: '' } } })
   })
+  it('correct number of args with buffer', async function () {
+    const mi = new MediaInput()
+    await mi.setUserInput({ convoStep, args: ['Test1', Buffer.from('hello')], meMsg: {}, convo: { sourceTag: { filename: '' } } })
+  })
   it('wrong number of args', async function () {
     const mi = new MediaInput()
     return mi.setUserInput({ convoStep, args: ['Test1', 'Test2'], meMsg: {} })

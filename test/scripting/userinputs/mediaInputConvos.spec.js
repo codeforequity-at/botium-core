@@ -34,7 +34,7 @@ describe('scripting.userinputs.mediaInputConvos.relative', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('it should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Line 3: MediaInput requires exactly 1 argument') > 0)
+      assert.isTrue(err.message.indexOf('Line 3: MediaInput requires at least 1 and at most 2 arguments') > 0)
     }
   })
 
