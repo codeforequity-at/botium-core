@@ -14,6 +14,9 @@ module.exports = class MediaInput {
   _getResolvedUri (uri, convoDir, convoFilename) {
     if (this.globalArgs && this.globalArgs.baseUri) {
       return new url.URL(uri, this.globalArgs.baseUri)
+    } else if (this.globalArgs && this.globalArgs.baseDir) {
+      const basePath = path.resolve(this.globalArgs.baseDir)
+      return new url.URL(uri, `file://${basePath}/`)
     } else if (convoDir && convoFilename) {
       const basePath = path.resolve(convoDir)
       return new url.URL(uri, `file://${basePath}/${convoFilename}`)
