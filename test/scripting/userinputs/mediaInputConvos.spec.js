@@ -134,7 +134,7 @@ describe('scripting.userinputs.mediaInputDownloadConvos.relative', function () {
             downloadMedia: true
           }
         }
-      ]      
+      ]
     }
     const driver = new BotDriver(myCaps)
     this.compiler = driver.BuildCompiler()
