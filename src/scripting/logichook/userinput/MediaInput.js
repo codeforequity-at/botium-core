@@ -21,7 +21,11 @@ module.exports = class MediaInput {
       const basePath = path.resolve(convoDir)
       return new url.URL(uri, `file://${basePath}/${convoFilename}`)
     } else {
-      return new url.URL(uri, 'file://.')
+      try {
+        return new url.URL(uri)
+      } catch (err) {
+        return new url.URL(uri, 'file://.')
+      }
     }
   }
 
@@ -65,12 +69,14 @@ module.exports = class MediaInput {
     }
     try {
       const uri = this._getResolvedUri(args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
-      const buffer = await this._downloadMedia(uri)
-      meMsg.media.push({
-        mediaUri: uri.toString(),
-        mimeType: mime.lookup(args[0]),
-        buffer
-      })
+      if (uri) {
+        const buffer = await this._downloadMedia(uri)
+        meMsg.media.push({
+          mediaUri: uri.toString(),
+          mimeType: mime.lookup(args[0]),
+          buffer
+        })
+      }
     } catch (err) {
       throw new Error(err.message)
     }
