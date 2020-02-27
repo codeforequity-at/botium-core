@@ -18,7 +18,7 @@ module.exports = class MediaInput {
       const basePath = path.resolve(convoDir)
       return new url.URL(uri, `file://${basePath}/${convoFilename}`)
     } else {
-      return new url.URL(uri, `file://.`)
+      return new url.URL(uri, 'file://.')
     }
   }
 
