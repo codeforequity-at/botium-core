@@ -1,4 +1,4 @@
 media
 
 #me
-MEDIA test.jpg
+MEDIA botium.png

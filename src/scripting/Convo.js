@@ -263,7 +263,13 @@ class Convo {
             try {
               await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg })
               await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
-              debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(meMsg, null, 2)}`)
+
+              const coreMsg = _.omit(meMsg, [
+                'attachments',
+                'sourceData',
+                'media'
+              ])
+              debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by attachments and sourceData and media) ${JSON.stringify(coreMsg, null, 2)}`)
               await new Promise(resolve => {
                 if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
                   setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * meMsg.messageText.length)
