@@ -79,7 +79,8 @@ module.exports = class MediaInput {
         if (uri) {
           const buffer = await this._downloadMedia(uri)
           meMsg.media.push({
-            mediaUri: uri.toString(),
+            mediaUri: args[0],
+            downloadUri: uri.toString(),
             mimeType: mime.lookup(args[0]),
             buffer
           })
