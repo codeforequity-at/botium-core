@@ -21,7 +21,7 @@ describe('compiler.precompiler.json', function () {
       PRECOMPILERS: {
         NAME: 'JSON_TO_JSON_JSONPATH',
         ROOT_JSONPATH: '$.domains[*].intents[*]',
-        INTENTS_JSONPATH: '$.name',
+        UTTERANCE_REF_JSONPATH: '$.name',
         UTTERANCES_JSONPATH: '$.queries[*].text'
       }
     }
