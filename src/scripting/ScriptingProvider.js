@@ -615,7 +615,7 @@ module.exports = class ScriptingProvider {
     }
 
     if (useNameAsIntent) {
-      debug(`ExpandUtterancesToConvos - Using utterance name as NLU intent`)
+      debug('ExpandUtterancesToConvos - Using utterance name as NLU intent')
     } else if (incomprehensionUtt) {
       debug(`ExpandUtterancesToConvos - Using incomprehension utterance expansion mode: ${incomprehensionUtt}`)
     }
@@ -645,20 +645,19 @@ module.exports = class ScriptingProvider {
               stepTag: 'Step 2 - check intent',
               not: false
             }
-          :
-          incomprehensionUtt
-            ? {
-              sender: 'bot',
-              messageText: incomprehensionUtt,
-              stepTag: 'Step 2 - check incomprehension',
-              not: true
-            }
-            : {
-              sender: 'bot',
-              messageText: '',
-              stepTag: 'Step 2 - check bot response',
-              not: false
-            }
+            : incomprehensionUtt
+              ? {
+                sender: 'bot',
+                messageText: incomprehensionUtt,
+                stepTag: 'Step 2 - check incomprehension',
+                not: true
+              }
+              : {
+                sender: 'bot',
+                messageText: '',
+                stepTag: 'Step 2 - check bot response',
+                not: false
+              }
         ],
         sourceTag: utt.sourceTag
       }))
