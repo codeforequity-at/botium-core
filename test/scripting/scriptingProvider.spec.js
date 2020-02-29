@@ -134,6 +134,27 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
     assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
     assert.equal(scriptingProvider.convos[1].toString(), '2 utt1/utt1-L2 (Expanded Utterances - utt1): Step 1 - tell utterance: #me - TEXT2 | Step 2 - check bot response: #bot - ')
   })
+  it('should add leading zeros for utterance tags', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: Array.from(Array(10000).keys()).map(i => `TEXT${i + 1}`)
+    })
+
+    scriptingProvider.ExpandUtterancesToConvos()
+    scriptingProvider.ExpandConvos()
+
+    assert.equal(scriptingProvider.convos.length, 10000)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[0].header.name, 'utt1/utt1-L00001')
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[0].toString(), '1 utt1/utt1-L00001 (Expanded Utterances - utt1): Step 1 - tell utterance: #me - TEXT1 | Step 2 - check bot response: #bot - ')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[1].header.name, 'utt1/utt1-L00002')
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+    assert.equal(scriptingProvider.convos[1].toString(), '2 utt1/utt1-L00002 (Expanded Utterances - utt1): Step 1 - tell utterance: #me - TEXT2 | Step 2 - check bot response: #bot - ')
+  })
   it('should build incomprehension convos for utterance', async function () {
     const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_INCOMPREHENSION: 'INCOMPREHENSION' }))
     await scriptingProvider.Build()
@@ -163,6 +184,64 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
     assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
     assert.equal(scriptingProvider.convos[1].conversation[1].messageText, 'INCOMPREHENSION')
     assert.equal(scriptingProvider.convos[1].conversation[1].not, true)
+  })
+  it('should build intent check convos for utterance', async function () {
+    const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_USENAMEASINTENT: true }))
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+
+    scriptingProvider.ExpandUtterancesToConvos()
+    assert.equal(scriptingProvider.convos.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'utt1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].args[0], 'utt1')
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].args[0], 'utt1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].args[0], 'utt1')
+  })
+  it('should build intent check convos for utterance (with arg)', async function () {
+    const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+
+    scriptingProvider.ExpandUtterancesToConvos({ useNameAsIntent: true })
+    assert.equal(scriptingProvider.convos.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'utt1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].args[0], 'utt1')
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].args[0], 'utt1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].args[0], 'utt1')
   })
   it('should build check-only convos for utterance', async function () {
     const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
