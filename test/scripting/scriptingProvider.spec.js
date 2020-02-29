@@ -185,6 +185,64 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
     assert.equal(scriptingProvider.convos[1].conversation[1].messageText, 'INCOMPREHENSION')
     assert.equal(scriptingProvider.convos[1].conversation[1].not, true)
   })
+  it('should build intent check convos for utterance', async function () {
+    const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_USENAMEASINTENT: true }))
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+
+    scriptingProvider.ExpandUtterancesToConvos()
+    assert.equal(scriptingProvider.convos.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'utt1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].args[0], 'utt1')
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].args[0], 'utt1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].args[0], 'utt1')
+  })
+  it('should build intent check convos for utterance (with arg)', async function () {
+    const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+
+    scriptingProvider.ExpandUtterancesToConvos({ useNameAsIntent: true })
+    assert.equal(scriptingProvider.convos.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'utt1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].args[0], 'utt1')
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].args[0], 'utt1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 2)
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters.length, 1)
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].name, 'INTENT')
+    assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].args[0], 'utt1')
+  })
   it('should build check-only convos for utterance', async function () {
     const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
     await scriptingProvider.Build()
