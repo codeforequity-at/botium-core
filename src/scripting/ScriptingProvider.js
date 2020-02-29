@@ -684,13 +684,14 @@ module.exports = class ScriptingProvider {
                 .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
             }
             sampleutterances.forEach((utt, index) => {
+              const lineTag = `${index + 1}`.padStart(`${sampleutterances.length}`.length, '0')
               const currentStepsStack = convoStepsStack.slice()
               if (uttArgs) {
                 utt = util.format(utt, ...uttArgs)
               }
               currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: utt }))
               const currentConvoLabeled = _.cloneDeep(currentConvo)
-              Object.assign(currentConvoLabeled.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) })
+              Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-L${lineTag}` })
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
             return
