@@ -29,51 +29,109 @@ module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode =
   // local eslint accepts it without disable, but build on github does not
   // eslint-disable-next-line no-unused-vars
   let textLinesAccepted = true
-  lines.forEach(rawLine => {
-    let not = false
-    let logicLine = rawLine
-    if (logicLine.startsWith('!')) {
-      if (!logicLine.startsWith('!!')) {
-        not = true
+  for (const rawLine of lines) {
+    if (_.isString(rawLine)) {
+      let not = false
+      let logicLine = rawLine
+      if (logicLine.startsWith('!')) {
+        if (!logicLine.startsWith('!!')) {
+          not = true
+        }
+        logicLine = logicLine.substr(1)
       }
-      logicLine = logicLine.substr(1)
-    }
-    const name = logicLine.split(' ')[0]
-    if (sender !== 'me' && context.IsAsserterValid(name)) {
-      const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-      convoStep.asserters.push({ name, args, not })
-    } else if (sender === 'me' && context.IsUserInputValid(name)) {
-      const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-      convoStep.userInputs.push({ name, args })
-      textLinesAccepted = false
-    } else if (context.IsLogicHookValid(name)) {
-      const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-      convoStep.logicHooks.push({ name, args })
-      textLinesAccepted = false
-    } else {
-      rawLine = rawLine.startsWith('TEXT ') ? rawLine.substring(5) : rawLine.startsWith('!TEXT ') ? rawLine.substring(6) : rawLine
-      if (sender === 'me') {
-        if (!textLinesAccepted) {
-          if (rawLine.trim().length) {
-            throw new Error(`Failed to parse conversation. No text expected here: '${rawLine.trim()}' in convo:\n ${lines.join('\n')}`)
+      const name = logicLine.split(' ')[0]
+      if (sender !== 'me' && context.IsAsserterValid(name)) {
+        const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+        convoStep.asserters.push({ name, args, not })
+      } else if (sender === 'me' && context.IsUserInputValid(name)) {
+        const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+        convoStep.userInputs.push({ name, args })
+        textLinesAccepted = false
+      } else if (context.IsLogicHookValid(name)) {
+        const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+        convoStep.logicHooks.push({ name, args })
+        textLinesAccepted = false
+      } else {
+        if (sender === 'me') {
+          if (!textLinesAccepted) {
+            if (rawLine.trim().length) {
+              throw new Error(`Failed to parse conversation. No text expected here: '${rawLine.trim()}' in convo:\n ${lines.join('\n')}`)
+            } else {
+              // skip empty lines
+            }
           } else {
-            // skip empty lines
+            textLinesRaw.push(rawLine)
           }
         } else {
           textLinesRaw.push(rawLine)
         }
+      }
+      // line is not textline if it is empty, and there is no line with data after it.
+      if (textLinesRaw.length > 0) {
+        if (rawLine.trim().length) {
+          textLines.push(...textLinesRaw)
+          textLinesRaw = []
+        }
+      }
+    } else if (_.isObject(rawLine)) {
+      if (rawLine.asserter) {
+        if (sender !== 'bot') throw new Error(`Failed to parse conversation. No asserter "${rawLine.asserter}" expected in section "${sender}"`)
+        if (!context.IsAsserterValid(rawLine.asserter)) throw new Error(`Failed to parse conversation. No asserter "${rawLine.asserter}" registered for section "${sender}"`)
+        convoStep.asserters.push({
+          name: rawLine.asserter,
+          args: (rawLine.args && _.isString(rawLine.args) ? [rawLine.args] : rawLine.args) || [],
+          not: !!rawLine.not
+        })
+      } else if (rawLine.logichook || rawLine.logicHook) {
+        const logicHookName = rawLine.logichook || rawLine.logicHook
+        if (!context.IsLogicHookValid(logicHookName)) throw new Error(`Failed to parse conversation. No logichook "${logicHookName}" registered for section "${sender}"`)
+        convoStep.logicHooks.push({
+          name: logicHookName,
+          args: (rawLine.args && _.isString(rawLine.args) ? [rawLine.args] : rawLine.args) || []
+        })
+      } else if (rawLine.userinput || rawLine.userInput) {
+        const userInputName = rawLine.userinput || rawLine.userInput
+        if (sender !== 'me') throw new Error(`Failed to parse conversation. No userinput "${userInputName}" expected in section "${sender}"`)
+        if (!context.IsUserInputValid(userInputName)) throw new Error(`Failed to parse conversation. No userinput "${userInputName}" registered for section "${sender}"`)
+        convoStep.userInputs.push({
+          name: userInputName,
+          args: (rawLine.args && _.isString(rawLine.args) ? [rawLine.args] : rawLine.args) || []
+        })
       } else {
-        textLinesRaw.push(rawLine)
+        let name = Object.keys(rawLine)[0]
+        const content = rawLine[name]
+        let not = false
+        if (name.startsWith('!')) {
+          not = true
+          name = name.substr(1)
+        } else if (name.startsWith('NOT_')) {
+          not = true
+          name = name.substr(4)
+        }
+        if (sender !== 'me' && context.IsAsserterValid(name)) {
+          convoStep.asserters.push({
+            name,
+            args: (content && _.isString(content) ? [content] : content) || [],
+            not
+          })
+        } else if (sender === 'me' && context.IsUserInputValid(name)) {
+          convoStep.userInputs.push({
+            name,
+            args: (content && _.isString(content) ? [content] : content) || []
+          })
+        } else if (context.IsLogicHookValid(name)) {
+          convoStep.logicHooks.push({
+            name,
+            args: (content && _.isString(content) ? [content] : content) || []
+          })
+        } else {
+          throw new Error(`Failed to parse conversation. Line not recognized '${JSON.stringify(rawLine)}'`)
+        }
       }
+    } else {
+      throw new Error(`Failed to parse conversation. Line not recognized '${JSON.stringify(rawLine)}'`)
     }
-    // line is not textline if it is empty, and there is no line with data after it.
-    if (textLinesRaw.length > 0) {
-      if (rawLine.trim().length) {
-        textLines.push(...textLinesRaw)
-        textLinesRaw = []
-      }
-    }
-  })
+  }
 
   // deal with just message convosteps
   if (textLinesRaw.length >= 1 && textLines.length === 0) {

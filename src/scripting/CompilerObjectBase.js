@@ -49,10 +49,10 @@ module.exports = class CompilerObjectBase extends CompilerBase {
   _compileConvo (convos, isPartial = false) {
     const result = []
     for (const convoRaw of (convos || [])) {
-      let convoStepLineIndex = 0
       const conversation = []
-      for (const convoStepRaw of (convoRaw.steps || [])) {
-        convoStepLineIndex++
+      for (const [convoStepLineIndex, convoStepRaw] of convoRaw.steps.entries()) {
+        const lineTag = `${convoStepLineIndex + 1}`.padStart(`${convoRaw.steps.length}`.length, '0')
+
         if (Object.keys(convoStepRaw).length > 1) {
           throw new Error(`Use just one from 'begin', 'me','bot' and 'end' fields in step ${JSON.stringify(convoStepRaw)}`)
         }
@@ -66,7 +66,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
         conversation.push(Object.assign(
           {
             sender: convoStepSender,
-            stepTag: 'Line ' + convoStepLineIndex
+            stepTag: 'Line ' + lineTag
           },
           linesToConvoStep(convoStepObject, convoStepSender, this.context, this.eol)
         ))
