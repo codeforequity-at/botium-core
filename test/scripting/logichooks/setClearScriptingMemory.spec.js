@@ -7,7 +7,7 @@ const echoConnector = ({ queueBotSays }) => {
   return {
     UserSays (msg) {
       const response = msg.messageText.replace('INPUT1', 'OUTPUT1').replace('INPUT2', 'OUTPUT2')
-      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: response }
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: response, cards: [{ text: 'card text', content: 'card content' }] }
       queueBotSays(botMsg)
     }
   }
@@ -128,6 +128,24 @@ describe('SetClearScriptingMemory', function () {
       assert.equal(err.transcript.steps[1].scriptingMemory.$myvar, 'VARVALUE1')
       assert.equal(err.transcript.steps[2].scriptingMemory.$myvar, 'VARVALUE1')
       assert.equal(err.transcript.steps[3].scriptingMemory.$myvar, 'VARVALUE1')
+    }
+  })
+  it('should be assigned from jsonpath', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_from_jsonpath.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    assert.isDefined(transcript.scriptingMemory.$cardcontent)
+    assert.equal(transcript.scriptingMemory.$cardcontent, 'card content')
+  })
+  it('should fail on invalid jsonpath', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_from_invalidjsonpath.convo.txt')
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('no result from JSON-Path query') >= 0)
     }
   })
 })
