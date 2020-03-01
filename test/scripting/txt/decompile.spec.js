@@ -304,7 +304,7 @@ MEDIA test1.png
     assert.equal(script, `test convo
 
 #bot
-CARDS text of card
+CARDS text of card|subtext|content
 BUTTONS text of button|text of button2
 MEDIA mediaUri
 CARDS text of card2

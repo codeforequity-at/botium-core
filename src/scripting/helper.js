@@ -17,6 +17,10 @@ module.exports.toString = (value) => {
   return '' + value
 }
 
+module.exports.flatString = (str) => {
+  return str.split('\n').map(s => s.trim()).join(' ')
+}
+
 module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
   const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false, sender }
 
