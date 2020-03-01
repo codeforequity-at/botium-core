@@ -2,6 +2,7 @@ const util = require('util')
 const async = require('async')
 const rimraf = require('rimraf')
 const Bottleneck = require('bottleneck')
+const _ = require('lodash')
 const debug = require('debug')('botium-BaseContainer')
 
 const Events = require('../Events')
@@ -88,30 +89,26 @@ module.exports = class BaseContainer {
     return new Promise((resolve, reject) => {
       this.queues[channel].pop(timeoutMillis)
         .then((botMsg) => {
-          resolve(botMsg)
+          if (_.isError(botMsg)) {
+            reject(botMsg)
+          } else {
+            resolve(botMsg)
+          }
         })
         .catch((err) => {
-          debug(`WaitBotSays error ${util.inspect(err)}`)
-          resolve()
+          debug(`WaitBotSays error ${err.message || err}`)
+          reject(err)
         })
     })
   }
 
   WaitBotSaysText (channel = null, timeoutMillis = null) {
-    return new Promise((resolve, reject) => {
-      this.WaitBotSays(channel, timeoutMillis)
-        .then((botMsg) => {
-          if (botMsg) {
-            resolve(botMsg.messageText)
-          } else {
-            resolve()
-          }
-        })
-        .catch((err) => {
-          debug(`WaitBotSaysText error ${util.inspect(err)}`)
-          resolve()
-        })
-    })
+    return this.WaitBotSays(channel, timeoutMillis)
+      .then((botMsg) => {
+        if (botMsg) {
+          return botMsg.messageText
+        }
+      })
   }
 
   Restart () {
@@ -196,17 +193,26 @@ module.exports = class BaseContainer {
   }
 
   _QueueBotSays (botMsg) {
-    if (!botMsg.channel) botMsg.channel = 'default'
-    if (!botMsg.sender) botMsg.sender = 'bot'
+    if (_.isError(botMsg)) {
+      if (!this.queues.default) {
+        this.queues.default = new Queue()
+      }
+      this.queues.default.push(botMsg)
+      this.eventEmitter.emit(Events.MESSAGE_RECEIVEFROMBOT_ERROR, this, botMsg)
+    } else {
+      if (!botMsg.channel) botMsg.channel = 'default'
+      if (!botMsg.sender) botMsg.sender = 'bot'
 
-    if (!this.queues[botMsg.channel]) {
-      this.queues[botMsg.channel] = new Queue()
+      if (!this.queues[botMsg.channel]) {
+        this.queues[botMsg.channel] = new Queue()
+      }
+
+      return this._RunCustomHook('onBotResponse', this.onBotResponseHook, { botMsg })
+        .then(() => {
+          this.queues[botMsg.channel].push(botMsg)
+          this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
+        })
     }
-    return this._RunCustomHook('onBotResponse', this.onBotResponseHook, { botMsg })
-      .then(() => {
-        this.queues[botMsg.channel].push(botMsg)
-        this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
-      })
   }
 
   async _RunCustomHook (name, hook, args) {
