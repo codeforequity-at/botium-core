@@ -230,7 +230,7 @@ class Convo {
       }
       return transcript
     } finally {
-      container.eventEmitter.emit(Events.MESSAGE_TRANSCRIPT, container, transcript)      
+      container.eventEmitter.emit(Events.MESSAGE_TRANSCRIPT, container, transcript)
     }
   }
 
