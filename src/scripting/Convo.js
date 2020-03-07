@@ -229,9 +229,8 @@ class Convo {
         throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
       }
       return transcript
-    } catch (err) {
+    } finally {
       container.eventEmitter.emit(Events.MESSAGE_TRANSCRIPT, container, transcript)
-      throw err
     }
   }
 
@@ -263,7 +262,13 @@ class Convo {
             try {
               await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg })
               await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
-              debug(`${this.header.name}/${convoStep.stepTag}: user says ${JSON.stringify(meMsg, null, 2)}`)
+
+              const coreMsg = _.omit(meMsg, [
+                'attachments',
+                'sourceData',
+                'media'
+              ])
+              debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by attachments and sourceData and media) ${JSON.stringify(coreMsg, null, 2)}`)
               await new Promise(resolve => {
                 if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
                   setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * meMsg.messageText.length)
@@ -275,7 +280,15 @@ class Convo {
               transcriptStep.botBegin = new Date()
               if (!_.isNull(meMsg.messageText) || meMsg.sourceData || (meMsg.userInputs && meMsg.userInputs.length)) {
                 transcriptStep.botBegin = new Date()
-                await container.UserSays(Object.assign({ conversation: this.conversation, currentStepIndex, scriptingMemory }, meMsg))
+
+                try {
+                  Object.assign(meMsg, { conversation: this.conversation, currentStepIndex, scriptingMemory })
+                  await container.UserSays(meMsg)
+                } finally {
+                  delete meMsg.conversation
+                  delete meMsg.scriptingMemory
+                }
+
                 transcriptStep.botEnd = new Date()
                 await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
                 continue

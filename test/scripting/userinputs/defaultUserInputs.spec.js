@@ -48,6 +48,10 @@ describe('UserInputs.defaults.mediaInput', function () {
     const mi = new MediaInput()
     await mi.setUserInput({ convoStep, args: ['Test1'], meMsg: {}, convo: { sourceTag: { filename: '' } } })
   })
+  it('correct number of args with buffer', async function () {
+    const mi = new MediaInput()
+    await mi.setUserInput({ convoStep, args: ['Test1', Buffer.from('hello')], meMsg: {}, convo: { sourceTag: { filename: '' } } })
+  })
   it('wrong number of args', async function () {
     const mi = new MediaInput()
     return mi.setUserInput({ convoStep, args: ['Test1', 'Test2'], meMsg: {} })
@@ -73,7 +77,7 @@ describe('UserInputs.defaults.mediaInput', function () {
     await mi.setUserInput({ convoStep, args: ['Test1'], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })
     assert.isArray(meMsg.media)
     assert.lengthOf(meMsg.media, 1)
-    assert.equal(meMsg.media[0].mediaUri, 'file://mydir/Test1')
+    assert.isTrue(meMsg.media[0].downloadUri.endsWith('mydir/Test1'))
   })
 })
 

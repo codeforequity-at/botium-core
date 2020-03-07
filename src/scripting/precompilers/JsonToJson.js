@@ -13,11 +13,10 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
     return
   }
 
-  // this name can be in cap name, or in cap value. Reading it dynamical
-  const checkerJsonpath = options.CHECKER_JSONPATH || options.checkerJsonpath
-  const rootJsonpath = options.ROOT_JSONPATH || options.rootJsonpath
-  const intentsJsonpath = options.INTENTS_JSONPATH || options.intentsJsonpath
-  const utterancesJsonpath = options.UTTERANCES_JSONPATH || options.utterancesJsonpath
+  const checkerJsonpath = options.CHECKER_JSONPATH
+  const rootJsonpath = options.ROOT_JSONPATH
+  const utteranceRefsJsonpath = options.UTTERANCE_REF_JSONPATH
+  const utterancesJsonpath = options.UTTERANCES_JSONPATH
   let scriptData = scriptBuffer
   if (_.isString(scriptData)) {
     try {
@@ -27,7 +26,7 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
     }
   }
   if (checkerJsonpath) {
-    const scouldExist = jp.query(scriptData, rootJsonpath)
+    const scouldExist = jp.query(scriptData, checkerJsonpath)
     if (!scouldExist || scouldExist.length === 0) {
       return
     }
@@ -50,13 +49,13 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
   for (const json of scriptData) {
     let intent
     try {
-      intent = _ensureList(jp.query(json, intentsJsonpath))
+      intent = _ensureList(jp.query(json, utteranceRefsJsonpath))
     } catch (err) {
-      throw new Error(`Intents jsonpath ${intentsJsonpath} invalid: ${err.message}`)
+      throw new Error(`Intents jsonpath ${utteranceRefsJsonpath} invalid: ${err.message}`)
     }
 
     if (intent.length !== 1) {
-      throw new Error(`There should be exact one intent but found "${JSON.stringify(intent)}" on path "${intentsJsonpath}" in JSON "${JSON.stringify(json)}"`)
+      throw new Error(`There should be exact one intent but found "${JSON.stringify(intent)}" on path "${utteranceRefsJsonpath}" in JSON "${JSON.stringify(json)}"`)
     }
 
     if (!result[intent]) {
@@ -66,7 +65,7 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
     try {
       result[intent] = result[intent].concat(jp.query(json, utterancesJsonpath))
     } catch (err) {
-      throw new Error(`Utterances jsonpath ${intentsJsonpath} invalid: ${err.message}`)
+      throw new Error(`Utterances jsonpath ${utteranceRefsJsonpath} invalid: ${err.message}`)
     }
   }
 

@@ -5,7 +5,7 @@ const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
 const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
-const { linesToConvoStep } = require('./helper')
+const { linesToConvoStep, flatString } = require('./helper')
 
 module.exports = class CompilerTxt extends CompilerBase {
   constructor (context, caps = {}) {
@@ -197,11 +197,16 @@ module.exports = class CompilerTxt extends CompilerBase {
           }
           script += set.messageText + this.eol
         }
-        if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
+        if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => flatString(b.text)).join('|') + this.eol
         if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
         if (set.cards && set.cards.length > 0) {
           set.cards.forEach(c => {
-            if (c.text) script += 'CARDS ' + (_.isArray(c.text) ? c.text : [c.text]).join('|') + this.eol
+            let cardTexts = []
+            if (c.text) cardTexts = cardTexts.concat(_.isArray(c.text) ? c.text : [c.text])
+            if (c.subtext) cardTexts = cardTexts.concat(_.isArray(c.subtext) ? c.subtext : [c.subtext])
+            if (c.content) cardTexts = cardTexts.concat(_.isArray(c.content) ? c.content : [c.content])
+            if (cardTexts.length > 0) script += 'CARDS ' + cardTexts.map(c => flatString(c)).join('|') + this.eol
+
             if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
             if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
           })

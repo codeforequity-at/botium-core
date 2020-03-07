@@ -15,7 +15,7 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
 
   const hook = getHook(options.SCRIPT)
 
-  const response = executeHookSync(hook, { filecontent: scriptBuffer, filename })
+  const response = executeHookSync(hook, { scriptData: scriptBuffer, filename })
 
   if (!response) {
     return
