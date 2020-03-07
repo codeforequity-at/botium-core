@@ -13,10 +13,13 @@ convos:
     steps:
       - me:
           - hi
-          - PAUSE 500
+          - PAUSE:
+            - 500
       - bot:
-          - TEXT hello
-          - INTENT intent_greeting
+          - NOT_TEXT:
+            - hello
+          - INTENT:
+            - intent_greeting
       - bot:
           - what can i do for you?
       - me:
