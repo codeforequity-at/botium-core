@@ -1,11 +1,11 @@
 const _ = require('lodash')
 const isJSON = require('is-json')
 
-module.exports.quoteRegexpString = (str) => {
+const quoteRegexpString = (str) => {
   return str.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')
 }
 
-module.exports.toString = (value) => {
+const toString = (value) => {
   if (_.isUndefined(value)) return undefined
   if (_.isString(value)) return value
   if (_.isNumber(value)) return value.toString()
@@ -17,11 +17,11 @@ module.exports.toString = (value) => {
   return '' + value
 }
 
-module.exports.flatString = (str) => {
+const flatString = (str) => {
   return str.split('\n').map(s => s.trim()).join(' ')
 }
 
-module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
+const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
   const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false, sender }
 
   let textLinesRaw = []
@@ -165,4 +165,111 @@ module.exports.linesToConvoStep = (lines, sender, context, eol, singleLineMode =
     convoStep.messageText = null
   }
   return convoStep
+}
+
+const convoStepToObject = (step) => {
+  const result = []
+  if (step.sender === 'me') {
+    for (const form of (step.forms || []).filter(form => form.value)) {
+      result.push({
+        userinput: 'FORM',
+        args: [form.name, form.value]
+      })
+    }
+    if (step.buttons && step.buttons.length > 0) {
+      const userinput = {
+        userinput: 'BUTTON',
+        args: []
+      }
+      if (step.buttons[0].payload) {
+        userinput.args.push(step.buttons[0].payload)
+        if (step.buttons[0].text) {
+          userinput.args.push(step.buttons[0].text)
+        }
+      } else {
+        userinput.args.push(step.buttons[0].text)
+      }
+      result.push(userinput)
+    } else if (step.media && step.media.length > 0) {
+      result.push({
+        userinput: 'MEDIA',
+        args: [step.media[0].mediaUri]
+      })
+    } else if (step.messageText) {
+      result.push(step.messageText)
+    }
+    for (const logicHook of step.logicHooks || []) {
+      result.push({
+        logichook: logicHook.name,
+        args: logicHook.args || []
+      })
+    }
+  } else {
+    if (step.messageText) {
+      if (step.not) result.push('!' + step.messageText)
+      else result.push(step.messageText)
+    }
+    if (step.buttons && step.buttons.length > 0) {
+      result.push({
+        asserter: 'BUTTONS',
+        args: step.buttons.map(b => flatString(b.text))
+      })
+    }
+    if (step.media && step.media.length > 0) {
+      result.push({
+        asserter: 'MEDIA',
+        args: step.media.map(m => m.mediaUri)
+      })
+    }
+    if (step.cards && step.cards.length > 0) {
+      step.cards.forEach(c => {
+        let cardTexts = []
+        if (c.text) cardTexts = cardTexts.concat(_.isArray(c.text) ? c.text : [c.text])
+        if (c.subtext) cardTexts = cardTexts.concat(_.isArray(c.subtext) ? c.subtext : [c.subtext])
+        if (c.content) cardTexts = cardTexts.concat(_.isArray(c.content) ? c.content : [c.content])
+        if (cardTexts.length > 0) {
+          result.push({
+            asserter: 'CARDS',
+            args: cardTexts.map(c => flatString(c))
+          })
+        }
+
+        if (c.buttons && c.buttons.length > 0) {
+          result.push({
+            asserter: 'BUTTONS',
+            args: c.buttons.map(b => b.text)
+          })
+        }
+        if (c.image) {
+          result.push({
+            asserter: 'MEDIA',
+            args: c.image.mediaUr,
+            not: !!step.not
+          })
+        }
+      })
+    }
+    for (const asserter of step.asserters || []) {
+      result.push({
+        asserter: asserter.name,
+        args: asserter.args || [],
+        not: !!asserter.not
+      })
+    }
+    for (const logicHook of step.logicHooks || []) {
+      result.push({
+        logichook: logicHook.name,
+        args: logicHook.args || []
+      })
+    }
+  }
+  return result
+}
+
+module.exports = {
+  quoteRegexpString,
+  toString,
+  flatString,
+  linesToConvoStep,
+  convoStepToObject
 }

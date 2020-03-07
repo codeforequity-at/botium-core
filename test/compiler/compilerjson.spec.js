@@ -46,6 +46,8 @@ describe('compiler.compilerjson', function () {
 
     assert.equal(context.convos[0].conversation.length, 3)
     assert.equal(context.convos[0].conversation[0].sender, 'begin')
+    assert.equal(context.convos[0].conversation[2].messageText, 'hello')
+    assert.equal(context.convos[0].conversation[2].not, true)
 
     assert.equal(context.convos[1].conversation.length, 5)
     assert.equal(context.convos[1].conversation[0].messageText, 'hi')
@@ -81,5 +83,37 @@ describe('compiler.compilerjson', function () {
     assert.equal(context.utterances[0].utterances[1], 'hello!')
 
     assert.equal(context.convos.length, 0)
+  })
+})
+
+describe('compiler.decompilerjson', function () {
+  it('should decompile convos', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_and_utterances.json'))
+    const context = buildContext()
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+    compiler.Compile(scriptBuffer, Constants.SCRIPTING_TYPE_CONVO)
+
+    const script = compiler.Decompile(context.convos, 'SCRIPTING_FORMAT_JSON')
+    const convos = JSON.parse(script).convos
+
+    assert.equal(convos.length, 2)
+
+    assert.equal(Object.keys(convos[0].steps[0])[0], 'begin')
+    assert.equal(convos[0].steps.length, 3)
+    assert.equal(convos[0].steps[2].bot.length, 1)
+    assert.equal(convos[0].steps[2].bot[0], '!hello')
+
+    assert.equal(convos[1].steps.length, 5)
+    assert.equal(convos[1].steps[1].bot.length, 2)
+    assert.equal(convos[1].steps[1].bot[0].asserter, 'TEXT')
+    assert.equal(convos[1].steps[1].bot[0].not, true)
+    assert.equal(convos[1].steps[1].bot[0].args.length, 1)
+    assert.equal(convos[1].steps[1].bot[0].args[0], 'hello')
+    assert.equal(convos[1].steps[1].bot[1].asserter, 'INTENT')
+    assert.equal(convos[1].steps[1].bot[1].not, false)
+    assert.equal(convos[1].steps[1].bot[1].args.length, 1)
+    assert.equal(convos[1].steps[1].bot[1].args[0], 'intent_greeting')
   })
 })
