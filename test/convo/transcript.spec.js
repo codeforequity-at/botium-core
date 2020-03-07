@@ -141,7 +141,9 @@ describe('convo.transcript', function () {
     this.driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { transcript = transcriptEv })
 
     await this.compiler.convos[0].Run(this.container).then(() => {
-      assert.isDefined(transcript)
+      assert.isNotNull(transcript)
+      assert.equal(transcript.steps.length, 2)
+      assert.isNotNull(transcript.steps[0].actual.sourceData)
     }, error => {
       assert.fail('unexpected error', error)
     })
@@ -156,7 +158,7 @@ describe('convo.transcript', function () {
     await this.compiler.convos[0].Run(this.container).then(() => {
       assert.fail('expected error')
     }, () => {
-      assert.isDefined(transcript)
+      assert.isNotNull(transcript)
     })
   })
   it('should handle fail with mismatching value in JSON response', async function () {
