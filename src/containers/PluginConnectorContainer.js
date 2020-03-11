@@ -1,119 +1,41 @@
 const util = require('util')
-const path = require('path')
-const fs = require('fs')
-const _ = require('lodash')
 const promiseRetry = require('promise-retry')
 const debug = require('debug')('botium-PluginConnectorContainer')
 
 const Events = require('../Events')
 const Capabilities = require('../Capabilities')
 const BaseContainer = require('./BaseContainer')
-const pluginResolver = require('./plugins/index')
+const { tryLoadPlugin } = require('./plugins/index')
 const RetryHelper = require('../helpers/RetryHelper')
 
-const getModuleVersionSafe = (required) => {
-  try {
-    const pckg = require(required + '/package.json')
-    if (pckg.version === undefined) {
-      return 'Not set'
-    } else {
-      return pckg.version
-    }
-  } catch (e) {
-    if (e.code !== 'MODULE_NOT_FOUND') {
-      return 'Unknown error while determining version'
-    }
-    return 'Unknown version'
-  }
-}
-const tryLoadPlugin = (containermode, modulepath, args) => {
-  const pluginLoaderSpec = modulepath || containermode
-
-  if (pluginResolver(pluginLoaderSpec)) {
-    const pluginInstance = new (pluginResolver(pluginLoaderSpec))(args)
-    debug('Botium plugin loaded from internal plugin resolver')
-    return pluginInstance
-  }
-  if (_.isFunction(pluginLoaderSpec)) {
-    const pluginInstance = pluginLoaderSpec(args)
-    debug('Botium plugin loaded from function call')
-    return pluginInstance
-  }
-  const loadErr = []
-
-  if (_.isString(pluginLoaderSpec)) {
-    const tryLoadFile = path.resolve(process.cwd(), pluginLoaderSpec)
-    if (fs.existsSync(tryLoadFile)) {
-      try {
-        const plugin = require(tryLoadFile)
-        if (!plugin.PluginVersion || !plugin.PluginClass) {
-          debug(`Invalid Botium plugin loaded from ${tryLoadFile}, expected PluginVersion, PluginClass fields`)
-        } else {
-          const pluginInstance = new plugin.PluginClass(args)
-          debug(`Botium plugin loaded from ${tryLoadFile}`)
-          return pluginInstance
-        }
-      } catch (err) {
-        loadErr.push(`Loading Botium plugin from ${tryLoadFile} failed - ${util.inspect(err)}`)
-      }
-    }
-    try {
-      const plugin = require(pluginLoaderSpec)
-      if (!plugin.PluginVersion || !plugin.PluginClass) {
-        debug(`Invalid Botium plugin loaded from ${pluginLoaderSpec}, expected PluginVersion, PluginClass fields`)
-      } else {
-        const pluginInstance = new plugin.PluginClass(args)
-        debug(`Botium plugin loaded from ${pluginLoaderSpec}. Plugin version is ${getModuleVersionSafe(pluginLoaderSpec)}`)
-        return pluginInstance
-      }
-    } catch (err) {
-      loadErr.push(`Loading Botium plugin from ${pluginLoaderSpec} failed - ${util.inspect(err)}`)
-    }
-    const tryLoadPackage = `botium-connector-${pluginLoaderSpec}`
-    try {
-      const plugin = require(tryLoadPackage)
-      if (!plugin.PluginVersion || !plugin.PluginClass) {
-        debug(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
-      } else {
-        const pluginInstance = new plugin.PluginClass(args)
-        debug(`Botium plugin ${tryLoadPackage} loaded. Plugin version is ${getModuleVersionSafe(tryLoadPackage)}`)
-        return pluginInstance
-      }
-    } catch (err) {
-      loadErr.push(`Loading Botium plugin ${tryLoadPackage} failed, try "npm install ${tryLoadPackage}" - ${util.inspect(err)}`)
-    }
-  }
-  loadErr.forEach(debug)
-}
-
 module.exports = class PluginConnectorContainer extends BaseContainer {
-  Validate () {
-    return super.Validate().then(() => {
-      this.pluginInstance = tryLoadPlugin(
-        this.caps[Capabilities.CONTAINERMODE],
-        this.caps[Capabilities.PLUGINMODULEPATH],
-        {
-          container: this,
-          queueBotSays: (msg) => this._QueueBotSays(msg),
-          eventEmitter: this.eventEmitter,
-          caps: this.caps,
-          sources: this.sources,
-          envs: this.envs
-        })
-      if (!this.pluginInstance) {
-        throw new Error('Loading Botium plugin failed')
-      }
-      if (!this.pluginInstance.UserSays) {
-        throw new Error('Invalid Botium plugin, expected UserSays function')
-      }
-      return this.pluginInstance.Validate ? (this.pluginInstance.Validate() || Promise.resolve()) : Promise.resolve()
-    }).then(() => {
-      this.retryHelperBuild = new RetryHelper(this.caps, 'BUILD')
-      this.retryHelperStart = new RetryHelper(this.caps, 'START')
-      this.retryHelperUserSays = new RetryHelper(this.caps, 'USERSAYS')
-      this.retryHelperStop = new RetryHelper(this.caps, 'STOP')
-      this.retryHelperClean = new RetryHelper(this.caps, 'CLEAN')
-    })
+  async Validate () {
+    await super.Validate()
+    this.pluginInstance = tryLoadPlugin(
+      this.caps[Capabilities.CONTAINERMODE],
+      this.caps[Capabilities.PLUGINMODULEPATH],
+      {
+        container: this,
+        queueBotSays: (msg) => this._QueueBotSays(msg),
+        eventEmitter: this.eventEmitter,
+        caps: this.caps,
+        sources: this.sources,
+        envs: this.envs
+      })
+    if (!this.pluginInstance) {
+      throw new Error('Loading Botium plugin failed')
+    }
+    if (!this.pluginInstance.UserSays) {
+      throw new Error('Invalid Botium plugin, expected UserSays function')
+    }
+    if (this.pluginInstance.Validate) {
+      await this.pluginInstance.Validate()
+    }
+    this.retryHelperBuild = new RetryHelper(this.caps, 'BUILD')
+    this.retryHelperStart = new RetryHelper(this.caps, 'START')
+    this.retryHelperUserSays = new RetryHelper(this.caps, 'USERSAYS')
+    this.retryHelperStop = new RetryHelper(this.caps, 'STOP')
+    this.retryHelperClean = new RetryHelper(this.caps, 'CLEAN')
   }
 
   Build () {
