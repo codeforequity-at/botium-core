@@ -692,6 +692,7 @@ module.exports = class ScriptingProvider {
         currentStepsStack.push(_.cloneDeep(currentStep))
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       } else if (currentStep.sender === 'me') {
+        let useUnexpanded = true
         if (currentStep.messageText) {
           const parts = currentStep.messageText.split(' ')
           const uttName = parts[0]
@@ -719,12 +720,46 @@ module.exports = class ScriptingProvider {
               Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-L${lineTag}` })
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
-            return
+            useUnexpanded = false
           }
         }
-        const currentStepsStack = convoStepsStack.slice()
-        currentStepsStack.push(_.cloneDeep(currentStep))
-        this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+        if (currentStep.userInputs && currentStep.userInputs.length > 0) {
+          currentStep.userInputs.forEach((ui, uiIndex) => {
+            const userInput = this.userInputs[ui.name]
+            if (userInput && userInput.expandConvo) {
+              const expandedUserInputs = userInput.expandConvo({ convo: currentConvo, convoStep: currentStep, args: ui.args })
+              if (expandedUserInputs && expandedUserInputs.length > 0) {
+                let sampleinputs = expandedUserInputs
+                if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'first') {
+                  sampleinputs = [expandedUserInputs[0]]
+                } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'random') {
+                  sampleinputs = expandedUserInputs
+                    .map(x => ({ x, r: Math.random() }))
+                    .sort((a, b) => a.r - b.r)
+                    .map(a => a.x)
+                    .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
+                }
+                sampleinputs.forEach((sampleinput, index) => {
+                  const lineTag = `${index + 1}`.padStart(`${sampleinputs.length}`.length, '0')
+                  const currentStepsStack = convoStepsStack.slice()
+                  const currentStepMod = _.cloneDeep(currentStep)
+                  currentStepMod.userInputs[uiIndex] = sampleinput
+
+                  currentStepsStack.push(currentStepMod)
+                  const currentConvoLabeled = _.cloneDeep(currentConvo)
+                  Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-L${lineTag}` })
+                  this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
+                })
+                useUnexpanded = false
+              }
+            }
+          })
+        }
+        if (useUnexpanded) {
+          const currentStepsStack = convoStepsStack.slice()
+          currentStepsStack.push(_.cloneDeep(currentStep))
+          this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+        }
       }
     } else {
       expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: convoStepsStack }))
