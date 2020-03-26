@@ -65,6 +65,26 @@ describe('scripting.userinputs.mediaInputConvos.relative', function () {
     assert.isTrue(transcript.steps[0].actual.media[1].downloadUri.endsWith('test/scripting/userinputs/convos/test2.jpg'))
     assert.equal(transcript.steps[0].actual.media[1].mimeType, 'image/jpeg')
   })
+  it('should expand media list in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'medialist.convo.txt')
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 3)
+    assert.equal(this.compiler.convos[0].conversation.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].args[0], 'test1.jpg')
+    assert.equal(this.compiler.convos[1].conversation[0].userInputs[0].args[0], 'test2.jpg')
+    assert.equal(this.compiler.convos[2].conversation[0].userInputs[0].args[0], 'test3.jpg')
+  })
+  it('should expand media wc from convoDir in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'mediawc.convo.txt')
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 3)
+    assert.equal(this.compiler.convos[0].conversation.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].args[0], 'files/botium0.png')
+    assert.equal(this.compiler.convos[1].conversation[0].userInputs[0].args[0], 'files/botium1.png')
+    assert.equal(this.compiler.convos[2].conversation[0].userInputs[0].args[0], 'files/botium2.png')
+  })
 })
 
 describe('scripting.userinputs.mediaInputConvos.baseUri', function () {
@@ -117,6 +137,60 @@ describe('scripting.userinputs.mediaInputConvos.baseUri', function () {
     assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/jpeg')
     assert.equal(transcript.steps[0].actual.media[1].downloadUri, 'https://www.botium.at/test2.jpg')
     assert.equal(transcript.steps[0].actual.media[1].mimeType, 'image/jpeg')
+  })
+})
+
+describe('scripting.userinputs.mediaInputConvos.baseDir', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.userinputs.mediaInputConvos',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.USER_INPUTS]: [
+        {
+          ref: 'MEDIA',
+          src: 'MediaInput',
+          args: {
+            baseDir: path.join(__dirname, 'convos', 'files')
+          }
+        }
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should expand media wc from baseDir in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'mediawcbasedir.convo.txt')
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 3)
+    assert.equal(this.compiler.convos[0].conversation.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].args[0], 'botium0.png')
+    assert.equal(this.compiler.convos[1].conversation[0].userInputs[0].args[0], 'botium1.png')
+    assert.equal(this.compiler.convos[2].conversation[0].userInputs[0].args[0], 'botium2.png')
+
+    const transcript0 = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript0.steps.length, 1)
+    assert.equal(transcript0.steps[0].actual.media.length, 1)
+    assert.isTrue(transcript0.steps[0].actual.media[0].downloadUri.endsWith('files/botium0.png'))
+    assert.equal(transcript0.steps[0].actual.media[0].mimeType, 'image/png')
+
+    const transcript1 = await this.compiler.convos[1].Run(this.container)
+    assert.equal(transcript1.steps.length, 1)
+    assert.equal(transcript1.steps[0].actual.media.length, 1)
+    assert.isTrue(transcript1.steps[0].actual.media[0].downloadUri.endsWith('files/botium1.png'))
+    assert.equal(transcript1.steps[0].actual.media[0].mimeType, 'image/png')
+
+    const transcript2 = await this.compiler.convos[2].Run(this.container)
+    assert.equal(transcript2.steps.length, 1)
+    assert.equal(transcript2.steps[0].actual.media.length, 1)
+    assert.isTrue(transcript2.steps[0].actual.media[0].downloadUri.endsWith('files/botium2.png'))
+    assert.equal(transcript2.steps[0].actual.media[0].mimeType, 'image/png')
   })
 })
 

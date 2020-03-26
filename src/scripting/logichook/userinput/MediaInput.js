@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const glob = require('glob')
 const request = require('request')
 const mime = require('mime-types')
 const url = require('url')
@@ -27,6 +28,16 @@ module.exports = class MediaInput {
       } catch (err) {
         return new url.URL(uri, 'file://.')
       }
+    }
+  }
+
+  _getBaseDir (convoDir) {
+    if (this.globalArgs && this.globalArgs.baseDir) {
+      return path.resolve(this.globalArgs.baseDir)
+    } else if (convoDir) {
+      return path.resolve(convoDir)
+    } else {
+      return '.'
     }
   }
 
@@ -59,6 +70,34 @@ module.exports = class MediaInput {
         })
       }
     }
+  }
+
+  _isWildcard (arg) {
+    return arg.indexOf('*') >= 0
+  }
+
+  expandConvo ({ convo, convoStep, args }) {
+    if (args && (args.length > 1 || args.findIndex(a => this._isWildcard(a)) >= 0)) {
+      const baseDir = this._getBaseDir(convo.sourceTag.convoDir)
+      return args.reduce((e, arg) => {
+        if (this._isWildcard(arg)) {
+          const mediaFiles = glob.sync(arg, { cwd: baseDir })
+          mediaFiles.forEach(mf => {
+            e.push({
+              name: 'MEDIA',
+              args: [mf]
+            })
+          })
+        } else {
+          e.push({
+            name: 'MEDIA',
+            args: [arg]
+          })
+        }
+        return e
+      }, [])
+    }
+    return null
   }
 
   async setUserInput ({ convoStep, args, meMsg, convo }) {

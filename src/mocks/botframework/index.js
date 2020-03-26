@@ -5,7 +5,7 @@ const http = require('http')
 const bodyParser = require('body-parser')
 const fs = require('fs')
 const tcpPortUsed = require('tcp-port-used')
-const uuidv4 = require('uuid').v4
+const { v4: uuidv4 } = require('uuid')
 const jwt = require('jsonwebtoken')
 const jwkToPem = require('jwk-to-pem')
 
