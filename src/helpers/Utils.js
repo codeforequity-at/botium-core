@@ -51,13 +51,12 @@ const shortenJsonString = (obj) => {
 
 const escapeJSONString = (string) => {
   if (string) {
-    return ('' + string).replace(/["'\\\n\r\u2028\u2029]/g, function (character) {
+    return ('' + string).replace(/["\\\n\r\u2028\u2029]/g, function (character) {
       // Escape all characters not included in SingleStringCharacters and
       // DoubleStringCharacters on
       // http://www.ecma-international.org/ecma-262/5.1/#sec-7.8.4
       switch (character) {
         case '"':
-        case "'":
         case '\\':
           return '\\' + character
         // Four possible LineTerminator characters need to be escaped:
