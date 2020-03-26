@@ -1,0 +1,4 @@
+mediawcbasedir
+
+#me
+MEDIA *.png

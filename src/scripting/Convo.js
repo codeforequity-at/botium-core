@@ -7,7 +7,7 @@ const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromErr, botiumErrorFromList } = require('./BotiumError')
-const { toString } = require('./helper')
+const { toString, removeBuffers } = require('./helper')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -263,11 +263,7 @@ class Convo {
               await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg })
               await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
 
-              const coreMsg = _.omit(meMsg, [
-                'attachments',
-                'sourceData',
-                'media'
-              ])
+              const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
               debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by attachments and sourceData and media) ${JSON.stringify(coreMsg, null, 2)}`)
               await new Promise(resolve => {
                 if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
@@ -318,10 +314,7 @@ class Convo {
               transcriptStep.botEnd = new Date()
               transcriptStep.actual = new BotiumMockMessage(saysmsg)
 
-              const coreMsg = _.omit(saysmsg, [
-                'attachments',
-                'sourceData'
-              ])
+              const coreMsg = _.omit(removeBuffers(saysmsg), ['sourceData'])
               debug(`${this.header.name}: bot says (cleaned by attachments and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
             } catch (err) {
               transcriptStep.botEnd = new Date()

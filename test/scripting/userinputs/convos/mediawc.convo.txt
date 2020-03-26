@@ -1,0 +1,4 @@
+mediawc
+
+#me
+MEDIA files/*.png
