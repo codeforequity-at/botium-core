@@ -25,6 +25,35 @@ const BotiumError = class BotiumError extends Error {
     this.context = context || {}
     this.context.message = message.message || message
   }
+
+  prettify () {
+    const lines = []
+    if (this.context) {
+      const errArr = _.isArray(this.context) ? this.context : [this.context]
+      errArr.forEach(errDetail => {
+        lines.push('########################################')
+        if (errDetail.type === 'asserter') {
+          const segments = []
+          segments.push(`ASSERTION FAILED in ${errDetail.source}${errDetail.subtype ? ` (${errDetail.subtype})` : ''}`)
+          errDetail.cause && errDetail.cause.expected && !errDetail.cause.not && segments.push(` - Expected: ${JSON.stringify(errDetail.cause.expected)} `)
+          errDetail.cause && errDetail.cause.expected && errDetail.cause.not && segments.push(` - NOT Expected: ${JSON.stringify(errDetail.cause.expected)} `)
+          errDetail.cause && errDetail.cause.actual && segments.push(` - Actual: ${JSON.stringify(errDetail.cause.actual)}`)
+          errDetail.cause && !errDetail.cause.actual && segments.push(' - Actual: empty')
+          lines.push(segments.join(''))
+          errDetail.input && errDetail.input.messageText && lines.push(`INPUT: ${errDetail.input.messageText}`)
+        } else if (errDetail.message) {
+          lines.push(`${errDetail.message}`)
+        }
+        lines.push('----------------------------------------')
+        lines.push(JSON.stringify(errDetail))
+      })
+    }
+    if (lines.length > 0) {
+      return lines.join('\r\n')
+    } else {
+      return null
+    }
+  }
 }
 
 const _getChildErrorsFromContext = (context) => {

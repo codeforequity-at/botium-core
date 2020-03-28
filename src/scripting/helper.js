@@ -5,6 +5,16 @@ const quoteRegexpString = (str) => {
   return str.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')
 }
 
+const removeBuffers = obj => {
+  const jsonString = JSON.stringify(obj, (key, value) => {
+    if (_.isBuffer(value)) {
+      return '(binary data)'
+    }
+    return value
+  })
+  return JSON.parse(jsonString)
+}
+
 const toString = (value) => {
   if (_.isUndefined(value)) return undefined
   if (_.isString(value)) return value
@@ -270,6 +280,7 @@ module.exports = {
   quoteRegexpString,
   toString,
   flatString,
+  removeBuffers,
   linesToConvoStep,
   convoStepToObject
 }

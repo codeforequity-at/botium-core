@@ -18,6 +18,14 @@ describe('utils.escapeJSON', function () {
     )
   })
 
+  it('should not escape nested single quotes within JSON string', () => {
+    assert.equal(
+      escapeJSONString("{'test 123'}"),
+      "{'test 123'}",
+      'nested single quotes should not be escaped within JSON string'
+    )
+  })
+
   it('should escape nested newline within JSON string', () => {
     assert.equal(
       escapeJSONString('test \n123'),

@@ -128,6 +128,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       const names = lines[0].split('|').map((name) => name.trim()).slice(1)
       const scriptingMemories = []
       for (let row = 1; row < lines.length; row++) {
+        if (!lines[row] || lines[row].length === 0) continue
         const rawRow = lines[row].split('|').map((name) => name.trim())
         const caseName = rawRow[0]
         const values = rawRow.slice(1)
