@@ -201,5 +201,4 @@ describe('scripting.asserters.entityContentAsserter', function () {
       }
     })
   })
-
 })
