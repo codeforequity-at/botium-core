@@ -55,6 +55,9 @@ describe('logichooks.waitforbot', function () {
       await compiler.convos[0].Run(container)
       assert.fail('should have failed with timeout')
     } catch (err) {
+      if (!err.message.includes('error waiting for bot')) {
+        throw err
+      }
     }
     await container.Clean()
   }).timeout(3000)
@@ -70,6 +73,71 @@ describe('logichooks.waitforbot', function () {
     const container = await driver.Build()
 
     compiler.ReadScript(path.resolve(__dirname, 'convos'), 'WAITFORBOT_INFINITE.convo.txt')
+    assert.equal(compiler.convos.length, 1)
+
+    await compiler.convos[0].Run(container)
+    await container.Clean()
+  }).timeout(3000)
+  it('should fail on waitforbot timeout in begin', async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot should fail on waitforbot timeout in begin',
+      [Capabilities.CONTAINERMODE]: createEchoConnector(),
+      [Capabilities.WAITFORBOTTIMEOUT]: 0,
+      WAITECHO: 0
+    }
+    const driver = new BotDriver(myCaps)
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'WAITFORBOT_1000_BEGIN.convo.txt')
+    assert.equal(compiler.convos.length, 1)
+
+    try {
+      await compiler.convos[0].Run(container)
+      assert.fail('should have failed with timeout')
+    } catch (err) {
+      if (!err.message.includes('error waiting for bot - Queue.pop timeout after')) {
+        throw err
+      }
+    }
+    await container.Clean()
+  }).timeout(3000)
+  it('should fail on waitforbot timeout in end', async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot should fail on waitforbot timeout in end',
+      [Capabilities.CONTAINERMODE]: createEchoConnector(),
+      [Capabilities.WAITFORBOTTIMEOUT]: 0,
+      WAITECHO: 0
+    }
+    const driver = new BotDriver(myCaps)
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'WAITFORBOT_1000_BOT_AND_END.convo.txt')
+    assert.equal(compiler.convos.length, 1)
+
+    try {
+      await compiler.convos[0].Run(container)
+      assert.fail('should have failed with timeout')
+    } catch (err) {
+      if (!err.message.includes('error waiting for bot - Queue.pop timeout after')) {
+        throw err
+      }
+    }
+    await container.Clean()
+  }).timeout(3000)
+  it('should waitforbot in end', async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'logichooks.waitforbot should waitforbot in end',
+      [Capabilities.CONTAINERMODE]: createEchoConnector(),
+      [Capabilities.WAITFORBOTTIMEOUT]: 0,
+      WAITECHO: 500
+    }
+    const driver = new BotDriver(myCaps)
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'WAITFORBOT_1000_END.convo.txt')
     assert.equal(compiler.convos.length, 1)
 
     await compiler.convos[0].Run(container)
