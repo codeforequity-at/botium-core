@@ -55,7 +55,7 @@ describe('logichooks.waitforbot', function () {
       await compiler.convos[0].Run(container)
       assert.fail('should have failed with timeout')
     } catch (err) {
-      if (!err.message.includes('error waiting for bot')) {
+      if (!err.message.includes('Bot did not respond within')) {
         throw err
       }
     }
@@ -96,7 +96,7 @@ describe('logichooks.waitforbot', function () {
       await compiler.convos[0].Run(container)
       assert.fail('should have failed with timeout')
     } catch (err) {
-      if (!err.message.includes('error waiting for bot - Queue.pop timeout after')) {
+      if (!err.message.includes('Bot did not respond within')) {
         throw err
       }
     }
@@ -120,7 +120,7 @@ describe('logichooks.waitforbot', function () {
       await compiler.convos[0].Run(container)
       assert.fail('should have failed with timeout')
     } catch (err) {
-      if (!err.message.includes('error waiting for bot - Queue.pop timeout after')) {
+      if (!err.message.includes('Bot did not respond within')) {
         throw err
       }
     }
