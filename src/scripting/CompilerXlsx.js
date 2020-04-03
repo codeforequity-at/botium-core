@@ -162,7 +162,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
               ))
               scriptResults.push(new Convo(this.context, {
                 header: {
-                  name: `${sheetname}-${startcell}`,
+                  name: `${sheetname}-${startcellsort}`,
                   sort: `${sheetname}-${startcellsort}`
                 },
                 conversation: currentConvo
@@ -191,7 +191,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
               if (currentConvo.length > 0) {
                 scriptResults.push(new Convo(this.context, {
                   header: {
-                    name: `${sheetname}-${startcell}`,
+                    name: `${sheetname}-${startcellsort}`,
                     sort: `${sheetname}-${startcellsort}`
                   },
                   conversation: currentConvo
