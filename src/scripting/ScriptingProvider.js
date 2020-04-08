@@ -137,7 +137,6 @@ module.exports = class ScriptingProvider {
           message += tomatch && tomatch.length > 1 ? 'one of ' : ''
           message += `"${tomatch}"`
           throw new BotiumError(
-//            `${stepTag}: Bot response ${meMsg ? `(on ${meMsg}) ` : ''}${botresponse ? ('"' + botresponse + '"') : '<no response>'} expected to match ${(tomatch && tomatch.length > 1) ? 'one of ' : ''}"${tomatch}"`,
             message,
             {
               type: 'asserter',
