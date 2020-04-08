@@ -126,7 +126,7 @@ describe('convo.partialconvo.usecases', function () {
       'Are you sure?',
       'You are logged out!'
     ], 'convos/partialconvo/depth1', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Main/Line 10: Expected bot response (on Login/Line 8: #me - 123456) "You are logged in ERROR!" to match one of "You are logged in!"')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Main/Line 10: Bot response (on Login/Line 8: #me - 123456) "You are logged in ERROR!" expected to match "You are logged in!"')
   })
 
   it('Wrong botsays in partial convo', async function () {
@@ -136,7 +136,7 @@ describe('convo.partialconvo.usecases', function () {
       'Are you sure ERROR?',
       'You are logged out!'
     ], 'convos/partialconvo/depth1', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Main/Logout/Line 5: Expected bot response (on Line 13: #me - Logout please! INCLUDE(Logout)) "Are you sure ERROR?" to match one of "Are you sure?"')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Main/Logout/Line 5: Bot response (on Line 13: #me - Logout please! INCLUDE(Logout)) "Are you sure ERROR?" expected to match "Are you sure?"')
   })
 
   it('Depth is 2', async function () {

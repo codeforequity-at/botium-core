@@ -130,8 +130,15 @@ module.exports = class ScriptingProvider {
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt))
         if (found === undefined) {
+          let message = `${stepTag}: Bot response `
+          message += meMsg ? `(on ${meMsg}) ` : ''
+          message += botresponse ? ('"' + botresponse + '"') : '<no response>'
+          message += ' expected to match '
+          message += tomatch && tomatch.length > 1 ? 'one of ' : ''
+          message += `"${tomatch}"`
           throw new BotiumError(
-            `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`,
+//            `${stepTag}: Bot response ${meMsg ? `(on ${meMsg}) ` : ''}${botresponse ? ('"' + botresponse + '"') : '<no response>'} expected to match ${(tomatch && tomatch.length > 1) ? 'one of ' : ''}"${tomatch}"`,
+            message,
             {
               type: 'asserter',
               source: 'TextMatchAsserter',
