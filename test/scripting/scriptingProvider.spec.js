@@ -11,7 +11,7 @@ describe('scriptingProvider.ReadScriptsFromDirectory', function () {
     const { convos } = await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos'))
 
     assert.isArray(convos)
-    assert.equal(convos.length, 3)
+    assert.equal(convos.length, 2)
   })
   it('should read single file from file path', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
