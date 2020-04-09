@@ -1,12 +1,12 @@
 {
-    "botium": {
-      "Capabilities": {
-        "PROJECTNAME": "Simple Rest Sample",
-        "CONTAINERMODE": "simplerest",
-        "SIMPLEREST_URL": "https://box.botium.at/iambotium/reply",
-        "SIMPLEREST_METHOD": "POST",
-        "SIMPLEREST_RESPONSE_JSONPATH": "$.reply",
-        "SIMPLEREST_BODY_TEMPLATE": { "username": "botium", "message": "{{msg.messageText}}" }
-      }
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "Simple Rest Sample",
+      "CONTAINERMODE": "simplerest",
+      "SIMPLEREST_URL": "https://demo.botiumbox.com/iambotium/reply",
+      "SIMPLEREST_METHOD": "POST",
+      "SIMPLEREST_RESPONSE_JSONPATH": "$.reply",
+      "SIMPLEREST_BODY_TEMPLATE": { "username": "botium", "message": "{{msg.messageText}}" }
     }
   }
+}
