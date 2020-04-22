@@ -13,10 +13,10 @@
 
 ## Quickstart
 
-__Read the [Botium in a Nutshell](https://medium.com/@floriantreml/botium-in-a-nutshell-part-1-overview-f8d0ceaf8fb4) blog series to get started with Botium!__
+__Read the [Getting Started guide](https://www.botium.ai/getting-started/) or the [Botium in a Nutshell](https://medium.com/@floriantreml/botium-in-a-nutshell-part-1-overview-f8d0ceaf8fb4) blog series to get started with Botium!__
 
 ## Botium Core, the heart and brain of Botium
-All of the components in the Botium Stack build on top of Botium Core (except Botium Core itself, naturally), the heart and brain of Botium. Just as the heart and brain in your body are vital parts with very low chances to ever see or touch them, you most likely won’t ever get in touch with Botium Core directly: _it’s the fuel, the nuts and bolts, the core technology, the heart and brain of Botium._
+All of the components in the Botium Stack build on top of Botium Core (except Botium Core itself, naturally), the heart and brain of Botium. Just as the heart and brain in your body are vital parts with very low chances to ever see or touch them, you most likely won’t ever get in touch with Botium Core directly.
 
 **As awesome as Botium Core is, you most likely don't want to use Botium Core directly, but [one of the user interfaces of the Botium Stack Members](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack) - see [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack) or [Selenium for Chatbots — Introducing Botium](https://medium.com/p/selenium-for-chatbots-introducing-botium-1f1f0b3d4164)**
 
@@ -41,7 +41,7 @@ Most likely, you don't want to use Botium Core on it's own, but one of the user 
 ### Botium Box, the management and reporting platform of Botium
 Botium Box is the pretty face of Botium (sorry, I couldn’t get past this anatomic analogy …). A modern, responsive, easy-as-hell web-based graphical user interface to configure, control and monitor every aspect of Botium Core.
 
-**Community Edition available - see [here](https://www.botium.at)**
+**Community Edition available - see [here](https://www.botium.ai)**
 
 ### Botium CLI, the swiss army knife of Botium
 The Botium CLI is a command line tool to actually use everything Botium Core is capable to do.
@@ -52,10 +52,6 @@ The Botium CLI is a command line tool to actually use everything Botium Core is 
 A “test runner” is a piece of software which automatically runs thousands of test cases and outputs a nicely formatted summary about successful and failed test cases at the end.
 
 **[Continue](https://github.com/codeforequity-at/botium-bindings)**
-
-### Codesandbox.io Sample Project
-
-[![Open Botium Codesandbox Sample](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/codeforequity-at/botium-codesandbox-sample/tree/master/?module=%2FREADME.md)
 
 ## Connectors
 Botium Core provides the core functionality. For attaching Botium to your chatbot, there are lots of _connectors_ available for most important chatbot technologies, frameworks, APIs, SDKs, cloud services etc. Sample configurations and scripts are included with each connector.

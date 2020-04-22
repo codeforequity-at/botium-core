@@ -28,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/codeforequity-at/botium-core/issues"
   },
-  "homepage": "https://github.com/codeforequity-at/botium-core#readme",
+  "homepage": "https://www.botium.ai",
   "dependencies": {
     "@babel/runtime": "^7.8.7",
     "async": "^3.2.0",
