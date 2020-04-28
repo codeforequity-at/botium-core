@@ -20,7 +20,7 @@ module.exports = class EntityValuesAsserter {
 
     const currentEntities = _.has(botMsg, 'nlp.entities') ? _extractCount(botMsg.nlp.entities.map((entity) => entity.value)) : {}
 
-    const { substracted, hasMissingEntity } = _substract(currentEntities, expectedEntities)
+    const { substracted, hasMissingEntity } = _substract(currentEntities, expectedEntities, this.context.Match)
 
     if (Object.keys(substracted).length === 0 || (acceptMoreEntities && !hasMissingEntity)) {
       return Promise.resolve()
@@ -76,26 +76,31 @@ const _extractCount = (toCount) => {
   return result
 }
 
-const _substract = (first, second) => {
+const _substract = (currentEntities, expectedEntities, Match) => {
+  expectedEntities = Object.assign({}, expectedEntities)
   const substracted = {}
   let hasMissingEntity = false
+  const currentNames = _.sortBy(Object.keys(currentEntities), (value) => value.length)
+  const expectedNames = _.sortBy(Object.keys(expectedEntities), (value) => value.length)
 
-  for (const key in first) {
-    if (second[key]) {
-      if (first[key] - second[key] !== 0) {
-        substracted[key] = first[key] - second[key]
-        if (substracted[key] < 0) {
-          hasMissingEntity = true
-        }
+  for (const currentName of currentNames) {
+    let currentCount = currentEntities[currentName]
+    for (let i = 0; currentCount && i < expectedNames.length; i++) {
+      const expectedName = expectedNames[i]
+      const expectedCount = expectedEntities[expectedName]
+      if (Match(currentName, expectedName) && expectedCount) {
+        expectedEntities[expectedName] = Math.max(0, expectedCount - currentCount)
+        currentCount = Math.max(0, currentCount - expectedCount)
       }
-    } else {
-      substracted[key] = first[key]
+    }
+    if (currentCount) {
+      substracted[currentName] = currentCount
     }
   }
 
-  for (const key in second) {
-    if (!first[key]) {
-      substracted[key] = -second[key]
+  for (const name in expectedEntities) {
+    if (expectedEntities[name]) {
+      substracted[name] = -expectedEntities[name]
       hasMissingEntity = true
     }
   }

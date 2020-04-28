@@ -13,18 +13,54 @@
 
 ## Quickstart
 
-__Read the [Botium in a Nutshell](https://medium.com/@floriantreml/botium-in-a-nutshell-part-1-overview-f8d0ceaf8fb4) blog series to get started with Botium!__
+__Read the [Getting Started guide](https://www.botium.ai/getting-started/) or the [Botium in a Nutshell](https://medium.com/@floriantreml/botium-in-a-nutshell-part-1-overview-f8d0ceaf8fb4) blog series to get started with Botium!__
 
-## Botium Core, the heart and brain of Botium
-All of the components in the Botium Stack build on top of Botium Core (except Botium Core itself, naturally), the heart and brain of Botium. Just as the heart and brain in your body are vital parts with very low chances to ever see or touch them, you most likely won’t ever get in touch with Botium Core directly: _it’s the fuel, the nuts and bolts, the core technology, the heart and brain of Botium._
+## What is Botium
 
-**As awesome as Botium Core is, you most likely don't want to use Botium Core directly, but [one of the user interfaces of the Botium Stack Members](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack) - see [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack) or [Selenium for Chatbots — Introducing Botium](https://medium.com/p/selenium-for-chatbots-introducing-botium-1f1f0b3d4164)**
+Selenium is the de-facto-standard for testing web applications. Appium is the de-facto-standard for testing smartphone applications. Botium is for testing conversational AI. Just as Selenium and Appium, Botium is free and Open Source, and available on Github.
 
-## News
+**As awesome as Botium Core is, you most likely don't want to use Botium Core directly, but [one of the user interfaces of the Botium Stack Members](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack) - see [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/294956/Botium+Stack) or [our Getting Started guide](https://www.botium.ai/getting-started/)**
 
-* __2020/01/28__ We hit the 50.000 downloads of Botium - that's so awesome!!!!!!
-* __2019/10/13__ We are now at over 35.000 downloads of Botium Core - thanks to our awesome community!
-* __2019/01/20__ Chatbots are driving the industry. With Botium we are driving chatbots. After months of hard work we are finally there: we are proud to announce the __general availability of the newest Botium Stack member, the Botium Box__. Check out some game changing features for testing and training of chatbots with our [Community Edition](https://medium.com/@floriantreml/chatbot-testing-done-right-botium-box-available-now-550e40d3bdd0)!
+
+### What is Botium good for ?
+[Botium](https://www.botium.ai) supports chatbot makers in [training and quality assurance](https://www.botium.ai):
+* Chatbot makers define what the chatbot is supposed to do
+* Botium ensures that the chatbot does what it is supposed to do
+
+Here is the “Hello, World!” of Botium:
+
+    #me
+    hello bot!
+    #bot
+    Hello, meat bag! How can I help you ?
+
+The chatbot is supposed to respond to a user greeting.
+
+## Understanding the Botium Stack
+
+When we talk about Botium, we usually mean the whole Botium Stack of components. It is built on several components:
+* Botium Core SDK to automate conversations with a chatbot or virtual assistant
+* [Botium CLI](https://github.com/codeforequity-at/botium-cli), the swiss army knife to use all functionality of Botium Core in the command line - **[Continue](https://github.com/codeforequity-at/botium-cli)**
+* [Botium Bindings](https://github.com/codeforequity-at/botium-bindings), the glue to use Botium Core with test runners like Mocha, Jasmine or Jest - **[Continue](https://github.com/codeforequity-at/botium-bindings)**
+* [Botium Box](https://www.botium.ai), the management and reporting platform for making chatbot test automation fast and easy - **[Get Community Edition here](https://www.botium.ai)**
+* [Botium Coach](https://www.botium.ai) for continuous visualization of NLP performance metrics - **[See Botium Coach Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUMCOACH/pages/75235329/Botium+Coach+User+Manual)**
+
+![Botium Architecture](https://botium-ac3a.kxcdn.com/wp-content/uploads/2020/03/botium_core_box-600x308.png)
+
+To name just a few features of Botium:
+* Testing conversation flow of a chatbot
+    * Capture and Replay
+    * Integrated speech processing for testing voice apps
+* Testing NLP model of a chatbot
+    * Domain specific and generic datasets included
+    * Paraphrasing to enhance test coverage
+* E2E testing of a chatbot based on Selenium and Appium
+* Non-functional testing of a chatbot
+    * Load- and Stress testing
+    * Security testing
+    * GDPR testing
+* CI/CD integration with all common products in that space (Jenkins, Bamboo, Azure DevOps Pipelines, IBM Toolchain, ...)
+* and many more
 
 ## How do I get help ?
 
@@ -33,29 +69,6 @@ All of the components in the Botium Stack build on top of Botium Core (except Bo
 * **The documentation can be found in the [Botium Wiki](https://botium.atlassian.net/wiki/spaces/BOTIUM/overview).**
 * For asking questions please use Stackoverflow - we are monitoring and answering questions there.
 * Enter our Discord channel [![Discord](https://img.shields.io/discord/593736460516196353)](https://discordapp.com/widget?id=593736460516196353&theme=dark)
-
-## Using Botium Core
-
-Most likely, you don't want to use Botium Core on it's own, but one of the user interfaces.
-
-### Botium Box, the management and reporting platform of Botium
-Botium Box is the pretty face of Botium (sorry, I couldn’t get past this anatomic analogy …). A modern, responsive, easy-as-hell web-based graphical user interface to configure, control and monitor every aspect of Botium Core.
-
-**Community Edition available - see [here](https://www.botium.at)**
-
-### Botium CLI, the swiss army knife of Botium
-The Botium CLI is a command line tool to actually use everything Botium Core is capable to do.
-
-**[Continue](https://github.com/codeforequity-at/botium-cli)**
-
-### Botium Bindings, the glue to bind Botium to test runners
-A “test runner” is a piece of software which automatically runs thousands of test cases and outputs a nicely formatted summary about successful and failed test cases at the end.
-
-**[Continue](https://github.com/codeforequity-at/botium-bindings)**
-
-### Codesandbox.io Sample Project
-
-[![Open Botium Codesandbox Sample](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/codeforequity-at/botium-codesandbox-sample/tree/master/?module=%2FREADME.md)
 
 ## Connectors
 Botium Core provides the core functionality. For attaching Botium to your chatbot, there are lots of _connectors_ available for most important chatbot technologies, frameworks, APIs, SDKs, cloud services etc. Sample configurations and scripts are included with each connector.

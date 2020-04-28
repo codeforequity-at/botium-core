@@ -94,17 +94,17 @@ module.exports = class SimpleRestContainer {
 
         (pingComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
-            try {
-              const response = this._makeCall('SIMPLEREST_PING')
-              if (_.isObject(response) || botiumUtils.isStringJson(response)) {
-                debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} returned JSON response, using it as session context: ${botiumUtils.shortenJsonString(response)}`)
-                const body = _.isObject(response) ? response : JSON.parse(response)
-                Object.assign(this.view.context, body)
-              }
-              pingComplete()
-            } catch (err) {
-              pingComplete(err.message)
-            }
+            this._makeCall('SIMPLEREST_PING')
+              .then(response => {
+                if (_.isObject(response) || botiumUtils.isStringJson(response)) {
+                  debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} returned JSON response, using it as session context: ${botiumUtils.shortenJsonString(response)}`)
+                  const body = _.isObject(response) ? response : JSON.parse(response)
+                  Object.assign(this.view.context, body)
+                }
+                pingComplete()
+              }).catch(err => {
+                pingComplete(err.message)
+              })
           } else {
             pingComplete()
           }
@@ -610,7 +610,7 @@ module.exports = class SimpleRestContainer {
   async _makeCall (capPrefix) {
     const uri = this._getMustachedCap(`${capPrefix}_URL`, false)
     const verb = this.caps[`${capPrefix}_VERB`]
-    const timeout = this.caps[`${capPrefix}_TIMEOUT`] || Defaults[`${capPrefix}_TIMEOUT`]
+    const timeout = this.caps[`${capPrefix}_TIMEOUT`] || Defaults[`${capPrefix}_TIMEOUT`] || Defaults[Capabilities.SIMPLEREST_TIMEOUT]
     const httpConfig = {
       method: verb,
       uri: uri,

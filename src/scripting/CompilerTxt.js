@@ -188,6 +188,9 @@ module.exports = class CompilerTxt extends CompilerBase {
         } else if (set.messageText) {
           script += set.messageText + this.eol
         }
+        set.userInputs && set.userInputs.map((userInput) => {
+          script += userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : '') + this.eol
+        })
         set.logicHooks && set.logicHooks.map((logicHook) => {
           script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
         })
@@ -213,6 +216,9 @@ module.exports = class CompilerTxt extends CompilerBase {
           })
         }
         set.asserters && set.asserters.map((asserter) => {
+          if (asserter.not) {
+            script += '!'
+          }
           script += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + this.eol
         })
         set.logicHooks && set.logicHooks.map((logicHook) => {

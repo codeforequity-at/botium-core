@@ -1,0 +1,7 @@
+WAITFORBOT 1000
+
+#begin
+WAITFORBOT 1000
+
+#bot
+Bot wont send anything

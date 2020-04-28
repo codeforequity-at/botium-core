@@ -25,6 +25,8 @@ module.exports = {
     [Capabilities.SIMPLEREST_PING_RETRIES]: 6,
     [Capabilities.SIMPLEREST_PING_TIMEOUT]: 10000,
     [Capabilities.SIMPLEREST_PING_VERB]: 'GET',
+    [Capabilities.SIMPLEREST_STOP_TIMEOUT]: 10000,
+    [Capabilities.SIMPLEREST_STOP_VERB]: 'GET',
     [Capabilities.SIMPLEREST_POLL_VERB]: 'GET',
     [Capabilities.SIMPLEREST_POLL_INTERVAL]: 1000,
     [Capabilities.SIMPLEREST_POLL_TIMEOUT]: 10000,

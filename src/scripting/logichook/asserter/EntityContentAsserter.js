@@ -40,10 +40,10 @@ module.exports = class EntityContentAsserter {
         }
       ))
     }
-    const minus = (arr1, arr2) => {
-      const result = arr1.concat()
-      for (const e of arr2) {
-        const index = _.indexOf(result, e)
+    const minus = (expecteds, actuals) => {
+      const result = expected.concat()
+      for (const actual of actuals) {
+        const index = result.findIndex(candidate => this.context.Match(actual, candidate))
         if (index >= 0) {
           result.splice(index, 1)
         }

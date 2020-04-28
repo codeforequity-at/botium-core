@@ -6,7 +6,9 @@ const EntityContentAsserter = require('../../../src/scripting/logichook/asserter
 
 describe('scripting.asserters.entityContentAsserter', function () {
   beforeEach(async function () {
-    this.asserter = new EntityContentAsserter(null, {})
+    this.asserter = new EntityContentAsserter({
+      Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+    }, {})
   })
 
   it('should fail on no arg', async function () {
@@ -151,6 +153,48 @@ describe('scripting.asserters.entityContentAsserter', function () {
             {
               name: 'entity2',
               value: 'entity2_value'
+            }
+          ]
+        }
+      }
+    })
+  })
+
+  it('should success on single joker-match', async function () {
+    await this.asserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['entity1', 'value1'],
+      botMsg: {
+        nlp: {
+          entities: [
+            {
+              name: 'entity1',
+              value: 'entity1_value1'
+            },
+            {
+              name: 'entity1',
+              value: 'entity1_value2'
+            }
+          ]
+        }
+      }
+    })
+  })
+
+  it('should success on multiple joker-match', async function () {
+    await this.asserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['entity1', 'entity1'],
+      botMsg: {
+        nlp: {
+          entities: [
+            {
+              name: 'entity1',
+              value: 'entity1_value1'
+            },
+            {
+              name: 'entity1',
+              value: 'entity1_value2'
             }
           ]
         }
