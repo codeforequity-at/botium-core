@@ -771,6 +771,9 @@ module.exports = class ScriptingProvider {
     let i = 0
     this.convos.forEach((convo) => {
       convo.header.order = ++i
+      if (!convo.header.projectname) {
+        convo.header.projectname = this.caps[Capabilities.PROJECTNAME]
+      }
     })
   }
 

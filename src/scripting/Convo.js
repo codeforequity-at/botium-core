@@ -14,6 +14,7 @@ const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 class ConvoHeader {
   constructor (fromJson = {}) {
     this.name = fromJson.name
+    this.projectname = fromJson.projectname
     this.sort = fromJson.sort
     this.order = fromJson.order
     this.description = fromJson.description
@@ -278,9 +279,10 @@ class Convo {
                 transcriptStep.botBegin = new Date()
 
                 try {
-                  Object.assign(meMsg, { conversation: this.conversation, currentStepIndex, scriptingMemory })
+                  Object.assign(meMsg, { header: this.header, conversation: this.conversation, currentStepIndex, scriptingMemory })
                   await container.UserSays(meMsg)
                 } finally {
+                  delete meMsg.header
                   delete meMsg.conversation
                   delete meMsg.scriptingMemory
                 }
