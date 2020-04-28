@@ -1,5 +1,6 @@
 module.exports = class QueueTimeoutError extends Error {
   constructor (timeoutMillis) {
-    super(`Queue.pop timeout after ${timeoutMillis}`)
+    super(`Bot did not respond within ${timeoutMillis} ms`)
+    this.timeoutMillis = timeoutMillis
   }
 }
