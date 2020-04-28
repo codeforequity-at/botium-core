@@ -133,6 +133,30 @@ BUTTONS buttontext
 `
     )
   })
+  it('should decompile button asserter with negation', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'bot',
+          asserters: [{ name: 'BUTTONS', args: ['buttontext'], not: true }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#bot
+!BUTTONS buttontext
+`
+    )
+  })
   it('should decompile media asserter', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
@@ -308,6 +332,32 @@ CARDS text of card|subtext|content
 BUTTONS text of button|text of button2
 MEDIA mediaUri
 CARDS text of card2
+`
+    )
+  })
+  it('should decompile custom user input', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'some text',
+          userInputs: [{ name: 'CUSTOMINPUT', args: ['arg1', 'arg2'] }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+some text
+CUSTOMINPUT arg1|arg2
 `
     )
   })

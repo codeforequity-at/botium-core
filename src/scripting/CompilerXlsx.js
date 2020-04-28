@@ -307,6 +307,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
             } else {
               cellContent += set.messageText + eol
             }
+            set.userInputs && set.userInputs.map((userInput) => {
+              cellContent += userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : '') + eol
+            })
             set.logicHooks && set.logicHooks.map((logicHook) => {
               cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
             })
@@ -331,6 +334,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
               })
             }
             set.asserters && set.asserters.map((asserter) => {
+              if (asserter.not) {
+                cellContent += '!'
+              }
               cellContent += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + eol
             })
             set.logicHooks && set.logicHooks.map((logicHook) => {
