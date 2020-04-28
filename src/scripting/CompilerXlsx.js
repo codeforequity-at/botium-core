@@ -141,20 +141,18 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
         let currentConvo = []
         let emptylines = 0
-        let startcell = null
         let startcellsort = null
         // each row is a conversation with a question and an answer
 
         while (true) {
-          const { meCell, meCellSort, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
+          const { meCellSort, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
           if (questionAnswerMode) {
             if (meCellValue || botCellValue) {
               currentConvo = []
               currentConvo.push(Object.assign(
-                { sender: 'me', stepTag: 'Cell ' + meCell },
+                { sender: 'me', stepTag: 'Cell ' + meCellSort },
                 parseCell('me', meCellValue)
               ))
-              startcell = meCell
               startcellsort = meCellSort
               currentConvo.push(Object.assign(
                 { sender: 'bot', stepTag: 'Cell ' + botCell },
@@ -162,7 +160,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
               ))
               scriptResults.push(new Convo(this.context, {
                 header: {
-                  name: `${sheetname}-${startcell}`,
+                  name: `${sheetname}-${startcellsort}`,
                   sort: `${sheetname}-${startcellsort}`
                 },
                 conversation: currentConvo
@@ -173,10 +171,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
           } else {
             if (meCellValue) {
               currentConvo.push(Object.assign(
-                { sender: 'me', stepTag: 'Cell ' + meCell },
+                { sender: 'me', stepTag: 'Cell ' + meCellSort },
                 parseCell('me', meCellValue)
               ))
-              if (!startcell) startcell = meCell
               if (!startcellsort) startcellsort = meCellSort
               emptylines = 0
             } else if (botCellValue) {
@@ -184,21 +181,20 @@ module.exports = class CompilerXlsx extends CompilerBase {
                 { sender: 'bot', stepTag: 'Cell ' + botCell },
                 parseCell('bot', botCellValue)
               ))
-              if (!startcell) startcell = meCell
               if (!startcellsort) startcellsort = meCellSort
               emptylines = 0
             } else {
               if (currentConvo.length > 0) {
                 scriptResults.push(new Convo(this.context, {
                   header: {
-                    name: `${sheetname}-${startcell}`,
+                    name: `${sheetname}-${startcellsort}`,
                     sort: `${sheetname}-${startcellsort}`
                   },
                   conversation: currentConvo
                 }))
               }
               currentConvo = []
-              startcell = null
+              startcellsort = null
               emptylines++
             }
           }
