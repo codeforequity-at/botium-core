@@ -4,7 +4,9 @@ chai.use(require('chai-as-promised'))
 const util = require('util')
 
 const EntityValuesAsserter = require('../../../src/scripting/logichook/asserter/EntityValuesAsserter')
-const asserter = new EntityValuesAsserter(null, {})
+const asserter = new EntityValuesAsserter({
+  Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+}, {})
 
 describe('scripting.asserters.entityValuesAsserter', function () {
   it('expected 0 entities, found 1 entities, negative case', async function () {
@@ -114,6 +116,41 @@ describe('scripting.asserters.entityValuesAsserter', function () {
       ['e1', '...'],
       ['e2'],
       { e1: -1, e2: 1 }
+    )
+  })
+  it('Joker match multiple, positive case', async function () {
+    return _assert(
+      ['pre1post1', 'pre1'],
+      ['pre1post1', 'pre1post2', 'pre1'],
+      { pre1post2: 1 }
+    )
+  })
+  it('Joker match multiple, reversed order, positive case', async function () {
+    return _assert(
+      ['pre1', 'pre1post1'],
+      ['pre1post1', 'pre1post2', 'pre1'],
+      { pre1post2: 1 }
+    )
+  })
+  it('Joker match, just one match, negative case', async function () {
+    return _assert(
+      ['pre1'],
+      ['pre1post1', 'pre1post2', 'pre1'],
+      { pre1post1: 1, pre1post2: 1 }
+    )
+  })
+  it('Joker match, just one match, reversed order, negative case', async function () {
+    return _assert(
+      ['pre1'],
+      ['pre1', 'pre1post1', 'pre1post2'],
+      { pre1post1: 1, pre1post2: 1 }
+    )
+  })
+  it('Joker match, multiple by same expected, negative case', async function () {
+    return _assert(
+      ['pre1', 'pre1'],
+      ['pre1', 'pre1post1', 'pre2'],
+      { pre2: 1 }
     )
   })
 })
