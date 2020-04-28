@@ -1,0 +1,10 @@
+WAITFORBOT 1000
+
+#me
+Hello
+
+#bot
+Hello
+
+#end
+WAITFORBOT 1000
