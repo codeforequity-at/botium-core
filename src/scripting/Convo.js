@@ -261,7 +261,7 @@ class Convo {
             transcriptStep.actual = meMsg
 
             try {
-              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg })
+              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
               await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
 
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
