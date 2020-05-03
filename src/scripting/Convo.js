@@ -265,7 +265,7 @@ class Convo {
               await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
 
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
-              debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by attachments and sourceData and media) ${JSON.stringify(coreMsg, null, 2)}`)
+              debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
               await new Promise(resolve => {
                 if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
                   setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * meMsg.messageText.length)
@@ -317,7 +317,7 @@ class Convo {
               transcriptStep.actual = new BotiumMockMessage(saysmsg)
 
               const coreMsg = _.omit(removeBuffers(saysmsg), ['sourceData'])
-              debug(`${this.header.name}: bot says (cleaned by attachments and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
+              debug(`${this.header.name}: bot says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
             } catch (err) {
               transcriptStep.botEnd = new Date()
 
