@@ -215,14 +215,13 @@ class Convo {
         throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err), transcript)
       }
       await this.runConversation(container, scriptingMemory, transcript)
-      if (transcript.err) {
-        throw new TranscriptError(transcript.err, transcript)
-      }
       try {
-        // onConvoEnd first or assertConvoEnd? If onConvoEnd, then it is possible to assert it too
         await this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
         throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
+      }
+      if (transcript.err) {
+        throw new TranscriptError(transcript.err, transcript)
       }
       try {
         await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
@@ -262,7 +261,7 @@ class Convo {
 
             try {
               await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
-              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg })
+              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
 
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
               debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
@@ -288,11 +287,11 @@ class Convo {
                 }
 
                 transcriptStep.botEnd = new Date()
-                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
                 continue
               } else {
                 debug(`${this.header.name}/${convoStep.stepTag}: message not found in #me section, message not sent to container ${util.inspect(convoStep)}`)
-                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg })
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
                 continue
               }
             } catch (err) {
@@ -310,7 +309,7 @@ class Convo {
             let saysmsg = null
             try {
               debug(`${this.header.name} wait for bot ${convoStep.channel || ''}`)
-              await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory })
+              await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript: [...transcriptSteps] })
               transcriptStep.botBegin = new Date()
               saysmsg = await container.WaitBotSays(convoStep.channel)
               transcriptStep.botEnd = new Date()
@@ -380,8 +379,8 @@ class Convo {
             }
             Object.assign(scriptingMemory, scriptingMemoryUpdate)
             try {
-              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
-              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg })
+              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps] })
+              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps] })
             } catch (err) {
               const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message || err}`, err)
               debug(failErr)
