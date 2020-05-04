@@ -120,6 +120,14 @@ describe('matching.matchingmode.wildcard', function () {
   it('should match very long response with very long wildcard', async function () {
     assert.isTrue(this.compiler.Match('begin this is a long text this is a long text this is a long text this is a long text end', 'begin * end'))
   })
+  it('should not allow more than 10 wildcards in a string', async function () {
+    try {
+      this.compiler.Match('some text', 'begin * * * * * * * * * * * end')
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.equal(err.message, 'Maximum number of 10 wildcards supported.')
+    }
+  })
 })
 
 describe('matching.matchingmode.wildcardIgnoreCase', function () {
