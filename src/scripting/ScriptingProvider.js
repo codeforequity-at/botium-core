@@ -17,7 +17,7 @@ const RetryHelper = require('../helpers/RetryHelper')
 const MatchFunctions = require('./MatchFunctions')
 const precompilers = require('./precompilers')
 
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
 
 const p = (retryHelper, fn) => {
   const promise = () => new Promise((resolve, reject) => {
@@ -465,7 +465,7 @@ module.exports = class ScriptingProvider {
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
       fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
-    } else if (filename.endsWith('.markdown')) {
+    } else if (filename.endsWith('.markdown') || filename.endsWith('.md')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
     } else {
