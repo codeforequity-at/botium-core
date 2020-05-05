@@ -57,6 +57,7 @@
     "randomatic": "^3.1.1",
     "request": "^2.88.2",
     "rimraf": "^3.0.2",
+    "sanitize-filename": "^1.6.3",
     "slugify": "^1.4.0",
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0",
