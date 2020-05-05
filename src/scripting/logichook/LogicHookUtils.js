@@ -80,7 +80,7 @@ module.exports = class LogicHookUtils {
         if (this.logicHooks[logicHook.ref]) {
           debug(`${logicHook.ref} logic hook already exists, overwriting.`)
         }
-        this.logicHooks[logicHook.ref] = this._loadClass(logicHook, 'logic-hook')
+        this.logicHooks[logicHook.ref] = this._loadClass(logicHook, 'logichook')
         debug(`Loaded ${logicHook.ref} SUCCESSFULLY`)
         if (logicHook.global) {
           this.globalLogicHooks.push(logicHook.ref)
@@ -95,7 +95,7 @@ module.exports = class LogicHookUtils {
         if (this.userInputs[userInput.ref]) {
           debug(`${userInput.ref} userinput already exists, overwriting.`)
         }
-        this.userInputs[userInput.ref] = this._loadClass(userInput, 'user-input')
+        this.userInputs[userInput.ref] = this._loadClass(userInput, 'userinput')
         debug(`Loaded ${userInput.ref} SUCCESSFULLY`)
       })
   }
@@ -111,7 +111,7 @@ module.exports = class LogicHookUtils {
   }
 
   _loadClass ({ src, ref, args }, hookType) {
-    if (hookType !== 'asserter' && hookType !== 'logic-hook' && hookType !== 'user-input') {
+    if (hookType !== 'asserter' && hookType !== 'logichook' && hookType !== 'userinput') {
       throw Error(`Unknown hookType ${hookType}`)
     }
 
@@ -123,17 +123,17 @@ module.exports = class LogicHookUtils {
         return new (asserter.Class)(this.buildScriptContext, this.caps, args)
       }
     }
-    if (hookType === 'logic-hook') {
+    if (hookType === 'logichook') {
       const lh = DEFAULT_LOGIC_HOOKS.find(lh => src === lh.className)
       if (lh) {
-        debug(`Loading ${ref} ${hookType}. Using default logic-hook ${lh.className} as global logic-hook`)
+        debug(`Loading ${ref} ${hookType}. Using default logichook ${lh.className} as global logichook`)
         return new (lh.Class)(this.buildScriptContext, this.caps, args)
       }
     }
-    if (hookType === 'user-input') {
+    if (hookType === 'userinput') {
       const ui = DEFAULT_USER_INPUTS.find(ui => src === ui.className)
       if (ui) {
-        debug(`Loading ${ref} ${hookType}. Using default user-input ${ui.className} as global user-input`)
+        debug(`Loading ${ref} ${hookType}. Using default userinput ${ui.className} as global userinput`)
         return new (ui.Class)(this.buildScriptContext, this.caps, args)
       }
     }

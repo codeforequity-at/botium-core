@@ -16,6 +16,10 @@ module.exports.wildcard = (ignoreCase) => (botresponse, utterance) => {
     else return false
   }
   utterance = toString(utterance)
+  const numWildcards = utterance.split('*').length - 1
+  if (numWildcards > 10) {
+    throw new Error('Maximum number of 10 wildcards supported.')
+  }
   const utteranceRe = quoteRegexpString(utterance).replace(/\\\*/g, '(.*)')
 
   const botresponseStr = toString(botresponse)
