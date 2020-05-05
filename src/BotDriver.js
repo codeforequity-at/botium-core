@@ -4,7 +4,7 @@ const path = require('path')
 const async = require('async')
 const rimraf = require('rimraf')
 const mkdirp = require('mkdirp')
-const slugify = require('slugify')
+const sanitize = require('sanitize-filename')
 const moment = require('moment')
 const randomize = require('randomatic')
 const _ = require('lodash')
@@ -299,7 +299,7 @@ module.exports = class BotDriver {
           throw new Error(`Capability '${Capabilities.CONTAINERMODE}' or '${Capabilities.BOTIUMGRIDURL}' missing`)
         }
 
-        this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slugify(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
+        this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], sanitize(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
         try {
           mkdirp.sync(this.tempDirectory)
         } catch (err) {
