@@ -45,9 +45,9 @@ const p = (retryHelper, fn) => {
 }
 
 const pnot = (retryHelper, fn, errTemplate) => {
-  const promise = () => new Promise((resolve, reject) => {
+  const promise = () => new Promise(async (resolve, reject) => { // eslint-disable-line no-async-promise-executor
     try {
-      fn()
+      await fn()
       reject(errTemplate)
     } catch (err) {
       resolve()
