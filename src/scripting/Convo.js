@@ -18,6 +18,7 @@ class ConvoHeader {
     this.sort = fromJson.sort
     this.order = fromJson.order
     this.description = fromJson.description
+    Object.assign(this, fromJson)
   }
 
   toString () {
