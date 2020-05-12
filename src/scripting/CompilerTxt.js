@@ -117,7 +117,7 @@ module.exports = class CompilerTxt extends CompilerBase {
 
   _compileUtterances (lines) {
     if (lines && lines.length > 0) {
-      const result = [new Utterance({ name: lines[0], utterances: lines.length > 1 ? lines.slice(1): [] })]
+      const result = [new Utterance({ name: lines[0], utterances: lines.length > 1 ? lines.slice(1) : [] })]
       this.context.AddUtterances(result)
       return result
     }
