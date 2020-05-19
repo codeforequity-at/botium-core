@@ -659,7 +659,7 @@ module.exports = class ScriptingProvider {
                 not: false
               }
         ],
-        sourceTag: utt.sourceTag
+        sourceTag: Object.assign({}, utt.sourceTag, { origUttName: utt.name })
       }))
     })
     this.convos = this.convos.concat(expandedConvos)
@@ -718,6 +718,8 @@ module.exports = class ScriptingProvider {
               currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: utt }))
               const currentConvoLabeled = _.cloneDeep(currentConvo)
               Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-L${lineTag}` })
+              if (!currentConvoLabeled.sourceTag) currentConvoLabeled.sourceTag = {}
+              if (!currentConvoLabeled.sourceTag.origConvoName) currentConvoLabeled.sourceTag.origConvoName = currentConvo.header.name
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
             useUnexpanded = false
@@ -773,6 +775,9 @@ module.exports = class ScriptingProvider {
       convo.header.order = ++i
       if (!convo.header.projectname) {
         convo.header.projectname = this.caps[Capabilities.PROJECTNAME]
+      }
+      if (!convo.header.testsessionname) {
+        convo.header.testsessionname = this.caps[Capabilities.TESTSESSIONNAME]
       }
     })
   }
