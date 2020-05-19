@@ -15,6 +15,7 @@ class ConvoHeader {
   constructor (fromJson = {}) {
     this.name = fromJson.name
     this.projectname = fromJson.projectname
+    this.testsessionname = fromJson.testsessionname
     this.sort = fromJson.sort
     this.order = fromJson.order
     this.description = fromJson.description
@@ -93,12 +94,22 @@ class ConvoStep {
 }
 
 class Transcript {
-  constructor ({ steps, scriptingMemory, convoBegin, convoEnd, err }) {
+  constructor ({ steps, attachments, scriptingMemory, convoBegin, convoEnd, err }) {
     this.steps = steps
+    this.attachments = attachments
     this.scriptingMemory = scriptingMemory
     this.convoBegin = convoBegin
     this.convoEnd = convoEnd
     this.err = err
+  }
+}
+
+class TranscriptAttachment { // eslint-disable-line no-unused-vars
+  constructor (fromJson = {}) {
+    this.name = fromJson.name
+    this.mimeType = fromJson.mimeType
+    this.base64 = fromJson.base64
+    this.href = fromJson.href
   }
 }
 
@@ -187,6 +198,7 @@ class Convo {
   async Run (container) {
     const transcript = new Transcript({
       steps: [],
+      attachments: [],
       convoBegin: new Date(),
       convoEnd: null,
       err: null
@@ -206,7 +218,7 @@ class Convo {
       }
       try {
         // onConvoBegin first or assertConvoBegin? If onConvoBegin, then it is possible to assert it too
-        await this.scriptingEvents.onConvoBegin({ convo: this, container, scriptingMemory })
+        await this.scriptingEvents.onConvoBegin({ convo: this, container, transcript, scriptingMemory })
       } catch (err) {
         throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err), transcript)
       }
