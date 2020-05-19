@@ -104,7 +104,7 @@ class Transcript {
   }
 }
 
-class TranscriptAttachment {
+class TranscriptAttachment { // eslint-disable-line no-unused-vars
   constructor (fromJson = {}) {
     this.name = fromJson.name
     this.mimeType = fromJson.mimeType

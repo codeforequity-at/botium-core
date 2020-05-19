@@ -4,7 +4,7 @@ const Source = require('./Source')
 module.exports = {
   Capabilities: {
     [Capabilities.PROJECTNAME]: 'Botium Project',
-    [Capabilities.TESTSESSION]: 'Botium Test Session',
+    [Capabilities.TESTSESSIONNAME]: 'Botium Test Session',
     [Capabilities.TEMPDIR]: 'botiumwork',
     [Capabilities.CLEANUPTEMPDIR]: true,
     [Capabilities.WAITFORBOTTIMEOUT]: 10000,
