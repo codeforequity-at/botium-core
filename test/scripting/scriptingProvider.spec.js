@@ -57,7 +57,7 @@ describe('scriptingProvider._resolveUtterances', function () {
       scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1')
       assert.fail('expected error')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected bot response') > 0)
+      assert.isTrue(err.message.indexOf('Bot response') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.isArray(err.context.cause.expected)
@@ -77,7 +77,7 @@ describe('scriptingProvider._resolveUtterances', function () {
       scriptingContext.scriptingEvents.assertBotResponse('TEXT1', 'utt1', 'test1')
       assert.fail('expected error')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected bot response') > 0)
+      assert.isTrue(err.message.indexOf('Bot response') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.isArray(err.context.cause.expected)
@@ -278,6 +278,42 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err.message.indexOf('incomprehension utterance \'INCOMPREHENSION\' undefined') > 0)
+    }
+  })
+})
+
+describe('scriptingProvider.assertBotResponse', function () {
+  it('should fail with correct error message on single tomatch', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    try {
+      scriptingContext.scriptingEvents.assertBotResponse('actual', 'expected', 'test1')
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'test1: Bot response "actual" expected to match "expected"')
+    }
+  })
+  it('should fail with correct error message on empty bot message', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    try {
+      scriptingContext.scriptingEvents.assertBotResponse(null, 'expected', 'test1')
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'test1: Bot response <no response> expected to match "expected"')
+    }
+  })
+  it('should fail with correct error message on multiple tomatch', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    try {
+      scriptingContext.scriptingEvents.assertBotResponse('actual', ['expected1', 'expected2'], 'test1')
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'test1: Bot response "actual" expected to match one of "expected1,expected2"')
     }
   })
 })

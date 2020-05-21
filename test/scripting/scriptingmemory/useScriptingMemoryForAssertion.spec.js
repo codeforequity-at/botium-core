@@ -60,7 +60,7 @@ describe('scripting.useScriptingMemoryForAssertion.simpleassertion', function ()
       await this.compiler.convos[0].Run(this.container)
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected bot response (on Line 3: #me - forcereplace1 forcereplace2) "OUTPUT1 OUTPUT2" to match one of "forcereplace1 forcereplace2"') >= 0)
+      assert.isTrue(err.message.indexOf('Bot response (on Line 3: #me - forcereplace1 forcereplace2) "OUTPUT1 OUTPUT2" expected to match "forcereplace1 forcereplace2"') >= 0)
     }
   })
 })
@@ -123,7 +123,7 @@ describe('scripting.useScriptingMemoryForAssertion.mulipleVariableEntries', func
       await this.compiler.convos[0].Run(this.container)
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected bot response (on Line 6: #me - What would you like to eat?) "I\'d like to have Schnitzel and one more Schnitzel" to match one of "I\'d like to have a Schnitzel and one more Schnitzel"') >= 0)
+      assert.isTrue(err.message.indexOf('Bot response (on Line 6: #me - What would you like to eat?) "I\'d like to have Schnitzel and one more Schnitzel" expected to match "I\'d like to have a Schnitzel and one more Schnitzel"') >= 0)
     }
   })
 })
