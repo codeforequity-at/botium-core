@@ -97,18 +97,18 @@ const getOtherPlugin = (filename, pathToRes, type) => {
     }
 
     const PluginDesc = plugin.PluginDesc || {}
+
     return {
       PluginVersion: plugin.PluginVersion || '1',
       PluginType,
       PluginDesc: {
         name: pluginName,
-        description: PluginDesc.description || pluginName,
+        description: PluginDesc.description,
         type: TYPE_TO_COMPONENT_TYPE[type],
-        default: !_.isNil(PluginDesc.default) ? PluginDesc.default : true,
         src: filename,
         ref: PluginDesc.ref || pluginName.toUpperCase(),
         global: PluginDesc.global || false,
-        args: PluginDesc.args
+        args: PluginDesc.args || '{}'
       }
     }
   } catch (err) {
