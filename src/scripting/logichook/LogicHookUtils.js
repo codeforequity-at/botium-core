@@ -140,7 +140,7 @@ module.exports = class LogicHookUtils {
     if (!src) {
       const packageName = `botium-${hookType}-${ref}`
       try {
-        let CheckClass = require(packageName)
+        const CheckClass = require(packageName)
         if (isClass(CheckClass)) {
           debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as class. Guessed package name.`)
           return new CheckClass(this.buildScriptContext, this.caps, args)
