@@ -148,8 +148,8 @@ const getPlugins = (type) => {
     for (let i = 0; i < items.length; i++) {
       const plugin = TYPE_TO_FN[type](items[i], pathToRes, type)
       if (plugin) {
-        if (pluginNameToPlugin[plugin.name]) {
-          debug(`Dropping plugin ${JSON.stringify(plugin)} because name is reserved by ${JSON.stringify(pluginNameToPlugin[plugin.name])}`)
+        if (pluginNameToPlugin[plugin.PluginDesc.name]) {
+          debug(`Dropping plugin ${JSON.stringify(plugin)} because name is reserved by ${JSON.stringify(pluginNameToPlugin[plugin.PluginDesc.name])}`)
         } else {
           result.push(plugin)
           pluginNameToPlugin[plugin.PluginDesc.name] = plugin
