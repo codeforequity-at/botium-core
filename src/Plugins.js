@@ -123,13 +123,13 @@ const TYPE_TO_FN = {
   PLUGIN_TYPE_USERINPUT: getOtherPlugin
 }
 
-const getPlugins = (type) => {
+const getPlugins = (type, resourcesDir) => {
   if (!TYPE_TO_FN[type]) {
     debug(`Invalid plugin type "${type}"`)
     return Promise.resolve([])
   }
   return new Promise((resolve, reject) => {
-    const pathToRes = path.resolve(process.cwd(), 'resources')
+    const pathToRes = path.resolve(resourcesDir)
     if (!fs.existsSync(pathToRes)) {
       debug(`Cant load plugins, directory ${pathToRes} does not exists`)
       return resolve([])
