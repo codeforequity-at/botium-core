@@ -700,9 +700,17 @@ module.exports = class ScriptingProvider {
       } else if (currentStep.sender === 'me') {
         let useUnexpanded = true
         if (currentStep.messageText) {
-          const parts = currentStep.messageText.split(' ')
-          const uttName = parts[0]
-          const uttArgs = parts.slice(1)
+          let uttName = null
+          let uttArgs = null
+          if (this.utterances[currentStep.messageText]) {
+            uttName = currentStep.messageText
+          } else {
+            const parts = currentStep.messageText.split(' ')
+            if (this.utterances[parts[0]]) {
+              uttName = parts[0]
+              uttArgs = parts.slice(1)
+            }
+          }
           if (this.utterances[uttName]) {
             const allutterances = this.utterances[uttName].utterances
             let sampleutterances = allutterances

@@ -108,6 +108,93 @@ describe('scriptingProvider._tagAndCleanupUtterances', function () {
   })
 })
 
+describe('scriptingProvider.ExpandConvos', function () {
+  it('should build convos for utterance', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+    scriptingProvider.AddConvos({
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'utt1'
+        }
+      ]
+    })
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[0].header.name, 'test convo/utt1-L1')
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt1-L2')
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+  })
+  it('should build convos for utterance with parameters', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1 %s-%d', 'TEXT2']
+    })
+    scriptingProvider.AddConvos({
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'utt1 arg0 1'
+        }
+      ]
+    })
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[0].header.name, 'test convo/utt1-L1')
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1 arg0-1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt1-L2')
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2 arg0 1')
+  })
+  it('should build convos for utterance with whitespace', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt with some whitespace',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+    scriptingProvider.AddConvos({
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'utt with some whitespace'
+        }
+      ]
+    })
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[0].header.name, 'test convo/utt with some whitespace-L1')
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt with some whitespace-L2')
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+  })  
+})
+
 describe('scriptingProvider.ExpandUtterancesToConvos', function () {
   it('should build plain convos for utterance', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
