@@ -192,7 +192,7 @@ describe('scriptingProvider.ExpandConvos', function () {
     assert.equal(scriptingProvider.convos[1].conversation.length, 1)
     assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt with some whitespace-L2')
     assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
-  })  
+  })
 })
 
 describe('scriptingProvider.ExpandUtterancesToConvos', function () {
