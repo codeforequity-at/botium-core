@@ -6,7 +6,7 @@ module.exports = {
   Events: require('./src/Events'),
   Plugins: require('./src/Plugins'),
   BotiumError: require('./src/scripting/BotiumError').BotiumError,
-  ScriptingMemory: require('./src/ScriptingMemory'),
+  ScriptingMemory: require('./src/scripting/ScriptingMemory'),
   Lib: {
     tryLoadPlugin: require('./src/containers/plugins/index').tryLoadPlugin
   }
