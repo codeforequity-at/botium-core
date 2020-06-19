@@ -100,6 +100,13 @@ const SCRIPTING_FUNCTIONS = {
     return uuidv1()
   },
 
+  $env: (name) => {
+    if (!name) {
+      throw Error('env function used without args!')
+    }
+    return process.env[name]
+  },
+
   $func: (code) => {
     if (code == null) {
       throw Error('func function used without args!')
