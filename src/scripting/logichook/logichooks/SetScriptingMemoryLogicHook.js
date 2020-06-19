@@ -1,4 +1,4 @@
-const debug = require('debug')('botium-SetScriptingMemoryLogicHook')
+const debug = require('debug')('botium-core-SetScriptingMemoryLogicHook')
 
 const { RESERVED_WORDS } = require('../../ScriptingMemory')
 const { extractParams } = require('../helpers')

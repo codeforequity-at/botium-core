@@ -1,7 +1,7 @@
 const express = require('express')
 const Redis = require('ioredis')
 const bodyParser = require('body-parser')
-const debug = require('debug')('botium-inbound-proxy')
+const debug = require('debug')('botium-core-inbound-proxy')
 
 const buildRedisHandler = (redisurl, topic) => {
   const redis = new Redis(redisurl)

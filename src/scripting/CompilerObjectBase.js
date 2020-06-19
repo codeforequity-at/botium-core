@@ -1,4 +1,4 @@
-const debug = require('debug')('botium-CompilerObject')
+const debug = require('debug')('botium-core-CompilerObject')
 
 const Capabilities = require('../Capabilities')
 const CompilerBase = require('./CompilerBase')

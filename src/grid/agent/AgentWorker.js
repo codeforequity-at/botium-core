@@ -1,6 +1,6 @@
 const util = require('util')
 const async = require('async')
-const debug = require('debug')('botium-AgentWorker')
+const debug = require('debug')('botium-core-AgentWorker')
 
 const BotDriver = require('../../BotDriver')
 const Capabilities = require('../../Capabilities')

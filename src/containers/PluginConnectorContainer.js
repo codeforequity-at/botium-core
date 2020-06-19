@@ -1,6 +1,6 @@
 const util = require('util')
 const promiseRetry = require('promise-retry')
-const debug = require('debug')('botium-PluginConnectorContainer')
+const debug = require('debug')('botium-connector-PluginConnectorContainer')
 
 const Events = require('../Events')
 const Capabilities = require('../Capabilities')

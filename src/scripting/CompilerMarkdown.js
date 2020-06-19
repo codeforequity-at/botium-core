@@ -1,4 +1,4 @@
-const debug = require('debug')('botium-CompilerMarkdown')
+const debug = require('debug')('botium-core-CompilerMarkdown')
 const MarkdownIt = require('markdown-it')
 const util = require('util')
 const md = new MarkdownIt()

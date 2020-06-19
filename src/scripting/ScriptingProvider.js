@@ -6,7 +6,7 @@ const glob = require('glob')
 const _ = require('lodash')
 const promiseRetry = require('promise-retry')
 require('promise.allsettled').shim()
-const debug = require('debug')('botium-ScriptingProvider')
+const debug = require('debug')('botium-core-ScriptingProvider')
 
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')

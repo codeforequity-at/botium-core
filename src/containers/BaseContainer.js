@@ -3,7 +3,7 @@ const async = require('async')
 const rimraf = require('rimraf')
 const Bottleneck = require('bottleneck')
 const _ = require('lodash')
-const debug = require('debug')('botium-BaseContainer')
+const debug = require('debug')('botium-connector-BaseContainer')
 
 const Events = require('../Events')
 const Capabilities = require('../Capabilities')
