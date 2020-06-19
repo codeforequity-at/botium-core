@@ -1,7 +1,7 @@
 const util = require('util')
 const XLSX = require('xlsx')
 const _ = require('lodash')
-const debug = require('debug')('botium-CompilerXlsx')
+const debug = require('debug')('botium-core-CompilerXlsx')
 
 const Capabilities = require('../Capabilities')
 const CompilerBase = require('./CompilerBase')

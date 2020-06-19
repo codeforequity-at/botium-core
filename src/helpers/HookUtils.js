@@ -4,7 +4,7 @@ const fs = require('fs')
 const vm = require('vm')
 const esprima = require('esprima')
 const _ = require('lodash')
-const debug = require('debug')('botium-HookUtils')
+const debug = require('debug')('botium-core-HookUtils')
 
 const executeHook = async (hook, args) => {
   return executeHookSync(hook, args)

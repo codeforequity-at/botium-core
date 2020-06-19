@@ -2,7 +2,7 @@ const util = require('util')
 const vm = require('vm')
 const path = require('path')
 const isClass = require('is-class')
-const debug = require('debug')('botium-asserterUtils')
+const debug = require('debug')('botium-core-asserterUtils')
 
 const { DEFAULT_ASSERTERS, DEFAULT_LOGIC_HOOKS, DEFAULT_USER_INPUTS } = require('./LogicHookConsts')
 

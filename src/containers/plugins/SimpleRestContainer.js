@@ -1,6 +1,7 @@
 const util = require('util')
 const async = require('async')
 const request = require('request')
+const tunnel = require('tunnel')
 const Mustache = require('mustache')
 const jp = require('jsonpath')
 const mime = require('mime-types')
@@ -305,17 +306,20 @@ module.exports = class SimpleRestContainer {
                   this._processBodyAsync(body, isFromUser).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
                 } catch (err) {
                   debug(`ignoring not JSON formatted response body (${err.message})`)
-                  resolve(this).then(() => this._emptyWaitProcessQueue())
+                  resolve(this)
+                  this._emptyWaitProcessQueue()
                 }
               } else if (_.isObject(body)) {
                 this._processBodyAsync(body, isFromUser).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
               } else {
                 debug('ignoring response body (no string and no JSON object)')
-                resolve(this).then(() => this._emptyWaitProcessQueue())
+                resolve(this)
+                this._emptyWaitProcessQueue()
               }
             } else {
               debug(`got response code: ${response.statusCode}, empty body`)
-              resolve(this).then(() => this._emptyWaitProcessQueue())
+              resolve(this)
+              this._emptyWaitProcessQueue()
             }
           }
         })
@@ -384,6 +388,7 @@ module.exports = class SimpleRestContainer {
         requestOptions.headers[headerKey] = headerValue
       }
     }
+    this._addRequestOptions(requestOptions)
 
     await executeHook(this.requestHook, Object.assign({ requestOptions }, this.view))
 
@@ -545,6 +550,7 @@ module.exports = class SimpleRestContainer {
       const pollConfig = {
         method: verb,
         uri: uri,
+        followAllRedirects: true,
         timeout: timeout
       }
       if (this.caps[Capabilities.SIMPLEREST_POLL_HEADERS]) {
@@ -564,6 +570,7 @@ module.exports = class SimpleRestContainer {
           return
         }
       }
+      this._addRequestOptions(pollConfig)
 
       request(pollConfig, (err, response, body) => {
         if (err) {
@@ -614,6 +621,7 @@ module.exports = class SimpleRestContainer {
     const httpConfig = {
       method: verb,
       uri: uri,
+      followAllRedirects: true,
       timeout: timeout
     }
     if (this.caps[`${capPrefix}_HEADERS`]) {
@@ -631,10 +639,43 @@ module.exports = class SimpleRestContainer {
         throw new Error(`composing body from ${capPrefix}_BODY failed (${err.message})`)
       }
     }
+    this._addRequestOptions(httpConfig)
 
     const retries = this.caps[`${capPrefix}_RETRIES`] || Defaults[`${capPrefix}_RETRIES`]
     const response = await this._waitForUrlResponse(httpConfig, retries)
     return response
+  }
+
+  _addRequestOptions (httpConfig) {
+    httpConfig.strictSSL = !!this.caps[Capabilities.SIMPLEREST_STRICT_SSL]
+    if (this.caps[Capabilities.SIMPLEREST_PROXY_URL]) {
+      const proxy = this.caps[Capabilities.SIMPLEREST_PROXY_URL]
+      const proxyUrl = new URL(this.caps[Capabilities.SIMPLEREST_PROXY_URL])
+      const tunnelSettings = {
+        proxy: {
+          host: proxyUrl.hostname,
+          port: proxyUrl.port || (proxy.startsWith('https:') ? 443 : 80)
+        }
+      }
+      if (proxyUrl.username && proxyUrl.password) {
+        tunnelSettings.proxy.proxyAuth = `${proxyUrl.username}:${proxyUrl.password}`
+      }
+      if (proxy.startsWith('http:') && httpConfig.uri.startsWith('https:')) {
+        httpConfig.agent = tunnel.httpsOverHttp(tunnelSettings)
+        httpConfig.strictSSL = false
+      } else if (proxy.startsWith('https:') && httpConfig.uri.startsWith('http:')) {
+        httpConfig.agent = tunnel.httpOverHttps(tunnelSettings)
+        httpConfig.strictSSL = false
+      } else if (proxy.startsWith('https:') && httpConfig.uri.startsWith('https:')) {
+        httpConfig.agent = tunnel.httpsOverHttps(tunnelSettings)
+        httpConfig.strictSSL = false
+      } else {
+        httpConfig.agent = tunnel.httpOverHttp(tunnelSettings)
+      }
+    }
+    if (this.caps[Capabilities.SIMPLEREST_EXTRA_OPTIONS]) {
+      _.merge(httpConfig, this.caps[Capabilities.SIMPLEREST_EXTRA_OPTIONS])
+    }
   }
 }
 module.exports.REDIS_TOPIC = REDIS_TOPIC

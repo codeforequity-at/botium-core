@@ -1,5 +1,5 @@
 const util = require('util')
-const debug = require('debug')('botium-ScriptingMemory')
+const debug = require('debug')('botium-core-ScriptingMemory')
 const randomize = require('randomatic')
 const { v1: uuidv1 } = require('uuid')
 const moment = require('moment')

@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const debug = require('debug')('botium-CapabilitiesUtils')
+const debug = require('debug')('botium-core-CapabilitiesUtils')
 const { toJsonWeak } = require('./Utils')
 
 module.exports.getAllCapValues = (capNamePrefix, caps) => {

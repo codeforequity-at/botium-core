@@ -10,7 +10,7 @@ const randomize = require('randomatic')
 const _ = require('lodash')
 const { boolean } = require('boolean')
 const EventEmitter = require('events')
-const debug = require('debug')('botium-BotDriver')
+const debug = require('debug')('botium-core-BotDriver')
 
 const { version } = require('../package.json')
 

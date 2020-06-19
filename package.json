@@ -65,6 +65,7 @@
     "swagger-jsdoc": "^3.5.0",
     "swagger-ui-express": "^4.1.4",
     "tcp-port-used": "^1.0.1",
+    "tunnel": "^0.0.6",
     "uuid": "^7.0.3",
     "write-yaml": "^1.0.0",
     "xlsx": "^0.15.6",

@@ -7,7 +7,7 @@ const request = require('request')
 const io = require('socket.io-client')
 const copydir = require('copy-dir')
 const _ = require('lodash')
-const debug = require('debug')('botium-DockerMocks')
+const debug = require('debug')('botium-connector-DockerMocks')
 
 const TcpPortUtils = require('../helpers/TcpPortUtils')
 const Capabilities = require('../Capabilities')
@@ -201,7 +201,7 @@ module.exports = {
       this.packageDir = 'src/mocks/facebook'
       this.dockerFile = 'Dockerfile.fbmock'
       this.dockerComposeFile = 'docker-compose.fbmock.yml'
-      this.debug = require('debug')('botium-FacebookMock')
+      this.debug = require('debug')('botium-connector-FacebookMock')
     }
 
     FillDockerEnv (composeEnv, caps, logging) {
@@ -236,7 +236,7 @@ module.exports = {
       this.packageDir = 'src/mocks/slack'
       this.dockerFile = 'Dockerfile.slackmock'
       this.dockerComposeFile = 'docker-compose.slackmock.yml'
-      this.debug = require('debug')('botium-SlackMock')
+      this.debug = require('debug')('botium-connector-SlackMock')
     }
 
     FillDockerEnv (composeEnv, caps, logging) {
@@ -272,7 +272,7 @@ module.exports = {
       this.packageDir = 'src/mocks/botframework'
       this.dockerFile = 'Dockerfile.botframeworkmock'
       this.dockerComposeFile = 'docker-compose.botframeworkmock.yml'
-      this.debug = require('debug')('botium-BotFrameworkMock')
+      this.debug = require('debug')('botium-connector-BotFrameworkMock')
     }
 
     FillDockerEnv (composeEnv, caps, logging) {

@@ -1,6 +1,6 @@
 const util = require('util')
 const _ = require('lodash')
-const debug = require('debug')('botium-Convo')
+const debug = require('debug')('botium-core-Convo')
 
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
