@@ -1,7 +1,6 @@
 const util = require('util')
 const async = require('async')
 const request = require('request')
-const tunnel = require('tunnel')
 const Mustache = require('mustache')
 const jp = require('jsonpath')
 const mime = require('mime-types')
@@ -649,29 +648,7 @@ module.exports = class SimpleRestContainer {
   _addRequestOptions (httpConfig) {
     httpConfig.strictSSL = !!this.caps[Capabilities.SIMPLEREST_STRICT_SSL]
     if (this.caps[Capabilities.SIMPLEREST_PROXY_URL]) {
-      const proxy = this.caps[Capabilities.SIMPLEREST_PROXY_URL]
-      const proxyUrl = new URL(this.caps[Capabilities.SIMPLEREST_PROXY_URL])
-      const tunnelSettings = {
-        proxy: {
-          host: proxyUrl.hostname,
-          port: proxyUrl.port || (proxy.startsWith('https:') ? 443 : 80)
-        }
-      }
-      if (proxyUrl.username && proxyUrl.password) {
-        tunnelSettings.proxy.proxyAuth = `${proxyUrl.username}:${proxyUrl.password}`
-      }
-      if (proxy.startsWith('http:') && httpConfig.uri.startsWith('https:')) {
-        httpConfig.agent = tunnel.httpsOverHttp(tunnelSettings)
-        httpConfig.strictSSL = false
-      } else if (proxy.startsWith('https:') && httpConfig.uri.startsWith('http:')) {
-        httpConfig.agent = tunnel.httpOverHttps(tunnelSettings)
-        httpConfig.strictSSL = false
-      } else if (proxy.startsWith('https:') && httpConfig.uri.startsWith('https:')) {
-        httpConfig.agent = tunnel.httpsOverHttps(tunnelSettings)
-        httpConfig.strictSSL = false
-      } else {
-        httpConfig.agent = tunnel.httpOverHttp(tunnelSettings)
-      }
+      httpConfig.proxy = this.caps[Capabilities.SIMPLEREST_PROXY_URL]
     }
     if (this.caps[Capabilities.SIMPLEREST_EXTRA_OPTIONS]) {
       _.merge(httpConfig, this.caps[Capabilities.SIMPLEREST_EXTRA_OPTIONS])
