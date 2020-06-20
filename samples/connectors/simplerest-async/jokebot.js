@@ -6,9 +6,6 @@ const _ = require('lodash')
 const app = express()
 app.use(bodyParser.json())
 
-const callbackUri = process.env.CALLBACK_URI || 'http://127.0.0.1:1235/onemorejoke'
-const callbackParam = process.env.CALLBACK_PARAM
-
 const jokes = [
   'Q: What did one watermelon say to the other on Valentine\'s Day?\nA: You\'re one in a melon!',
   'Q. Why shouldn\'t you marry a tennis player?\nA. Because Love means nothing to them.',
@@ -17,10 +14,12 @@ const jokes = [
 ]
 
 sendAsyncText = async (req, res, text) => {
+  const callbackUri = req.body.callbackUri
+
   return new Promise((resolve, reject) => {
     request({
       method: 'POST',
-      uri: callbackUri + '/' + req.body.conversationId + (callbackParam ? `?${callbackParam}` : ''),
+      uri: callbackUri,
       body: {
         conversationId: req.body.conversationId,
         responses: [

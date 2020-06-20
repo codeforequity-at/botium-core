@@ -612,7 +612,7 @@ module.exports = class SimpleRestContainer {
   async _startPolling () {
     if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
       this.pollInterval = setInterval(this._runPolling.bind(this), this.caps[Capabilities.SIMPLEREST_POLL_INTERVAL])
-      debug(`Started HTTP polling. Listening for inbound messages on the ${this.caps[Capabilities.SIMPLEREST_POLL_URL]}, interval: ${this.caps[Capabilities.SIMPLEREST_POLL_INTERVAL]}.`)
+      debug(`Started HTTP polling for inbound messages on ${this.caps[Capabilities.SIMPLEREST_POLL_URL]}, interval: ${this.caps[Capabilities.SIMPLEREST_POLL_INTERVAL]}.`)
     }
   }
 
@@ -620,6 +620,7 @@ module.exports = class SimpleRestContainer {
     if (this.pollInterval) {
       clearInterval(this.pollInterval)
       this.pollInterval = null
+      debug(`Stopped HTTP polling for inbound messages on ${this.caps[Capabilities.SIMPLEREST_POLL_URL]}.`)
     }
   }
 
