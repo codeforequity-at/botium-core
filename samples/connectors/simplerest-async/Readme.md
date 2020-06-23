@@ -26,7 +26,7 @@ Then start the inbound endpoint with Botium CLI:
 
 Then start the chatbot and connect it to the Botium CLI inbound endpoint:
 
-    CALLBACK_URI=http://127.0.0.1:45100 node jokebot.js
+    node jokebot.js
 
 Finally, start the Botium script
 
@@ -34,8 +34,8 @@ Finally, start the Botium script
 
 ## Using Botium Box
 
-Botium Box has an integrated inbound endpoint, which is secured with an API key. Launch the chatbot and connect it to the Botium Box inbound endpoint with a Botium Box API Key:
+Botium Box has an integrated inbound endpoint, which is secured with an API key. Launch the chatbot:
 
-    CALLBACK_PARAM="APIKEY=<api-key-from-botium-box>" CALLBACK_URI=http://127.0.0.1:4000/api/inbound node jokebot.js
+    node jokebot.js
 
-In Botium Box, register this endpoint by importing the _botium-box.json_ file.
+In Botium Box, register this endpoint by importing the _botium-box.json_ file. Change the "callbackUri" to contain a valid API Key from Botium Box.

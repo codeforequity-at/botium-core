@@ -1,5 +1,5 @@
 const express = require('express')
-const debug = require('debug')('botium-agent-routes')
+const debug = require('debug')('botium-core-agent-routes')
 
 const router = express.Router()
 const workerpool = require('./agentworkerpool')

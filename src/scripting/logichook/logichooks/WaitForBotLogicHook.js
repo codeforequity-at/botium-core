@@ -1,5 +1,5 @@
 const async = require('async')
-const debug = require('debug')('botium-WaitForBotLogicHook')
+const debug = require('debug')('botium-core-WaitForBotLogicHook')
 
 module.exports = class WaitForBotLogicHook {
   onConvoBegin (params) {

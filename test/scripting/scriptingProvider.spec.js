@@ -57,7 +57,7 @@ describe('scriptingProvider._resolveUtterances', function () {
       scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1')
       assert.fail('expected error')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected bot response') > 0)
+      assert.isTrue(err.message.indexOf('Bot response') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.isArray(err.context.cause.expected)
@@ -77,7 +77,7 @@ describe('scriptingProvider._resolveUtterances', function () {
       scriptingContext.scriptingEvents.assertBotResponse('TEXT1', 'utt1', 'test1')
       assert.fail('expected error')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected bot response') > 0)
+      assert.isTrue(err.message.indexOf('Bot response') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
       assert.isArray(err.context.cause.expected)
@@ -108,6 +108,93 @@ describe('scriptingProvider._tagAndCleanupUtterances', function () {
   })
 })
 
+describe('scriptingProvider.ExpandConvos', function () {
+  it('should build convos for utterance', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+    scriptingProvider.AddConvos({
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'utt1'
+        }
+      ]
+    })
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[0].header.name, 'test convo/utt1-L1')
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt1-L2')
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+  })
+  it('should build convos for utterance with parameters', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1 %s-%d', 'TEXT2']
+    })
+    scriptingProvider.AddConvos({
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'utt1 arg0 1'
+        }
+      ]
+    })
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[0].header.name, 'test convo/utt1-L1')
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1 arg0-1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt1-L2')
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2 arg0 1')
+  })
+  it('should build convos for utterance with whitespace', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    scriptingProvider.AddUtterances({
+      name: 'utt with some whitespace',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+    scriptingProvider.AddConvos({
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'utt with some whitespace'
+        }
+      ]
+    })
+
+    scriptingProvider.ExpandConvos()
+    assert.equal(scriptingProvider.convos.length, 2)
+    assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[0].header.name, 'test convo/utt with some whitespace-L1')
+    assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
+    assert.equal(scriptingProvider.convos[1].conversation.length, 1)
+    assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt with some whitespace-L2')
+    assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+  })
+})
+
 describe('scriptingProvider.ExpandUtterancesToConvos', function () {
   it('should build plain convos for utterance', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
@@ -128,11 +215,11 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
     assert.equal(scriptingProvider.convos[0].conversation.length, 2)
     assert.equal(scriptingProvider.convos[0].header.name, 'utt1/utt1-L1')
     assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
-    assert.equal(scriptingProvider.convos[0].toString(), '1 utt1/utt1-L1 (Expanded Utterances - utt1): Step 1 - tell utterance: #me - TEXT1 | Step 2 - check bot response: #bot - ')
+    assert.equal(scriptingProvider.convos[0].toString(), '1 utt1/utt1-L1 (Expanded Utterances - utt1) ({ origUttName: \'utt1\', origConvoName: \'utt1\' }): Step 1 - tell utterance: #me - TEXT1 | Step 2 - check bot response: #bot - ')
     assert.equal(scriptingProvider.convos[1].conversation.length, 2)
     assert.equal(scriptingProvider.convos[1].header.name, 'utt1/utt1-L2')
     assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
-    assert.equal(scriptingProvider.convos[1].toString(), '2 utt1/utt1-L2 (Expanded Utterances - utt1): Step 1 - tell utterance: #me - TEXT2 | Step 2 - check bot response: #bot - ')
+    assert.equal(scriptingProvider.convos[1].toString(), '2 utt1/utt1-L2 (Expanded Utterances - utt1) ({ origUttName: \'utt1\', origConvoName: \'utt1\' }): Step 1 - tell utterance: #me - TEXT2 | Step 2 - check bot response: #bot - ')
   })
   it('should add leading zeros for utterance tags', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
@@ -149,11 +236,11 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
     assert.equal(scriptingProvider.convos[0].conversation.length, 2)
     assert.equal(scriptingProvider.convos[0].header.name, 'utt1/utt1-L00001')
     assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'TEXT1')
-    assert.equal(scriptingProvider.convos[0].toString(), '1 utt1/utt1-L00001 (Expanded Utterances - utt1): Step 1 - tell utterance: #me - TEXT1 | Step 2 - check bot response: #bot - ')
+    assert.equal(scriptingProvider.convos[0].toString(), '1 utt1/utt1-L00001 (Expanded Utterances - utt1) ({ origUttName: \'utt1\', origConvoName: \'utt1\' }): Step 1 - tell utterance: #me - TEXT1 | Step 2 - check bot response: #bot - ')
     assert.equal(scriptingProvider.convos[1].conversation.length, 2)
     assert.equal(scriptingProvider.convos[1].header.name, 'utt1/utt1-L00002')
     assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
-    assert.equal(scriptingProvider.convos[1].toString(), '2 utt1/utt1-L00002 (Expanded Utterances - utt1): Step 1 - tell utterance: #me - TEXT2 | Step 2 - check bot response: #bot - ')
+    assert.equal(scriptingProvider.convos[1].toString(), '2 utt1/utt1-L00002 (Expanded Utterances - utt1) ({ origUttName: \'utt1\', origConvoName: \'utt1\' }): Step 1 - tell utterance: #me - TEXT2 | Step 2 - check bot response: #bot - ')
   })
   it('should build incomprehension convos for utterance', async function () {
     const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_INCOMPREHENSION: 'INCOMPREHENSION' }))
@@ -278,6 +365,42 @@ describe('scriptingProvider.ExpandUtterancesToConvos', function () {
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err.message.indexOf('incomprehension utterance \'INCOMPREHENSION\' undefined') > 0)
+    }
+  })
+})
+
+describe('scriptingProvider.assertBotResponse', function () {
+  it('should fail with correct error message on single tomatch', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    try {
+      scriptingContext.scriptingEvents.assertBotResponse('actual', 'expected', 'test1')
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'test1: Bot response "actual" expected to match "expected"')
+    }
+  })
+  it('should fail with correct error message on empty bot message', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    try {
+      scriptingContext.scriptingEvents.assertBotResponse(null, 'expected', 'test1')
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'test1: Bot response <no response> expected to match "expected"')
+    }
+  })
+  it('should fail with correct error message on multiple tomatch', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    try {
+      scriptingContext.scriptingEvents.assertBotResponse('actual', ['expected1', 'expected2'], 'test1')
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'test1: Bot response "actual" expected to match one of "expected1,expected2"')
     }
   })
 })

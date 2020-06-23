@@ -3,7 +3,8 @@ const Source = require('./Source')
 
 module.exports = {
   Capabilities: {
-    [Capabilities.PROJECTNAME]: 'defaultproject',
+    [Capabilities.PROJECTNAME]: 'Botium Project',
+    [Capabilities.TESTSESSIONNAME]: 'Botium Test Session',
     [Capabilities.TEMPDIR]: 'botiumwork',
     [Capabilities.CLEANUPTEMPDIR]: true,
     [Capabilities.WAITFORBOTTIMEOUT]: 10000,
@@ -25,13 +26,18 @@ module.exports = {
     [Capabilities.SIMPLEREST_PING_RETRIES]: 6,
     [Capabilities.SIMPLEREST_PING_TIMEOUT]: 10000,
     [Capabilities.SIMPLEREST_PING_VERB]: 'GET',
+    [Capabilities.SIMPLEREST_PING_UPDATE_CONTEXT]: true,
     [Capabilities.SIMPLEREST_STOP_TIMEOUT]: 10000,
     [Capabilities.SIMPLEREST_STOP_VERB]: 'GET',
     [Capabilities.SIMPLEREST_POLL_VERB]: 'GET',
     [Capabilities.SIMPLEREST_POLL_INTERVAL]: 1000,
     [Capabilities.SIMPLEREST_POLL_TIMEOUT]: 10000,
+    [Capabilities.SIMPLEREST_POLL_UPDATE_CONTEXT]: true,
     [Capabilities.SIMPLEREST_METHOD]: 'GET',
     [Capabilities.SIMPLEREST_TIMEOUT]: 10000,
+    [Capabilities.SIMPLEREST_EXTRA_OPTIONS]: {},
+    [Capabilities.SIMPLEREST_STRICT_SSL]: true,
+    [Capabilities.SIMPLEREST_INBOUND_UPDATE_CONTEXT]: true,
     [Capabilities.SCRIPTING_TXT_EOL]: '\n',
     [Capabilities.SCRIPTING_XLSX_EOL_WRITE]: '\r\n',
     [Capabilities.SCRIPTING_XLSX_HASHEADERS]: true,

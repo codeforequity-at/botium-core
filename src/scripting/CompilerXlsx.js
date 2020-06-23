@@ -1,7 +1,7 @@
 const util = require('util')
 const XLSX = require('xlsx')
 const _ = require('lodash')
-const debug = require('debug')('botium-CompilerXlsx')
+const debug = require('debug')('botium-core-CompilerXlsx')
 
 const Capabilities = require('../Capabilities')
 const CompilerBase = require('./CompilerBase')
@@ -102,17 +102,13 @@ module.exports = class CompilerXlsx extends CompilerBase {
           return linesToConvoStep(lines, sender, this.context, eol)
         }
 
-        const formatRowIndex = (rowindex) => ('00' + rowindex).slice(-3)
-
         const _extractRow = (rowindex) => {
           const meCell = this.colnames[colindex] + rowindex
-          const meCellSort = this.colnames[colindex] + formatRowIndex(rowindex)
           const meCellValue = sheet[meCell] && sheet[meCell].v
           const botCell = this.colnames[colindex + 1] + rowindex
-          const botCellSort = this.colnames[colindex + 1] + formatRowIndex(rowindex)
           const botCellValue = sheet[botCell] && sheet[botCell].v
 
-          return { meCell, meCellSort, meCellValue, botCell, botCellSort, botCellValue }
+          return { meCell, meCellValue, botCell, botCellValue }
         }
 
         let questionAnswerMode = this._GetOptionalCapability(Capabilities.SCRIPTING_XLSX_MODE)
@@ -139,29 +135,30 @@ module.exports = class CompilerXlsx extends CompilerBase {
           }
         }
 
+        const convoResults = []
         let currentConvo = []
         let emptylines = 0
-        let startcellsort = null
-        // each row is a conversation with a question and an answer
+        let startrowindex = -1
 
         while (true) {
-          const { meCellSort, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
+          const { meCell, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
           if (questionAnswerMode) {
             if (meCellValue || botCellValue) {
               currentConvo = []
               currentConvo.push(Object.assign(
-                { sender: 'me', stepTag: 'Cell ' + meCellSort },
+                { sender: 'me', stepTag: 'Cell ' + meCell },
                 parseCell('me', meCellValue)
               ))
-              startcellsort = meCellSort
+              startrowindex = rowindex
               currentConvo.push(Object.assign(
                 { sender: 'bot', stepTag: 'Cell ' + botCell },
                 parseCell('bot', botCellValue)
               ))
-              scriptResults.push(new Convo(this.context, {
+              convoResults.push(new Convo(this.context, {
                 header: {
-                  name: `${sheetname}-${startcellsort}`,
-                  sort: `${sheetname}-${startcellsort}`
+                  sheetname,
+                  colindex,
+                  rowindex: startrowindex
                 },
                 conversation: currentConvo
               }))
@@ -171,36 +168,48 @@ module.exports = class CompilerXlsx extends CompilerBase {
           } else {
             if (meCellValue) {
               currentConvo.push(Object.assign(
-                { sender: 'me', stepTag: 'Cell ' + meCellSort },
+                { sender: 'me', stepTag: 'Cell ' + meCell },
                 parseCell('me', meCellValue)
               ))
-              if (!startcellsort) startcellsort = meCellSort
+              if (startrowindex < 0) startrowindex = rowindex
               emptylines = 0
             } else if (botCellValue) {
               currentConvo.push(Object.assign(
                 { sender: 'bot', stepTag: 'Cell ' + botCell },
                 parseCell('bot', botCellValue)
               ))
-              if (!startcellsort) startcellsort = meCellSort
+              if (startrowindex < 0) startrowindex = rowindex
               emptylines = 0
             } else {
               if (currentConvo.length > 0) {
-                scriptResults.push(new Convo(this.context, {
+                convoResults.push(new Convo(this.context, {
                   header: {
-                    name: `${sheetname}-${startcellsort}`,
-                    sort: `${sheetname}-${startcellsort}`
+                    sheetname,
+                    colindex,
+                    rowindex: startrowindex
                   },
                   conversation: currentConvo
                 }))
               }
               currentConvo = []
-              startcellsort = null
+              startrowindex = -1
               emptylines++
             }
           }
           rowindex++
 
           if (emptylines > 1) break
+        }
+
+        if (convoResults.length > 0) {
+          const formatLength = Math.max(3, `${convoResults[convoResults.length - 1].header.rowindex}`.length)
+          const formatBase = '0'.repeat(formatLength)
+          const formatRowIndex = (rowindex) => (formatBase + `${rowindex}`).slice(-1 * formatLength)
+          convoResults.forEach(convo => {
+            convo.header.name = `${convo.header.sheetname}-${this.colnames[convo.header.colindex]}${formatRowIndex(convo.header.rowindex)}`
+            convo.header.sort = convo.header.name
+            scriptResults.push(convo)
+          })
         }
       }
 

@@ -201,7 +201,7 @@ describe('convo.transcript', function () {
     } catch (err) {
       assert.equal(
         err.transcript.err.message,
-        'asserters/Line 6: Expected bot response (on Line 3: #me - Hello) "Hello" to match one of "Goodbye!"')
+        'asserters/Line 6: Bot response (on Line 3: #me - Hello) "Hello" expected to match "Goodbye!"')
     }
   })
   it('should throw simple error with multiple asserting errors if its enabled', async function () {
@@ -213,7 +213,7 @@ describe('convo.transcript', function () {
     } catch (err) {
       assert.equal(
         err.transcript.err.message,
-        'asserters/Line 6: Expected bot response (on Line 3: #me - Hello) "Hello" to match one of "Goodbye!",\n' +
+        'asserters/Line 6: Bot response (on Line 3: #me - Hello) "Hello" expected to match "Goodbye!",\n' +
         'Line 6: Expected button(s) with text "btn1",\n' +
         'Line 6: Expected button(s) with text "btn2"')
 

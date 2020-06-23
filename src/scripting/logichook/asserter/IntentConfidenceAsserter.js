@@ -112,7 +112,7 @@ module.exports = class IntentConfidenceAsserter {
             }
           },
           cause: {
-            expected: expectedMinimum,
+            expected: `>= ${expectedMinimum}`,
             actual: confidence * 100
           }
         }

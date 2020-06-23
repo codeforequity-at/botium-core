@@ -2,7 +2,7 @@ const util = require('util')
 const vm = require('vm')
 const path = require('path')
 const isClass = require('is-class')
-const debug = require('debug')('botium-asserterUtils')
+const debug = require('debug')('botium-core-asserterUtils')
 
 const { DEFAULT_ASSERTERS, DEFAULT_LOGIC_HOOKS, DEFAULT_USER_INPUTS } = require('./LogicHookConsts')
 
@@ -147,8 +147,11 @@ module.exports = class LogicHookUtils {
         } else if (_.isFunction(CheckClass)) {
           debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as function. Guessed package name.`)
           return CheckClass(this.buildScriptContext, this.caps, args)
+        } else if (isClass(CheckClass.PluginClass)) {
+          debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as class using PluginClass. Guessed package name.`)
+          return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
         } else {
-          throw new Error(`${packageName} class or function expected`)
+          throw new Error(`${packageName} class or function or PluginClass field expected`)
         }
       } catch (err) {
         throw new Error(`Failed to fetch package ${packageName} - ${util.inspect(err)}`)
@@ -213,6 +216,9 @@ module.exports = class LogicHookUtils {
       } else if (_.isFunction(CheckClass)) {
         debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class`)
         return CheckClass(this.buildScriptContext, this.caps, args)
+      } else if (isClass(CheckClass.PluginClass)) {
+        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class using PluginClass.`)
+        return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
       } else {
         throw new Error(`${tryLoadPackage} class or function expected`)
       }
@@ -232,6 +238,9 @@ module.exports = class LogicHookUtils {
       } else if (_.isFunction(CheckClass)) {
         debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a function. Loading from ${tryLoadFile} as class`)
         return CheckClass(this.buildScriptContext, this.caps, args)
+      } else if (isClass(CheckClass.PluginClass)) {
+        debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class using PluginClass`)
+        return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
       } else {
         throw new Error(`${tryLoadFile} class or function expected`)
       }

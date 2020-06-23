@@ -1,5 +1,5 @@
 const MarkdownIt = require('markdown-it')
-const debug = require('debug')('botium-PrecompilerMarkdownRasa')
+const debug = require('debug')('botium-core-PrecompilerMarkdownRasa')
 const util = require('util')
 const _ = require('lodash')
 

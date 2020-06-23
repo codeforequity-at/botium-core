@@ -1,4 +1,4 @@
-const debug = require('debug')('botium-ClearScriptingMemoryLogicHook')
+const debug = require('debug')('botium-core-ClearScriptingMemoryLogicHook')
 
 const { RESERVED_WORDS } = require('../../ScriptingMemory')
 

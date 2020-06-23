@@ -3,5 +3,6 @@ module.exports = class BotiumMockAttachment {
     this.name = fromJson.name
     this.mimeType = fromJson.mimeType
     this.base64 = fromJson.base64
+    this.href = fromJson.href
   }
 }
