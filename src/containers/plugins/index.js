@@ -1,5 +1,6 @@
 const path = require('path')
 const fs = require('fs')
+const isClass = require('is-class')
 const _ = require('lodash')
 const debug = require('debug')('botium-connector-PluginConnectorContainer-helper')
 
@@ -26,6 +27,30 @@ const getModuleVersionSafe = (required) => {
     return 'Unknown version'
   }
 }
+
+const loadConnectorModule = (PluginClass, args) => {
+  if (isClass(PluginClass)) {
+    return new PluginClass(args)
+  } else if (_.isFunction(PluginClass)) {
+    const result = PluginClass(args)
+    if (result && result.UserSays) return result
+    else {
+      return {
+        UserSays: (msg) => {
+          const response = PluginClass(msg, args)
+          if (response && args.queueBotSays) {
+            if (_.isString(response)) {
+              setTimeout(() => args.queueBotSays({ messageText: response }), 0)
+            } else {
+              setTimeout(() => args.queueBotSays(response), 0)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 const tryLoadPlugin = (containermode, modulepath, args) => {
   const pluginLoaderSpec = modulepath || containermode
 
@@ -49,7 +74,7 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
         if (!plugin.PluginVersion || !plugin.PluginClass) {
           loadErr.push(`Invalid Botium plugin loaded from ${tryLoadFile}, expected PluginVersion, PluginClass fields`)
         } else {
-          const pluginInstance = new plugin.PluginClass(args)
+          const pluginInstance = loadConnectorModule(plugin.PluginClass, args)
           debug(`Botium plugin loaded from ${tryLoadFile}`)
           return pluginInstance
         }
@@ -63,7 +88,7 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
         if (!plugin.PluginVersion || !plugin.PluginClass) {
           loadErr.push(`Invalid Botium plugin loaded from ${pluginLoaderSpec}, expected PluginVersion, PluginClass fields`)
         } else {
-          const pluginInstance = new plugin.PluginClass(args)
+          const pluginInstance = loadConnectorModule(plugin.PluginClass, args)
           debug(`Botium plugin loaded from ${pluginLoaderSpec}. Plugin version is ${getModuleVersionSafe(pluginLoaderSpec)}`)
           return pluginInstance
         }
@@ -77,7 +102,7 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
         if (!plugin.PluginVersion || !plugin.PluginClass) {
           loadErr.push(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
         } else {
-          const pluginInstance = new plugin.PluginClass(args)
+          const pluginInstance = loadConnectorModule(plugin.PluginClass, args)
           debug(`Botium plugin ${tryLoadPackage} loaded. Plugin version is ${getModuleVersionSafe(tryLoadPackage)}`)
           return pluginInstance
         }

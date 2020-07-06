@@ -1,8 +1,8 @@
 module.exports = {
   PluginVersion: 1,
-  PluginClass: () => ({}),
+  PluginClass: (msg) => msg.messageText,
   PluginDesc: {
-    name: 'Test Connector',
+    name: 'Test Connector FromFile 1',
     provider: 'Botium',
     capabilities: [
       {
