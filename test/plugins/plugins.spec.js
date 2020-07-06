@@ -4,7 +4,6 @@ const Plugins = require('../../src/Plugins')
 
 describe('plugins.load', function () {
   it('should return empty list on invalid folder', async () => {
-
     const plugins = await Plugins.getPlugins(Plugins.PLUGIN_TYPE_ASSERTER, 'abcd')
     assert.isEmpty(plugins)
   })
