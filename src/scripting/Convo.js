@@ -7,7 +7,7 @@ const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromErr, botiumErrorFromList } = require('./BotiumError')
-const { toString, removeBuffers } = require('./helper')
+const { normalizeText, toString, removeBuffers } = require('./helper')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -512,38 +512,7 @@ class Convo {
   }
 
   _checkNormalizeText (container, str) {
-    if (str && _.isArray(str)) {
-      str = str.join(' ')
-    } else if (str && !_.isString(str)) {
-      if (str.toString) {
-        str = str.toString()
-      } else {
-        str = `${str}`
-      }
-    }
-    if (str && container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]) {
-      // remove html tags
-      str = str.replace(/<p[^>]*>/g, ' ')
-      str = str.replace(/<\/p>/g, ' ')
-      str = str.replace(/<br[^>]*>/g, ' ')
-      str = str.replace(/<[^>]*>/g, '')
-      /* eslint-disable no-control-regex */
-      // remove not printable characters
-      str = str.replace(/[\x00-\x1F\x7F]/g, ' ')
-      /* eslint-enable no-control-regex */
-      // replace html entities
-      str = str
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&#39;/g, '\'')
-        .replace(/&quot;/g, '"')
-      // replace two spaces with one
-      str = str.replace(/\s+/g, ' ')
-
-      str = str.split('\n').map(s => s.trim()).join('\n').trim()
-    }
-    return str
+    return normalizeText(str, !!container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT])
   }
 
   _getEffectiveConversation () {

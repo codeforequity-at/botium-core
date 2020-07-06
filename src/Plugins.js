@@ -39,26 +39,19 @@ const getConnectorPlugin = (filename, pathToRes) => {
         debug(`Botium plugin loaded from ${filename}, but its type ${plugin.PluginType} is invalid, will be overwritten with ${PluginType}`)
       }
 
-      let pluginName = filename.substring(TYPE_TO_PREFIX[PLUGIN_TYPE_CONNECTOR].length)
-      if (pluginName.toLowerCase().endsWith('.js')) {
-        pluginName = pluginName.substring(0, pluginName.length - '.js'.length)
-      }
-      if (plugin.PluginDesc && plugin.PluginDesc.name && plugin.PluginDesc.name !== pluginName) {
-        debug(`Botium plugin loaded from ${filename}, but its name ${plugin.PluginDesc.name} is invalid, will be overwritten with ${pluginName}`)
+      let pluginNameFromFile = filename.substring(TYPE_TO_PREFIX[PLUGIN_TYPE_CONNECTOR].length)
+      if (pluginNameFromFile.toLowerCase().endsWith('.js')) {
+        pluginNameFromFile = pluginNameFromFile.substring(0, pluginNameFromFile.length - '.js'.length)
       }
 
       const PluginDesc = plugin.PluginDesc || {}
       return {
         PluginVersion: plugin.PluginVersion || '1',
         PluginType,
-        PluginDesc: Object.assign(
-          { description: pluginName },
-          PluginDesc,
-          {
-            name: pluginName,
-            capabilities: PluginDesc.capabilities ? JSON.stringify(PluginDesc.capabilities) : null
-          }
-        )
+        PluginDesc: {
+          ...PluginDesc,
+          src: pluginNameFromFile
+        }
       }
     } catch (err) {
       debug(`Loading Botium plugin from ${filename} failed - ${err.message}`)
@@ -91,9 +84,6 @@ const getOtherPlugin = (filename, pathToRes, type) => {
     if (pluginName.toLowerCase().endsWith('.js')) {
       pluginName = pluginName.substring(0, pluginName.length - '.js'.length)
     }
-    if (plugin.PluginDesc && plugin.PluginDesc.name && plugin.PluginDesc.name !== pluginName) {
-      debug(`Botium plugin loaded from ${filename}, but its name ${plugin.PluginDesc.name} is invalid, will be overwritten with ${pluginName}`)
-    }
 
     const PluginDesc = plugin.PluginDesc || {}
 
@@ -123,40 +113,39 @@ const TYPE_TO_FN = {
   PLUGIN_TYPE_USERINPUT: getOtherPlugin
 }
 
-const getPlugins = (type, resourcesDir) => {
+const getPlugins = async (type, resourcesDir) => {
   if (!TYPE_TO_FN[type]) {
     debug(`Invalid plugin type "${type}"`)
     return Promise.resolve([])
   }
-  return new Promise((resolve, reject) => {
-    const pathToRes = path.resolve(resourcesDir)
-    if (!fs.existsSync(pathToRes)) {
-      debug(`Cant load plugins, directory ${pathToRes} does not exists`)
-      return resolve([])
-    }
-    let items
-    try {
-      items = fs.readdirSync(pathToRes)
-    } catch (err) {
-      debug(`Cant load plugins, failed to read directory ${pathToRes} - ${err.message}`)
-      return resolve([])
-    }
 
-    const result = []
-    const pluginNameToPlugin = {}
-    for (let i = 0; i < items.length; i++) {
-      const plugin = TYPE_TO_FN[type](items[i], pathToRes, type)
-      if (plugin) {
-        if (pluginNameToPlugin[plugin.PluginDesc.name]) {
-          debug(`Dropping plugin ${JSON.stringify(plugin)} because name is reserved by ${JSON.stringify(pluginNameToPlugin[plugin.PluginDesc.name])}`)
-        } else {
-          result.push(plugin)
-          pluginNameToPlugin[plugin.PluginDesc.name] = plugin
-        }
+  const pathToRes = path.resolve(resourcesDir)
+  if (!fs.existsSync(pathToRes)) {
+    debug(`Cant load plugins, directory ${pathToRes} does not exists`)
+    return []
+  }
+  let items
+  try {
+    items = fs.readdirSync(pathToRes)
+  } catch (err) {
+    debug(`Cant load plugins, failed to read directory ${pathToRes} - ${err.message}`)
+    return []
+  }
+
+  const result = []
+  const pluginNameToPlugin = {}
+  for (let i = 0; i < items.length; i++) {
+    const plugin = TYPE_TO_FN[type](items[i], pathToRes, type)
+    if (plugin) {
+      if (pluginNameToPlugin[plugin.PluginDesc.name]) {
+        debug(`Dropping plugin ${JSON.stringify(plugin)} because name is reserved by ${JSON.stringify(pluginNameToPlugin[plugin.PluginDesc.name])}`)
+      } else {
+        result.push(plugin)
+        pluginNameToPlugin[plugin.PluginDesc.name] = plugin
       }
     }
-    resolve(result)
-  })
+  }
+  return result
 }
 
 module.exports = {

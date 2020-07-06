@@ -15,7 +15,7 @@
     "agent": "node ./src/grid/agent/agent.js",
     "agent-jsdoc": "swagger-jsdoc -d ./src/grid/agent/swaggerDef.json -o ./src/grid/agent/swagger.json ./src/grid/agent/routes.js",
     "link": "npm link botium-connector-dialogflow botium-connector-webdriverio botium-connector-directline3 botium-connector-watson botium-connector-alexa-smapi botium-connector-echo",
-    "test": "mocha \"./test/**/*.spec.js\"",
+    "test": "NODE_PATH=\"./test/plugins/plugindir/fromfolder:./test/plugins/plugindir/fromfile\" mocha \"./test/**/*.spec.js\"",
     "coverage:report": "nyc report --reporter=lcov npm test",
     "license-checker": "license-checker > LICENSES-3RDPARTY.txt"
   },
@@ -31,6 +31,7 @@
   "homepage": "https://www.botium.ai",
   "dependencies": {
     "@babel/runtime": "^7.9.2",
+    "@scarf/scarf": "^1.0.6",
     "async": "^3.2.0",
     "body-parser": "^1.19.0",
     "boolean": "^3.0.1",

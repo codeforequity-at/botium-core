@@ -4,6 +4,7 @@ const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
 const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
 const { Convo } = require('../../src/scripting/Convo')
+const { normalizeText } = require('../../src/scripting/helper')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 const ScriptingMemory = require('../../src/scripting/ScriptingMemory')
 
@@ -304,7 +305,7 @@ describe('convo.scriptingMemory.api', function () {
       let result = "<speak>Kentucky is the 15th state, admitted to the Union in 1792. The capital of Kentucky is Frankfort, and the abbreviation for Kentucky is <break strength='strong'/><say-as interpret-as='spell-out'>KY</say-as>. I've added Kentucky to your Alexa app. Which other state or capital would you like to know about?</speak>"
       const expected = "$state is the 15th state, admitted to the Union in 1792. The capital of Kentucky is Frankfort, and the abbreviation for Kentucky is KY. I've added Kentucky to your Alexa app. Which other state or capital would you like to know about?"
 
-      result = this.convo._checkNormalizeText(this.containerStub, result)
+      result = normalizeText(result, true)
 
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, result, expected, this.convo.scriptingEvents)

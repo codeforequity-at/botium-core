@@ -171,11 +171,15 @@ module.exports = class SimpleRestContainer {
   // Separated just for better module testing
   async _processBodyAsync (body, isFromUser, updateContext) {
     const p = async () => {
-      const results = await this._processBodyAsyncImpl(body, isFromUser, updateContext)
-      if (results) {
-        for (const result of results) {
-          setTimeout(() => this.queueBotSays(result), 0)
+      try {
+        const results = await this._processBodyAsyncImpl(body, isFromUser, updateContext)
+        if (results) {
+          for (const result of results) {
+            setTimeout(() => this.queueBotSays(result), 0)
+          }
         }
+      } catch (err) {
+        setTimeout(() => this.queueBotSays(err), 0)
       }
     }
     if (this.waitProcessQueue) {
