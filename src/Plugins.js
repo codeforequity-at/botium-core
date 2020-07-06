@@ -39,12 +39,9 @@ const getConnectorPlugin = (filename, pathToRes) => {
         debug(`Botium plugin loaded from ${filename}, but its type ${plugin.PluginType} is invalid, will be overwritten with ${PluginType}`)
       }
 
-      let pluginName = filename.substring(TYPE_TO_PREFIX[PLUGIN_TYPE_CONNECTOR].length)
-      if (pluginName.toLowerCase().endsWith('.js')) {
-        pluginName = pluginName.substring(0, pluginName.length - '.js'.length)
-      }
-      if (plugin.PluginDesc && plugin.PluginDesc.name && plugin.PluginDesc.name !== pluginName) {
-        debug(`Botium plugin loaded from ${filename}, but its name ${plugin.PluginDesc.name} is invalid, will be overwritten with ${pluginName}`)
+      let pluginNameFromFile = filename.substring(TYPE_TO_PREFIX[PLUGIN_TYPE_CONNECTOR].length)
+      if (pluginNameFromFile.toLowerCase().endsWith('.js')) {
+        pluginNameFromFile = pluginNameFromFile.substring(0, pluginNameFromFile.length - '.js'.length)
       }
 
       const PluginDesc = plugin.PluginDesc || {}
@@ -52,10 +49,10 @@ const getConnectorPlugin = (filename, pathToRes) => {
         PluginVersion: plugin.PluginVersion || '1',
         PluginType,
         PluginDesc: Object.assign(
-          { description: pluginName },
           PluginDesc,
           {
-            name: pluginName,
+            name: pluginNameFromFile,
+            description: PluginDesc.name,
             capabilities: PluginDesc.capabilities ? JSON.stringify(PluginDesc.capabilities) : null
           }
         )
@@ -90,9 +87,6 @@ const getOtherPlugin = (filename, pathToRes, type) => {
     let pluginName = filename.substring(TYPE_TO_PREFIX[type].length)
     if (pluginName.toLowerCase().endsWith('.js')) {
       pluginName = pluginName.substring(0, pluginName.length - '.js'.length)
-    }
-    if (plugin.PluginDesc && plugin.PluginDesc.name && plugin.PluginDesc.name !== pluginName) {
-      debug(`Botium plugin loaded from ${filename}, but its name ${plugin.PluginDesc.name} is invalid, will be overwritten with ${pluginName}`)
     }
 
     const PluginDesc = plugin.PluginDesc || {}
