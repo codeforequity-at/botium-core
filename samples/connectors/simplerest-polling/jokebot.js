@@ -6,6 +6,7 @@ const app = express()
 app.use(bodyParser.json())
 
 const validConversationIds = []
+const oneMoreConversationIds = []
 
 const jokes = [
   'Q: What did one watermelon say to the other on Valentine\'s Day?\nA: You\'re one in a melon!',
@@ -20,6 +21,7 @@ app.post('/joke', (req, res) => {
   }
 
   validConversationIds.push(req.body.conversationId)
+  oneMoreConversationIds.push(req.body.conversationId)
 
   // synchronous response
   res.status(200).json({
@@ -40,15 +42,23 @@ app.post('/onemore', (req, res) => {
     return res.status(500).send('no body or no conversationId given')
   }
 
-  if (validConversationIds.find(id => id === req.body.conversationId)) {
-    res.status(200).json({
-      conversationId: req.body.conversationId,
-      responses: [
-        {
-          text: 'FROM POLL: ' + _.sample(jokes)
-        }
-      ]
-    })
+  if (validConversationIds.indexOf(req.body.conversationId) >= 0) {
+    if (oneMoreConversationIds.indexOf(req.body.conversationId) >= 0) {
+      res.status(200).json({
+        conversationId: req.body.conversationId,
+        responses: [
+          {
+            text: 'OK, one more: ' + _.sample(jokes)
+          }
+        ]
+      })
+      oneMoreConversationIds.splice(oneMoreConversationIds.indexOf(req.body.conversationId), 1 )
+    } else {
+      res.status(200).json({
+        conversationId: req.body.conversationId,
+        responses: []
+      })
+    }
   } else {
     return res.status(404).send('conversationId unknown')
   }

@@ -3,7 +3,7 @@ const async = require('async')
 const rimraf = require('rimraf')
 const Bottleneck = require('bottleneck')
 const _ = require('lodash')
-const debug = require('debug')('botium-BaseContainer')
+const debug = require('debug')('botium-connector-BaseContainer')
 
 const Events = require('../Events')
 const Capabilities = require('../Capabilities')
@@ -192,7 +192,7 @@ module.exports = class BaseContainer {
     }
   }
 
-  _QueueBotSays (botMsg) {
+  async _QueueBotSays (botMsg) {
     if (_.isError(botMsg)) {
       if (!this.queues.default) {
         this.queues.default = new Queue()
@@ -207,11 +207,9 @@ module.exports = class BaseContainer {
         this.queues[botMsg.channel] = new Queue()
       }
 
-      return this._RunCustomHook('onBotResponse', this.onBotResponseHook, { botMsg })
-        .then(() => {
-          this.queues[botMsg.channel].push(botMsg)
-          this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
-        })
+      await this._RunCustomHook('onBotResponse', this.onBotResponseHook, { botMsg })
+      this.queues[botMsg.channel].push(botMsg)
+      this.eventEmitter.emit(Events.MESSAGE_RECEIVEDFROMBOT, this, botMsg)
     }
   }
 

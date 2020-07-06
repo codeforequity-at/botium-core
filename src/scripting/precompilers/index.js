@@ -1,6 +1,6 @@
 const util = require('util')
 const { isJson } = require('../../helpers/Utils')
-const debug = require('debug')('botium-Precompilers')
+const debug = require('debug')('botium-core-Precompilers')
 
 const PROVIDERS = {
   JSON_TO_JSON_JSONPATH: require('./JsonToJson'),

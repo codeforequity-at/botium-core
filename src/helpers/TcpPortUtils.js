@@ -1,5 +1,5 @@
 const tcpPortUsed = require('tcp-port-used')
-const debug = require('debug')('botium-TcpPortUtils')
+const debug = require('debug')('botium-core-TcpPortUtils')
 
 module.exports = {
   WaitForPort: async (hostname, portToCheck) => {

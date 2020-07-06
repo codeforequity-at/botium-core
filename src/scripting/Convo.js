@@ -1,6 +1,6 @@
 const util = require('util')
 const _ = require('lodash')
-const debug = require('debug')('botium-Convo')
+const debug = require('debug')('botium-core-Convo')
 
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
@@ -429,8 +429,10 @@ class Convo {
           if (lastMeConvoStep) {
             if (err instanceof BotiumError && err.context) {
               err.context.input = new ConvoStep(lastMeConvoStep)
+              err.context.transcript = [...transcriptSteps, { ...transcriptStep }]
             } else {
               err.input = new ConvoStep(lastMeConvoStep)
+              err.transcript = [...transcriptSteps, { ...transcriptStep }]
             }
           }
           transcriptStep.err = err

@@ -1,6 +1,6 @@
 const path = require('path')
 const fs = require('fs')
-const debug = require('debug')('botium-Plugins')
+const debug = require('debug')('botium-core-Plugins')
 
 const PLUGIN_TYPE_CONNECTOR = 'PLUGIN_TYPE_CONNECTOR'
 const PLUGIN_TYPE_ASSERTER = 'PLUGIN_TYPE_ASSERTER'

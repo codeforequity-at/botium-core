@@ -1,5 +1,5 @@
 const jsonPath = require('jsonpath')
-const debug = require('debug')('botium-AssignScriptingMemoryLogicHook')
+const debug = require('debug')('botium-core-AssignScriptingMemoryLogicHook')
 
 const { RESERVED_WORDS } = require('../../ScriptingMemory')
 const { extractParams } = require('../helpers')

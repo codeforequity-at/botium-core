@@ -26,7 +26,7 @@ const BotiumError = class BotiumError extends Error {
     this.context.message = message.message || message
   }
 
-  prettify () {
+  prettify (includeJson) {
     const lines = []
     if (this.context) {
       const errArr = _.isArray(this.context) ? this.context : [this.context]
@@ -44,8 +44,23 @@ const BotiumError = class BotiumError extends Error {
         } else if (errDetail.message) {
           lines.push(`${errDetail.message}`)
         }
-        lines.push('----------------------------------------')
-        lines.push(JSON.stringify(errDetail))
+        if (errDetail.transcript && errDetail.transcript.length > 0) {
+          lines.push('------------ TRANSCRIPT ----------------------------')
+          errDetail.transcript.forEach(transcriptStep => {
+            if (transcriptStep.actual) {
+              lines.push(`#${transcriptStep.actual.sender}: ${transcriptStep.actual.messageText || '<no text>'}`)
+            }
+          })
+        }
+        if (includeJson) {
+          lines.push('------------ JSON CONTENT ----------------------------')
+          try {
+            const jsonOutput = JSON.stringify(errDetail)
+            lines.push(jsonOutput)
+          } catch (jsonErr) {
+            lines.push(`JSON Output not possible: ${jsonErr.message}`)
+          }
+        }
       })
     }
     if (lines.length > 0) {
@@ -61,26 +76,6 @@ const _getChildErrorsFromContext = (context) => {
     return context.errors
   }
   return false
-}
-
-const _getChildErrorsFromError = (error) => {
-  if (error.context) {
-    return _getChildErrorsFromContext(error.context)
-  }
-  return false
-}
-
-module.exports.getErrorsFromError = (error, safe = true) => {
-  const childErrors = _getChildErrorsFromError(error)
-  if (childErrors) {
-    return childErrors
-  }
-
-  if (safe) {
-    return error
-  }
-
-  throw Error('Invalid error format!')
 }
 
 const botiumErrorFromErr = (message, err) => {

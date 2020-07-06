@@ -5,7 +5,7 @@ const http = require('http')
 const ioSocket = require('socket.io')
 const ioAuth = require('socketio-auth')
 const swaggerUi = require('swagger-ui-express')
-const debug = require('debug')('botium-agent')
+const debug = require('debug')('botium-core-agent')
 
 const Events = require('../../Events')
 const workerpool = require('./agentworkerpool')

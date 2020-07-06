@@ -21,6 +21,7 @@ const myCapsPost = {
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { BODY1: 'BODY1VALUE', BODY2: '{{msg.messageText}}' },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
+
 const myCapsScriptingMemory = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
   [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
@@ -30,6 +31,7 @@ const myCapsScriptingMemory = {
     FUNCTION_WITH_PARAM: '{{#fnc.random}}5{{/fnc.random}}',
     FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY: '{{#fnc.random}}{{msg.scriptingMemory.functionArgument}}{{/fnc.random}}',
     USING_CODE: '{{#fnc.func}}1 + 2{{/fnc.func}}',
+    SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}',
     VARIABLE: '{{msg.scriptingMemory.variable}}'
   },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
@@ -345,6 +347,8 @@ describe('connectors.simplerest.build', function () {
     await container.Clean()
   })
   it('should use scriptingMemory variables', async function () {
+    process.env.SAMPLE_ENV = 'SAMPLE_ENV'
+
     const myCaps = Object.assign({}, myCapsScriptingMemory)
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
@@ -363,6 +367,9 @@ describe('connectors.simplerest.build', function () {
 
     assert.exists(request.body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY)
     assert.equal(request.body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY.length, 7)
+
+    assert.exists(request.body.SAMPLE_ENV)
+    assert.equal(request.body.SAMPLE_ENV, 'SAMPLE_ENV')
 
     assert.exists(request.body.USING_CODE)
     assert.equal(request.body.USING_CODE, 3)

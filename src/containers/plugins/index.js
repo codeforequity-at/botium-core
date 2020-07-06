@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const _ = require('lodash')
-const debug = require('debug')('botium-PluginConnectorContainer-helper')
+const debug = require('debug')('botium-connector-PluginConnectorContainer-helper')
 
 const SimpleRestContainer = require('./SimpleRestContainer')
 
