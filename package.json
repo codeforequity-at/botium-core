@@ -1,6 +1,6 @@
 {
   "name": "botium-core",
-  "version": "1.9.7",
+  "version": "1.9.8",
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "module": "dist/botium-es.js",
@@ -8,6 +8,7 @@
     "node": ">=10.0.0"
   },
   "scripts": {
+    "postinstall": "node ./report.js",
     "build": "npm run eslint && nyc npm test && nyc check-coverage --lines 50 --functions 50 --branches 35 && rollup -c",
     "eslint": "eslint \"./src/**/*.js\" \"./test/**/*.js\"",
     "eslint-fix": "eslint --fix \"./src/**/*.js\" \"./test/**/*.js\"",
@@ -31,7 +32,6 @@
   "homepage": "https://www.botium.ai",
   "dependencies": {
     "@babel/runtime": "^7.9.2",
-    "@scarf/scarf": "^1.0.6",
     "async": "^3.2.0",
     "body-parser": "^1.19.0",
     "boolean": "^3.0.1",
