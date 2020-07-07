@@ -82,5 +82,8 @@ Botium Core provides the core functionality. For attaching Botium to your chatbo
 
 See [here](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/360553/Botium+Connectors) for the latest connector updates.
 
+## Installation Tracking
+This module is sending anonymous installation information to our server (operating system, architecture, library version), which is used for making this project better. You can always disable this tracking by setting the environment variable _BOTIUM_ANALYTICS_ to _false_ before installing it.
+
 ## Contributions
 Contributions are welcome! Please read our [Contribution Guide](https://github.com/codeforequity-at/botium-core/blob/master/CONTRIBUTING.md)!
