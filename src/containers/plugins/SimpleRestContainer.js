@@ -36,6 +36,7 @@ module.exports = class SimpleRestContainer {
     if (this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) {
       _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
     }
+    if (this.caps[Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE] !== 'MERGE' && this.caps[Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE] !== 'REPLACE') throw new Error('SIMPLEREST_CONTEXT_MERGE_OR_REPLACE capability only MERGE or REPLACE allowed')
     this.startHook = getHook(this.caps[Capabilities.SIMPLEREST_START_HOOK])
     this.stopHook = getHook(this.caps[Capabilities.SIMPLEREST_STOP_HOOK])
     this.requestHook = getHook(this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
@@ -202,16 +203,25 @@ module.exports = class SimpleRestContainer {
   // Separated just for better module testing
   async _processBodyAsyncImpl (body, isFromUser, updateContext) {
     if (updateContext) {
+      const mergeMode = this.caps[Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE]
       const jsonPathsContext = getAllCapValues(Capabilities.SIMPLEREST_CONTEXT_JSONPATH, this.caps)
       if (jsonPathsContext.length > 0) {
         for (const jsonPathContext of jsonPathsContext) {
           const contextNodes = jp.query(body, jsonPathContext)
           if (_.isArray(contextNodes) && contextNodes.length > 0) {
-            Object.assign(this.view.context, contextNodes[0])
+            if (mergeMode === 'MERGE') {
+              Object.assign(this.view.context, contextNodes[0])
+            } else if (mergeMode === 'REPLACE') {
+              this.view.context = contextNodes[0]
+            }
           }
         }
       } else {
-        Object.assign(this.view.context, body)
+        if (mergeMode === 'MERGE') {
+          Object.assign(this.view.context, body)
+        } else if (mergeMode === 'REPLACE') {
+          this.view.context = body
+        }
       }
       debug(`current session context: ${util.inspect(this.view.context)}`)
     }
