@@ -4,6 +4,14 @@ class BotiumMockMedia {
     this.mimeType = fromJson.mimeType
     this.altText = fromJson.altText
   }
+
+  prettify (indent = 0) {
+    const sections = []
+    if (this.mediaUri) sections.push(this.mediaUri)
+    if (this.mimeType) sections.push(this.mimeType)
+    if (this.altText) sections.push(this.altText)
+    return `${' '.repeat(indent)}MEDIA(${sections.join(' | ')})`
+  }
 }
 
 class BotiumMockButton {
@@ -11,6 +19,14 @@ class BotiumMockButton {
     this.text = fromJson.text
     this.payload = fromJson.payload
     this.imageUri = fromJson.imageUri
+  }
+
+  prettify (indent = 0) {
+    const sections = []
+    if (this.text) sections.push(this.text)
+    if (this.payload) sections.push(this.payload)
+    if (this.imageUri) sections.push(this.imageUri)
+    return `${' '.repeat(indent)}BUTTON(${sections.join(' | ')})`
   }
 }
 
@@ -27,6 +43,28 @@ class BotiumMockCard {
     this.cards = (fromJson.cards ? fromJson.cards.map((a) => new BotiumMockCard(a)) : null)
     this.sourceData = fromJson.sourceData
   }
+
+  prettify (indent = 0) {
+    return this._prettifyLines(this, indent).join('\n')
+  }
+
+  _prettifyLines (card, indent) {
+    const sections = []
+    if (card.text) sections.push(card.text)
+    if (card.subtext) sections.push(card.subtext)
+
+    const lines = []
+    if (card.image) lines.push(card.image.prettify(indent + 2))
+    if (card.media) lines.push(...card.media.map(m => m.prettify(indent + 2)))
+    if (card.buttons) lines.push(...card.buttons.map(b => b.prettify(indent + 2)))
+    if (card.forms) lines.push(...card.forms.map(f => f.prettify(indent + 2)))
+    if (card.cards) lines.push(...card.cards.map(c => this._prettifyLines(c, indent + 2)))
+
+    return [
+      `${' '.repeat(indent)}CARD(${sections.join(' | ')})`,
+      ...lines
+    ]
+  }
 }
 
 class BotiumMockForm {
@@ -37,6 +75,14 @@ class BotiumMockForm {
     this.label = fromJson.label
     this.type = fromJson.type
     this.options = (fromJson.options ? fromJson.options.map((c) => new BotiumMockChoice(c)) : null)
+  }
+
+  prettify (indent = 0) {
+    const sections = []
+    if (this.name) sections.push(this.name)
+    if (this.label) sections.push(this.label)
+    if (this.value) sections.push(this.payload)
+    return `${' '.repeat(indent)}FORM(${sections.join(' | ')})`
   }
 }
 
