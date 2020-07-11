@@ -20,4 +20,20 @@ module.exports = class BotiumMockMessage {
     this.userInputs = (fromJson.userInputs ? fromJson.userInputs.map((a) => new BotiumMockUserInput(a)) : null)
     this.logicHooks = (fromJson.logicHooks ? fromJson.logicHooks.map((a) => new BotiumMockLogicHook(a)) : null)
   }
+
+  prettify () {
+    const lines = []
+    if (this.messageText) lines.push(this.messageText)
+    if (this.media && this.media.length > 0) lines.push(...this.media.map(m => m.prettify(2)))
+    if (this.buttons && this.buttons.length > 0) lines.push(...this.buttons.map(b => b.prettify(2)))
+    if (this.cards && this.cards.length > 0) lines.push(...this.cards.map(c => c.prettify(2)))
+    if (this.forms && this.forms.length > 0) lines.push(...this.forms.map(f => f.prettify(2)))
+
+    if (lines.length === 0) return `#${this.sender}:`
+
+    return [
+      `#${this.sender}: ${lines[0]}`,
+      ...lines.slice(1)
+    ].join('\n')
+  }
 }

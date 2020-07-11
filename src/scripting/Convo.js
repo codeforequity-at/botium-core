@@ -102,6 +102,17 @@ class Transcript {
     this.convoEnd = convoEnd
     this.err = err
   }
+
+  prettifyActual () {
+    const prettifiedSteps = this.steps.map(step => {
+      if (step.actual && step.actual.prettify) {
+        return step.actual.prettify()
+      } else {
+        return '<empty conversation step>'
+      }
+    })
+    return prettifiedSteps.join('\n')
+  }
 }
 
 class TranscriptAttachment { // eslint-disable-line no-unused-vars

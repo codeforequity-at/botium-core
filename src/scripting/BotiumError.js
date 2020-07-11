@@ -48,7 +48,7 @@ const BotiumError = class BotiumError extends Error {
           lines.push('------------ TRANSCRIPT ----------------------------')
           errDetail.transcript.forEach(transcriptStep => {
             if (transcriptStep.actual) {
-              lines.push(`#${transcriptStep.actual.sender}: ${transcriptStep.actual.messageText || '<no text>'}`)
+              lines.push(transcriptStep.actual.prettify())
             }
           })
         }
