@@ -85,6 +85,60 @@ describe('scriptingProvider._resolveUtterances', function () {
       assert.equal(err.context.cause.actual, 'TEXT1')
     }
   })
+
+  describe('should resolve utterance with ambiguous scripting memory variable (with a debug message)', function () {
+    it('expected none, found $name', async function () {
+      const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+      await scriptingProvider.Build()
+      const scriptingContext = scriptingProvider._buildScriptContext()
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['Hi!', 'Hi $name']
+      })
+
+      const tomatch = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt1' })
+      assert.isArray(tomatch)
+      assert.equal(tomatch.length, 2)
+      assert.equal(tomatch[0], 'Hi!')
+      assert.equal(tomatch[1], 'Hi $name')
+    })
+
+    it('expected none, found $name in different Utterance', async function () {
+      const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+      await scriptingProvider.Build()
+      const scriptingContext = scriptingProvider._buildScriptContext()
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['Hi!']
+      })
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['Hi $name']
+      })
+
+      const tomatch = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt1' })
+      assert.isArray(tomatch)
+      assert.equal(tomatch.length, 2)
+      assert.equal(tomatch[0], 'Hi!')
+      assert.equal(tomatch[1], 'Hi $name')
+    })
+
+    it('expected $name, found none', async function () {
+      const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+      await scriptingProvider.Build()
+      const scriptingContext = scriptingProvider._buildScriptContext()
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['Hi $name', 'Hi!']
+      })
+
+      const tomatch = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt1' })
+      assert.isArray(tomatch)
+      assert.equal(tomatch.length, 2)
+      assert.equal(tomatch[0], 'Hi $name')
+      assert.equal(tomatch[1], 'Hi!')
+    })
+  })
 })
 
 describe('scriptingProvider._isValidAsserterType', function () {

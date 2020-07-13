@@ -806,6 +806,27 @@ module.exports = class ScriptingProvider {
   }
 
   AddUtterances (utterances) {
+    const findAmbiguous = (utterances) => {
+      const ambiguous = []
+      let expected = null
+      let base = null
+      if (utterances && utterances.length > 1) {
+        base = utterances[0]
+        expected = ScriptingMemory.extractVarNames(utterances[0]).sort()
+        const expectedString = JSON.stringify(expected)
+
+        for (let i = 1; i < utterances.length; i++) {
+          const actualString = JSON.stringify(ScriptingMemory.extractVarNames(utterances[i]).sort())
+
+          if (actualString !== expectedString) {
+            ambiguous.push(utterances[i])
+          }
+        }
+      }
+
+      return { expected, ambiguous, base }
+    }
+
     if (utterances && !_.isArray(utterances)) {
       utterances = [utterances]
     }
@@ -816,6 +837,12 @@ module.exports = class ScriptingProvider {
           eu.utterances = _.uniq(_.concat(eu.utterances, utt.utterances))
         } else {
           this.utterances[utt.name] = utt
+        }
+
+        const { ambiguous, expected } = findAmbiguous(this.utterances[utt.name].utterances)
+
+        if (ambiguous && ambiguous.length > 0) {
+          debug(`Ambigous utterance "${utt.name}", expecting exact ${expected.length ? ('"' + expected.join(', ') + '"') : '<none>'} scripting memory variables in following user examples: ${ambiguous.map(d => `"${d}"`).join(', ')}`)
         }
       })
     }
