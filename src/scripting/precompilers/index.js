@@ -1,5 +1,5 @@
 const util = require('util')
-const { isJson } = require('../../helpers/Utils')
+const { isJsonObject } = require('../../helpers/Utils')
 const debug = require('debug')('botium-core-Precompilers')
 
 const PROVIDERS = {
@@ -33,7 +33,10 @@ module.exports.execute = (scriptBuffer, options) => {
       if (!result.scriptBuffer) {
         return null
       }
-      result.scriptBuffer = isJson(result.scriptBuffer)
+      if (isJsonObject(result.scriptBuffer, false)) {
+        result.scriptBuffer = JSON.stringify(result.scriptBuffer)
+      }
+
       result.precompiler = capSuffixAndVal.NAME
       // dont let chain the precompilers. It looks more robust
       return result

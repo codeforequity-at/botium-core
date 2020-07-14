@@ -150,4 +150,17 @@ describe('compiler.precompiler.script', function () {
     assert.equal(this.compiler.convos.length, 0)
     await afterCustom(this)
   })
+
+  it('should be able to precompile text to text', async function () {
+    await beforeCustom(this, `
+      result = scriptData.replace("Hi!", "Hi Bot!")
+  `)
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script_text_to_text.convo.txt')
+    this.compiler.ExpandUtterancesToConvos()
+    this.compiler.ExpandConvos()
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(this.compiler.convos[0].conversation.length, 2)
+    assert.equal(this.compiler.convos[0].conversation[0].messageText, 'Hi Bot!')
+    await afterCustom(this)
+  })
 })

@@ -8,8 +8,17 @@ const isStringJson = (string) => {
   }
   return true
 }
-
-const isJsonObject = (json) => {
+/**
+ *
+ * @param json
+ * @param stringIsJson It is possible to stringify a string, so we can say its a json object,
+ * but usually thats not what we expect. Default is true because backward compatibility
+ * @returns {boolean}
+ */
+const isJsonObject = (json, stringIsJson = true) => {
+  if (!stringIsJson && _.isString(json)) {
+    return false
+  }
   try {
     JSON.stringify(json)
   } catch (e) {
