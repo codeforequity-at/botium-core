@@ -475,7 +475,7 @@ module.exports = class ScriptingProvider {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
     } else {
-      debug(`ReadScript - dropped file: ${filename}`)
+      debug(`ReadScript - dropped file: ${filename}, filename not supported`)
     }
 
     // Compilers saved the convos, and we alter here the saved version too
