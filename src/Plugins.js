@@ -127,6 +127,7 @@ const getPlugins = async (type, resourcesDir) => {
   let items
   try {
     items = fs.readdirSync(pathToRes)
+      .filter(item => path.extname(item) === '.js' || item.indexOf('.') === -1)
   } catch (err) {
     debug(`Cant load plugins, failed to read directory ${pathToRes} - ${err.message}`)
     return []
@@ -135,11 +136,7 @@ const getPlugins = async (type, resourcesDir) => {
   const result = []
   const pluginNameToPlugin = {}
   for (let i = 0; i < items.length; i++) {
-    const item = items[i]
-    let plugin
-    if (path.extname(item) !== '.zip') {
-      plugin = TYPE_TO_FN[type](item, pathToRes, type)
-    }
+    const plugin = TYPE_TO_FN[type](items[i], pathToRes, type)
     if (plugin) {
       if (pluginNameToPlugin[plugin.PluginDesc.name]) {
         debug(`Dropping plugin ${JSON.stringify(plugin)} because name is reserved by ${JSON.stringify(pluginNameToPlugin[plugin.PluginDesc.name])}`)
