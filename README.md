@@ -11,6 +11,11 @@
 
 **_IF YOU LIKE WHAT YOU SEE, PLEASE CONSIDER GIVING US A STAR ON GITHUB!_**
 
+**UPDATE 2020/06/15:** As Chatbots grow in importance, automated testing solutions will remain critical for ensuring that Chatbots actually do what their designers intend. We've been busy working on a product that allows testers to have visual insights and deeper understanding in their Chatbot's performance, offering several solutions to boost their interaction!
+[Botium Coach will be introduced to the market as part of our online event on the 24th of June.](https://www.botium.ai/coach/)
+
+[![](http://img.youtube.com/vi/WsNaDfZ7WHk/0.jpg)](http://www.youtube.com/watch?v=WsNaDfZ7WHk "Botium Coach is coming on 24th of June")
+
 ## Quickstart
 
 __Read the [Getting Started guide](https://www.botium.ai/getting-started/) or the [Botium in a Nutshell](https://medium.com/@floriantreml/botium-in-a-nutshell-part-1-overview-f8d0ceaf8fb4) blog series to get started with Botium!__
@@ -76,6 +81,9 @@ Botium Core provides the core functionality. For attaching Botium to your chatbo
 **All connectors are hosted on [Github](https://github.com/codeforequity-at?tab=repositories&q=botium-connector)**
 
 See [here](https://botium.atlassian.net/wiki/spaces/BOTIUM/pages/360553/Botium+Connectors) for the latest connector updates.
+
+## Installation Tracking
+This module is sending anonymous installation information to our server (operating system, architecture, library version), which is used for making this project better. You can always disable this tracking by setting the environment variable _BOTIUM_ANALYTICS_ to _false_ before installing it.
 
 ## Contributions
 Contributions are welcome! Please read our [Contribution Guide](https://github.com/codeforequity-at/botium-core/blob/master/CONTRIBUTING.md)!
