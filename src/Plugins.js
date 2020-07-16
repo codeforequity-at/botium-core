@@ -135,7 +135,11 @@ const getPlugins = async (type, resourcesDir) => {
   const result = []
   const pluginNameToPlugin = {}
   for (let i = 0; i < items.length; i++) {
-    const plugin = TYPE_TO_FN[type](items[i], pathToRes, type)
+    const item = items[i]
+    let plugin
+    if (path.extname(item) !== '.zip') {
+      plugin = TYPE_TO_FN[type](item, pathToRes, type)
+    }
     if (plugin) {
       if (pluginNameToPlugin[plugin.PluginDesc.name]) {
         debug(`Dropping plugin ${JSON.stringify(plugin)} because name is reserved by ${JSON.stringify(pluginNameToPlugin[plugin.PluginDesc.name])}`)
@@ -153,5 +157,6 @@ module.exports = {
   PLUGIN_TYPE_CONNECTOR,
   PLUGIN_TYPE_ASSERTER,
   PLUGIN_TYPE_LOGICHOOK,
-  PLUGIN_TYPE_USERINPUT
+  PLUGIN_TYPE_USERINPUT,
+  TYPE_TO_PREFIX
 }
