@@ -129,13 +129,13 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt))
-        if (found === undefined) {
+        if (_.isNil(found)) {
           let message = `${stepTag}: Bot response `
           message += meMsg ? `(on ${meMsg}) ` : ''
           message += botresponse ? ('"' + botresponse + '"') : '<no response>'
           message += ' expected to match '
           message += tomatch && tomatch.length > 1 ? 'one of ' : ''
-          message += `"${tomatch}"`
+          message += `${tomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
           throw new BotiumError(
             message,
             {
@@ -158,9 +158,15 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
         const found = _.find(nottomatch, (utt) => this.matchFn(botresponse, utt))
-        if (found) {
+        if (!_.isNil(found)) {
+          let message = `${stepTag}: Bot response `
+          message += meMsg ? `(on ${meMsg}) ` : ''
+          message += botresponse ? ('"' + botresponse + '"') : '<no response>'
+          message += ' expected NOT to match '
+          message += nottomatch && nottomatch.length > 1 ? 'one of ' : ''
+          message += `${nottomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
           throw new BotiumError(
-            `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match "${found}"`,
+            message,
             {
               type: 'asserter',
               source: 'TextMatchAsserter',
