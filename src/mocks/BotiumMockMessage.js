@@ -22,12 +22,13 @@ module.exports = class BotiumMockMessage {
   }
 
   prettify () {
+    const prettifySafe = (entry) => entry.prettify ? entry.prettify(2) : `${' '.repeat(2)}<No botium object!>${JSON.stringify(entry)}`
     const lines = []
     if (this.messageText) lines.push(this.messageText)
-    if (this.media && this.media.length > 0) lines.push(...this.media.map(m => m.prettify(2)))
-    if (this.buttons && this.buttons.length > 0) lines.push(...this.buttons.map(b => b.prettify(2)))
-    if (this.cards && this.cards.length > 0) lines.push(...this.cards.map(c => c.prettify(2)))
-    if (this.forms && this.forms.length > 0) lines.push(...this.forms.map(f => f.prettify(2)))
+    if (this.media && this.media.length > 0) lines.push(...this.media.map(m => prettifySafe(m)))
+    if (this.buttons && this.buttons.length > 0) lines.push(...this.buttons.map(b => prettifySafe(b)))
+    if (this.cards && this.cards.length > 0) lines.push(...this.cards.map(c => prettifySafe(c)))
+    if (this.forms && this.forms.length > 0) lines.push(...this.forms.map(f => prettifySafe(f)))
 
     if (lines.length === 0) return `#${this.sender}:`
 

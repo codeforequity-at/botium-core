@@ -49,15 +49,17 @@ class BotiumMockCard {
   }
 
   _prettifyLines (card, indent) {
+    const prettifySafe = (entry, indent) => entry.prettify ? entry.prettify(2) : `${' '.repeat(indent)}<No botium object!>${JSON.stringify(entry)}`
+
     const sections = []
     if (card.text) sections.push(card.text)
     if (card.subtext) sections.push(card.subtext)
 
     const lines = []
     if (card.image) lines.push(card.image.prettify(indent + 2))
-    if (card.media) lines.push(...card.media.map(m => m.prettify(indent + 2)))
-    if (card.buttons) lines.push(...card.buttons.map(b => b.prettify(indent + 2)))
-    if (card.forms) lines.push(...card.forms.map(f => f.prettify(indent + 2)))
+    if (card.media) lines.push(...card.media.map(m => prettifySafe(m, indent + 2)))
+    if (card.buttons) lines.push(...card.buttons.map(b => prettifySafe(b, indent + 2)))
+    if (card.forms) lines.push(...card.forms.map(f => prettifySafe(f, indent + 2)))
     if (card.cards) lines.push(...card.cards.map(c => this._prettifyLines(c, indent + 2)))
 
     return [
