@@ -6,6 +6,8 @@ const mime = require('mime-types')
 const url = require('url')
 const _ = require('lodash')
 
+const {BotiumMockMedia} = require('../../../../src/mocks/BotiumMockRichMessageTypes')
+
 module.exports = class MediaInput {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
@@ -117,22 +119,22 @@ module.exports = class MediaInput {
         const uri = this._getResolvedUri(args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
         if (uri) {
           const buffer = await this._downloadMedia(uri)
-          meMsg.media.push({
+          meMsg.media.push(new BotiumMockMedia({
             mediaUri: args[0],
             downloadUri: uri.toString(),
             mimeType: mime.lookup(args[0]),
             buffer
-          })
+          }))
         }
       } catch (err) {
         throw new Error(err.message)
       }
     } else if (args.length === 2) {
-      meMsg.media.push({
+      meMsg.media.push(new BotiumMockMedia({
         mediaUri: args[0],
         mimeType: mime.lookup(args[0]),
         buffer: args[1]
-      })
+      }))
     }
   }
 }
