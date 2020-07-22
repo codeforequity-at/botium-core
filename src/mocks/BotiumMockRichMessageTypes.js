@@ -3,6 +3,8 @@ class BotiumMockMedia {
     this.mediaUri = fromJson.mediaUri
     this.mimeType = fromJson.mimeType
     this.altText = fromJson.altText
+    this.downloadUri = fromJson.downloadUri
+    this.buffer = fromJson.buffer
   }
 
   prettify (indent = 0) {
