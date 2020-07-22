@@ -3,6 +3,8 @@ class BotiumMockMedia {
     this.mediaUri = fromJson.mediaUri
     this.mimeType = fromJson.mimeType
     this.altText = fromJson.altText
+    this.downloadUri = fromJson.downloadUri
+    this.buffer = fromJson.buffer
   }
 
   prettify (indent = 0) {
@@ -36,12 +38,52 @@ class BotiumMockCard {
     this.subtext = fromJson.subtext
     this.content = fromJson.content
     this.sourceData = fromJson.sourceData
-    this.image = (fromJson.image ? new BotiumMockMedia(fromJson.image) : null)
-    this.buttons = (fromJson.buttons ? fromJson.buttons.map((a) => new BotiumMockButton(a)) : null)
-    this.media = (fromJson.media ? fromJson.media.map((a) => new BotiumMockMedia(a)) : null)
-    this.forms = (fromJson.forms ? fromJson.forms.map((a) => new BotiumMockForm(a)) : null)
-    this.cards = (fromJson.cards ? fromJson.cards.map((a) => new BotiumMockCard(a)) : null)
+    this._image = (fromJson.image ? new BotiumMockMedia(fromJson.image) : null)
+    this._buttons = (fromJson.buttons ? fromJson.buttons.map((a) => new BotiumMockButton(a)) : null)
+    this._media = (fromJson.media ? fromJson.media.map((a) => new BotiumMockMedia(a)) : null)
+    this._forms = (fromJson.forms ? fromJson.forms.map((a) => new BotiumMockForm(a)) : null)
+    this._cards = (fromJson.cards ? fromJson.cards.map((a) => new BotiumMockCard(a)) : null)
     this.sourceData = fromJson.sourceData
+  }
+
+  get image () {
+    return this._image
+  }
+
+  get media () {
+    return this._media
+  }
+
+  get buttons () {
+    return this._buttons
+  }
+
+  get cards () {
+    return this._cards
+  }
+
+  get forms () {
+    return this._forms
+  }
+
+  set image (value) {
+    this._image = (value ? value.map((a) => new BotiumMockMedia(a)) : null)
+  }
+
+  set media (value) {
+    this._media = (value ? value.map((a) => new BotiumMockMedia(a)) : null)
+  }
+
+  set buttons (value) {
+    this._buttons = (value ? value.map((a) => new BotiumMockButton(a)) : null)
+  }
+
+  set cards (value) {
+    this._cards = (value ? value.map((a) => new BotiumMockCard(a)) : null)
+  }
+
+  set forms (value) {
+    this._forms = (value ? value.map((a) => new BotiumMockForm(a)) : null)
   }
 
   prettify (indent = 0) {
@@ -49,15 +91,17 @@ class BotiumMockCard {
   }
 
   _prettifyLines (card, indent) {
+    const prettifySafe = (entry, indent) => entry.prettify ? entry.prettify(2) : `${' '.repeat(indent)}<No botium object!>${JSON.stringify(entry)}`
+
     const sections = []
     if (card.text) sections.push(card.text)
     if (card.subtext) sections.push(card.subtext)
 
     const lines = []
     if (card.image) lines.push(card.image.prettify(indent + 2))
-    if (card.media) lines.push(...card.media.map(m => m.prettify(indent + 2)))
-    if (card.buttons) lines.push(...card.buttons.map(b => b.prettify(indent + 2)))
-    if (card.forms) lines.push(...card.forms.map(f => f.prettify(indent + 2)))
+    if (card.media) lines.push(...card.media.map(m => prettifySafe(m, indent + 2)))
+    if (card.buttons) lines.push(...card.buttons.map(b => prettifySafe(b, indent + 2)))
+    if (card.forms) lines.push(...card.forms.map(f => prettifySafe(f, indent + 2)))
     if (card.cards) lines.push(...card.cards.map(c => this._prettifyLines(c, indent + 2)))
 
     return [
@@ -74,15 +118,23 @@ class BotiumMockForm {
 
     this.label = fromJson.label
     this.type = fromJson.type
-    this.options = (fromJson.options ? fromJson.options.map((c) => new BotiumMockChoice(c)) : null)
+    this._options = (fromJson.options ? fromJson.options.map((c) => new BotiumMockChoice(c)) : null)
   }
 
   prettify (indent = 0) {
     const sections = []
     if (this.name) sections.push(this.name)
     if (this.label) sections.push(this.label)
-    if (this.value) sections.push(this.payload)
+    if (this.value) sections.push(this.value)
     return `${' '.repeat(indent)}FORM(${sections.join(' | ')})`
+  }
+
+  get options () {
+    return this._options
+  }
+
+  set options (value) {
+    this._options = (value ? value.map((a) => new BotiumMockChoice(a)) : null)
   }
 }
 
