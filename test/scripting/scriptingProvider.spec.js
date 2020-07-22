@@ -454,7 +454,43 @@ describe('scriptingProvider.assertBotResponse', function () {
       scriptingContext.scriptingEvents.assertBotResponse('actual', ['expected1', 'expected2'], 'test1')
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'test1: Bot response "actual" expected to match one of "expected1,expected2"')
+      assert.equal(err.message, 'test1: Bot response "actual" expected to match one of "expected1", "expected2"')
+    }
+  })
+})
+
+describe('scriptingProvider.assertBotNotResponse', function () {
+  it('should fail with correct error message on match', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    try {
+      scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', ['Keine Antwort gefunden'], 'test1')
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'test1: Bot response "Keine Antwort gefunden!" expected NOT to match "Keine Antwort gefunden"')
+    }
+  })
+  it('should fail with correct error message on by empty asserter', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    try {
+      scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', [''], 'test1')
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'test1: Bot response "Keine Antwort gefunden!" expected NOT to match <any response>')
+    }
+  })
+  it('should fail with correct error message on by empty asserter, and empty bot response', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    try {
+      scriptingContext.scriptingEvents.assertBotNotResponse('', [''], 'test1')
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'test1: Bot response <no response> expected NOT to match <any response>')
     }
   })
 })
