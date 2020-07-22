@@ -125,7 +125,7 @@ class BotiumMockForm {
     const sections = []
     if (this.name) sections.push(this.name)
     if (this.label) sections.push(this.label)
-    if (this.value) sections.push(this.payload)
+    if (this.value) sections.push(this.value)
     return `${' '.repeat(indent)}FORM(${sections.join(' | ')})`
   }
 
@@ -136,7 +136,6 @@ class BotiumMockForm {
   set options (value) {
     this._options = (value ? value.map((a) => new BotiumMockChoice(a)) : null)
   }
-
 }
 
 class BotiumMockChoice {

@@ -6,7 +6,7 @@ const mime = require('mime-types')
 const url = require('url')
 const _ = require('lodash')
 
-const {BotiumMockMedia} = require('../../../../src/mocks/BotiumMockRichMessageTypes')
+const { BotiumMockMedia } = require('../../../../src/mocks/BotiumMockRichMessageTypes')
 
 module.exports = class MediaInput {
   constructor (context, caps = {}, globalArgs = {}) {
