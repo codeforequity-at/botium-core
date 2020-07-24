@@ -1,6 +1,6 @@
 const util = require('util')
 const async = require('async')
-const debug = require('debug')('botium-AgentWorker')
+const debug = require('debug')('botium-core-AgentWorker')
 
 const BotDriver = require('../../BotDriver')
 const Capabilities = require('../../Capabilities')
@@ -31,9 +31,9 @@ module.exports = class AgentWorker {
     return new Promise((resolve, reject) => {
       if (this.driver || this.container) {
         if (this.socket) {
-          this.socket.emit(Events.CONTAINER_BUILD_ERROR, `build already called`)
+          this.socket.emit(Events.CONTAINER_BUILD_ERROR, 'build already called')
         }
-        return reject(new Error(`build already called`))
+        return reject(new Error('build already called'))
       }
       delete caps[Capabilities.BOTIUMGRIDURL]
       caps[Capabilities.BOTIUMGRIDSLOT] = this.args.slot
@@ -60,7 +60,7 @@ module.exports = class AgentWorker {
 
       this.driver.Build()
         .then((container) => {
-          debug(`Build succeded`)
+          debug('Build succeded')
           this.container = container
           resolve()
         })
@@ -74,18 +74,18 @@ module.exports = class AgentWorker {
   }
 
   Start () {
-    debug(`Start`)
+    debug('Start')
 
     return new Promise((resolve, reject) => {
       if (!this.container) {
         if (this.socket) {
-          this.socket.emit(Events.CONTAINER_START_ERROR, `container not built`)
+          this.socket.emit(Events.CONTAINER_START_ERROR, 'container not built')
         }
-        return reject(new Error(`container not built`))
+        return reject(new Error('container not built'))
       }
       this.container.Start()
         .then(() => {
-          debug(`Start succeded`)
+          debug('Start succeded')
           resolve()
         })
         .catch((err) => {
@@ -94,15 +94,16 @@ module.exports = class AgentWorker {
         })
     })
   }
+
   RunScript (script) {
-    debug(`RunScript`)
+    debug('RunScript')
 
     return new Promise((resolve, reject) => {
       if (!this.container) {
         if (this.socket) {
-          this.socket.emit(Events.CONTAINER_START_ERROR, `container not built`)
+          this.socket.emit(Events.CONTAINER_START_ERROR, 'container not built')
         }
-        return reject(new Error(`container not built`))
+        return reject(new Error('container not built'))
       }
       const compiler = this.driver.BuildCompiler()
       compiler.Compile(script, ScriptingConstants.SCRIPTING_FORMAT_TXT, ScriptingConstants.SCRIPTING_TYPE_CONVO)
@@ -115,19 +116,20 @@ module.exports = class AgentWorker {
       })
     })
   }
+
   UserSays (msg) {
     debug(`UserSays ${util.inspect(msg)}`)
 
     return new Promise((resolve, reject) => {
       if (!this.container) {
         if (this.socket) {
-          this.socket.emit(Events.MESSAGE_SENDTOBOT_ERROR, `container not built`)
+          this.socket.emit(Events.MESSAGE_SENDTOBOT_ERROR, 'container not built')
         }
-        return reject(new Error(`container not built`))
+        return reject(new Error('container not built'))
       }
       this.container.UserSays(msg)
         .then(() => {
-          debug(`UserSays succeded`)
+          debug('UserSays succeded')
           resolve()
         })
         .catch((err) => {
@@ -136,16 +138,17 @@ module.exports = class AgentWorker {
         })
     })
   }
+
   WaitBotSays (channel, timeoutMillis) {
     debug(`BotSays ${channel} ${timeoutMillis}`)
 
     return new Promise((resolve, reject) => {
       if (!this.container) {
-        return reject(new Error(`container not built`))
+        return reject(new Error('container not built'))
       }
       this.container.WaitBotSays(channel, timeoutMillis)
         .then((botMsg) => {
-          debug(`WaitBotSays succeded`)
+          debug('WaitBotSays succeded')
           resolve(botMsg)
         })
         .catch((err) => {
@@ -154,19 +157,20 @@ module.exports = class AgentWorker {
         })
     })
   }
+
   Stop () {
-    debug(`Stop`)
+    debug('Stop')
 
     return new Promise((resolve, reject) => {
       if (!this.container) {
         if (this.socket) {
-          this.socket.emit(Events.CONTAINER_STOP_ERROR, `container not built`)
+          this.socket.emit(Events.CONTAINER_STOP_ERROR, 'container not built')
         }
-        return reject(new Error(`container not built`))
+        return reject(new Error('container not built'))
       }
       this.container.Stop()
         .then(() => {
-          debug(`Stop succeded`)
+          debug('Stop succeded')
           resolve()
         })
         .catch((err) => {
@@ -175,8 +179,9 @@ module.exports = class AgentWorker {
         })
     })
   }
+
   Clean () {
-    debug(`Clean`)
+    debug('Clean')
 
     if (!this.container) return Promise.resolve()
 
@@ -185,7 +190,7 @@ module.exports = class AgentWorker {
         .then(() => {
           this.container = null
           this.driver = null
-          debug(`Clean success`)
+          debug('Clean success')
           resolve()
         })
         .catch((err) => {

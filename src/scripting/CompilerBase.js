@@ -29,11 +29,11 @@ module.exports = class CompilerBase {
   }
 
   Compile (scriptBuffer, scriptType) {
-    throw new Error(`not implemented`)
+    throw new Error('not implemented')
   }
 
   Decompile (convos) {
-    throw new Error(`not implemented`)
+    throw new Error('not implemented')
   }
 
   _AssertCapabilityExists (cap) {

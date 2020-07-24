@@ -1,0 +1,13 @@
+scripting_memory_from_jsonpath
+
+#me
+hello
+
+#bot
+ASSIGN_SCRIPTING_MEMORY cardcontent|$.cards[0].content
+
+#me
+$cardcontent
+
+#bot
+card content

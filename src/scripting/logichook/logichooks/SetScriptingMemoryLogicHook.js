@@ -1,7 +1,7 @@
-const debug = require('debug')('botium-SetScriptingMemoryLogicHook')
-const util = require('util')
+const debug = require('debug')('botium-core-SetScriptingMemoryLogicHook')
 
 const { RESERVED_WORDS } = require('../../ScriptingMemory')
+const { extractParams } = require('../helpers')
 
 module.exports = class SetScriptingMemoryLogicHook {
   constructor (context, caps = {}, globalArgs = {}) {
@@ -13,8 +13,8 @@ module.exports = class SetScriptingMemoryLogicHook {
     }
   }
 
-  onConvoBegin ({ scriptingMemory, convoStep, args, isGlobal }) {
-    return this._setScriptingMemory(scriptingMemory, convoStep, args, isGlobal, 'onConvoBegin')
+  onConvoBegin ({ scriptingMemory, args, isGlobal }) {
+    return this._setScriptingMemory(scriptingMemory, { stepTag: 'onConvoBegin' }, args, isGlobal, 'onConvoBegin')
   }
 
   onMeEnd ({ scriptingMemory, convoStep, args, isGlobal }) {
@@ -26,24 +26,24 @@ module.exports = class SetScriptingMemoryLogicHook {
   }
 
   _setScriptingMemory (scriptingMemory, convoStep, args, isGlobal, type) {
-    if (args && args.length > 2) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: SetScriptingMemoryLogicHook Too much argument ${util.inspect(args)}`))
+    let params = null
+    try {
+      params = extractParams({
+        argNames: ['name', 'value'],
+        isGlobal,
+        globalArgs: this.globalArgs,
+        args
+      })
+    } catch (err) {
+      return Promise.reject(new Error(`${convoStep.stepTag}: SetScriptingMemoryLogicHook ${err.message}`))
     }
-    if (args && args.length > 0 && (RESERVED_WORDS.indexOf('$' + args[0]) >= 0)) {
+    if (RESERVED_WORDS.indexOf('$' + params.name) >= 0) {
       debug(`Reserved word "${args[0]}" used as variable`)
     }
 
-    let name = args[0] || this.globalArgs.name
-    if (!name) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: SetScriptingMemoryLogicHook Name is missing. args: ${util.inspect(args)}, \nglobalArgs: ${util.inspect(this.globalArgs)}`))
-    }
-
-    let value = args[1] || this.globalArgs.value
-    if (!value) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: SetScriptingMemoryLogicHook Value is missing. args: ${util.inspect(args)}, \nglobalArgs: ${util.inspect(this.globalArgs)}`))
-    }
     // args[0] cant have the whole name of the variable, because the variable names are replaced
-    name = '$' + name
+    const name = '$' + params.name
+    const value = params.value
     debug(`Set scripting memory variable "${name}" from "${scriptingMemory[name]}" to "${value}, isGlobal: ${isGlobal}, type: ${type}"`)
     scriptingMemory[name] = value
 

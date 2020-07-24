@@ -4,6 +4,7 @@ const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
 const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
 const { Convo } = require('../../src/scripting/Convo')
+const { normalizeText } = require('../../src/scripting/helper')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 const ScriptingMemory = require('../../src/scripting/ScriptingMemory')
 
@@ -61,19 +62,19 @@ describe('convo.scriptingmemory.convos', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$myvar'])
-    assert.equal(transcript.scriptingMemory['$myvar'], 'VARVALUE')
+    assert.isDefined(transcript.scriptingMemory.$myvar)
+    assert.equal(transcript.scriptingMemory.$myvar, 'VARVALUE')
   })
   it('should fill scripting memory from utterances file', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'utt_memory.convo.txt')
     assert.equal(this.compiler.convos.length, 1)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'utt_memory.utterances.txt')
-    assert.isDefined(this.compiler.utterances['AGE_UTT'])
+    assert.isDefined(this.compiler.utterances.AGE_UTT)
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.equal(transcript.scriptingMemory['$years'], '40')
-    assert.equal(transcript.scriptingMemory['$months'], '2')
+    assert.equal(transcript.scriptingMemory.$years, '40')
+    assert.equal(transcript.scriptingMemory.$months, '2')
   })
   it('should fail on invalid scripting memory', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'memory_fail.convo.txt')
@@ -83,7 +84,7 @@ describe('convo.scriptingmemory.convos', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected convo to fail')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected bot response (on Line 9: #me - show var VARVALUE) "show var VARVALUE" to match one of "show var VARVALUEINVALID"') > 0)
+      assert.isTrue(err.message.indexOf('Bot response (on Line 9: #me - show var VARVALUE) "show var VARVALUE" expected to match "show var VARVALUEINVALID"') > 0)
     }
   })
   it('should normalize bot response', async function () {
@@ -92,8 +93,8 @@ describe('convo.scriptingmemory.convos', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$state'])
-    assert.equal(transcript.scriptingMemory['$state'], 'Kentucky')
+    assert.isDefined(transcript.scriptingMemory.$state)
+    assert.equal(transcript.scriptingMemory.$state, 'Kentucky')
   })
   it('should normalize bot response', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'memory_dont_override_functions.convo.txt')
@@ -101,7 +102,7 @@ describe('convo.scriptingmemory.convos', function () {
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
-    assert.isUndefined(transcript.scriptingMemory['$year'])
+    assert.isUndefined(transcript.scriptingMemory.$year)
   })
   it('should append multiline messages from scripting memory', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'multiline.convo.txt')
@@ -111,8 +112,39 @@ describe('convo.scriptingmemory.convos', function () {
     assert(transcript.steps[0].actual.messageText.split('\n')[1].startsWith('20'))
     assert(transcript.steps[1].actual.messageText.split('\n')[1].startsWith('20'))
     assert.isObject(transcript.scriptingMemory)
-    assert.isDefined(transcript.scriptingMemory['$year_captured'])
-    assert.equal(transcript.scriptingMemory['$year_captured'].length, 4)
+    assert.isDefined(transcript.scriptingMemory.$year_captured)
+    assert.equal(transcript.scriptingMemory.$year_captured.length, 4)
+  })
+})
+
+describe('convo.scriptingMemory.args', function () {
+  it('should apply scripting memory to asserter args', async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'convo.scriptingmemory',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.ASSERTERS]: [
+        {
+          ref: 'CUSTOMASSERTER',
+          src: {
+            assertConvoStep: ({ botMsg, args }) => {
+              assert.lengthOf(args, 2)
+              assert.equal(args[0], 'question1')
+              assert.equal(args[1], 'question2')
+            }
+          }
+        }
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'applyscriptingmemorytoasserterargs.convo.txt')
+    assert.equal(compiler.convos.length, 1)
+
+    const transcript = await compiler.convos[0].Run(container)
+    assert.isObject(transcript.scriptingMemory)
   })
 })
 
@@ -132,6 +164,13 @@ describe('convo.scriptingMemory.api', function () {
           [Capabilities.SCRIPTING_MEMORY_MATCHING_MODE]: 'word'
         }
       }
+      this.containerStubMatchingModeJoker = {
+        caps: {
+          [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+          [Capabilities.SCRIPTING_NORMALIZE_TEXT]: true,
+          [Capabilities.SCRIPTING_MEMORY_MATCHING_MODE]: 'joker'
+        }
+      }
       this.scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await this.scriptingProvider.Build()
       this.scriptingContext = this.scriptingProvider._buildScriptContext()
@@ -145,12 +184,12 @@ describe('convo.scriptingMemory.api', function () {
     it('should fill scripting memory from text', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence 1', 'test sentence $num', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$num'], '1')
+      assert.equal(scriptingMemory.$num, '1')
     })
     it('should not fill scripting memory from invalid text', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence', 'test sentence $num', this.convo.scriptingEvents)
-      assert.isUndefined(scriptingMemory['$num'])
+      assert.isUndefined(scriptingMemory.$num)
     })
     it('should fill scripting memory from one utterance', async function () {
       this.scriptingProvider.AddUtterances({
@@ -160,7 +199,7 @@ describe('convo.scriptingMemory.api', function () {
 
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence 1', 'utt1', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$num'], '1')
+      assert.equal(scriptingMemory.$num, '1')
     })
     it('should fill multiple scripting memory from one utterance', async function () {
       this.scriptingProvider.AddUtterances({
@@ -170,8 +209,8 @@ describe('convo.scriptingMemory.api', function () {
 
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence 1 2', 'utt1', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$num1'], '1')
-      assert.equal(scriptingMemory['$num2'], '2')
+      assert.equal(scriptingMemory.$num1, '1')
+      assert.equal(scriptingMemory.$num2, '2')
     })
     it('should fill scripting memory from two different utterances', async function () {
       this.scriptingProvider.AddUtterances({
@@ -181,8 +220,8 @@ describe('convo.scriptingMemory.api', function () {
 
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'i am 2 months old', 'utt1', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$months'], '2')
-      assert.isUndefined(scriptingMemory['$years'])
+      assert.equal(scriptingMemory.$months, '2')
+      assert.isUndefined(scriptingMemory.$years)
     })
     it('should replace utterances from scripting memory', async function () {
       // $Years instead of $years to avoid collision with $year embedded variable
@@ -203,7 +242,7 @@ describe('convo.scriptingMemory.api', function () {
 
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence 1 end', '.* sentence $num', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$num'], '1')
+      assert.equal(scriptingMemory.$num, '1')
       const tomatch = this.convo._resolveUtterancesToMatch(this.containerStub, scriptingMemory, '.* sentence $num')
       assert.isArray(tomatch)
       assert.equal(tomatch[0], '.* sentence 1')
@@ -217,7 +256,7 @@ describe('convo.scriptingMemory.api', function () {
 
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence 1 end', 'utt1', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$num'], '1')
+      assert.equal(scriptingMemory.$num, '1')
       const tomatch = this.convo._resolveUtterancesToMatch(this.containerStub, scriptingMemory, 'utt1')
       assert.isArray(tomatch)
       assert.equal(tomatch[0], '.* sentence 1')
@@ -225,11 +264,11 @@ describe('convo.scriptingMemory.api', function () {
     it('should accept special regexp characters in utterance when filling scripting memory', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, '*test sentence 1*', '*test sentence $num*', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$num'], '1')
+      assert.equal(scriptingMemory.$num, '1')
 
       const scriptingMemory1 = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory1, 'Hier sind deine Erinnerungen: Notiz: 104 | This is a test reminder', 'Hier sind deine Erinnerungen: Notiz: $id | This is a test reminder', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory1['$id'], '104')
+      assert.equal(scriptingMemory1.$id, '104')
     })
     it('should accept special regexp characters in utterances when filling scripting memory', async function () {
       this.scriptingProvider.AddUtterances({
@@ -238,55 +277,65 @@ describe('convo.scriptingMemory.api', function () {
       })
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, '[\'I am 2 years old.\']', 'utt1', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$years'], '2')
+      assert.equal(scriptingMemory.$years, '2')
     })
     it('should accept newline characters in utterances when filling scripting memory', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence header\n\ntest sentence 1', 'test sentence header\n\ntest sentence $num', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$num'], '1')
+      assert.equal(scriptingMemory.$num, '1')
     })
     it('should accept variable name case sensitive', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence 1', 'test sentence $Num', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$num'], undefined)
-      assert.equal(scriptingMemory['$Num'], '1')
+      assert.equal(scriptingMemory.$num, undefined)
+      assert.equal(scriptingMemory.$Num, '1')
     })
     it('should accept variable name as postfix', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence a1', 'test sentence a$Num', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$num'], undefined)
-      assert.equal(scriptingMemory['$Num'], '1')
+      assert.equal(scriptingMemory.$num, undefined)
+      assert.equal(scriptingMemory.$Num, '1')
     })
     it('should not change scripting memory functions', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'test sentence a1', 'test sentence a$now', this.convo.scriptingEvents)
-      assert.notEqual(scriptingMemory['$now'], '1')
+      assert.notEqual(scriptingMemory.$now, '1')
     })
     it('should match normalized response', async function () {
       let result = "<speak>Kentucky is the 15th state, admitted to the Union in 1792. The capital of Kentucky is Frankfort, and the abbreviation for Kentucky is <break strength='strong'/><say-as interpret-as='spell-out'>KY</say-as>. I've added Kentucky to your Alexa app. Which other state or capital would you like to know about?</speak>"
-      let expected = "$state is the 15th state, admitted to the Union in 1792. The capital of Kentucky is Frankfort, and the abbreviation for Kentucky is KY. I've added Kentucky to your Alexa app. Which other state or capital would you like to know about?"
+      const expected = "$state is the 15th state, admitted to the Union in 1792. The capital of Kentucky is Frankfort, and the abbreviation for Kentucky is KY. I've added Kentucky to your Alexa app. Which other state or capital would you like to know about?"
 
-      result = this.convo._checkNormalizeText(this.containerStub, result)
+      result = normalizeText(result, true)
 
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, result, expected, this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$state'], 'Kentucky')
+      assert.equal(scriptingMemory.$state, 'Kentucky')
     })
     it('should match not-whitespace (SCRIPTING_MEMORY_MATCHING_MODE == non_whitespace, default)', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'date: 28.01.2019', 'date: $somedate', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$somedate'], '28.01.2019')
+      assert.equal(scriptingMemory.$somedate, '28.01.2019')
     })
     it('should match not-whitespace (SCRIPTING_MEMORY_MATCHING_MODE == word)', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStubMatchingModeWord, scriptingMemory, 'my name is joe.', 'my name is $name', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$name'], 'joe')
+      assert.equal(scriptingMemory.$name, 'joe')
+    })
+    it('should match multi lines (SCRIPTING_MEMORY_MATCHING_MODE == joker)', async function () {
+      const scriptingMemory = {}
+      ScriptingMemory.fill(this.containerStubMatchingModeJoker, scriptingMemory, 'test sentence \nline1\r\nline2', 'test sentence $lines', this.convo.scriptingEvents)
+      assert.equal(scriptingMemory.$lines, '\nline1\r\nline2')
+    })
+    it('should match multi words (SCRIPTING_MEMORY_MATCHING_MODE == joker)', async function () {
+      const scriptingMemory = {}
+      ScriptingMemory.fill(this.containerStubMatchingModeJoker, scriptingMemory, 'test sentence match1 match2', 'test sentence $words', this.convo.scriptingEvents)
+      assert.equal(scriptingMemory.$words, 'match1 match2')
     })
     // this is not an expectation, nothing depends on this behaviour
     it('should match $', async function () {
       const scriptingMemory = {}
       ScriptingMemory.fill(this.containerStub, scriptingMemory, 'text: textwith$', 'text: $sometext', this.convo.scriptingEvents)
-      assert.equal(scriptingMemory['$sometext'], 'textwith$')
+      assert.equal(scriptingMemory.$sometext, 'textwith$')
     })
   })
 
@@ -294,7 +343,7 @@ describe('convo.scriptingMemory.api', function () {
     it('should apply on exact match', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { '$num': 1 },
+        { $num: 1 },
         'test sentence $num'
       )
       assert.equal(result, 'test sentence 1')
@@ -303,7 +352,7 @@ describe('convo.scriptingMemory.api', function () {
     it('should apply on prefix match', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { '$num': 1 },
+        { $num: 1 },
         'test sentence $numPc'
       )
       assert.equal(result, 'test sentence 1Pc')
@@ -312,7 +361,7 @@ describe('convo.scriptingMemory.api', function () {
     it('should apply on postfix match', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { '$num': 1 },
+        { $num: 1 },
         'test sentence Number$num'
       )
       assert.equal(result, 'test sentence Number1')
@@ -321,7 +370,7 @@ describe('convo.scriptingMemory.api', function () {
     it('should apply on middle match', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { '$num': 1 },
+        { $num: 1 },
         'test sentence Number$numPc'
       )
       assert.equal(result, 'test sentence Number1Pc')
@@ -330,7 +379,7 @@ describe('convo.scriptingMemory.api', function () {
     it('should not apply if name is wrong', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { '$um': 1 },
+        { $um: 1 },
         'test sentence $num'
       )
       assert.equal(result, 'test sentence $num')
@@ -339,7 +388,7 @@ describe('convo.scriptingMemory.api', function () {
     it('should not be confused on overlapping names 1', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { '$num': '1', '$number': '2' },
+        { $num: '1', $number: '2' },
         'test sentence $num $number'
       )
       assert.equal(result, 'test sentence 1 2')
@@ -348,7 +397,7 @@ describe('convo.scriptingMemory.api', function () {
     it('should not be confused on overlapping names 2', async function () {
       const result = ScriptingMemory.apply(
         { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
-        { '$number': '2', '$num': '1' },
+        { $number: '2', $num: '1' },
         'test sentence $num $number'
       )
       assert.equal(result, 'test sentence 1 2')
@@ -368,101 +417,101 @@ describe('convo.scriptingMemory.api', function () {
 
   describe('convo.scriptingMemory.api.applyToArgs', function () {
     it('exchange var with real value', async function () {
-      let asserter = {
-        'name': 'DUMMY',
-        'args': [
+      const asserter = {
+        name: 'DUMMY',
+        args: [
           'dbUrl',
           '$count',
           'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
         ]
       }
-      let scriptingMemory = {
-        '$count': '5'
+      const scriptingMemory = {
+        $count: '5'
       }
       assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
     })
     it('typo of reference', async function () {
-      let asserter = {
-        'name': 'DUMMY',
-        'args': [
+      const asserter = {
+        name: 'DUMMY',
+        args: [
           'dbUrl',
           '$ount',
           'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
         ]
       }
-      let scriptingMemory = {
-        '$count': '5'
+      const scriptingMemory = {
+        $count: '5'
       }
       assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
     })
     it('as postfix', async function () {
-      let asserter = {
-        'name': 'DUMMY',
-        'args': [
+      const asserter = {
+        name: 'DUMMY',
+        args: [
           'dbUrl',
           'prefix$count',
           'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
         ]
       }
-      let scriptingMemory = {
-        '$count': '5'
+      const scriptingMemory = {
+        $count: '5'
       }
       assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 'prefix5')
     })
     it('as prefix', async function () {
-      let asserter = {
-        'name': 'DUMMY',
-        'args': [
+      const asserter = {
+        name: 'DUMMY',
+        args: [
           'dbUrl',
           '$counter',
           'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
         ]
       }
-      let scriptingMemory = {
-        '$count': '5'
+      const scriptingMemory = {
+        $count: '5'
       }
       assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], '5er')
     })
     it('different value', async function () {
-      let asserter = {
-        'name': 'DUMMY',
-        'args': [
+      const asserter = {
+        name: 'DUMMY',
+        args: [
           'dbUrl',
           '$count',
           'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
         ]
       }
-      let scriptingMemory = {
-        '$count': '4'
+      const scriptingMemory = {
+        $count: '4'
       }
       assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
     })
 
     it('different value', async function () {
-      let asserter = {
-        'name': 'DUMMY',
-        'args': [
+      const asserter = {
+        name: 'DUMMY',
+        args: [
           'dbUrl',
           '$count',
           'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
         ]
       }
-      let scriptingMemory = {
-        '$count': '4'
+      const scriptingMemory = {
+        $count: '4'
       }
       assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
     })
 
     it('scripting memory functions', async function () {
-      let asserter = {
-        'name': 'DUMMY',
-        'args': [
+      const asserter = {
+        name: 'DUMMY',
+        args: [
           'dbUrl',
           '$year',
           'INSERT INTO dummy(name, birthday) VALUES (\'Max Mustermann\', 1991-03-26);'
         ]
       }
-      let scriptingMemory = {}
+      const scriptingMemory = {}
 
       const year = ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1]
       assert(year >= 2019 && year <= 2219, '$year invalid')
@@ -504,7 +553,7 @@ describe('convo.scriptingMemory.api', function () {
         { },
         '$now_DE'
       )
-      assert(result.indexOf('-') === 4)
+      assert(result.indexOf('.') === 2)
       assert(result.lastIndexOf(':') > 10)
     })
     it('now_ISO', async function () {
@@ -551,8 +600,8 @@ describe('convo.scriptingMemory.api', function () {
         '$date_DE'
       )
       assert(result.length <= 10, 'wrong format')
-      assert(result.indexOf('-') === 4, 'wrong format')
-      assert(result.lastIndexOf('-') > 5, 'wrong format')
+      assert(result.indexOf('.') === 4, 'wrong format')
+      assert(result.lastIndexOf('.') === 7, 'wrong format')
     })
     it('date_ISO', async function () {
       const result = ScriptingMemory.apply(
@@ -712,6 +761,35 @@ describe('convo.scriptingMemory.api', function () {
       )
 
       assert(result === '15', 'func invalid')
+    })
+    it('func invalid code', async function () {
+      try {
+        ScriptingMemory.apply(
+          { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+          { },
+          '$func(hugo123)'
+        )
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('func function execution failed') >= 0)
+      }
+    })
+    it('func full code', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$func(require("os"\\).hostname(\\);)'
+      )
+      assert.isNotNull(result)
+    })
+    it('func environment variable', async function () {
+      process.env.MY_VAR_VALUE = 'botium'
+      const result = ScriptingMemory.apply(
+        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { },
+        '$func(process.env.MY_VAR_VALUE)'
+      )
+      assert.isNotNull(result)
     })
   })
 })

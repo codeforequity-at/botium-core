@@ -24,11 +24,11 @@ describe('convo.retries', function () {
       const myCaps = {
         [Capabilities.PROJECTNAME]: 'convo.retry',
         [Capabilities.CONTAINERMODE]: echoConnector(numErrors, errorText),
-        [Capabilities.RETRY_USERSAYS_ONERROR_REGEXP]: errorPatterns,
-        [Capabilities.RETRY_USERSAYS_MINTIMEOUT]: 10
+        RETRY_USERSAYS_ONERROR_REGEXP: errorPatterns,
+        RETRY_USERSAYS_MINTIMEOUT: 10
       }
       if (!isNaN(numRetries)) {
-        myCaps[Capabilities.RETRY_USERSAYS_NUMRETRIES] = numRetries
+        myCaps.RETRY_USERSAYS_NUMRETRIES = numRetries
       }
       this.driver = new BotDriver(myCaps)
       this.compiler = this.driver.BuildCompiler()

@@ -1,0 +1,7 @@
+convos:
+  - name: text_contains_all_ok_base
+    steps:
+      - me:
+          - word1 word2
+      - bot:
+          - TEXT_CONTAINS_ALL word2

@@ -2,7 +2,7 @@ const util = require('util')
 const async = require('async')
 const _ = require('lodash')
 const io = require('socket.io-client')
-const debug = require('debug')('botium-GridContainer')
+const debug = require('debug')('botium-connector-GridContainer')
 
 const Commands = require('../Commands')
 const Events = require('../Events')
@@ -150,7 +150,7 @@ module.exports = class GridContainer extends BaseContainer {
     })
   }
 
-  UserSays (mockMsg) {
+  UserSaysImpl (mockMsg) {
     return new Promise((resolve, reject) => {
       if (this.socket) {
         this.socket.emit(Commands.SENDTOBOT, mockMsg)

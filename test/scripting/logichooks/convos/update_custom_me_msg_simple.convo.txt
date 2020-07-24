@@ -1,0 +1,9 @@
+update_context_me_msg
+updating the me-message.
+
+#me
+HI
+UPDATE_CUSTOM simpleField|new message 1
+
+#bot
+new message

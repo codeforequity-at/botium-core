@@ -1,9 +1,9 @@
 module.exports = class ButtonInput {
   setUserInput ({ convoStep, args, meMsg }) {
-    if (!args || args.length === 0 || args.length > 1) {
-      return Promise.reject(new Error(`${convoStep.stepTag}: ButtonInput requires exactly 1 argument`))
+    if (!args || args.length === 0 || args.length > 2) {
+      return Promise.reject(new Error(`${convoStep.stepTag}: ButtonInput requires 1 or 2 arguments`))
     }
-    meMsg.buttons = [{ text: args[0], payload: args[0] }]
+    meMsg.buttons = [{ payload: args[0], text: args.length === 2 ? args[1] : null }]
     meMsg.messageText = args[0]
     return Promise.resolve()
   }

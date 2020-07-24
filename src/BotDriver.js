@@ -2,14 +2,15 @@ const util = require('util')
 const fs = require('fs')
 const path = require('path')
 const async = require('async')
+const rimraf = require('rimraf')
 const mkdirp = require('mkdirp')
-const slugify = require('slugify')
+const sanitize = require('sanitize-filename')
 const moment = require('moment')
 const randomize = require('randomatic')
 const _ = require('lodash')
-const boolean = require('boolean')
+const { boolean } = require('boolean')
 const EventEmitter = require('events')
-const debug = require('debug')('botium-BotDriver')
+const debug = require('debug')('botium-core-BotDriver')
 
 const { version } = require('../package.json')
 
@@ -28,19 +29,26 @@ module.exports = class BotDriver {
     this.sources = _.cloneDeep(Defaults.Sources)
     this.envs = _.cloneDeep(Defaults.Envs)
 
-    this._fetchConfigFromFiles(['./botium.json', './botium.local.json'])
+    this._fetchConfigFromFiles([
+      './botium.json', process.env.NODE_ENV && `./botium.${process.env.NODE_ENV}.json`,
+      './botium.local.json', process.env.NODE_ENV && `./botium.${process.env.NODE_ENV}.local.json`])
 
-    let botiumConfigEnv = process.env['BOTIUM_CONFIG']
+    const botiumConfigEnv = process.env.BOTIUM_CONFIG
     if (botiumConfigEnv) {
-      if (!this._fetchConfigFromFiles([botiumConfigEnv])) {
+      const checkDir = path.dirname(botiumConfigEnv)
+      const checkFileBase = path.basename(botiumConfigEnv, '.json')
+      if (!this._fetchConfigFromFiles([
+        botiumConfigEnv, process.env.NODE_ENV && path.join(checkDir, `${checkFileBase}.${process.env.NODE_ENV}.json`),
+        path.join(checkDir, `${checkFileBase}.local.json`), process.env.NODE_ENV && path.join(checkDir, `${checkFileBase}.${process.env.NODE_ENV}.local.json`)
+      ])) {
         throw new Error(`FAILED: Botium configuration file ${botiumConfigEnv} not available`)
       }
     }
 
-    let sourcesToTest = Object.keys(Source)
+    const sourcesToTest = Object.keys(Source)
 
     Object.keys(process.env).filter(e => e.startsWith('BOTIUM_')).forEach((element) => {
-      let elementToTest = element.replace(/^BOTIUM_/, '')
+      const elementToTest = element.replace(/^BOTIUM_/, '')
       if (sourcesToTest.includes(elementToTest)) {
         this._mergeCaps(this.sources, { [elementToTest]: process.env[element] })
         debug('Changed source ' + elementToTest + ' to "' + this.sources[elementToTest] + '" using environment variables.')
@@ -49,7 +57,7 @@ module.exports = class BotDriver {
         debug('Changed capability ' + elementToTest + ' to "' + this.caps[elementToTest] + '" using environment variables.')
       }
       if (element.startsWith('BOTIUM_ENV_')) {
-        let envName = element.replace(/^BOTIUM_ENV_/, '')
+        const envName = element.replace(/^BOTIUM_ENV_/, '')
         this.envs[envName] = process.env[element]
         debug('Changed env ' + envName + ' to "' + process.env[element] + '" using environment variables.')
       }
@@ -149,6 +157,11 @@ module.exports = class BotDriver {
         if (err) {
           debug(`BotDriver Build error: ${err}`)
           this.eventEmitter.emit(Events.CONTAINER_BUILD_ERROR, err)
+          if (this.tempDirectory) {
+            rimraf(this.tempDirectory, (err) => {
+              if (err) debug(`Cleanup temp dir ${this.tempDirectory} failed: ${util.inspect(err)}`)
+            })
+          }
           return reject(err)
         }
         this.eventEmitter.emit(Events.CONTAINER_BUILT, container)
@@ -160,7 +173,7 @@ module.exports = class BotDriver {
   BuildCompiler () {
     debug(`BuildCompiler: Capabilites: ${util.inspect(this.caps)}`)
     try {
-      let compiler = new ScriptingProvider(this.caps)
+      const compiler = new ScriptingProvider(this.caps)
       compiler.Build()
       return compiler
     } catch (err) {
@@ -174,7 +187,7 @@ module.exports = class BotDriver {
   // loadConfig from files
   _loadConfigFile (filename) {
     try {
-      let configJson = JSON.parse(fs.readFileSync(filename))
+      const configJson = JSON.parse(fs.readFileSync(filename))
       if (configJson.botium) {
         if (configJson.botium.Capabilities) this._mergeCaps(this.caps, configJson.botium.Capabilities)
         if (configJson.botium.Sources) this._mergeCaps(this.sources, configJson.botium.Sources)
@@ -193,7 +206,7 @@ module.exports = class BotDriver {
   // fetches config from files ordered by priority later files overwrite previous
   _fetchConfigFromFiles (files) {
     return files
-      .filter(file => fs.existsSync(file))
+      .filter(file => file && fs.existsSync(file))
       .map(file => {
         this._loadConfigFile(file)
         return file
@@ -202,15 +215,15 @@ module.exports = class BotDriver {
 
   _findKeyProperty (obj) {
     const lookup = ['id', 'ID', 'Id', 'ref', 'REF', 'Ref', 'name', 'NAME', 'Name']
-    for (let checkPropIdx in lookup) {
-      if (obj.hasOwnProperty(lookup[checkPropIdx])) return lookup[checkPropIdx]
+    for (const checkPropIdx in lookup) {
+      if (Object.prototype.hasOwnProperty.call(obj, lookup[checkPropIdx])) return lookup[checkPropIdx]
     }
   }
 
   _mergeCaps (caps, newCaps) {
     if (!caps) return
     Object.keys(newCaps).forEach(capKey => {
-      if (!caps.hasOwnProperty(capKey)) {
+      if (!Object.prototype.hasOwnProperty.call(caps, capKey)) {
         if (_.isString(newCaps[capKey])) {
           try {
             caps[capKey] = JSON.parse(newCaps[capKey])
@@ -275,31 +288,27 @@ module.exports = class BotDriver {
 
   _validate () {
     return new Promise((resolve, reject) => {
-      if (!this.caps[Capabilities.PROJECTNAME]) {
-        throw new Error(`Capability property ${Capabilities.PROJECTNAME} not set`)
-      }
-      if (!this.caps[Capabilities.TEMPDIR]) {
-        throw new Error(`Capability property ${Capabilities.TEMPDIR} not set`)
-      }
-
-      async.series([
-        (tempdirCreated) => {
-          this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], slugify(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
-
-          mkdirp(this.tempDirectory, (err) => {
-            if (err) {
-              return tempdirCreated(new Error(`Unable to create temp directory ${this.tempDirectory}: ${err}`))
-            }
-            tempdirCreated()
-          })
+      try {
+        if (!this.caps[Capabilities.PROJECTNAME]) {
+          throw new Error(`Capability property ${Capabilities.PROJECTNAME} not set`)
+        }
+        if (!this.caps[Capabilities.TEMPDIR]) {
+          throw new Error(`Capability property ${Capabilities.TEMPDIR} not set`)
+        }
+        if (!this.caps[Capabilities.CONTAINERMODE] && !this.caps[Capabilities.BOTIUMGRIDURL]) {
+          throw new Error(`Capability '${Capabilities.CONTAINERMODE}' or '${Capabilities.BOTIUMGRIDURL}' missing`)
         }
 
-      ], (err) => {
-        if (err) {
-          return reject(err)
+        this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], sanitize(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
+        try {
+          mkdirp.sync(this.tempDirectory)
+        } catch (err) {
+          throw new Error(`Unable to create temp directory ${this.tempDirectory}: ${err}`)
         }
         resolve(this)
-      })
+      } catch (err) {
+        reject(err)
+      }
     })
   }
 
@@ -330,14 +339,6 @@ module.exports = class BotDriver {
     if (this.caps[Capabilities.CONTAINERMODE] === 'docker') {
       const DockerContainer = require('./containers/DockerContainer')
       return new DockerContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
-    }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'fbdirect') {
-      const FbContainer = require('./containers/FbContainer')
-      return new FbContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
-    }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'webspeech') {
-      const WebSpeechContainer = require('./containers/WebSpeechContainer')
-      return new WebSpeechContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
     }
     if (this.caps[Capabilities.CONTAINERMODE] === 'inprocess') {
       const InProcessContainer = require('./containers/InProcessContainer')

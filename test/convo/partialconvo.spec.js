@@ -65,7 +65,7 @@ describe('convo.partialconvo.usecases', function () {
       'You are logged in!',
       'Are you sure?',
       'You are logged out!'
-    ], 'convos/partialconvo/excel', this)
+    ], 'convos/partialconvo/excel/convo', this)
 
     assert.equal(this.compiler.convos.length, 1)
     assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
@@ -101,29 +101,23 @@ describe('convo.partialconvo.usecases', function () {
     assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
 
     const transcript = await this.compiler.convos[0].Run(this.container)
-    assert.lengthOf(transcript.steps, 10)
+    assert.lengthOf(transcript.steps, 8)
     assert.equal(transcript.steps[0].actual.sender, 'me')
     assert.equal(transcript.steps[0].actual.messageText, 'Login please')
-    // placeholder for include
-    assert.equal(transcript.steps[1].actual.sender, 'me')
-    assert.equal(transcript.steps[1].actual.messageText, '')
-    assert.equal(transcript.steps[2].actual.sender, 'bot')
-    assert.equal(transcript.steps[2].actual.messageText, 'Password please!')
-    assert.equal(transcript.steps[3].actual.sender, 'me')
-    assert.equal(transcript.steps[3].actual.messageText, '123456')
-    assert.equal(transcript.steps[4].actual.sender, 'bot')
-    assert.equal(transcript.steps[4].actual.messageText, 'You are logged in!')
-    assert.equal(transcript.steps[5].actual.sender, 'me')
-    assert.equal(transcript.steps[5].actual.messageText, 'Logout please!')
-    // placeholder for include
+    assert.equal(transcript.steps[1].actual.sender, 'bot')
+    assert.equal(transcript.steps[1].actual.messageText, 'Password please!')
+    assert.equal(transcript.steps[2].actual.sender, 'me')
+    assert.equal(transcript.steps[2].actual.messageText, '123456')
+    assert.equal(transcript.steps[3].actual.sender, 'bot')
+    assert.equal(transcript.steps[3].actual.messageText, 'You are logged in!')
+    assert.equal(transcript.steps[4].actual.sender, 'me')
+    assert.equal(transcript.steps[4].actual.messageText, 'Logout please!')
+    assert.equal(transcript.steps[5].actual.sender, 'bot')
+    assert.equal(transcript.steps[5].actual.messageText, 'Are you sure?')
     assert.equal(transcript.steps[6].actual.sender, 'me')
-    assert.equal(transcript.steps[6].actual.messageText, '')
+    assert.equal(transcript.steps[6].actual.messageText, 'Yes')
     assert.equal(transcript.steps[7].actual.sender, 'bot')
-    assert.equal(transcript.steps[7].actual.messageText, 'Are you sure?')
-    assert.equal(transcript.steps[8].actual.sender, 'me')
-    assert.equal(transcript.steps[8].actual.messageText, 'Yes')
-    assert.equal(transcript.steps[9].actual.sender, 'bot')
-    assert.equal(transcript.steps[9].actual.messageText, 'You are logged out!')
+    assert.equal(transcript.steps[7].actual.messageText, 'You are logged out!')
   })
   it('Wrong botsays in main convo', async function () {
     await _initIt([
@@ -132,7 +126,7 @@ describe('convo.partialconvo.usecases', function () {
       'Are you sure?',
       'You are logged out!'
     ], 'convos/partialconvo/depth1', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Main/Line 10: Expected bot response (on Login/Line 8: #me - 123456) "You are logged in ERROR!" to match one of "You are logged in!"')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Main/Line 10: Bot response (on Login/Line 8: #me - 123456) "You are logged in ERROR!" expected to match "You are logged in!"')
   })
 
   it('Wrong botsays in partial convo', async function () {
@@ -142,7 +136,7 @@ describe('convo.partialconvo.usecases', function () {
       'Are you sure ERROR?',
       'You are logged out!'
     ], 'convos/partialconvo/depth1', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Main/Logout/Line 5: Expected bot response (on Line 13: #me - Logout please! INCLUDE(Logout)) "Are you sure ERROR?" to match one of "Are you sure?"')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Main/Logout/Line 5: Bot response (on Line 13: #me - Logout please! INCLUDE(Logout)) "Are you sure ERROR?" expected to match "Are you sure?"')
   })
 
   it('Depth is 2', async function () {
@@ -187,6 +181,65 @@ describe('convo.partialconvo.usecases', function () {
     return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
   })
 
+  it('has empty #me convo step in Excel', async function () {
+    await _initIt([
+      'Password please!',
+      'You are logged in!',
+      'Are you sure?',
+      'You are logged out!'
+    ], 'convos/partialconvo/excel/emptystep', this)
+
+    assert.equal(this.compiler.convos.length, 2)
+    assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.lengthOf(transcript.steps, 8)
+    assert.equal(transcript.steps[0].actual.sender, 'me')
+    assert.equal(transcript.steps[0].actual.messageText, 'Login please')
+    assert.equal(transcript.steps[1].actual.sender, 'bot')
+    assert.equal(transcript.steps[1].actual.messageText, 'Password please!')
+    assert.equal(transcript.steps[2].actual.sender, 'me')
+    assert.equal(transcript.steps[2].actual.messageText, '123456')
+    assert.equal(transcript.steps[3].actual.sender, 'bot')
+    assert.equal(transcript.steps[3].actual.messageText, 'You are logged in!')
+    assert.equal(transcript.steps[4].actual.sender, 'me')
+    assert.equal(transcript.steps[4].actual.messageText, 'Logout please!')
+    assert.equal(transcript.steps[5].actual.sender, 'bot')
+    assert.equal(transcript.steps[5].actual.messageText, 'Are you sure?')
+    assert.equal(transcript.steps[6].actual.sender, 'me')
+    assert.equal(transcript.steps[6].actual.messageText, 'Yes')
+    assert.equal(transcript.steps[7].actual.sender, 'bot')
+    assert.equal(transcript.steps[7].actual.messageText, 'You are logged out!')
+  })
+
+  it('has empty #bot convo step in Excel', async function () {
+    await _initIt([
+      'Password please!',
+      'You are logged in!',
+      'Are you sure?',
+      'You are logged out!'
+    ], 'convos/partialconvo/excel/emptystep', this)
+
+    assert.equal(this.compiler.convos.length, 2)
+    assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
+
+    const transcript = await this.compiler.convos[1].Run(this.container)
+    assert.lengthOf(transcript.steps, 8)
+  })
+
+  it('has bot text in convo step in Excel', async function () {
+    await _initIt([
+      'Password please!',
+      'You are logged in!'
+    ], 'convos/partialconvo/excel/bottext', this)
+
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(Object.keys(this.compiler.partialConvos).length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.lengthOf(transcript.steps, 4)
+  })
+
   afterEach(async function () {
     this.container && await this.container.Clean()
   })
@@ -195,16 +248,21 @@ describe('convo.partialconvo.usecases', function () {
 describe('convo.partialconvo.wrongconvos', function () {
   it('Circular', async function () {
     await _initIt([], 'convos/partialconvo/circular', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Partial convos are included circular. "first" is referenced by "/" and by "/first/second"')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Partial convos are included circular. "first" is referenced by "/" and by "/first/second"')
   })
 
   it('Partial convo without name', async function () {
-    return assert.isRejected(_initIt([], 'convos/partialconvo/noname', this), 'Invalid convo header: undefined undefined')
+    return assert.isRejected(_initIt([], 'convos/partialconvo/noname', this), 'Header name is mandatory: {"name":""}')
   })
 
   it('Partial convo not found', async function () {
     await _initIt([], 'convos/partialconvo/notfound', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Cant find partial convo with name notexists')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Cant find partial convo with name notexists (There are no partial convos)')
+  })
+
+  it('Partial convo wrong ref', async function () {
+    await _initIt([], 'convos/partialconvo/wrongref', this)
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Cant find partial convo with name wrongref (available partial convos: exists)')
   })
 
   it('Partial convo name duplicated', async function () {
@@ -213,7 +271,7 @@ describe('convo.partialconvo.wrongconvos', function () {
 
   it('Wrong arguments', async function () {
     await _initIt([], 'convos/partialconvo/wrongarg', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Error: Wrong argument for include logic hook!')
+    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Wrong argument for include logic hook!')
   })
 
   it('Illegal partial convo name', async function () {
@@ -266,7 +324,7 @@ You are logged out!
       'You are logged in!',
       'Are you sure?',
       'You are logged out!'
-    ], 'convos/partialconvo/excel', this)
+    ], 'convos/partialconvo/excel/convo', this)
 
     assert.equal(this.compiler.convos.length, 1)
     assert.equal(Object.keys(this.compiler.partialConvos).length, 2)

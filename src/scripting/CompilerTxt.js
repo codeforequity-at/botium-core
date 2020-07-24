@@ -5,7 +5,7 @@ const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
 const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
-const { linesToConvoStep } = require('./helper')
+const { linesToConvoStep, flatString } = require('./helper')
 
 module.exports = class CompilerTxt extends CompilerBase {
   constructor (context, caps = {}) {
@@ -23,9 +23,9 @@ module.exports = class CompilerTxt extends CompilerBase {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
-    let lines = scriptData.split(this.eol)
+    const lines = scriptData.split(this.eol)
 
-    let header = { }
+    const header = { }
 
     if (lines && !lines[0].startsWith('#')) {
       header.name = lines[0]
@@ -37,7 +37,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
-    let lines = _.map(scriptData.split(this.eol), (line) => line.trim())
+    const lines = _.map(scriptData.split(this.eol), (line) => line.trim())
 
     if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
       return this._compileConvo(lines, false)
@@ -53,7 +53,7 @@ module.exports = class CompilerTxt extends CompilerBase {
   }
 
   _compileConvo (lines, isPartial = false) {
-    let convo = {
+    const convo = {
       header: {},
       conversation: []
     }
@@ -69,7 +69,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       return linesToConvoStep(lines, convoStepSender, this.context, this.eol)
     }
 
-    let pushPrev = () => {
+    const pushPrev = () => {
       if (convoStepSender && currentLines) {
         const convoStep = {
           sender: convoStepSender,
@@ -100,13 +100,13 @@ module.exports = class CompilerTxt extends CompilerBase {
           convoStepSender = convoStepSender.substr(0, convoStepSender.indexOf(' ')).trim()
         }
         currentLines = []
-      } else if (currentLines.length > 0 || (line && line.length > 0)) {
+      } else {
         currentLines.push(line)
       }
     })
     pushPrev()
 
-    let result = [ new Convo(this.context, convo) ]
+    const result = [new Convo(this.context, convo)]
     if (isPartial) {
       this.context.AddPartialConvos(result)
     } else {
@@ -116,8 +116,8 @@ module.exports = class CompilerTxt extends CompilerBase {
   }
 
   _compileUtterances (lines) {
-    if (lines && lines.length > 1) {
-      let result = [ new Utterance({ name: lines[0], utterances: lines.slice(1) }) ]
+    if (lines && lines.length > 0) {
+      const result = [new Utterance({ name: lines[0], utterances: lines.length > 1 ? lines.slice(1) : [] })]
       this.context.AddUtterances(result)
       return result
     }
@@ -128,6 +128,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       const names = lines[0].split('|').map((name) => name.trim()).slice(1)
       const scriptingMemories = []
       for (let row = 1; row < lines.length; row++) {
+        if (!lines[row] || lines[row].length === 0) continue
         const rawRow = lines[row].split('|').map((name) => name.trim())
         const caseName = rawRow[0]
         const values = rawRow.slice(1)
@@ -163,19 +164,33 @@ module.exports = class CompilerTxt extends CompilerBase {
       script += this.eol
 
       script += '#' + set.sender
-      if (set.channel) {
+      if (set.channel && set.channel !== 'default') {
         script += ' ' + set.channel
       }
       script += this.eol
 
       if (set.sender === 'me') {
+        set.forms && set.forms.filter(form => form.value).map((form) => {
+          script += `FORM ${form.name}|${form.value}${this.eol}`
+        })
         if (set.buttons && set.buttons.length > 0) {
-          script += 'BUTTON ' + (set.buttons[0].payload || set.buttons[0].text) + this.eol
+          if (set.buttons[0].payload) {
+            script += `BUTTON ${set.buttons[0].payload}`
+            if (set.buttons[0].text) {
+              script += `|${set.buttons[0].text}`
+            }
+          } else {
+            script += `BUTTON ${set.buttons[0].text}`
+          }
+          script += this.eol
         } else if (set.media && set.media.length > 0) {
           script += 'MEDIA ' + set.media[0].mediaUri + this.eol
-        } else {
+        } else if (set.messageText) {
           script += set.messageText + this.eol
         }
+        set.userInputs && set.userInputs.map((userInput) => {
+          script += userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : '') + this.eol
+        })
         set.logicHooks && set.logicHooks.map((logicHook) => {
           script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
         })
@@ -186,15 +201,24 @@ module.exports = class CompilerTxt extends CompilerBase {
           }
           script += set.messageText + this.eol
         }
-        if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + this.eol
+        if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => flatString(b.text)).join('|') + this.eol
         if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
         if (set.cards && set.cards.length > 0) {
           set.cards.forEach(c => {
+            let cardTexts = []
+            if (c.text) cardTexts = cardTexts.concat(_.isArray(c.text) ? c.text : [c.text])
+            if (c.subtext) cardTexts = cardTexts.concat(_.isArray(c.subtext) ? c.subtext : [c.subtext])
+            if (c.content) cardTexts = cardTexts.concat(_.isArray(c.content) ? c.content : [c.content])
+            if (cardTexts.length > 0) script += 'CARDS ' + cardTexts.map(c => flatString(c)).join('|') + this.eol
+
             if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
             if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
           })
         }
         set.asserters && set.asserters.map((asserter) => {
+          if (asserter.not) {
+            script += '!'
+          }
           script += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + this.eol
         })
         set.logicHooks && set.logicHooks.map((logicHook) => {

@@ -1,0 +1,7 @@
+convos:
+  - name: text_wildcard_any_ok
+    steps:
+      - me:
+          - Im Joe, my number is 12345, and my ID is id1_123
+      - bot:
+          - TEXT_WILDCARD_ANY id1_*3|id2_*3

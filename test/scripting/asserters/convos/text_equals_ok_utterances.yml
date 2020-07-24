@@ -1,0 +1,11 @@
+convos:
+  - name: text_equals_ok_utterances
+    steps:
+      - me:
+          - Im Joe
+      - bot:
+          - TEXT_EQUALS GREETING_SENTENCES
+utterances:
+  GREETING_SENTENCES:
+    - Im Joe
+    - Im George

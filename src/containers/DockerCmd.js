@@ -18,7 +18,7 @@ module.exports = class DockerCmd {
   }
 
   setupContainer () {
-    let _this = this
+    const _this = this
     return new Promise((resolve, reject) => {
       async.series([
         (stopDone) => {
@@ -28,7 +28,7 @@ module.exports = class DockerCmd {
           _this.teardownContainer(true).then(() => teardownDone()).catch(() => teardownDone())
         },
         (buildContainerDone) => {
-          let cmdOptions = _this._dockerComposeCmdOptions()
+          const cmdOptions = _this._dockerComposeCmdOptions()
           cmdOptions.push('build')
 
           _this._dockerComposeRun(cmdOptions, false).then(() => buildContainerDone()).catch(buildContainerDone)

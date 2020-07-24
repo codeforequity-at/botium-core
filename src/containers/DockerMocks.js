@@ -7,7 +7,7 @@ const request = require('request')
 const io = require('socket.io-client')
 const copydir = require('copy-dir')
 const _ = require('lodash')
-const debug = require('debug')('botium-DockerMocks')
+const debug = require('debug')('botium-connector-DockerMocks')
 
 const TcpPortUtils = require('../helpers/TcpPortUtils')
 const Capabilities = require('../Capabilities')
@@ -118,33 +118,7 @@ class BaseMock {
 
         (endpointOnline) => {
           this.mockUrl = `http://${this.publishIp}:${this.publishPort}`
-          let online = false
-          async.until(
-            () => online,
-            (callback) => {
-              var options = {
-                uri: this.mockUrl,
-                method: 'GET'
-              }
-              this.debug(`Mock - checking endpoint ${this.mockUrl} is online before proceed ...`)
-              request(options, (err, response, body) => {
-                if (!err && response.statusCode === 200) {
-                  this.debug(`Mock - endpoint ${this.mockUrl} is online (${body})`)
-                  online = true
-                  callback()
-                } else if (err) {
-                  this.debug(`Mock - endpoint ${this.mockUrl} not online (${err} - ${body}), checking again in 2 seconds ...`)
-                  setTimeout(callback, 2000)
-                } else if (response) {
-                  this.debug(`Mock - endpoint ${this.mockUrl} not online (Status Code: ${response.statusCode} - ${body}), checking again in 2 seconds ...`)
-                  setTimeout(callback, 2000)
-                } else {
-                  callback(new Error(`Mock - checking endpoint didn't either return error nor response.`))
-                }
-              })
-            },
-            endpointOnline
-          )
+          this._waitMockOnline(this.mockUrl).then(() => endpointOnline()).catch(endpointOnline)
         },
 
         (socketStartDone) => {
@@ -187,6 +161,35 @@ class BaseMock {
       resolve()
     })
   }
+
+  async _waitMockOnline (mockUrl) {
+    const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+    const options = {
+      uri: mockUrl,
+      method: 'GET'
+    }
+    while (true) {
+      this.debug(`Mock - checking endpoint ${mockUrl} is online before proceed ...`)
+      const { err, response, body } = await new Promise((resolve) => {
+        request(options, (err, response, body) => {
+          resolve({ err, response, body })
+        })
+      })
+      if (!err && response.statusCode === 200) {
+        this.debug(`Mock - endpoint ${mockUrl} is online (${body})`)
+        return
+      } else if (err) {
+        this.debug(`Mock - endpoint ${mockUrl} not online (${err} - ${body}), checking again in 2 seconds ...`)
+        await timeout(2000)
+      } else if (response) {
+        this.debug(`Mock - endpoint ${mockUrl} not online (Status Code: ${response.statusCode} - ${body}), checking again in 2 seconds ...`)
+        await timeout(2000)
+      } else {
+        throw new Error('Mock - checking endpoint didn\'t either return error nor response.')
+      }
+    }
+  }
 }
 
 module.exports = {
@@ -198,7 +201,7 @@ module.exports = {
       this.packageDir = 'src/mocks/facebook'
       this.dockerFile = 'Dockerfile.fbmock'
       this.dockerComposeFile = 'docker-compose.fbmock.yml'
-      this.debug = require('debug')('botium-FacebookMock')
+      this.debug = require('debug')('botium-connector-FacebookMock')
     }
 
     FillDockerEnv (composeEnv, caps, logging) {
@@ -233,7 +236,7 @@ module.exports = {
       this.packageDir = 'src/mocks/slack'
       this.dockerFile = 'Dockerfile.slackmock'
       this.dockerComposeFile = 'docker-compose.slackmock.yml'
-      this.debug = require('debug')('botium-SlackMock')
+      this.debug = require('debug')('botium-connector-SlackMock')
     }
 
     FillDockerEnv (composeEnv, caps, logging) {
@@ -269,7 +272,7 @@ module.exports = {
       this.packageDir = 'src/mocks/botframework'
       this.dockerFile = 'Dockerfile.botframeworkmock'
       this.dockerComposeFile = 'docker-compose.botframeworkmock.yml'
-      this.debug = require('debug')('botium-BotFrameworkMock')
+      this.debug = require('debug')('botium-connector-BotFrameworkMock')
     }
 
     FillDockerEnv (composeEnv, caps, logging) {

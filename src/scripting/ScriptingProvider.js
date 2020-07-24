@@ -4,21 +4,71 @@ const fs = require('fs')
 const path = require('path')
 const glob = require('glob')
 const _ = require('lodash')
-const debug = require('debug')('botium-ScriptingProvider')
+const promiseRetry = require('promise-retry')
+require('promise.allsettled').shim()
+const debug = require('debug')('botium-core-ScriptingProvider')
 
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv)'
+const { BotiumError, botiumErrorFromList } = require('./BotiumError')
+const RetryHelper = require('../helpers/RetryHelper')
+const MatchFunctions = require('./MatchFunctions')
+const precompilers = require('./precompilers')
 
-const p = (fn) => new Promise((resolve, reject) => {
-  try {
-    resolve(fn())
-  } catch (err) {
-    reject(err)
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
+
+const p = (retryHelper, fn) => {
+  const promise = () => new Promise((resolve, reject) => {
+    try {
+      resolve(fn())
+    } catch (err) {
+      reject(err)
+    }
+  })
+
+  if (retryHelper) {
+    return promiseRetry((retry, number) => {
+      return promise().catch(err => {
+        if (retryHelper.shouldRetry(err)) {
+          debug(`Asserter trial #${number} failed, retry activated`)
+          retry(err)
+        } else {
+          throw err
+        }
+      })
+    }, retryHelper.retrySettings)
+  } else {
+    return promise()
   }
-})
+}
+
+const pnot = (retryHelper, fn, errTemplate) => {
+  const promise = () => new Promise(async (resolve, reject) => { // eslint-disable-line no-async-promise-executor
+    try {
+      await fn()
+      reject(errTemplate)
+    } catch (err) {
+      resolve()
+    }
+  })
+
+  if (retryHelper) {
+    return promiseRetry((retry, number) => {
+      return promise().catch(() => {
+        if (retryHelper.shouldRetry(errTemplate)) {
+          debug(`Asserter trial #${number} failed, !retry activated`)
+          retry(errTemplate)
+        } else {
+          throw errTemplate
+        }
+      })
+    }, retryHelper.retrySettings)
+  } else {
+    return promise()
+  }
+}
 
 module.exports = class ScriptingProvider {
   constructor (caps = {}) {
@@ -78,49 +128,130 @@ module.exports = class ScriptingProvider {
           tomatch = [tomatch]
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
-        const found = _.find(tomatch, (utt) => {
-          if (_.isString(botresponse)) {
-            return this.matchFn(botresponse, utt)
-          } else {
-            return botresponse === utt
-          }
-        })
-        if (found === undefined) {
-          throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" to match one of "${tomatch}"`)
+        const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt))
+        if (_.isNil(found)) {
+          let message = `${stepTag}: Bot response `
+          message += meMsg ? `(on ${meMsg}) ` : ''
+          message += botresponse ? ('"' + botresponse + '"') : '<no response>'
+          message += ' expected to match '
+          message += tomatch && tomatch.length > 1 ? 'one of ' : ''
+          message += `${tomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
+          throw new BotiumError(
+            message,
+            {
+              type: 'asserter',
+              source: 'TextMatchAsserter',
+              context: {
+                stepTag
+              },
+              cause: {
+                expected: tomatch,
+                actual: botresponse
+              }
+            }
+          )
         }
       },
       assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg) => {
-        debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
-        try {
-          this.scriptingEvents.assertBotResponse(botresponse, nottomatch, stepTag)
-        } catch (err) {
-          return
+        if (!_.isArray(nottomatch)) {
+          nottomatch = [nottomatch]
         }
-        throw new Error(`${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match one of "${nottomatch}"`)
+        debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
+        const found = _.find(nottomatch, (utt) => this.matchFn(botresponse, utt))
+        if (!_.isNil(found)) {
+          let message = `${stepTag}: Bot response `
+          message += meMsg ? `(on ${meMsg}) ` : ''
+          message += botresponse ? ('"' + botresponse + '"') : '<no response>'
+          message += ' expected NOT to match '
+          message += nottomatch && nottomatch.length > 1 ? 'one of ' : ''
+          message += `${nottomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
+          throw new BotiumError(
+            message,
+            {
+              type: 'asserter',
+              source: 'TextMatchAsserter',
+              context: {
+                stepTag
+              },
+              cause: {
+                not: true,
+                expected: nottomatch,
+                actual: botresponse
+              }
+            }
+          )
+        }
       },
       fail: null
     }
+    this.retryHelperAsserter = new RetryHelper(this.caps, 'ASSERTER')
+    this.retryHelperLogicHook = new RetryHelper(this.caps, 'LOGICHOOK')
+    this.retryHelperUserInput = new RetryHelper(this.caps, 'USERINPUT')
   }
 
   _createAsserterPromises ({ asserterType, asserters, convo, convoStep, scriptingMemory, ...rest }) {
     if (!this._isValidAsserterType(asserterType)) {
       throw Error(`Unknown asserterType ${asserterType}`)
     }
+
+    const mapNot = {
+      assertConvoBegin: 'assertNotConvoBegin',
+      assertConvoStep: 'assertNotConvoStep',
+      assertConvoEnd: 'assertNotConvoEnd'
+    }
+    const callAsserter = (asserterSpec, asserter, params) => {
+      if (asserterSpec.not) {
+        const notAsserterType = mapNot[asserterType]
+        if (asserter[notAsserterType]) {
+          return p(this.retryHelperAsserter, () => asserter[notAsserterType](params))
+        } else {
+          return pnot(this.retryHelperAsserter, () => asserter[asserterType](params),
+            new BotiumError(
+              `${convoStep.stepTag}: Expected asserter ${asserter.name || asserterSpec.name} with args "${params.args}" to fail`,
+              {
+                type: 'asserter',
+                source: asserter.name || asserterSpec.name,
+                params: {
+                  args: params.args
+                },
+                cause: {
+                  not: true,
+                  expected: 'failed',
+                  actual: 'not failed'
+                }
+              }
+            )
+          )
+        }
+      } else {
+        return p(this.retryHelperAsserter, () => asserter[asserterType](params))
+      }
+    }
+
     const convoAsserter = asserters
       .filter(a => this.asserters[a.name][asserterType])
-      .map(a => p(() => this.asserters[a.name][asserterType]({
+      .map(a => callAsserter(a, this.asserters[a.name], {
         convo,
         convoStep,
         scriptingMemory,
         args: ScriptingMemory.applyToArgs(a.args, scriptingMemory),
         isGlobal: false,
         ...rest
-      })))
+      }))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
-      .map(a => p(() => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
+      .map(a => p(this.retryHelperAsserter, () => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoAsserter, ...globalAsserter]
+    if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+      return Promise.allSettled(allPromises).then((results) => {
+        const rejected = results.filter(result => result.status === 'rejected').map(result => result.reason)
+        if (rejected.length) {
+          throw botiumErrorFromList(rejected, {})
+        }
+        return results.filter(result => result.status === 'fulfilled').map(result => result.value)
+      })
+    }
     return Promise.all(allPromises)
   }
 
@@ -133,17 +264,18 @@ module.exports = class ScriptingProvider {
 
     const convoStepPromises = (logicHooks || [])
       .filter(l => this.logicHooks[l.name][hookType])
-      .map(l => p(() => this.logicHooks[l.name][hookType]({
+      .map(l => p(this.retryHelperLogicHook, () => this.logicHooks[l.name][hookType]({
         convo,
         convoStep,
         scriptingMemory,
         args: ScriptingMemory.applyToArgs(l.args, scriptingMemory),
         isGlobal: false,
-        ...rest })))
+        ...rest
+      })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
-      .map(l => p(() => l[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
+      .map(l => p(this.retryHelperLogicHook, () => l[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     return Promise.all(allPromises)
@@ -152,12 +284,13 @@ module.exports = class ScriptingProvider {
   _createUserInputPromises ({ convo, convoStep, scriptingMemory, ...rest }) {
     const convoStepPromises = (convoStep.userInputs || [])
       .filter(ui => this.userInputs[ui.name])
-      .map(ui => p(() => this.userInputs[ui.name].setUserInput({
+      .map(ui => p(this.retryHelperUserInput, () => this.userInputs[ui.name].setUserInput({
         convo,
         convoStep,
         scriptingMemory,
         args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory),
-        ...rest })))
+        ...rest
+      })))
 
     return Promise.all(convoStepPromises)
   }
@@ -206,16 +339,25 @@ module.exports = class ScriptingProvider {
     const CompilerCsv = require('./CompilerCsv')
     this.compilers[Constants.SCRIPTING_FORMAT_CSV] = new CompilerCsv(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_CSV].Validate()
+    const CompilerYaml = require('./CompilerYaml')
+    this.compilers[Constants.SCRIPTING_FORMAT_YAML] = new CompilerYaml(this._buildScriptContext(), this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_YAML].Validate()
+    const CompilerJson = require('./CompilerJson')
+    this.compilers[Constants.SCRIPTING_FORMAT_JSON] = new CompilerJson(this._buildScriptContext(), this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_JSON].Validate()
+    const CompilerMarkdown = require('./CompilerMarkdown')
+    this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN] = new CompilerMarkdown(this._buildScriptContext(), this.caps)
+    this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN].Validate()
 
     debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
-    if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp') {
-      this.matchFn = (botresponse, utterance) => (new RegExp(utterance, 'i')).test(botresponse)
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include') {
-      this.matchFn = (botresponse, utterance) => botresponse.indexOf(utterance) >= 0
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
-      this.matchFn = (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+    if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
+      this.matchFn = MatchFunctions.regexp(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase') {
+      this.matchFn = MatchFunctions.wildcard(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase')
+    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
+      this.matchFn = MatchFunctions.include(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase')
     } else {
-      this.matchFn = (botresponse, utterance) => botresponse === utterance
+      this.matchFn = MatchFunctions.equals(false)
     }
     const logicHookUtils = new LogicHookUtils({ buildScriptContext: this._buildScriptContext(), caps: this.caps })
     this.asserters = logicHookUtils.asserters
@@ -242,12 +384,12 @@ module.exports = class ScriptingProvider {
   }
 
   Compile (scriptBuffer, scriptFormat, scriptType) {
-    let compiler = this.GetCompiler(scriptFormat)
+    const compiler = this.GetCompiler(scriptFormat)
     return compiler.Compile(scriptBuffer, scriptType)
   }
 
   Decompile (convos, scriptFormat) {
-    let compiler = this.GetCompiler(scriptFormat)
+    const compiler = this.GetCompiler(scriptFormat)
     return compiler.Decompile(convos)
   }
 
@@ -258,10 +400,18 @@ module.exports = class ScriptingProvider {
   }
 
   ReadScriptsFromDirectory (convoDir, globFilter) {
-    const filelist = glob.sync(globPattern, { cwd: convoDir })
-    if (globFilter) {
-      const filelistGlobbed = glob.sync(globFilter, { cwd: convoDir })
-      _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
+    let filelist = []
+
+    const convoDirStats = fs.statSync(convoDir)
+    if (convoDirStats.isFile()) {
+      filelist = [path.basename(convoDir)]
+      convoDir = path.dirname(convoDir)
+    } else {
+      filelist = glob.sync(globPattern, { cwd: convoDir })
+      if (globFilter) {
+        const filelistGlobbed = glob.sync(globFilter, { cwd: convoDir })
+        _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
+      }
     }
     debug(`ReadConvosFromDirectory(${convoDir}) found filenames: ${filelist}`)
 
@@ -289,7 +439,16 @@ module.exports = class ScriptingProvider {
     let filePartialConvos = []
     let fileScriptingMemories = []
 
-    const scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
+    let scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
+
+    const precompResponse = precompilers.execute(scriptBuffer, { convoDir, filename, caps: this.caps })
+    if (precompResponse) {
+      scriptBuffer = precompResponse.scriptBuffer
+      debug(`File ${filename} precompiled by ${precompResponse.precompiler}` +
+        (precompResponse.filename ? ` and filename changed to ${precompResponse.filename}` : '')
+      )
+      filename = precompResponse.filename || filename
+    }
 
     if (filename.endsWith('.xlsx')) {
       fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
@@ -308,7 +467,23 @@ module.exports = class ScriptingProvider {
       fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
     } else if (filename.endsWith('.pconvo.csv')) {
       filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
+    } else if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
+      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_UTTERANCES)
+      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_PCONVO)
+      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_CONVO)
+      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+    } else if (filename.endsWith('.json')) {
+      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_UTTERANCES)
+      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
+      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
+      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+    } else if (filename.endsWith('.markdown') || filename.endsWith('.md')) {
+      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
+      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
+    } else {
+      debug(`ReadScript - dropped file: ${filename}, filename not supported`)
     }
+
     // Compilers saved the convos, and we alter here the saved version too
     if (fileConvos) {
       fileConvos.forEach((fileConvo) => {
@@ -349,7 +524,7 @@ module.exports = class ScriptingProvider {
 
   ExpandScriptingMemoryToConvos () {
     if (!this.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-      debug(`ExpandScriptingMemoryToConvos - Scripting memory turned off, no convos expanded`)
+      debug('ExpandScriptingMemoryToConvos - Scripting memory turned off, no convos expanded')
       return
     }
 
@@ -364,7 +539,7 @@ module.exports = class ScriptingProvider {
     })
 
     let convosExpandedAll = []
-    let convosOriginalAll = []
+    const convosOriginalAll = []
     this.convos.forEach((convo) => {
       const convoVariables = convo.GetScriptingMemoryAllVariables(this)
       debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Variables to replace, all: "${util.inspect(convoVariables)}"`)
@@ -387,7 +562,7 @@ module.exports = class ScriptingProvider {
       let convosToExpand = [convo]
       let convosExpandedConvo = []
       // just for debug output. If we got 6 expanded convo, then this array can be for example [2, 3]
-      let multipliers = []
+      const multipliers = []
       for (const [key, scriptingMemories] of variablesToScriptingMemory.entries()) {
         const variableNames = JSON.parse(key)
         if (_.intersection(variableNames, convoVariables).length) {
@@ -395,7 +570,7 @@ module.exports = class ScriptingProvider {
           multipliers.push(scriptingMemories.length)
           scriptingMemories.forEach((scriptingMemory) => {
             // Appending the case name to name
-            for (let convoToExpand of convosToExpand) {
+            for (const convoToExpand of convosToExpand) {
               const convoExpanded = _.cloneDeep(convoToExpand)
               convoExpanded.header.name = convoToExpand.header.name + '.' + scriptingMemory.header.name
               variableNames.forEach((name) => {
@@ -434,13 +609,26 @@ module.exports = class ScriptingProvider {
     this.convos = this.convos.concat(convosExpandedAll)
   }
 
-  ExpandUtterancesToConvos () {
+  ExpandUtterancesToConvos ({ useNameAsIntent, incomprehensionUtt } = {}) {
     const expandedConvos = []
-    const incomprehensionUtt = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_INCOMPREHENSION]
+
+    if (_.isUndefined(useNameAsIntent)) {
+      useNameAsIntent = !!this.caps[Capabilities.SCRIPTING_UTTEXPANSION_USENAMEASINTENT]
+    }
+    if (_.isUndefined(incomprehensionUtt)) {
+      incomprehensionUtt = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_INCOMPREHENSION]
+    }
+
+    if (useNameAsIntent && incomprehensionUtt) {
+      throw new Error('ExpandUtterancesToConvos - SCRIPTING_UTTEXPANSION_USENAMEASINTENT and SCRIPTING_UTTEXPANSION_INCOMPREHENSION are incompatible')
+    }
     if (incomprehensionUtt && !this.utterances[incomprehensionUtt]) {
       throw new Error(`ExpandUtterancesToConvos - incomprehension utterance '${incomprehensionUtt}' undefined`)
     }
-    if (incomprehensionUtt) {
+
+    if (useNameAsIntent) {
+      debug('ExpandUtterancesToConvos - Using utterance name as NLU intent')
+    } else if (incomprehensionUtt) {
       debug(`ExpandUtterancesToConvos - Using incomprehension utterance expansion mode: ${incomprehensionUtt}`)
     }
 
@@ -457,21 +645,33 @@ module.exports = class ScriptingProvider {
             messageText: utt.name,
             stepTag: 'Step 1 - tell utterance'
           },
-          incomprehensionUtt
+          useNameAsIntent
             ? {
               sender: 'bot',
-              messageText: incomprehensionUtt,
-              stepTag: 'Step 2 - check incomprehension',
-              not: true
-            }
-            : {
-              sender: 'bot',
-              messageText: '',
-              stepTag: 'Step 2 - check bot response',
+              asserters: [
+                {
+                  name: 'INTENT',
+                  args: [utt.name]
+                }
+              ],
+              stepTag: 'Step 2 - check intent',
               not: false
             }
+            : incomprehensionUtt
+              ? {
+                sender: 'bot',
+                messageText: incomprehensionUtt,
+                stepTag: 'Step 2 - check incomprehension',
+                not: true
+              }
+              : {
+                sender: 'bot',
+                messageText: '',
+                stepTag: 'Step 2 - check bot response',
+                not: false
+              }
         ],
-        sourceTag: utt.sourceTag
+        sourceTag: Object.assign({}, utt.sourceTag, { origUttName: utt.name })
       }))
     })
     this.convos = this.convos.concat(expandedConvos)
@@ -504,10 +704,19 @@ module.exports = class ScriptingProvider {
         currentStepsStack.push(_.cloneDeep(currentStep))
         this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
       } else if (currentStep.sender === 'me') {
+        let useUnexpanded = true
         if (currentStep.messageText) {
-          const parts = currentStep.messageText.split(' ')
-          const uttName = parts[0]
-          const uttArgs = parts.slice(1)
+          let uttName = null
+          let uttArgs = null
+          if (this.utterances[currentStep.messageText]) {
+            uttName = currentStep.messageText
+          } else {
+            const parts = currentStep.messageText.split(' ')
+            if (this.utterances[parts[0]]) {
+              uttName = parts[0]
+              uttArgs = parts.slice(1)
+            }
+          }
           if (this.utterances[uttName]) {
             const allutterances = this.utterances[uttName].utterances
             let sampleutterances = allutterances
@@ -521,20 +730,58 @@ module.exports = class ScriptingProvider {
                 .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
             }
             sampleutterances.forEach((utt, index) => {
+              const lineTag = `${index + 1}`.padStart(`${sampleutterances.length}`.length, '0')
               const currentStepsStack = convoStepsStack.slice()
               if (uttArgs) {
                 utt = util.format(utt, ...uttArgs)
               }
               currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: utt }))
-              const currentConvoLabeled = Object.assign(_.cloneDeep(currentConvo), { header: Object.assign({}, currentConvo.header, { name: currentConvo.header.name + '/' + uttName + '-L' + (index + 1) }) })
+              const currentConvoLabeled = _.cloneDeep(currentConvo)
+              Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-L${lineTag}` })
+              if (!currentConvoLabeled.sourceTag) currentConvoLabeled.sourceTag = {}
+              if (!currentConvoLabeled.sourceTag.origConvoName) currentConvoLabeled.sourceTag.origConvoName = currentConvo.header.name
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
             })
-            return
+            useUnexpanded = false
           }
         }
-        const currentStepsStack = convoStepsStack.slice()
-        currentStepsStack.push(_.cloneDeep(currentStep))
-        this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+        if (currentStep.userInputs && currentStep.userInputs.length > 0) {
+          currentStep.userInputs.forEach((ui, uiIndex) => {
+            const userInput = this.userInputs[ui.name]
+            if (userInput && userInput.expandConvo) {
+              const expandedUserInputs = userInput.expandConvo({ convo: currentConvo, convoStep: currentStep, args: ui.args })
+              if (expandedUserInputs && expandedUserInputs.length > 0) {
+                let sampleinputs = expandedUserInputs
+                if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'first') {
+                  sampleinputs = [expandedUserInputs[0]]
+                } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'random') {
+                  sampleinputs = expandedUserInputs
+                    .map(x => ({ x, r: Math.random() }))
+                    .sort((a, b) => a.r - b.r)
+                    .map(a => a.x)
+                    .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
+                }
+                sampleinputs.forEach((sampleinput, index) => {
+                  const lineTag = `${index + 1}`.padStart(`${sampleinputs.length}`.length, '0')
+                  const currentStepsStack = convoStepsStack.slice()
+                  const currentStepMod = _.cloneDeep(currentStep)
+                  currentStepMod.userInputs[uiIndex] = sampleinput
+
+                  currentStepsStack.push(currentStepMod)
+                  const currentConvoLabeled = _.cloneDeep(currentConvo)
+                  Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-L${lineTag}` })
+                  this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
+                })
+                useUnexpanded = false
+              }
+            }
+          })
+        }
+        if (useUnexpanded) {
+          const currentStepsStack = convoStepsStack.slice()
+          currentStepsStack.push(_.cloneDeep(currentStep))
+          this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+        }
       }
     } else {
       expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: convoStepsStack }))
@@ -542,10 +789,16 @@ module.exports = class ScriptingProvider {
   }
 
   _sortConvos () {
-    this.convos = _.sortBy(this.convos, [(convo) => convo.header.name])
+    this.convos = _.sortBy(this.convos, [(convo) => convo.header.sort || convo.header.name])
     let i = 0
     this.convos.forEach((convo) => {
       convo.header.order = ++i
+      if (!convo.header.projectname) {
+        convo.header.projectname = this.caps[Capabilities.PROJECTNAME]
+      }
+      if (!convo.header.testsessionname) {
+        convo.header.testsessionname = this.caps[Capabilities.TESTSESSIONNAME]
+      }
     })
   }
 
@@ -559,16 +812,43 @@ module.exports = class ScriptingProvider {
   }
 
   AddUtterances (utterances) {
+    const findAmbiguous = (utterances) => {
+      const ambiguous = []
+      let expected = null
+      let base = null
+      if (utterances && utterances.length > 1) {
+        base = utterances[0]
+        expected = ScriptingMemory.extractVarNames(utterances[0]).sort()
+        const expectedString = JSON.stringify(expected)
+
+        for (let i = 1; i < utterances.length; i++) {
+          const actualString = JSON.stringify(ScriptingMemory.extractVarNames(utterances[i]).sort())
+
+          if (actualString !== expectedString) {
+            ambiguous.push(utterances[i])
+          }
+        }
+      }
+
+      return { expected, ambiguous, base }
+    }
+
     if (utterances && !_.isArray(utterances)) {
       utterances = [utterances]
     }
     if (utterances) {
       _.forEach(utterances, (utt) => {
-        let eu = this.utterances[utt.name]
+        const eu = this.utterances[utt.name]
         if (eu) {
           eu.utterances = _.uniq(_.concat(eu.utterances, utt.utterances))
         } else {
           this.utterances[utt.name] = utt
+        }
+
+        const { ambiguous, expected } = findAmbiguous(this.utterances[utt.name].utterances)
+
+        if (ambiguous && ambiguous.length > 0) {
+          debug(`Ambigous utterance "${utt.name}", expecting exact ${expected.length ? ('"' + expected.join(', ') + '"') : '<none>'} scripting memory variables in following user examples: ${ambiguous.map(d => `"${d}"`).join(', ')}`)
         }
       })
     }
@@ -582,7 +862,7 @@ module.exports = class ScriptingProvider {
       }
     } else if (convos) {
       if (!convos.header || !convos.header.name) {
-        throw Error(`Invalid convo header: ${convos.header}`)
+        throw Error(`Header name is mandatory: ${JSON.stringify(convos.header)}`)
       }
       if (convos.header.name.indexOf('|') >= 0) {
         throw Error(`Invalid partial convo name: ${convos.header.name}`)

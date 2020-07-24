@@ -6,8 +6,8 @@ const yaml = require('write-yaml')
 const mustache = require('mustache')
 const findRoot = require('find-root')
 const _ = require('lodash')
-const debug = require('debug')('botium-DockerContainer')
-const debugContainerOutput = require('debug')('botium-DockerContainerOutput')
+const debug = require('debug')('botium-connector-DockerContainer')
+const debugContainerOutput = require('debug')('botium-connector-DockerContainerOutput')
 
 const Capabilities = require('../Capabilities')
 const Events = require('../Events')
@@ -86,7 +86,7 @@ module.exports = class DockerContainer extends BaseContainer {
 
         (dockerIpFound) => {
           if (this.caps[Capabilities.DOCKERMACHINE]) {
-            ProcessUtils.childProcessRun(this.caps[Capabilities.DOCKERMACHINEPATH], [ 'ip' ], false)
+            ProcessUtils.childProcessRun(this.caps[Capabilities.DOCKERMACHINEPATH], ['ip'], false)
               .then((output) => {
                 if (output.stdout && output.stdout.length > 0) {
                   this.dockerIp = `${output.stdout[0]}`.trim()
@@ -269,7 +269,7 @@ module.exports = class DockerContainer extends BaseContainer {
             this.botframeworkMock.FillDockerEnv(composeEnv, this.caps, sysLog)
           }
 
-          this.dockercomposeEnvFile = path.resolve(this.tempDirectory, `docker-env.yml`)
+          this.dockercomposeEnvFile = path.resolve(this.tempDirectory, 'docker-env.yml')
 
           debug(`Writing docker compose environment to ${this.dockercomposeEnvFile} - ${JSON.stringify(composeEnv)}`)
           yaml(this.dockercomposeEnvFile, composeEnv, (err) => {
@@ -405,7 +405,7 @@ module.exports = class DockerContainer extends BaseContainer {
     })
   }
 
-  UserSays (mockMsg) {
+  UserSaysImpl (mockMsg) {
     return new Promise((resolve, reject) => {
       if (this.fbMock && this.fbMock.socket) {
         this.fbMock.socket.emit(BotiumMockCommand.MOCKCMD_SENDTOBOT, mockMsg)
@@ -535,7 +535,7 @@ module.exports = class DockerContainer extends BaseContainer {
   _cleanDockerEnv (envs) {
     const res = Object.assign({}, envs)
     Object.keys(res).forEach((key) => {
-      let val = res[key]
+      const val = res[key]
       if (typeof val === typeof true) res[key] = `${val}`
     })
     return res

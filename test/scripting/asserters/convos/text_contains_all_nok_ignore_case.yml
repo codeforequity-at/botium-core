@@ -1,0 +1,7 @@
+convos:
+  - name: text_contains_all_nok_ignore_case
+    steps:
+      - me:
+          - word1 word2
+      - bot:
+          - TEXT_CONTAINS_ALL_IC Word3

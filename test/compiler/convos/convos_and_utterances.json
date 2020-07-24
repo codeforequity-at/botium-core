@@ -1,0 +1,64 @@
+{
+    "convos": [
+      {
+        "name": "goodbye",
+        "description": "desc of convo goodbye",
+        "steps": [
+          {
+            "begin": [
+              { "logichook": "PAUSE", "args": "500" }
+            ]
+          },
+          {
+            "me": [
+              "goodbye"
+            ]
+          },
+          {
+            "bot": [
+              "!hello"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "convo 1 name",
+        "description": "desc of convo",
+        "steps": [
+          {
+            "me": [
+              "hi",
+              "PAUSE 500"
+            ]
+          },
+          {
+            "bot": [
+              { "asserter": "TEXT", "args": "hello", "not": true },
+              { "asserter": "INTENT", "args": "intent_greeting" }
+            ]
+          },
+          {
+            "bot": [
+              "what can i do for you?"
+            ]
+          },
+          {
+            "me": [
+              "nothing"
+            ]
+          },
+          {
+            "bot": [
+              "thanks"
+            ]
+          }
+        ]
+      }
+    ],
+    "utterances": {
+      "GREETING": [
+        "hi",
+        "hello!"
+      ]
+    }
+  }

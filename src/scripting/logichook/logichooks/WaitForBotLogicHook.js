@@ -1,8 +1,20 @@
 const async = require('async')
-const debug = require('debug')('botium-WaitForBotLogicHook')
+const debug = require('debug')('botium-core-WaitForBotLogicHook')
 
 module.exports = class WaitForBotLogicHook {
-  onBotStart ({ convoStep, container, args }) {
+  onConvoBegin (params) {
+    return this._waitForBot(params)
+  }
+
+  onBotStart (params) {
+    return this._waitForBot(params)
+  }
+
+  onConvoEnd (params) {
+    return this._waitForBot(params)
+  }
+
+  _waitForBot ({ convoStep, container, args }) {
     if (args && args.length > 1) {
       return Promise.reject(new Error(`${convoStep.stepTag}: WaitForBotLogicHook Too much argument "${args}"`))
     }
@@ -34,7 +46,7 @@ module.exports = class WaitForBotLogicHook {
         })
       })
     } else {
-      debug(`WARNING: Waiting infinite time for message from bot.`)
+      debug('WARNING: Waiting infinite time for message from bot.')
       return new Promise((resolve) => {
         const listenerBot = () => {
           container.eventEmitter.removeListener('MESSAGE_RECEIVEDFROMBOT', listenerBot)

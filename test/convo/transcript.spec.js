@@ -24,10 +24,22 @@ describe('convo.transcript', function () {
     this.compiler = this.driver.BuildCompiler()
     this.container = await this.driver.Build()
     await this.container.Start()
+
+    const myCapsMultipleAssertErrors = {
+      [Capabilities.PROJECTNAME]: 'convo.transcript',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]: true
+    }
+    this.driverMultipleAssertErrors = new BotDriver(myCapsMultipleAssertErrors)
+    this.compilerMultipleAssertErrors = this.driverMultipleAssertErrors.BuildCompiler()
+    this.containerMultipleAssertErrors = await this.driverMultipleAssertErrors.Build()
+    await this.containerMultipleAssertErrors.Start()
   })
   afterEach(async function () {
     await this.container.Stop()
     await this.container.Clean()
+    await this.containerMultipleAssertErrors.Stop()
+    await this.containerMultipleAssertErrors.Clean()
   })
   it('should provide transcript steps on success', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2steps.convo.txt')
@@ -129,7 +141,9 @@ describe('convo.transcript', function () {
     this.driver.on(Events.MESSAGE_TRANSCRIPT, (container, transcriptEv) => { transcript = transcriptEv })
 
     await this.compiler.convos[0].Run(this.container).then(() => {
-      assert.isDefined(transcript)
+      assert.isNotNull(transcript)
+      assert.equal(transcript.steps.length, 2)
+      assert.isNotNull(transcript.steps[0].actual.sourceData)
     }, error => {
       assert.fail('unexpected error', error)
     })
@@ -144,7 +158,7 @@ describe('convo.transcript', function () {
     await this.compiler.convos[0].Run(this.container).then(() => {
       assert.fail('expected error')
     }, () => {
-      assert.isDefined(transcript)
+      assert.isNotNull(transcript)
     })
   })
   it('should handle fail with mismatching value in JSON response', async function () {
@@ -176,6 +190,40 @@ describe('convo.transcript', function () {
       assert.lengthOf(transcript.steps[1].expected.asserters, 1)
       assert.equal(transcript.steps[1].expected.asserters[0].name, 'BUTTONS')
       assert.lengthOf(transcript.steps[1].expected.asserters[0].args, 2)
+    }
+  })
+  it('should throw simple error with multiple asserting errors if its disabled', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'multiple_asserting_errors.convo.txt')
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(
+        err.transcript.err.message,
+        'asserters/Line 6: Bot response (on Line 3: #me - Hello) "Hello" expected to match "Goodbye!"')
+    }
+  })
+  it('should throw simple error with multiple asserting errors if its enabled', async function () {
+    this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'multiple_asserting_errors.convo.txt')
+
+    try {
+      await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(
+        err.transcript.err.message,
+        'asserters/Line 6: Bot response (on Line 3: #me - Hello) "Hello" expected to match "Goodbye!",\n' +
+        'Line 6: Expected button(s) with text "btn1",\n' +
+        'Line 6: Expected button(s) with text "btn2"')
+
+      assert.equal(err.transcript.err.context.input.messageText, 'Hello')
+      assert.equal(err.transcript.err.context.errors[0].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[0].source, 'TextMatchAsserter')
+      assert.equal(err.transcript.err.context.errors[1].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[1].source, 'ButtonsAsserter')
+      assert.equal(err.transcript.err.context.errors[2].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[2].source, 'ButtonsAsserter')
     }
   })
 })

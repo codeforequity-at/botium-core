@@ -1,0 +1,38 @@
+update_context_me_msg
+
+#me
+update with scalar
+UPDATE_CUSTOM custom|scalar1
+UPDATE_CUSTOM custom|scalar2
+UPDATE_CUSTOM custom|scalar3
+
+#bot
+
+#me
+update with fields
+UPDATE_CUSTOM custom|field1|value1
+UPDATE_CUSTOM custom|field2|value2
+
+#bot
+
+#me
+add scalar to object
+UPDATE_CUSTOM custom|field1|value1
+UPDATE_CUSTOM custom|scalar1
+
+#bot
+
+#me
+add object to scalar
+UPDATE_CUSTOM custom|scalar1
+UPDATE_CUSTOM custom|field1|value1
+
+#bot
+
+#me
+add object to array
+UPDATE_CUSTOM custom|scalar1
+UPDATE_CUSTOM custom|scalar2
+UPDATE_CUSTOM custom|field1|value1
+
+#bot

@@ -1,0 +1,15 @@
+{
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "Simple Rest Sample",
+      "CONTAINERMODE": "simplerest",
+      "SIMPLEREST_URL": "http://127.0.0.1:1234/joke",
+      "SIMPLEREST_METHOD": "POST",
+      "SIMPLEREST_BODY_TEMPLATE": { "conversationId": "{{botium.conversationId}}", "text": "{{msg.messageText}}", "callbackUri": "http://127.0.0.1:4000/api/inbound?APIKEY=MYAPIKEYFROMBOTIUMBOX" },
+      "SIMPLEREST_BODY_JSONPATH": "$.responses[*]",
+      "SIMPLEREST_RESPONSE_JSONPATH": "$.text",
+      "SIMPLEREST_INBOUND_SELECTOR_JSONPATH": "$.body.conversationId",
+      "SIMPLEREST_INBOUND_SELECTOR_VALUE": "{{botium.conversationId}}"
+    }
+  }
+}

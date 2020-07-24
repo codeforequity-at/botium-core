@@ -2,40 +2,17 @@ const util = require('util')
 const vm = require('vm')
 const path = require('path')
 const isClass = require('is-class')
-const debug = require('debug')('botium-asserterUtils')
+const debug = require('debug')('botium-core-asserterUtils')
 
-const { LOGIC_HOOK_INCLUDE } = require('./LogicHookConsts')
+const { DEFAULT_ASSERTERS, DEFAULT_LOGIC_HOOKS, DEFAULT_USER_INPUTS } = require('./LogicHookConsts')
 
-const DEFAULT_ASSERTERS = [
-  { name: 'BUTTONS', className: 'ButtonsAsserter' },
-  { name: 'MEDIA', className: 'MediaAsserter' },
-  { name: 'PAUSE_ASSERTER', className: 'PauseAsserter' },
-  { name: 'ENTITIES', className: 'EntitiesAsserter' },
-  { name: 'ENTITY_VALUES', className: 'EntityValuesAsserter' },
-  { name: 'INTENT', className: 'IntentAsserter' },
-  { name: 'INTENT_CONFIDENCE', className: 'IntentConfidenceAsserter' }
-]
 DEFAULT_ASSERTERS.forEach((asserter) => {
   asserter.Class = require(`./asserter/${asserter.className}`)
 })
 
-const DEFAULT_LOGIC_HOOKS = [
-  { name: 'PAUSE', className: 'PauseLogicHook' },
-  { name: 'WAITFORBOT', className: 'WaitForBotLogicHook' },
-  { name: 'SET_SCRIPTING_MEMORY', className: 'SetScriptingMemoryLogicHook' },
-  { name: 'CLEAR_SCRIPTING_MEMORY', className: 'ClearScriptingMemoryLogicHook' },
-  { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
-]
-
 DEFAULT_LOGIC_HOOKS.forEach((logicHook) => {
   logicHook.Class = require(`./logichooks/${logicHook.className}`)
 })
-
-const DEFAULT_USER_INPUTS = [
-  { name: 'BUTTON', className: 'ButtonInput' },
-  { name: 'MEDIA', className: 'MediaInput' },
-  { name: 'FORM', className: 'FormInput' }
-]
 
 DEFAULT_USER_INPUTS.forEach((userInput) => {
   userInput.Class = require(`./userinput/${userInput.className}`)
@@ -103,7 +80,7 @@ module.exports = class LogicHookUtils {
         if (this.logicHooks[logicHook.ref]) {
           debug(`${logicHook.ref} logic hook already exists, overwriting.`)
         }
-        this.logicHooks[logicHook.ref] = this._loadClass(logicHook, 'logic-hook')
+        this.logicHooks[logicHook.ref] = this._loadClass(logicHook, 'logichook')
         debug(`Loaded ${logicHook.ref} SUCCESSFULLY`)
         if (logicHook.global) {
           this.globalLogicHooks.push(logicHook.ref)
@@ -118,7 +95,7 @@ module.exports = class LogicHookUtils {
         if (this.userInputs[userInput.ref]) {
           debug(`${userInput.ref} userinput already exists, overwriting.`)
         }
-        this.userInputs[userInput.ref] = this._loadClass(userInput, 'user-input')
+        this.userInputs[userInput.ref] = this._loadClass(userInput, 'userinput')
         debug(`Loaded ${userInput.ref} SUCCESSFULLY`)
       })
   }
@@ -134,7 +111,7 @@ module.exports = class LogicHookUtils {
   }
 
   _loadClass ({ src, ref, args }, hookType) {
-    if (hookType !== 'asserter' && hookType !== 'logic-hook' && hookType !== 'user-input') {
+    if (hookType !== 'asserter' && hookType !== 'logichook' && hookType !== 'userinput') {
       throw Error(`Unknown hookType ${hookType}`)
     }
 
@@ -146,22 +123,22 @@ module.exports = class LogicHookUtils {
         return new (asserter.Class)(this.buildScriptContext, this.caps, args)
       }
     }
-    if (hookType === 'logic-hook') {
+    if (hookType === 'logichook') {
       const lh = DEFAULT_LOGIC_HOOKS.find(lh => src === lh.className)
       if (lh) {
-        debug(`Loading ${ref} ${hookType}. Using default logic-hook ${lh.className} as global logic-hook`)
+        debug(`Loading ${ref} ${hookType}. Using default logichook ${lh.className} as global logichook`)
         return new (lh.Class)(this.buildScriptContext, this.caps, args)
       }
     }
-    if (hookType === 'user-input') {
+    if (hookType === 'userinput') {
       const ui = DEFAULT_USER_INPUTS.find(ui => src === ui.className)
       if (ui) {
-        debug(`Loading ${ref} ${hookType}. Using default user-input ${ui.className} as global user-input`)
+        debug(`Loading ${ref} ${hookType}. Using default userinput ${ui.className} as global userinput`)
         return new (ui.Class)(this.buildScriptContext, this.caps, args)
       }
     }
     if (!src) {
-      let packageName = `botium-${hookType}-${ref}`
+      const packageName = `botium-${hookType}-${ref}`
       try {
         const CheckClass = require(packageName)
         if (isClass(CheckClass)) {
@@ -170,8 +147,11 @@ module.exports = class LogicHookUtils {
         } else if (_.isFunction(CheckClass)) {
           debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as function. Guessed package name.`)
           return CheckClass(this.buildScriptContext, this.caps, args)
+        } else if (isClass(CheckClass.PluginClass)) {
+          debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as class using PluginClass. Guessed package name.`)
+          return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
         } else {
-          throw new Error(`${packageName} class or function expected`)
+          throw new Error(`${packageName} class or function or PluginClass field expected`)
         }
       } catch (err) {
         throw new Error(`Failed to fetch package ${packageName} - ${util.inspect(err)}`)
@@ -199,12 +179,18 @@ module.exports = class LogicHookUtils {
         const hookObject = Object.keys(src).reduce((result, key) => {
           result[key] = (args) => {
             const script = src[key]
-            try {
-              const sandbox = vm.createContext({ debug, console, ...args })
-              vm.runInContext(script, sandbox)
-              return sandbox.result || Promise.resolve()
-            } catch (err) {
-              throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
+            if (_.isFunction(script)) {
+              return script(args)
+            } else if (_.isString(script)) {
+              try {
+                const sandbox = vm.createContext({ debug, console, process, ...args })
+                vm.runInContext(script, sandbox)
+                return sandbox.result || Promise.resolve()
+              } catch (err) {
+                throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
+              }
+            } else {
+              throw new Error(`Script "${key}" is not valid - only functions and javascript code accepted`)
             }
           }
           return result
@@ -230,6 +216,9 @@ module.exports = class LogicHookUtils {
       } else if (_.isFunction(CheckClass)) {
         debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class`)
         return CheckClass(this.buildScriptContext, this.caps, args)
+      } else if (isClass(CheckClass.PluginClass)) {
+        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class using PluginClass.`)
+        return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
       } else {
         throw new Error(`${tryLoadPackage} class or function expected`)
       }
@@ -249,6 +238,9 @@ module.exports = class LogicHookUtils {
       } else if (_.isFunction(CheckClass)) {
         debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a function. Loading from ${tryLoadFile} as class`)
         return CheckClass(this.buildScriptContext, this.caps, args)
+      } else if (isClass(CheckClass.PluginClass)) {
+        debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class using PluginClass`)
+        return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
       } else {
         throw new Error(`${tryLoadFile} class or function expected`)
       }

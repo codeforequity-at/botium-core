@@ -1,73 +1,53 @@
-const async = require('async')
 const tcpPortUsed = require('tcp-port-used')
-const debug = require('debug')('botium-TcpPortUtils')
+const debug = require('debug')('botium-core-TcpPortUtils')
 
 module.exports = {
-  WaitForPort: (hostname, portToCheck) => {
-    return new Promise((resolve, reject) => {
-      let online = false
-      async.until(
-        () => online,
-        (callback) => {
-          debug(`WaitForPort checking port usage ${hostname}:${portToCheck} before proceed`)
+  WaitForPort: async (hostname, portToCheck) => {
+    const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-          tcpPortUsed.check(portToCheck, hostname)
-            .then((inUse) => {
-              debug(`WaitForPort port usage (${hostname}:${portToCheck}): ${inUse}`)
-              if (inUse) {
-                online = true
-                callback()
-              } else {
-                setTimeout(callback, 2000)
-              }
-            }, (err) => {
-              debug(`WaitForPort error on port check ${hostname}:${portToCheck}: ${err}`)
-              setTimeout(callback, 2000)
-            })
-        },
-        (err) => {
-          if (err) return reject(err)
-          resolve()
-        })
-    })
+    while (true) {
+      debug(`WaitForPort checking port usage ${hostname}:${portToCheck} before proceed`)
+      try {
+        const inUse = await tcpPortUsed.check(portToCheck, hostname)
+        debug(`WaitForPort port usage (${hostname}:${portToCheck}): ${inUse}`)
+        if (inUse) {
+          return
+        } else {
+          await timeout(2000)
+        }
+      } catch (err) {
+        debug(`WaitForPort error on port check ${hostname}:${portToCheck}: ${err}`)
+        await timeout(2000)
+      }
+    }
   },
 
-  GetFreePortInRange: (hostname, portRange) => {
-    return new Promise((resolve, reject) => {
-      const rangeExpression = /^([0-9]+)-([0-9]+)$/
-      const rangeMatch = portRange.match(rangeExpression)
-      if (!rangeMatch || rangeMatch.length !== 3) {
-        return reject(new Error(`GetFreePortInRange Not a port range expression "${portRange}", expected portFrom-portTo`))
-      }
-      let found = false
-      let portToCheck = parseInt(rangeMatch[1])
-      let portToCheckMax = parseInt(rangeMatch[2])
-      async.until(
-        () => found || portToCheck > portToCheckMax,
-        (callback) => {
-          debug(`GetFreePortInRange checking port usage ${hostname}:${portToCheck} before proceed`)
+  GetFreePortInRange: async (hostname, portRange) => {
+    const rangeExpression = /^([0-9]+)-([0-9]+)$/
+    const rangeMatch = portRange.match(rangeExpression)
+    if (!rangeMatch || rangeMatch.length !== 3) {
+      throw new Error(`GetFreePortInRange Not a port range expression "${portRange}", expected portFrom-portTo`)
+    }
 
-          tcpPortUsed.check(portToCheck, hostname)
-            .then((inUse) => {
-              debug(`GetFreePortInRange port usage (${hostname}:${portToCheck}): ${inUse}`)
-              if (inUse) {
-                portToCheck++
-                callback()
-              } else {
-                found = true
-                callback()
-              }
-            }, (err) => {
-              debug(`GetFreePortInRange error on port check ${hostname}:${portToCheck}: ${err}`)
-              portToCheck++
-              callback()
-            })
-        },
-        (err) => {
-          if (err) return reject(err)
-          if (!found) return reject(new Error(`GetFreePortInRange no free port found in range ${portRange}`))
-          resolve(portToCheck)
-        })
-    })
+    const portToCheckMax = parseInt(rangeMatch[2])
+    let portToCheck = parseInt(rangeMatch[1])
+
+    while (portToCheck <= portToCheckMax) {
+      debug(`GetFreePortInRange checking port usage ${hostname}:${portToCheck} before proceed`)
+
+      try {
+        const inUse = await tcpPortUsed.check(portToCheck, hostname)
+        debug(`GetFreePortInRange port usage (${hostname}:${portToCheck}): ${inUse}`)
+        if (inUse) {
+          portToCheck++
+        } else {
+          return portToCheck
+        }
+      } catch (err) {
+        debug(`GetFreePortInRange error on port check ${hostname}:${portToCheck}: ${err}`)
+        portToCheck++
+      }
+    }
+    throw new Error(`GetFreePortInRange no free port found in range ${portRange}`)
   }
 }
