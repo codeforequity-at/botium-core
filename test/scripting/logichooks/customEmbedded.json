@@ -3,7 +3,7 @@
     {
       "ref": "MY-LOGICHOOK-NAME",
       "src": {
-        "onMeStart": "convoStep.messageText += ' from logichook'"
+        "onMeStart": "meMsg.messageText += ' from logichook'"
       },
       "global": false,
       "args": {
