@@ -38,7 +38,6 @@ const emptyMsg = {}
 
 describe('scripting memory', function () {
   it('should throw security error for using function', async function () {
-
     const driver = new BotDriver(myCapsEcho)
     const compiler = driver.BuildCompiler()
     const container = await driver.Build()
@@ -177,6 +176,74 @@ describe('base container, hooks', function () {
       assert.equal(err.context.source, 'BaseContainer.js')
       assert.equal(err.context.type, 'security')
       assert.equal(err.context.subtype, 'allow unsafe')
+    }
+  })
+})
+
+describe('Logic hook', function () {
+  it('should throw security error for logic hook with src', async function () {
+    const driver = new BotDriver(Object.assign(
+      {},
+      myCapsEcho,
+      {
+        [Capabilities.LOGIC_HOOKS]: [
+          {
+            ref: 'MY-LOGICHOOK-NAME',
+            src: {
+              onMeStart: '1+1'
+            },
+            global: false,
+            args: {
+              'my-arg-1': 'something'
+            }
+          }
+        ]
+      }
+    ))
+
+    try {
+      driver.BuildCompiler()
+    } catch (err) {
+      assert.isTrue(err instanceof BotiumError)
+      assert.exists(err.context)
+      assert.equal(err.context.message, 'Security Error. Using unsafe component is not allowed')
+      assert.equal(err.context.source, 'LogicHookUtils.js')
+      assert.equal(err.context.type, 'security')
+      assert.equal(err.context.subtype, 'allow unsafe')
+    }
+  })
+  it('should throw security error for global logic hook with src', async function () {
+    const driver = new BotDriver(Object.assign(
+      {},
+      myCapsEcho,
+      {
+        [Capabilities.LOGIC_HOOKS]: [
+          {
+            ref: 'MY-LOGICHOOK-NAME',
+            src: {
+              onMeStart: '1+1'
+            },
+            global: true,
+            args: {
+              'my-arg-1': 'something'
+            }
+          }
+        ]
+      }
+    ))
+
+    try {
+      driver.BuildCompiler()
+    } catch (err) {
+      assert.isTrue(err instanceof BotiumError)
+      assert.exists(err.context)
+      assert.equal(err.context.message, 'Security Error. Using unsafe component is not allowed')
+      assert.equal(err.context.source, 'LogicHookUtils.js')
+      assert.equal(err.context.type, 'security')
+      assert.equal(err.context.subtype, 'allow unsafe')
+      assert.exists(err.context.cause)
+      assert.equal(err.context.cause.ref, 'MY-LOGICHOOK-NAME')
+      assert.equal(err.context.cause.src, true)
     }
   })
 })
