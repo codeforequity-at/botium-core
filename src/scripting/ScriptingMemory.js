@@ -5,16 +5,18 @@ const { v1: uuidv1 } = require('uuid')
 const moment = require('moment')
 const vm = require('vm')
 const _ = require('lodash')
+const path = require('path')
 
 const Capabilities = require('../Capabilities')
 const { quoteRegexpString, toString } = require('./helper')
+const { BotiumError } = require('./BotiumError')
 
 // If they got parameter, then it will be a string always.
 // the receiver can decide what to do with it,
 // convert to int,
 // split by ',' for multiple params,
 // or something else
-const SCRIPTING_FUNCTIONS = {
+const SCRIPTING_FUNCTIONS_RAW = {
   $now: () => {
     return new Date().toLocaleString()
   },
@@ -100,44 +102,77 @@ const SCRIPTING_FUNCTIONS = {
     return uuidv1()
   },
 
-  $env: (name) => {
-    if (!name) {
-      throw Error('env function used without args!')
-    }
-    return process.env[name]
+  $env: {
+    handler: (name) => {
+      if (!name) {
+        throw Error('env function used without args!')
+      }
+      return process.env[name]
+    },
+    unsafe: true
   },
 
-  $func: (code) => {
-    if (code == null) {
-      throw Error('func function used without args!')
-    }
-    try {
-      return vm.runInNewContext(code, { process: process, debug: debug, console: console, require: require })
-    } catch (err) {
-      throw Error(`func function execution failed - ${err}`)
-    }
+  $func: {
+    handler: (code) => {
+      if (code == null) {
+        throw Error('func function used without args!')
+      }
+      try {
+        return vm.runInNewContext(code, { process: process, debug: debug, console: console, require: require })
+      } catch (err) {
+        throw Error(`func function execution failed - ${err}`)
+      }
+    },
+    unsafe: true
   }
 }
 
+const SCRIPTING_FUNCTIONS = _.mapValues(SCRIPTING_FUNCTIONS_RAW, (funcOrStruct, name) => {
+  const func = funcOrStruct.handler || funcOrStruct
+
+  return {
+    handler: (caps, ...rest) => {
+      if (!caps) {
+        throw new Error('Caps not defined')
+      }
+      if (!caps[Capabilities.SECURITY_ALLOW_UNSAFE] && funcOrStruct.unsafe) {
+        throw new BotiumError(
+          `Security Error. Using function ${name} is not allowed`,
+          {
+            type: 'security',
+            subtype: 'allow unsafe',
+            source: path.basename(__filename),
+            cause: {
+              SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
+              functionName: name
+            }
+          }
+        )
+      }
+      return func(...rest)
+    },
+    numberOfArguments: func.length
+  }
+})
 const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)
 
 const apply = (container, scriptingMemory, str) => {
   if (container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-    str = _apply(scriptingMemory, str)
+    str = _apply(scriptingMemory, str, container.caps)
   }
   return str
 }
 
-const applyToArgs = (args, scriptingMemory) => {
+const applyToArgs = (args, scriptingMemory, caps) => {
   return (args || []).map(arg => {
-    return _apply(scriptingMemory, arg)
+    return _apply(scriptingMemory, arg, caps)
   })
 }
 
 // we have two replace longer variable first. if there is $year, and $years, $years should not be found by $year
 const _longestFirst = (a, b) => b.length - a.length
 
-const _apply = (scriptingMemory, str) => {
+const _apply = (scriptingMemory, str, caps) => {
   if (str) {
     scriptingMemory = scriptingMemory || {}
     str = toString(str)
@@ -156,9 +191,9 @@ const _apply = (scriptingMemory, str) => {
         for (const match of matches) {
           if (match.indexOf('(') > 0) {
             const arg = match.substring(match.indexOf('(') + 1, match.lastIndexOf(')')).replace(/\\\)/g, ')')
-            str = str.replace(match, SCRIPTING_FUNCTIONS[key](arg))
+            str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps, arg))
           } else {
-            str = str.replace(match, SCRIPTING_FUNCTIONS[key]())
+            str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps))
           }
         }
       }

@@ -8,6 +8,13 @@ const { normalizeText } = require('../../src/scripting/helper')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 const ScriptingMemory = require('../../src/scripting/ScriptingMemory')
 
+const CAPS_BASE = {
+  [Capabilities.SECURITY_ALLOW_UNSAFE]: true
+}
+const CAPS_ENABLE_SCRIPTING_MEMORY = {
+  [Capabilities.SECURITY_ALLOW_UNSAFE]: true,
+  [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
+}
 const echoConnector = ({ queueBotSays }) => {
   return {
     UserSays (msg) {
@@ -428,7 +435,7 @@ describe('convo.scriptingMemory.api', function () {
       const scriptingMemory = {
         $count: '5'
       }
-      assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
+      assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory, CAPS_BASE)[1], 5)
     })
     it('typo of reference', async function () {
       const asserter = {
@@ -442,7 +449,7 @@ describe('convo.scriptingMemory.api', function () {
       const scriptingMemory = {
         $count: '5'
       }
-      assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
+      assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory, CAPS_BASE)[1], 5)
     })
     it('as postfix', async function () {
       const asserter = {
@@ -456,7 +463,7 @@ describe('convo.scriptingMemory.api', function () {
       const scriptingMemory = {
         $count: '5'
       }
-      assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 'prefix5')
+      assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory, CAPS_BASE)[1], 'prefix5')
     })
     it('as prefix', async function () {
       const asserter = {
@@ -470,7 +477,7 @@ describe('convo.scriptingMemory.api', function () {
       const scriptingMemory = {
         $count: '5'
       }
-      assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], '5er')
+      assert.equal(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory, CAPS_BASE)[1], '5er')
     })
     it('different value', async function () {
       const asserter = {
@@ -484,7 +491,7 @@ describe('convo.scriptingMemory.api', function () {
       const scriptingMemory = {
         $count: '4'
       }
-      assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
+      assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory, CAPS_BASE)[1], 5)
     })
 
     it('different value', async function () {
@@ -499,7 +506,7 @@ describe('convo.scriptingMemory.api', function () {
       const scriptingMemory = {
         $count: '4'
       }
-      assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1], 5)
+      assert.notEqual(ScriptingMemory.applyToArgs(asserter.args, scriptingMemory, CAPS_BASE)[1], 5)
     })
 
     it('scripting memory functions', async function () {
@@ -513,7 +520,7 @@ describe('convo.scriptingMemory.api', function () {
       }
       const scriptingMemory = {}
 
-      const year = ScriptingMemory.applyToArgs(asserter.args, scriptingMemory)[1]
+      const year = ScriptingMemory.applyToArgs(asserter.args, scriptingMemory, CAPS_BASE)[1]
       assert(year >= 2019 && year <= 2219, '$year invalid')
     })
   })
@@ -522,7 +529,7 @@ describe('convo.scriptingMemory.api', function () {
   describe('convo.scriptingMemory.api.functions', function () {
     it('remove parameters even if the function does not need them', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$now(asd)'
       )
@@ -531,7 +538,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('now', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$now'
       )
@@ -539,7 +546,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('now_EN', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$now_EN'
       )
@@ -549,7 +556,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('now_DE', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$now_DE'
       )
@@ -558,7 +565,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('now_ISO', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$now_ISO'
       )
@@ -569,7 +576,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('date', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$date'
       )
@@ -577,7 +584,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('date with param', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$date(YYYY)'
       )
@@ -585,7 +592,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('date_EN', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$date_EN'
       )
@@ -595,7 +602,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('date_DE', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$date_DE'
       )
@@ -605,7 +612,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('date_ISO', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$date_ISO'
       )
@@ -616,7 +623,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('time', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$time'
       )
@@ -624,7 +631,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('time_EN', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$time_EN'
       )
@@ -633,7 +640,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('time_DE', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$time_DE'
       )
@@ -641,7 +648,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('time_ISO', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$time_ISO'
       )
@@ -649,7 +656,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('time_HH_MM', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$time_HH_MM'
       )
@@ -657,7 +664,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('time_H_A', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$time_H_A'
       )
@@ -666,7 +673,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('timestamp', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$timestamp'
       )
@@ -675,7 +682,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('year', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$year'
       )
@@ -686,7 +693,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('month', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$month'
       )
@@ -695,7 +702,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('month_MM', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$month_MM'
       )
@@ -705,7 +712,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('day_of_month', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$day_of_month'
       )
@@ -716,7 +723,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('day_of_week', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$day_of_week'
       )
@@ -726,7 +733,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('random', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$random(19)'
       )
@@ -735,7 +742,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('random10', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$random10'
       )
@@ -745,7 +752,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('uniqid', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$uniqid'
       )
@@ -755,7 +762,7 @@ describe('convo.scriptingMemory.api', function () {
 
     it('func', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$func(3*5)'
       )
@@ -765,7 +772,7 @@ describe('convo.scriptingMemory.api', function () {
     it('func invalid code', async function () {
       try {
         ScriptingMemory.apply(
-          { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
           { },
           '$func(hugo123)'
         )
@@ -776,7 +783,7 @@ describe('convo.scriptingMemory.api', function () {
     })
     it('func full code', async function () {
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$func(require("os"\\).hostname(\\);)'
       )
@@ -785,7 +792,7 @@ describe('convo.scriptingMemory.api', function () {
     it('func environment variable', async function () {
       process.env.MY_VAR_VALUE = 'botium'
       const result = ScriptingMemory.apply(
-        { caps: { [Capabilities.SCRIPTING_ENABLE_MEMORY]: true } },
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
         { },
         '$func(process.env.MY_VAR_VALUE)'
       )

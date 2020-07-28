@@ -65,8 +65,8 @@ module.exports = class SimpleRestContainer {
             // (render(text) is required for forcing mustache to replace valiables in the text first,
             // then send it to the function.)
             // (mapKeys: remove starting $)
-            fnc: _.mapValues(_.mapKeys(SCRIPTING_FUNCTIONS, (value, key) => key.substring(1)), (theFunction) => {
-              return theFunction.length ? function () { return (text, render) => theFunction(render(text)) } : theFunction
+            fnc: _.mapValues(_.mapKeys(SCRIPTING_FUNCTIONS, (value, key) => key.substring(1)), (descriptor) => {
+              return descriptor.numberOfArguments ? () => { return (text, render) => descriptor.handler(this.caps, render(text)) } : () => descriptor.handler(this.caps)
             })
           }
           this.view.fnc.jsonify = () => (val, render) => {
@@ -453,14 +453,16 @@ module.exports = class SimpleRestContainer {
   }
 
   _getMustachedVal (template, json) {
+    // TODO Florian. I suppose this change is good?
+    const raw = Mustache.render(template, this.view)
     if (json) {
       try {
-        return JSON.parse(Mustache.render(template, this.view))
+        return JSON.parse(raw)
       } catch (err) {
         return new Error(`JSON parsing failed - try to use {{#fnc.jsonify}}{{xxx}}{{/fnc.jsonify}} to escape JSON special characters (ERR: ${err.message})`)
       }
     } else {
-      return Mustache.render(template, this.view)
+      return raw
     }
   }
 
