@@ -137,7 +137,7 @@ const SCRIPTING_FUNCTIONS = _.mapValues(SCRIPTING_FUNCTIONS_RAW, (funcOrStruct, 
       }
       if (!caps[Capabilities.SECURITY_ALLOW_UNSAFE] && funcOrStruct.unsafe) {
         throw new BotiumError(
-          `Security Error. Using function ${name} is not allowed`,
+          `Security Error. Using unsafe scripting memory function ${name} is not allowed`,
           {
             type: 'security',
             subtype: 'allow unsafe',
