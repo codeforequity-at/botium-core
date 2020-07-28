@@ -7,6 +7,17 @@ const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
 const { BotiumError } = require('../../src/scripting/BotiumError')
 
+const myCapsScriptingMemoryBase = {
+  [Capabilities.CONTAINERMODE]: 'simplerest',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+  [Capabilities.SIMPLEREST_METHOD]: 'POST',
+  [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
+  [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
+    FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
+  },
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
+}
+
 const echoConnector = ({ queueBotSays }) => {
   return {
     UserSays (msg) {
@@ -44,28 +55,17 @@ describe('scripting memory', function () {
 
 describe('simple rest, scripting memory', function () {
   it('should use variables succesful', async function () {
-    const myCapsScriptingMemory = {
-      [Capabilities.CONTAINERMODE]: 'simplerest',
-      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
-      [Capabilities.SIMPLEREST_METHOD]: 'POST',
-      [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
-      [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
-        FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
-      },
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
-    }
+    const msg = {}
 
-    const msg = {
-      messageText: 'messageText',
-      token: 'myToken',
-      scriptingMemory: {
-        variable: 'value',
-        functionArgument: '7'
-
+    const myCaps = Object.assign({}, Object.assign(
+      {},
+      myCapsScriptingMemoryBase,
+      {
+        [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
+          FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
+        }
       }
-    }
-
-    const myCaps = Object.assign({}, myCapsScriptingMemory)
+    ))
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
 
@@ -77,29 +77,17 @@ describe('simple rest, scripting memory', function () {
   })
 
   it('should throw security error for using env', async function () {
-    const myCapsScriptingMemory = {
-      [Capabilities.CONTAINERMODE]: 'simplerest',
-      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
-      [Capabilities.SIMPLEREST_METHOD]: 'POST',
-      [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
-      [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
-        SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}'
-      },
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
-    }
+    const msg = {}
 
-    const msg = {
-      messageText: 'messageText',
-      token: 'myToken',
-      scriptingMemory: {
-        variable: 'value',
-        functionArgument: '7'
-
+    const driver = new BotDriver(Object.assign(
+      {},
+      myCapsScriptingMemoryBase,
+      {
+        [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
+          SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}'
+        }
       }
-    }
-
-    const myCaps = Object.assign({}, myCapsScriptingMemory)
-    const driver = new BotDriver(myCaps)
+    ))
     const container = await driver.Build()
 
     await container.Start()
@@ -119,20 +107,13 @@ describe('simple rest, scripting memory', function () {
 
 describe('simple rest, hooks', function () {
   it('should throw security error for using hook', async function () {
-    const myCapsScriptingMemory = {
-      [Capabilities.CONTAINERMODE]: 'simplerest',
-      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
-      [Capabilities.SIMPLEREST_METHOD]: 'POST',
-      [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
-      [Capabilities.SIMPLEREST_REQUEST_HOOK]: '1+1',
-      [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
-        FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
-      },
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
-    }
-
-    const myCaps = Object.assign({}, myCapsScriptingMemory)
-    const driver = new BotDriver(myCaps)
+    const driver = new BotDriver(Object.assign(
+      {},
+      myCapsScriptingMemoryBase,
+      {
+        [Capabilities.SIMPLEREST_REQUEST_HOOK]: '1+1'
+      }
+    ))
 
     try {
       await driver.Build()
@@ -145,47 +126,6 @@ describe('simple rest, hooks', function () {
       assert.equal(err.context.type, 'security')
       assert.equal(err.context.subtype, 'allow unsafe')
     }
-  })
-
-  it('should throw security error for using env', async function () {
-    const myCapsScriptingMemory = {
-      [Capabilities.CONTAINERMODE]: 'simplerest',
-      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
-      [Capabilities.SIMPLEREST_METHOD]: 'POST',
-      [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
-      [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
-        SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}'
-      },
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
-    }
-
-    const msg = {
-      messageText: 'messageText',
-      token: 'myToken',
-      scriptingMemory: {
-        variable: 'value',
-        functionArgument: '7'
-
-      }
-    }
-
-    const myCaps = Object.assign({}, myCapsScriptingMemory)
-    const driver = new BotDriver(myCaps)
-    const container = await driver.Build()
-
-    await container.Start()
-
-    try {
-      await container.pluginInstance._buildRequest(msg)
-      assert.fail('should have failed')
-    } catch (err) {
-      // TODO Florian message is just a string with the BotiumError
-      assert.isTrue(err.message.indexOf('BotiumError: Security Error. Using unsafe scripting memory function $env is not allowed') >= 0)
-      assert.isTrue(err.message.indexOf('allow unsafe') >= 0)
-      assert.isTrue(err.message.indexOf('ScriptingMemory.js') >= 0)
-    }
-
-    await container.Clean()
   })
 })
 
@@ -222,20 +162,11 @@ describe('precompilers', function () {
 
 describe('base container, hooks', function () {
   it('should throw security error for using hook', async function () {
-    const myCapsScriptingMemory = {
-      [Capabilities.CONTAINERMODE]: 'simplerest',
-      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
-      [Capabilities.SIMPLEREST_METHOD]: 'POST',
-      [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
-      [Capabilities.CUSTOMHOOK_ONUSERSAYS]: '1+1',
-      [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
-        FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
-      },
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
-    }
-
-    const myCaps = Object.assign({}, myCapsScriptingMemory)
-    const driver = new BotDriver(myCaps)
+    const driver = new BotDriver(Object.assign(
+      {},
+      myCapsScriptingMemoryBase,
+      { [Capabilities.CUSTOMHOOK_ONUSERSAYS]: '1+1' }
+    ))
 
     try {
       await driver.Build()
@@ -248,46 +179,5 @@ describe('base container, hooks', function () {
       assert.equal(err.context.type, 'security')
       assert.equal(err.context.subtype, 'allow unsafe')
     }
-  })
-
-  it('should throw security error for using env', async function () {
-    const myCapsScriptingMemory = {
-      [Capabilities.CONTAINERMODE]: 'simplerest',
-      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
-      [Capabilities.SIMPLEREST_METHOD]: 'POST',
-      [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
-      [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
-        SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}'
-      },
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
-    }
-
-    const msg = {
-      messageText: 'messageText',
-      token: 'myToken',
-      scriptingMemory: {
-        variable: 'value',
-        functionArgument: '7'
-
-      }
-    }
-
-    const myCaps = Object.assign({}, myCapsScriptingMemory)
-    const driver = new BotDriver(myCaps)
-    const container = await driver.Build()
-
-    await container.Start()
-
-    try {
-      await container.pluginInstance._buildRequest(msg)
-      assert.fail('should have failed')
-    } catch (err) {
-      // TODO Florian message is just a string with the BotiumError
-      assert.isTrue(err.message.indexOf('BotiumError: Security Error. Using unsafe scripting memory function $env is not allowed') >= 0)
-      assert.isTrue(err.message.indexOf('allow unsafe') >= 0)
-      assert.isTrue(err.message.indexOf('ScriptingMemory.js') >= 0)
-    }
-
-    await container.Clean()
   })
 })
