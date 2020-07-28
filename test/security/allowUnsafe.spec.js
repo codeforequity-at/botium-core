@@ -7,7 +7,7 @@ const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
 const { BotiumError } = require('../../src/scripting/BotiumError')
 
-const myCapsScriptingMemoryBase = {
+const myCapsSimpleRest = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
   [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
@@ -27,16 +27,19 @@ const echoConnector = ({ queueBotSays }) => {
   }
 }
 
+const myCapsEcho = {
+  [Capabilities.PROJECTNAME]: 'security.allowUnsafe',
+  [Capabilities.CONTAINERMODE]: echoConnector,
+  [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+  [Capabilities.SECURITY_ALLOW_UNSAFE]: false
+}
+
+const emptyMsg = {}
+
 describe('scripting memory', function () {
   it('should throw security error for using function', async function () {
-    const myCaps = {
-      [Capabilities.PROJECTNAME]: 'security.allowUnsafe.scriptingMemory.script',
-      [Capabilities.CONTAINERMODE]: echoConnector,
-      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-      [Capabilities.SECURITY_ALLOW_UNSAFE]: false
-    }
 
-    const driver = new BotDriver(myCaps)
+    const driver = new BotDriver(myCapsEcho)
     const compiler = driver.BuildCompiler()
     const container = await driver.Build()
 
@@ -55,11 +58,9 @@ describe('scripting memory', function () {
 
 describe('simple rest, scripting memory', function () {
   it('should use variables succesful', async function () {
-    const msg = {}
-
     const myCaps = Object.assign({}, Object.assign(
       {},
-      myCapsScriptingMemoryBase,
+      myCapsSimpleRest,
       {
         [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
           FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
@@ -71,17 +72,15 @@ describe('simple rest, scripting memory', function () {
 
     await container.Start()
 
-    await container.pluginInstance._buildRequest(msg)
+    await container.pluginInstance._buildRequest(emptyMsg)
 
     await container.Clean()
   })
 
   it('should throw security error for using env', async function () {
-    const msg = {}
-
     const driver = new BotDriver(Object.assign(
       {},
-      myCapsScriptingMemoryBase,
+      myCapsSimpleRest,
       {
         [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
           SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}'
@@ -93,7 +92,7 @@ describe('simple rest, scripting memory', function () {
     await container.Start()
 
     try {
-      await container.pluginInstance._buildRequest(msg)
+      await container.pluginInstance._buildRequest(emptyMsg)
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err.message.indexOf('BotiumError: Security Error. Using unsafe scripting memory function $env is not allowed') >= 0)
@@ -109,7 +108,7 @@ describe('simple rest, hooks', function () {
   it('should throw security error for using hook', async function () {
     const driver = new BotDriver(Object.assign(
       {},
-      myCapsScriptingMemoryBase,
+      myCapsSimpleRest,
       {
         [Capabilities.SIMPLEREST_REQUEST_HOOK]: '1+1'
       }
@@ -164,7 +163,7 @@ describe('base container, hooks', function () {
   it('should throw security error for using hook', async function () {
     const driver = new BotDriver(Object.assign(
       {},
-      myCapsScriptingMemoryBase,
+      myCapsEcho,
       { [Capabilities.CUSTOMHOOK_ONUSERSAYS]: '1+1' }
     ))
 
