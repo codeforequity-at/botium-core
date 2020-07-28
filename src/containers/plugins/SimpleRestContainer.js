@@ -53,10 +53,10 @@ module.exports = class SimpleRestContainer {
           source: path.basename(__filename),
           cause: {
             SECURITY_ALLOW_UNSAFE: this.caps[Capabilities.SECURITY_ALLOW_UNSAFE],
-            startHook: !!getHook(this.caps[Capabilities.SIMPLEREST_START_HOOK]),
-            stopHook: !!getHook(this.caps[Capabilities.SIMPLEREST_STOP_HOOK]),
-            requestHook: !!getHook(this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK]),
-            responseHook: !!getHook(this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])
+            startHook: !!this.caps[Capabilities.SIMPLEREST_START_HOOK],
+            stopHook: !!this.caps[Capabilities.SIMPLEREST_STOP_HOOK],
+            requestHook: !!this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK],
+            responseHook: !!this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK]
           }
         }
       )

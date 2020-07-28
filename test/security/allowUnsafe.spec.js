@@ -219,3 +219,75 @@ describe('precompilers', function () {
     await container.Clean()
   })
 })
+
+describe('base container, hooks', function () {
+  it('should throw security error for using hook', async function () {
+    const myCapsScriptingMemory = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+      [Capabilities.SIMPLEREST_METHOD]: 'POST',
+      [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
+      [Capabilities.CUSTOMHOOK_ONUSERSAYS]: '1+1',
+      [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
+        FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
+      },
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
+    }
+
+    const myCaps = Object.assign({}, myCapsScriptingMemory)
+    const driver = new BotDriver(myCaps)
+
+    try {
+      await driver.Build()
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err instanceof BotiumError)
+      assert.exists(err.context)
+      assert.equal(err.context.message, 'Security Error. Using unsafe custom hooks is not allowed')
+      assert.equal(err.context.source, 'BaseContainer.js')
+      assert.equal(err.context.type, 'security')
+      assert.equal(err.context.subtype, 'allow unsafe')
+    }
+  })
+
+  it('should throw security error for using env', async function () {
+    const myCapsScriptingMemory = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+      [Capabilities.SIMPLEREST_METHOD]: 'POST',
+      [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
+      [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
+        SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}'
+      },
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
+    }
+
+    const msg = {
+      messageText: 'messageText',
+      token: 'myToken',
+      scriptingMemory: {
+        variable: 'value',
+        functionArgument: '7'
+
+      }
+    }
+
+    const myCaps = Object.assign({}, myCapsScriptingMemory)
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+
+    await container.Start()
+
+    try {
+      await container.pluginInstance._buildRequest(msg)
+      assert.fail('should have failed')
+    } catch (err) {
+      // TODO Florian message is just a string with the BotiumError
+      assert.isTrue(err.message.indexOf('BotiumError: Security Error. Using unsafe scripting memory function $env is not allowed') >= 0)
+      assert.isTrue(err.message.indexOf('allow unsafe') >= 0)
+      assert.isTrue(err.message.indexOf('ScriptingMemory.js') >= 0)
+    }
+
+    await container.Clean()
+  })
+})
