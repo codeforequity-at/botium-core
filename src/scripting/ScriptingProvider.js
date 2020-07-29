@@ -703,7 +703,7 @@ module.exports = class ScriptingProvider {
       if (naming === 'justLineTag') {
         return `L${lineTag}`
       }
-      const utteranceMax = Number(this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX]) || Defaults.Capabilities[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX]
+      const utteranceMax = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX] || 0
       let postfix
       if (utteranceMax > 3 && uttOrUserInput.length > utteranceMax) {
         postfix = uttOrUserInput.substring(0, utteranceMax - 3) + '...'

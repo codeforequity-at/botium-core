@@ -297,13 +297,13 @@ describe('scriptingProvider.ExpandConvos', function () {
       assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
     })
 
-    it('SCRIPTING_UTTEXPANSION_NAMING=utterance, self healing', async function () {
+    it('SCRIPTING_UTTEXPANSION_NAMING=utterance, turn length off', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign(
         {},
         DefaultCapabilities,
         {
           [Capabilities.SCRIPTING_UTTEXPANSION_NAMING]: 'utterance',
-          [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX]: 'somegarbage'
+          [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX]: null
         }
       ))
       await scriptingProvider.Build()
@@ -313,8 +313,8 @@ describe('scriptingProvider.ExpandConvos', function () {
       scriptingProvider.ExpandConvos()
       assert.equal(scriptingProvider.convos.length, 2)
       assert.equal(scriptingProvider.convos[0].conversation.length, 1)
-      assert.equal(scriptingProvider.convos[0].header.name, 'test convo/uttText-L1-TEXT1 0123456...')
-      assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
+      assert.equal(scriptingProvider.convos[0].header.name, 'test convo/uttText-L1-TEXT1 01234567890123456789')
+      assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2-TEXT2 01234567890123456789')
     })
 
     it('SCRIPTING_UTTEXPANSION_NAMING=utterance len=10', async function () {
