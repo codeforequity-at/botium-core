@@ -286,7 +286,7 @@ describe('connectors', function () {
       assert.isTrue(err instanceof BotiumError)
       assert.exists(err.context)
       assert.equal(err.context.message, 'Security Error. Using unsafe connector mode "Function call" is not allowed')
-      assert.equal(err.context.source, 'src\\containers\\plugins\\index.js')
+      assert.equal(err.context.source, 'src/containers/plugins/index.js')
       assert.equal(err.context.type, 'security')
       assert.equal(err.context.subtype, 'allow unsafe')
       assert.exists(err.context.cause)

@@ -62,7 +62,7 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
         {
           type: 'security',
           subtype: 'allow unsafe',
-          source: path.relative(process.cwd(), __filename),
+          source: 'src/containers/plugins/index.js',
           cause: {
             SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
             mode: mode,
