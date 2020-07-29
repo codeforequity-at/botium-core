@@ -3,6 +3,7 @@ const assert = require('chai').assert
 const expect = require('chai').expect
 const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
+const Capabilities = require('../../src/Capabilities')
 
 describe('scriptingProvider.ReadScriptsFromDirectory', function () {
   it('should read multiple files from dir', async function () {
@@ -246,6 +247,175 @@ describe('scriptingProvider.ExpandConvos', function () {
     assert.equal(scriptingProvider.convos[1].conversation.length, 1)
     assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt with some whitespace-L2')
     assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
+  })
+  describe('should build convos for SCRIPTING_UTTEXPANSION_NAMING', function () {
+    const utterances = {
+      name: 'uttText',
+      utterances: ['TEXT1 01234567890123456789', 'TEXT2 01234567890123456789']
+    }
+    const convoUtterances = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'uttText'
+        }
+      ]
+    }
+
+    it('SCRIPTING_UTTEXPANSION_NAMING=justLineNumber', async function () {
+      const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances(utterances)
+      scriptingProvider.AddConvos(convoUtterances)
+
+      scriptingProvider.ExpandConvos()
+      assert.equal(scriptingProvider.convos.length, 2)
+      assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+      assert.equal(scriptingProvider.convos[0].header.name, 'test convo/uttText-L1')
+      assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2')
+    })
+
+    it('SCRIPTING_UTTEXPANSION_NAMING=utterance', async function () {
+      const scriptingProvider = new ScriptingProvider(Object.assign(
+        {},
+        DefaultCapabilities,
+        {
+          [Capabilities.SCRIPTING_UTTEXPANSION_NAMING]: 'utterance'
+        }
+      ))
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances(utterances)
+      scriptingProvider.AddConvos(convoUtterances)
+
+      scriptingProvider.ExpandConvos()
+      assert.equal(scriptingProvider.convos.length, 2)
+      assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+      assert.equal(scriptingProvider.convos[0].header.name, 'test convo/uttText-L1-TEXT1 0123456...')
+      assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
+    })
+
+    it('SCRIPTING_UTTEXPANSION_NAMING=utterance, self healing', async function () {
+      const scriptingProvider = new ScriptingProvider(Object.assign(
+        {},
+        DefaultCapabilities,
+        {
+          [Capabilities.SCRIPTING_UTTEXPANSION_NAMING]: 'utterance',
+          [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX]: 'somegarbage'
+        }
+      ))
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances(utterances)
+      scriptingProvider.AddConvos(convoUtterances)
+
+      scriptingProvider.ExpandConvos()
+      assert.equal(scriptingProvider.convos.length, 2)
+      assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+      assert.equal(scriptingProvider.convos[0].header.name, 'test convo/uttText-L1-TEXT1 0123456...')
+      assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
+    })
+
+    it('SCRIPTING_UTTEXPANSION_NAMING=utterance len=10', async function () {
+      const scriptingProvider = new ScriptingProvider(Object.assign(
+        {},
+        DefaultCapabilities,
+        {
+          [Capabilities.SCRIPTING_UTTEXPANSION_NAMING]: 'utterance',
+          [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX]: 10
+        }
+      ))
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances(utterances)
+      scriptingProvider.AddConvos(convoUtterances)
+
+      scriptingProvider.ExpandConvos()
+      assert.equal(scriptingProvider.convos.length, 2)
+      assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+      assert.equal(scriptingProvider.convos[0].header.name, 'test convo/uttText-L1-TEXT1 0...')
+      assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2-TEXT2 0...')
+    })
+    it('SCRIPTING_UTTEXPANSION_NAMING=utterance userinputs', async function () {
+      const scriptingProvider = new ScriptingProvider(Object.assign(
+        {},
+        DefaultCapabilities,
+        {
+          [Capabilities.SCRIPTING_UTTEXPANSION_NAMING]: 'utterance'
+        }
+      ))
+      await scriptingProvider.Build()
+      scriptingProvider.AddConvos({
+        header: {
+          name: 'test convo'
+        },
+        sourceTag: {},
+        conversation: [
+          {
+            sender: 'me',
+            userInputs: [
+              {
+                name: 'BUTTON',
+                args: ['button1']
+              },
+              {
+                name: 'MEDIA',
+                args: ['test1.jpg', 'test2 01234567890123456789.jpg', 'test3.jpg']
+              }
+            ]
+          }
+        ]
+      })
+
+      scriptingProvider.ExpandConvos()
+      assert.equal(scriptingProvider.convos.length, 3)
+      assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+      assert.equal(scriptingProvider.convos[0].header.name, 'test convo/MEDIA-L1-test1.jpg')
+      assert.equal(scriptingProvider.convos[1].header.name, 'test convo/MEDIA-L2-test2 0123456...')
+      assert.equal(scriptingProvider.convos[2].header.name, 'test convo/MEDIA-L3-test3.jpg')
+    })
+    it('SCRIPTING_UTTEXPANSION_NAMING=utterance userinputs and utterances', async function () {
+      const scriptingProvider = new ScriptingProvider(Object.assign(
+        {},
+        DefaultCapabilities,
+        {
+          [Capabilities.SCRIPTING_UTTEXPANSION_NAMING]: 'utterance'
+        }
+      ))
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances(utterances)
+      scriptingProvider.AddConvos({
+        header: {
+          name: 'test convo'
+        },
+        sourceTag: {},
+        conversation: [
+          {
+            sender: 'me',
+            messageText: 'uttText',
+            userInputs: [
+              {
+                name: 'BUTTON',
+                args: ['button1']
+              },
+              {
+                name: 'MEDIA',
+                args: ['test1.jpg', 'test2 01234567890123456789.jpg', 'test3.jpg']
+              }
+            ]
+          }
+        ]
+      })
+
+      scriptingProvider.ExpandConvos()
+      assert.equal(scriptingProvider.convos.length, 5)
+      assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+      assert.equal(scriptingProvider.convos[0].header.name, 'test convo/MEDIA-L1-test1.jpg')
+      assert.equal(scriptingProvider.convos[1].header.name, 'test convo/MEDIA-L2-test2 0123456...')
+      assert.equal(scriptingProvider.convos[2].header.name, 'test convo/MEDIA-L3-test3.jpg')
+      assert.equal(scriptingProvider.convos[3].header.name, 'test convo/uttText-L1-TEXT1 0123456...')
+      assert.equal(scriptingProvider.convos[4].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
+    })
   })
 })
 
