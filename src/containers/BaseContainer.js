@@ -54,7 +54,7 @@ module.exports = class BaseContainer {
             onUserSaysHook: !!this.caps[Capabilities.CUSTOMHOOK_ONUSERSAYS],
             onBotResponseHook: !!this.caps[Capabilities.CUSTOMHOOK_ONBOTRESPONSE],
             onStopHook: !!this.caps[Capabilities.CUSTOMHOOK_ONSTOP],
-            onCleanHook: !!this.caps[Capabilities.CUSTOMHOOK_ONCLEAN],
+            onCleanHook: !!this.caps[Capabilities.CUSTOMHOOK_ONCLEAN]
           }
         }
       )

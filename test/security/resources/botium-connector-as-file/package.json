@@ -1,0 +1,11 @@
+{
+  "name": "botium-connector-as-file",
+  "version": "1.0.0",
+  "description": "",
+  "main": "botium-connector-as-file.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

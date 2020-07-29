@@ -262,7 +262,6 @@ describe('connectors', function () {
   })
 
   it('should throw exception creating function connectors', async function () {
-
     const functionConnector = ({ queueBotSays }) => {
       return {
         UserSays (msg) {
