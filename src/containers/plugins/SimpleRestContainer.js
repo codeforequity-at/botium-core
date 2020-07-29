@@ -478,7 +478,6 @@ module.exports = class SimpleRestContainer {
   }
 
   _getMustachedVal (template, json) {
-    // TODO Florian. I suppose this change is good?
     const raw = Mustache.render(template, this.view)
     if (json) {
       try {
