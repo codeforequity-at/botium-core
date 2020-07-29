@@ -12,33 +12,18 @@ const myCapsSimpleRest = {
   [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
   [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
+  [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
     FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
   },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 
-const echoConnector = ({ queueBotSays }) => {
-  return {
-    UserSays (msg) {
-      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: `Response of ${msg.messageText}` }
-      queueBotSays(botMsg)
-    }
-  }
-}
-
-const myCapsEcho = {
-  [Capabilities.PROJECTNAME]: 'security.allowUnsafe',
-  [Capabilities.CONTAINERMODE]: echoConnector,
-  [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-  [Capabilities.SECURITY_ALLOW_UNSAFE]: false
-}
-
 const emptyMsg = {}
 
 describe('scripting memory', function () {
   it('should throw security error for using function', async function () {
-    const driver = new BotDriver(myCapsEcho)
+    const driver = new BotDriver(myCapsSimpleRest)
     const compiler = driver.BuildCompiler()
     const container = await driver.Build()
 
@@ -129,17 +114,17 @@ describe('simple rest, hooks', function () {
 
 describe('precompilers', function () {
   it('should throw security error for script type', async function () {
-    const myCaps = {
-      [Capabilities.PROJECTNAME]: 'compiler.precompiler.script',
-      [Capabilities.CONTAINERMODE]: echoConnector,
-      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-      [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
-      PRECOMPILERS: {
-        NAME: 'SCRIPT',
-        SCRIPT: 'console.log("dummy")'
+    const driver = new BotDriver(Object.assign(
+      {},
+      myCapsSimpleRest,
+      {
+        [Capabilities.PRECOMPILERS]: {
+          NAME: 'SCRIPT',
+          SCRIPT: '1+1'
+        }
       }
-    }
-    const driver = new BotDriver(myCaps)
+    ))
+
     const compiler = driver.BuildCompiler()
     const container = await driver.Build()
 
@@ -162,7 +147,7 @@ describe('base container, hooks', function () {
   it('should throw security error for using hook', async function () {
     const driver = new BotDriver(Object.assign(
       {},
-      myCapsEcho,
+      myCapsSimpleRest,
       { [Capabilities.CUSTOMHOOK_ONUSERSAYS]: '1+1' }
     ))
 
@@ -184,7 +169,7 @@ describe('Logic hook', function () {
   it('should throw security error for logic hook with src', async function () {
     const driver = new BotDriver(Object.assign(
       {},
-      myCapsEcho,
+      myCapsSimpleRest,
       {
         [Capabilities.LOGIC_HOOKS]: [
           {
@@ -203,6 +188,7 @@ describe('Logic hook', function () {
 
     try {
       driver.BuildCompiler()
+      assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err instanceof BotiumError)
       assert.exists(err.context)
@@ -215,7 +201,7 @@ describe('Logic hook', function () {
   it('should throw security error for global logic hook with src', async function () {
     const driver = new BotDriver(Object.assign(
       {},
-      myCapsEcho,
+      myCapsSimpleRest,
       {
         [Capabilities.LOGIC_HOOKS]: [
           {
@@ -244,6 +230,69 @@ describe('Logic hook', function () {
       assert.exists(err.context.cause)
       assert.equal(err.context.cause.ref, 'MY-LOGICHOOK-NAME')
       assert.equal(err.context.cause.src, true)
+    }
+  })
+})
+
+describe('connectors', function () {
+  it('should create simplerest', async function () {
+    const driver = new BotDriver(myCapsSimpleRest)
+    await driver.Build()
+  })
+
+  it('should create simplerest', async function () {
+    const driver = new BotDriver(myCapsSimpleRest)
+    await driver.Build()
+  })
+
+  it('should create any connector from file/dir with added botium-connector prefix', async function () {
+    const driver = new BotDriver({
+      [Capabilities.CONTAINERMODE]: 'as-file',
+      [Capabilities.SECURITY_ALLOW_UNSAFE]: false
+    })
+    await driver.Build()
+  })
+
+  it('should create any connector from file/dir, if its starts with botium-connector prefix', async function () {
+    const driver = new BotDriver({
+      [Capabilities.CONTAINERMODE]: 'botium-connector-as-file',
+      [Capabilities.SECURITY_ALLOW_UNSAFE]: false
+    })
+    await driver.Build()
+  })
+
+  it('should throw exception creating function connectors', async function () {
+
+    const functionConnector = ({ queueBotSays }) => {
+      return {
+        UserSays (msg) {
+          const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: `Response of ${msg.messageText}` }
+          queueBotSays(botMsg)
+        }
+      }
+    }
+
+    const myCapsFunction = {
+      [Capabilities.PROJECTNAME]: 'security.allowUnsafe',
+      [Capabilities.CONTAINERMODE]: functionConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.SECURITY_ALLOW_UNSAFE]: false
+    }
+
+    const driver = new BotDriver(myCapsFunction)
+    try {
+      await driver.Build()
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err instanceof BotiumError)
+      assert.exists(err.context)
+      assert.equal(err.context.message, 'Security Error. Using unsafe connector mode "Function call" is not allowed')
+      assert.equal(err.context.source, 'src\\containers\\plugins\\index.js')
+      assert.equal(err.context.type, 'security')
+      assert.equal(err.context.subtype, 'allow unsafe')
+      assert.exists(err.context.cause)
+      assert.equal(err.context.cause.mode, 'Function call')
+      assert.exists(err.context.cause.containermode)
     }
   })
 })
