@@ -699,7 +699,7 @@ module.exports = class ScriptingProvider {
    */
   _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
     const utterancePostfix = (lineTag, uttOrUserInput) => {
-      const naming = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING] || Defaults.capabilities[Capabilities.SCRIPTING_UTTEXPANSION_NAMING]
+      const naming = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE] || Defaults.capabilities[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]
       if (naming === 'justLineTag') {
         return `L${lineTag}`
       }
