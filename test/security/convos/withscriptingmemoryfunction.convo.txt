@@ -1,0 +1,4 @@
+#me
+result: $func(1+1)
+
+#bot

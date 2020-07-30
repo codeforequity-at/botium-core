@@ -234,7 +234,7 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory),
+        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, this.caps),
         isGlobal: false,
         ...rest
       }))
@@ -268,7 +268,7 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory),
+        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory, this.caps),
         isGlobal: false,
         ...rest
       })))
@@ -288,7 +288,7 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory),
+        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory, this.caps),
         ...rest
       })))
 

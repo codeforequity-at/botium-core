@@ -54,7 +54,8 @@ module.exports = {
     [Capabilities.SCRIPTING_MEMORYEXPANSION_KEEP_ORIG]: false,
     [Capabilities.ASSERTERS]: [],
     [Capabilities.LOGIC_HOOKS]: [],
-    [Capabilities.USER_INPUTS]: []
+    [Capabilities.USER_INPUTS]: [],
+    [Capabilities.SECURITY_ALLOW_UNSAFE]: true
   },
   Sources: {
     [Source.LOCALPATH]: '.',
