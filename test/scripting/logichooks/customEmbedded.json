@@ -1,0 +1,14 @@
+{
+  "LOGIC_HOOKS": [
+    {
+      "ref": "MY-LOGICHOOK-NAME",
+      "src": {
+        "onMeStart": "meMsg.messageText += ' from logichook'"
+      },
+      "global": false,
+      "args": {
+        "my-arg-1": "something"
+      }
+    }
+  ]
+}
