@@ -51,6 +51,8 @@ module.exports = {
     [Capabilities.SCRIPTING_MATCHING_MODE]: 'wildcardIgnoreCase',
     [Capabilities.SCRIPTING_UTTEXPANSION_MODE]: 'all',
     [Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]: 1,
+    [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]: 'justLineTag',
+    [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX]: '16',
     [Capabilities.SCRIPTING_MEMORYEXPANSION_KEEP_ORIG]: false,
     [Capabilities.ASSERTERS]: [],
     [Capabilities.LOGIC_HOOKS]: [],

@@ -1,0 +1,14 @@
+{
+  "ASSERTERS": [
+    {
+      "ref": "MY-ASSERTER-NAME",
+      "src": {
+        "assertConvoStep": "if (botMsg.messageText !== 'Hello hugo') throw `expected hugo, got ${JSON.stringify(botMsg)}`"
+      },
+      "global": false,
+      "args": {
+        "my-arg-1": "something"
+      }
+    }
+  ]
+}
