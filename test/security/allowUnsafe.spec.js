@@ -153,7 +153,22 @@ describe('base container, hooks', function () {
   })
 })
 
-describe('Logic hook', function () {
+describe('Logic hook, asserter', function () {
+  it('should load asserter from file', async function () {
+    const driver = new BotDriver(Object.assign(
+      {},
+      myCapsSimpleRest,
+      {
+        [Capabilities.ASSERTERS]: [
+          {
+            ref: 'as-file'
+          }
+        ]
+      }
+    ))
+
+    driver.BuildCompiler()
+  })
   it('should throw security error for logic hook with src', async function () {
     const driver = new BotDriver(Object.assign(
       {},
