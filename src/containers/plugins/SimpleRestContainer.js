@@ -8,7 +8,6 @@ const { v4: uuidv4 } = require('uuid')
 const Redis = require('ioredis')
 const _ = require('lodash')
 const debug = require('debug')('botium-connector-simplerest')
-const path = require('path')
 
 const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
@@ -18,7 +17,6 @@ const Defaults = require('../../Defaults')
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 const { getHook, executeHook } = require('../../helpers/HookUtils')
 const { escapeJSONString } = require('../../helpers/Utils')
-const { BotiumError } = require('../../scripting/BotiumError')
 
 Mustache.escape = s => s
 
@@ -39,28 +37,6 @@ module.exports = class SimpleRestContainer {
       _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
     }
     if (this.caps[Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE] !== 'MERGE' && this.caps[Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE] !== 'REPLACE') throw new Error('SIMPLEREST_CONTEXT_MERGE_OR_REPLACE capability only MERGE or REPLACE allowed')
-    if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE] &&
-      (
-        this.caps[Capabilities.SIMPLEREST_START_HOOK] ||
-        this.caps[Capabilities.SIMPLEREST_STOP_HOOK] ||
-        this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK] ||
-        this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])) {
-      throw new BotiumError(
-        'Security Error. Using unsafe hooks in simple rest connector is not allowed',
-        {
-          type: 'security',
-          subtype: 'allow unsafe',
-          source: path.basename(__filename),
-          cause: {
-            SECURITY_ALLOW_UNSAFE: this.caps[Capabilities.SECURITY_ALLOW_UNSAFE],
-            startHook: !!this.caps[Capabilities.SIMPLEREST_START_HOOK],
-            stopHook: !!this.caps[Capabilities.SIMPLEREST_STOP_HOOK],
-            requestHook: !!this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK],
-            responseHook: !!this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK]
-          }
-        }
-      )
-    }
 
     this.startHook = getHook(this.caps[Capabilities.SIMPLEREST_START_HOOK])
     this.stopHook = getHook(this.caps[Capabilities.SIMPLEREST_STOP_HOOK])
@@ -91,7 +67,8 @@ module.exports = class SimpleRestContainer {
             // then send it to the function.)
             // (mapKeys: remove starting $)
             fnc: _.mapValues(_.mapKeys(SCRIPTING_FUNCTIONS, (value, key) => key.substring(1)), (descriptor) => {
-              return descriptor.numberOfArguments ? () => { return (text, render) => descriptor.handler(this.caps, render(text)) } : () => descriptor.handler(this.caps)
+              const safeCaps = Object.assign({}, this.caps, { [Capabilities.SECURITY_ALLOW_UNSAFE]: true })
+              return descriptor.numberOfArguments ? () => { return (text, render) => descriptor.handler(safeCaps, render(text)) } : () => descriptor.handler(safeCaps)
             })
           }
           this.view.fnc.jsonify = () => (val, render) => {
