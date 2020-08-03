@@ -440,49 +440,57 @@ module.exports = class ScriptingProvider {
     let filePartialConvos = []
     let fileScriptingMemories = []
 
-    let scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
+    try {
+      let scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
 
-    const precompResponse = precompilers.execute(scriptBuffer, { convoDir, filename, caps: this.caps })
-    if (precompResponse) {
-      scriptBuffer = precompResponse.scriptBuffer
-      debug(`File ${filename} precompiled by ${precompResponse.precompiler}` +
-        (precompResponse.filename ? ` and filename changed to ${precompResponse.filename}` : '')
-      )
-      filename = precompResponse.filename || filename
-    }
+      const precompResponse = precompilers.execute(scriptBuffer, {
+        convoDir,
+        filename,
+        caps: this.caps
+      })
+      if (precompResponse) {
+        scriptBuffer = precompResponse.scriptBuffer
+        debug(`File ${filename} precompiled by ${precompResponse.precompiler}` +
+          (precompResponse.filename ? ` and filename changed to ${precompResponse.filename}` : '')
+        )
+        filename = precompResponse.filename || filename
+      }
 
-    if (filename.endsWith('.xlsx')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
-      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
-    } else if (filename.endsWith('.convo.txt')) {
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
-    } else if (filename.endsWith('.pconvo.txt')) {
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
-    } else if (filename.endsWith('.utterances.txt')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
-    } else if (filename.endsWith('.scriptingmemory.txt')) {
-      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
-    } else if (filename.endsWith('.convo.csv')) {
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
-    } else if (filename.endsWith('.pconvo.csv')) {
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
-    } else if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_UTTERANCES)
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_PCONVO)
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_CONVO)
-      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
-    } else if (filename.endsWith('.json')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_UTTERANCES)
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
-      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
-    } else if (filename.endsWith('.markdown') || filename.endsWith('.md')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
-    } else {
-      debug(`ReadScript - dropped file: ${filename}, filename not supported`)
+      if (filename.endsWith('.xlsx')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
+        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+      } else if (filename.endsWith('.convo.txt')) {
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
+      } else if (filename.endsWith('.pconvo.txt')) {
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
+      } else if (filename.endsWith('.utterances.txt')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
+      } else if (filename.endsWith('.scriptingmemory.txt')) {
+        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+      } else if (filename.endsWith('.convo.csv')) {
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
+      } else if (filename.endsWith('.pconvo.csv')) {
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
+      } else if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_UTTERANCES)
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_PCONVO)
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_CONVO)
+        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+      } else if (filename.endsWith('.json')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_UTTERANCES)
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
+        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+      } else if (filename.endsWith('.markdown') || filename.endsWith('.md')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
+      } else {
+        debug(`ReadScript - dropped file: ${filename}, filename not supported`)
+      }
+    } catch (err) {
+      debug(`ReadScript - dropped file: ${filename}, an error occurred: ${err}`)
     }
 
     // Compilers saved the convos, and we alter here the saved version too
