@@ -10,6 +10,7 @@ const debug = require('debug')('botium-core-ScriptingProvider')
 
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
+const Defaults = require('../Defaults')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList } = require('./BotiumError')
@@ -697,6 +698,20 @@ module.exports = class ScriptingProvider {
    * @private
    */
   _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
+    const utterancePostfix = (lineTag, uttOrUserInput) => {
+      const naming = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE] || Defaults.capabilities[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]
+      if (naming === 'justLineTag') {
+        return `L${lineTag}`
+      }
+      const utteranceMax = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX] || 0
+      let postfix
+      if (utteranceMax > 3 && uttOrUserInput.length > utteranceMax) {
+        postfix = uttOrUserInput.substring(0, utteranceMax - 3) + '...'
+      } else {
+        postfix = uttOrUserInput
+      }
+      return `L${lineTag}-${postfix}`
+    }
     if (convoStepIndex < currentConvo.conversation.length) {
       const currentStep = currentConvo.conversation[convoStepIndex]
       if (currentStep.sender === 'bot' || currentStep.sender === 'begin' || currentStep.sender === 'end') {
@@ -737,7 +752,7 @@ module.exports = class ScriptingProvider {
               }
               currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: utt }))
               const currentConvoLabeled = _.cloneDeep(currentConvo)
-              Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-L${lineTag}` })
+              Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-${utterancePostfix(lineTag, utt)}` })
               if (!currentConvoLabeled.sourceTag) currentConvoLabeled.sourceTag = {}
               if (!currentConvoLabeled.sourceTag.origConvoName) currentConvoLabeled.sourceTag.origConvoName = currentConvo.header.name
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
@@ -769,7 +784,7 @@ module.exports = class ScriptingProvider {
 
                   currentStepsStack.push(currentStepMod)
                   const currentConvoLabeled = _.cloneDeep(currentConvo)
-                  Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-L${lineTag}` })
+                  Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-${utterancePostfix(lineTag, (sampleinput.args && sampleinput.args.length) ? sampleinput.args.join(', ') : 'no-args')}` })
                   this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
                 })
                 useUnexpanded = false
