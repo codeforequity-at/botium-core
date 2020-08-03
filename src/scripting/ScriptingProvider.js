@@ -490,7 +490,8 @@ module.exports = class ScriptingProvider {
         debug(`ReadScript - dropped file: ${filename}, filename not supported`)
       }
     } catch (err) {
-      debug(`ReadScript - dropped file: ${filename}, an error occurred: ${err}`)
+      debug(`ReadScript - an error occurred at '${filename}' file: ${err}`)
+      throw err
     }
 
     // Compilers saved the convos, and we alter here the saved version too
