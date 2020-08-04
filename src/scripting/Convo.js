@@ -254,7 +254,7 @@ class Convo {
       }
 
       if (errors.length === 1) {
-        throw new TranscriptError(transcript.err, transcript)
+        throw new TranscriptError(errors[0], transcript)
       } else if (errors.length > 1) {
         throw new TranscriptError(botiumErrorFromList(errors, {}), transcript)
       }
