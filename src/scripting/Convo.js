@@ -215,7 +215,7 @@ class Convo {
       err: null
     })
     const scriptingMemory = {}
-
+    const errors = []
     try {
       try {
         const effectiveConversation = this._getEffectiveConversation()
@@ -239,18 +239,24 @@ class Convo {
         throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err), transcript)
       }
       await this.runConversation(container, scriptingMemory, transcript)
+      if (transcript.err) {
+        errors.push(transcript.err)
+      }
       try {
         await this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
-        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
-      }
-      if (transcript.err) {
-        throw new TranscriptError(transcript.err, transcript)
+        errors.push(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err))
       }
       try {
         await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
-        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
+        errors.push(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err))
+      }
+
+      if (errors.length === 1) {
+        throw new TranscriptError(transcript.err, transcript)
+      } else if (errors.length > 1) {
+        throw new TranscriptError(botiumErrorFromList(errors, {}), transcript)
       }
       return transcript
     } finally {
