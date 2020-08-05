@@ -2,6 +2,7 @@ const path = require('path')
 const moment = require('moment')
 const assert = require('chai').assert
 const BotDriver = require('../../').BotDriver
+const { BotiumError } = require('../../src/scripting/BotiumError')
 const Capabilities = require('../../').Capabilities
 const Events = require('../../').Events
 
@@ -224,6 +225,38 @@ describe('convo.transcript', function () {
       assert.equal(err.transcript.err.context.errors[1].source, 'ButtonsAsserter')
       assert.equal(err.transcript.err.context.errors[2].type, 'asserter')
       assert.equal(err.transcript.err.context.errors[2].source, 'ButtonsAsserter')
+    }
+  })
+  it('should throw simple error with multiple asserting errors if its enabled and assertConvoEnd fail', async function () {
+    this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'multiple_asserting_errors.convo.txt')
+    this.compilerMultipleAssertErrors.convos[0].scriptingEvents.assertConvoEnd = () => {
+      throw new BotiumError('assertConvoEnd failed',
+        {
+          type: 'asserter',
+          source: 'assertConvoEnd'
+        }
+      )
+    }
+    try {
+      await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(
+        err.transcript.err.message,
+        'asserters/Line 6: Bot response (on Line 3: #me - Hello) "Hello" expected to match "Goodbye!",\n' +
+        'Line 6: Expected button(s) with text "btn1",\n' +
+        'Line 6: Expected button(s) with text "btn2",\n' +
+        'asserters: error end handler - assertConvoEnd failed')
+
+      assert.equal(err.transcript.err.context.input.messageText, 'Hello')
+      assert.equal(err.transcript.err.context.errors[0].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[0].source, 'TextMatchAsserter')
+      assert.equal(err.transcript.err.context.errors[1].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[1].source, 'ButtonsAsserter')
+      assert.equal(err.transcript.err.context.errors[2].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[2].source, 'ButtonsAsserter')
+      assert.equal(err.transcript.err.context.errors[3].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[3].source, 'assertConvoEnd')
     }
   })
 })

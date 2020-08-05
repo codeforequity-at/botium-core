@@ -215,7 +215,6 @@ class Convo {
       err: null
     })
     const scriptingMemory = {}
-    const errors = []
     try {
       try {
         const effectiveConversation = this._getEffectiveConversation()
@@ -239,24 +238,32 @@ class Convo {
         throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err), transcript)
       }
       await this.runConversation(container, scriptingMemory, transcript)
-      if (transcript.err) {
-        errors.push(transcript.err)
-      }
       try {
         await this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
-        errors.push(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err))
+        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
+      }
+      if (transcript.err && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+        let assertConvoEndErr = null
+        try {
+          await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
+        } catch (err) {
+          assertConvoEndErr = botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err)
+        }
+        if (assertConvoEndErr) {
+          const err = transcript.err
+          transcript.err = botiumErrorFromList([transcript.err, assertConvoEndErr], {})
+          transcript.err.context.input = err.context.input
+          transcript.err.context.transcript = err.context.transcript
+        }
+        throw new TranscriptError(transcript.err, transcript)
+      } else if (transcript.err) {
+        throw new TranscriptError(transcript.err, transcript)
       }
       try {
         await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
-        errors.push(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err))
-      }
-
-      if (errors.length === 1) {
-        throw new TranscriptError(errors[0], transcript)
-      } else if (errors.length > 1) {
-        throw new TranscriptError(botiumErrorFromList(errors, {}), transcript)
+        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
       }
       return transcript
     } finally {
