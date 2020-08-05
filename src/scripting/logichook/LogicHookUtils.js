@@ -140,18 +140,6 @@ module.exports = class LogicHookUtils {
       }
     }
 
-    if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
-      throw new BotiumError(
-        'Security Error. Using unsafe component is not allowed',
-        {
-          type: 'security',
-          subtype: 'allow unsafe',
-          source: path.basename(__filename),
-          cause: { src: !!src, ref, args, hookType }
-        }
-      )
-    }
-
     if (!src) {
       const packageName = `botium-${hookType}-${ref}`
       try {
@@ -172,6 +160,19 @@ module.exports = class LogicHookUtils {
         throw new Error(`Failed to fetch package ${packageName} - ${util.inspect(err)}`)
       }
     }
+
+    if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
+      throw new BotiumError(
+        'Security Error. Using unsafe component is not allowed',
+        {
+          type: 'security',
+          subtype: 'allow unsafe',
+          source: path.basename(__filename),
+          cause: { src: !!src, ref, args, hookType }
+        }
+      )
+    }
+
     if (isClass(src)) {
       try {
         const CheckClass = src

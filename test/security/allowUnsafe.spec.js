@@ -61,7 +61,7 @@ describe('simple rest, scripting memory', function () {
     await container.Clean()
   })
 
-  it('should throw security error for using env', async function () {
+  it('should use env variables succesful', async function () {
     const driver = new BotDriver(Object.assign(
       {},
       myCapsSimpleRest,
@@ -75,21 +75,14 @@ describe('simple rest, scripting memory', function () {
 
     await container.Start()
 
-    try {
-      await container.pluginInstance._buildRequest(emptyMsg)
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err.message.indexOf('BotiumError: Security Error. Using unsafe scripting memory function $env is not allowed') >= 0)
-      assert.isTrue(err.message.indexOf('allow unsafe') >= 0)
-      assert.isTrue(err.message.indexOf('ScriptingMemory.js') >= 0)
-    }
+    await container.pluginInstance._buildRequest(emptyMsg)
 
     await container.Clean()
   })
 })
 
 describe('simple rest, hooks', function () {
-  it('should throw security error for using hook', async function () {
+  it('should create and use simplerest with hooks', async function () {
     const driver = new BotDriver(Object.assign(
       {},
       myCapsSimpleRest,
@@ -98,17 +91,12 @@ describe('simple rest, hooks', function () {
       }
     ))
 
-    try {
-      await driver.Build()
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err instanceof BotiumError)
-      assert.exists(err.context)
-      assert.equal(err.context.message, 'Security Error. Using unsafe hooks in simple rest connector is not allowed')
-      assert.equal(err.context.source, 'SimpleRestContainer.js')
-      assert.equal(err.context.type, 'security')
-      assert.equal(err.context.subtype, 'allow unsafe')
-    }
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+
+    await container.Start()
+
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
   })
 })
 
@@ -165,7 +153,22 @@ describe('base container, hooks', function () {
   })
 })
 
-describe('Logic hook', function () {
+describe('Logic hook, asserter', function () {
+  it('should load asserter from file', async function () {
+    const driver = new BotDriver(Object.assign(
+      {},
+      myCapsSimpleRest,
+      {
+        [Capabilities.ASSERTERS]: [
+          {
+            ref: 'as-file'
+          }
+        ]
+      }
+    ))
+
+    driver.BuildCompiler()
+  })
   it('should throw security error for logic hook with src', async function () {
     const driver = new BotDriver(Object.assign(
       {},
@@ -235,11 +238,6 @@ describe('Logic hook', function () {
 })
 
 describe('connectors', function () {
-  it('should create simplerest', async function () {
-    const driver = new BotDriver(myCapsSimpleRest)
-    await driver.Build()
-  })
-
   it('should create simplerest', async function () {
     const driver = new BotDriver(myCapsSimpleRest)
     await driver.Build()
