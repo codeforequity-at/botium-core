@@ -13,7 +13,7 @@ const Capabilities = require('../Capabilities')
 const Defaults = require('../Defaults')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
-const { BotiumError, botiumErrorFromList } = require('./BotiumError')
+const { BotiumError, botiumErrorFromList, botiumErrorFromErr } = require('./BotiumError')
 const RetryHelper = require('../helpers/RetryHelper')
 const MatchFunctions = require('./MatchFunctions')
 const precompilers = require('./precompilers')
@@ -491,7 +491,7 @@ module.exports = class ScriptingProvider {
       }
     } catch (err) {
       debug(`ReadScript - an error occurred at '${filename}' file: ${err}`)
-      throw err
+      throw botiumErrorFromErr(`ReadScript - an error occurred at '${filename}' file: ${err.message}`, err)
     }
 
     // Compilers saved the convos, and we alter here the saved version too
