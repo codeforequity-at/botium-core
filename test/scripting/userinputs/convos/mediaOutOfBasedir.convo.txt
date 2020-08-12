@@ -1,0 +1,4 @@
+mediaoutofbasedir
+
+#me
+MEDIA ../*.png

@@ -192,6 +192,17 @@ describe('scripting.userinputs.mediaInputConvos.baseDir', function () {
     assert.isTrue(transcript2.steps[0].actual.media[0].downloadUri.endsWith('files/botium2.png'))
     assert.equal(transcript2.steps[0].actual.media[0].mimeType, 'image/png')
   })
+
+  it('should failed when media is out of baseDir', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'mediaOutOfBasedir.convo.txt')
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.isTrue(err.message.startsWith('mediaoutofbasedir/Line 3: error sending to bot - The uri \'../*.png\' is pointing out of the base directory'))
+    }
+  })
 })
 
 describe('scripting.userinputs.mediaInputDownloadConvos.relative', function () {
