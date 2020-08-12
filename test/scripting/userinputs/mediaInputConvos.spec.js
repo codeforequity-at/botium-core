@@ -54,6 +54,17 @@ describe('scripting.userinputs.mediaInputConvos.relative', function () {
     assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
   })
 
+  it('should fail when media is out of convo dir', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'mediaOutOfConvoDir.convo.txt')
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.isTrue(err.message.startsWith('mediaoutofconvodir/Line 3: error sending to bot - The uri \'../botium.png\' is pointing out of the base directory'))
+    }
+  })
+
   it('should add multi media in user message', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'medias.convo.txt')
 
@@ -193,7 +204,7 @@ describe('scripting.userinputs.mediaInputConvos.baseDir', function () {
     assert.equal(transcript2.steps[0].actual.media[0].mimeType, 'image/png')
   })
 
-  it('should failed when media is out of baseDir', async function () {
+  it('should fail when media is out of baseDir', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'mediaOutOfBasedir.convo.txt')
 
     try {

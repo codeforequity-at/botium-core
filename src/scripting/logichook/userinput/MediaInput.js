@@ -21,11 +21,14 @@ module.exports = class MediaInput {
     } else if (this.globalArgs && this.globalArgs.baseDir) {
       const basePath = path.resolve(this.globalArgs.baseDir)
       if (!path.resolve(this.globalArgs.baseDir, uri).startsWith(basePath)) {
-        throw new Error(`The uri '${uri}' is pointing out of the base directory '${this.globalArgs.baseDir}'`)
+        throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
       }
       return new url.URL(uri, `file://${basePath}/`)
     } else if (convoDir && convoFilename) {
       const basePath = path.resolve(convoDir)
+      if (!path.resolve(convoDir, uri).startsWith(basePath)) {
+        throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
+      }
       return new url.URL(uri, `file://${basePath}/${convoFilename}`)
     } else {
       try {
