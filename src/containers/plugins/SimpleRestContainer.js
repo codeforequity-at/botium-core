@@ -13,7 +13,7 @@ const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
 const { getAllCapValues } = require('../../helpers/CapabilitiesUtils')
 const Capabilities = require('../../Capabilities')
-const Defaults = require('../../Defaults')
+const Defaults = require('../../Defaults').Capabilities
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 const { getHook, executeHook } = require('../../helpers/HookUtils')
 const { escapeJSONString } = require('../../helpers/Utils')
@@ -25,7 +25,7 @@ const REDIS_TOPIC = 'SIMPLEREST_INBOUND_SUBSCRIPTION'
 module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
     this.queueBotSays = queueBotSays
-    this.caps = caps
+    this.caps = Object.assign({}, Defaults, caps)
     this.processInbound = false
   }
 
@@ -365,7 +365,7 @@ module.exports = class SimpleRestContainer {
     }
 
     const uri = this._getMustachedCap(Capabilities.SIMPLEREST_URL, false)
-    const timeout = this.caps[Capabilities.SIMPLEREST_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_TIMEOUT]
+    const timeout = this.caps[Capabilities.SIMPLEREST_TIMEOUT]
 
     const requestOptions = {
       uri,
@@ -572,7 +572,7 @@ module.exports = class SimpleRestContainer {
     if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
       const uri = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_URL, false)
       const verb = this.caps[Capabilities.SIMPLEREST_POLL_VERB]
-      const timeout = this.caps[Capabilities.SIMPLEREST_POLL_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_POLL_TIMEOUT]
+      const timeout = this.caps[Capabilities.SIMPLEREST_POLL_TIMEOUT]
       const pollConfig = {
         method: verb,
         uri: uri,
@@ -644,7 +644,7 @@ module.exports = class SimpleRestContainer {
   async _makeCall (capPrefix) {
     const uri = this._getMustachedCap(`${capPrefix}_URL`, false)
     const verb = this.caps[`${capPrefix}_VERB`]
-    const timeout = this.caps[`${capPrefix}_TIMEOUT`] || Defaults[`${capPrefix}_TIMEOUT`] || Defaults[Capabilities.SIMPLEREST_TIMEOUT]
+    const timeout = this.caps[`${capPrefix}_TIMEOUT`] || this.caps[Capabilities.SIMPLEREST_TIMEOUT]
     const httpConfig = {
       method: verb,
       uri: uri,
@@ -668,7 +668,7 @@ module.exports = class SimpleRestContainer {
     }
     this._addRequestOptions(httpConfig)
 
-    const retries = this.caps[`${capPrefix}_RETRIES`] || Defaults[`${capPrefix}_RETRIES`]
+    const retries = this.caps[`${capPrefix}_RETRIES`]
     const response = await this._waitForUrlResponse(httpConfig, retries)
     return response
   }
