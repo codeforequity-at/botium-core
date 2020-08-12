@@ -115,14 +115,14 @@ describe('precompilers', function () {
 
     const compiler = driver.BuildCompiler()
     const container = await driver.Build()
-
+    const fileName = 'dummy.convo.txt'
     try {
-      compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
+      compiler.ReadScript(path.resolve(__dirname, 'convos'), fileName)
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err instanceof BotiumError)
       assert.exists(err.context)
-      assert.equal(err.context.message, 'Security Error. Using unsafe precompiler SCRIPT is not allowed')
+      assert.equal(err.context.message, `ReadScript - an error occurred at '${fileName}' file: Security Error. Using unsafe precompiler SCRIPT is not allowed`)
       assert.equal(err.context.source, 'precompilers')
       assert.equal(err.context.type, 'security')
       assert.equal(err.context.subtype, 'allow unsafe')
