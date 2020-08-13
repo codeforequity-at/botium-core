@@ -47,4 +47,3 @@ Of course, code contributions are welcome! There are many possible ways of exten
 
 We want to recognise everyone making positive influence in our community. We are doing our part of the job by tracking every possible Botium champion out there, but if you feel like that we are missing someone, let us know!
 
-
