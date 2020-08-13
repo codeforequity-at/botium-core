@@ -13,7 +13,7 @@ const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
 const { getAllCapValues } = require('../../helpers/CapabilitiesUtils')
 const Capabilities = require('../../Capabilities')
-const Defaults = require('../../Defaults')
+const Defaults = require('../../Defaults').Capabilities
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 const { getHook, executeHook } = require('../../helpers/HookUtils')
 const { escapeJSONString } = require('../../helpers/Utils')
@@ -25,7 +25,7 @@ const REDIS_TOPIC = 'SIMPLEREST_INBOUND_SUBSCRIPTION'
 module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
     this.queueBotSays = queueBotSays
-    this.caps = caps
+    this.caps = Object.assign({}, Defaults, caps)
     this.processInbound = false
   }
 
@@ -37,6 +37,7 @@ module.exports = class SimpleRestContainer {
       _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) || JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
     }
     if (this.caps[Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE] !== 'MERGE' && this.caps[Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE] !== 'REPLACE') throw new Error('SIMPLEREST_CONTEXT_MERGE_OR_REPLACE capability only MERGE or REPLACE allowed')
+
     this.startHook = getHook(this.caps[Capabilities.SIMPLEREST_START_HOOK])
     this.stopHook = getHook(this.caps[Capabilities.SIMPLEREST_STOP_HOOK])
     this.requestHook = getHook(this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
@@ -65,8 +66,9 @@ module.exports = class SimpleRestContainer {
             // (render(text) is required for forcing mustache to replace valiables in the text first,
             // then send it to the function.)
             // (mapKeys: remove starting $)
-            fnc: _.mapValues(_.mapKeys(SCRIPTING_FUNCTIONS, (value, key) => key.substring(1)), (theFunction) => {
-              return theFunction.length ? function () { return (text, render) => theFunction(render(text)) } : theFunction
+            fnc: _.mapValues(_.mapKeys(SCRIPTING_FUNCTIONS, (value, key) => key.substring(1)), (descriptor) => {
+              const safeCaps = Object.assign({}, this.caps, { [Capabilities.SECURITY_ALLOW_UNSAFE]: true })
+              return descriptor.numberOfArguments ? () => { return (text, render) => descriptor.handler(safeCaps, render(text)) } : () => descriptor.handler(safeCaps)
             })
           }
           this.view.fnc.jsonify = () => (val, render) => {
@@ -363,7 +365,7 @@ module.exports = class SimpleRestContainer {
     }
 
     const uri = this._getMustachedCap(Capabilities.SIMPLEREST_URL, false)
-    const timeout = this.caps[Capabilities.SIMPLEREST_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_TIMEOUT]
+    const timeout = this.caps[Capabilities.SIMPLEREST_TIMEOUT]
 
     const requestOptions = {
       uri,
@@ -453,14 +455,15 @@ module.exports = class SimpleRestContainer {
   }
 
   _getMustachedVal (template, json) {
+    const raw = Mustache.render(template, this.view)
     if (json) {
       try {
-        return JSON.parse(Mustache.render(template, this.view))
+        return JSON.parse(raw)
       } catch (err) {
         return new Error(`JSON parsing failed - try to use {{#fnc.jsonify}}{{xxx}}{{/fnc.jsonify}} to escape JSON special characters (ERR: ${err.message})`)
       }
     } else {
-      return Mustache.render(template, this.view)
+      return raw
     }
   }
 
@@ -569,7 +572,7 @@ module.exports = class SimpleRestContainer {
     if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
       const uri = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_URL, false)
       const verb = this.caps[Capabilities.SIMPLEREST_POLL_VERB]
-      const timeout = this.caps[Capabilities.SIMPLEREST_POLL_TIMEOUT] || Defaults[Capabilities.SIMPLEREST_POLL_TIMEOUT]
+      const timeout = this.caps[Capabilities.SIMPLEREST_POLL_TIMEOUT]
       const pollConfig = {
         method: verb,
         uri: uri,
@@ -641,7 +644,7 @@ module.exports = class SimpleRestContainer {
   async _makeCall (capPrefix) {
     const uri = this._getMustachedCap(`${capPrefix}_URL`, false)
     const verb = this.caps[`${capPrefix}_VERB`]
-    const timeout = this.caps[`${capPrefix}_TIMEOUT`] || Defaults[`${capPrefix}_TIMEOUT`] || Defaults[Capabilities.SIMPLEREST_TIMEOUT]
+    const timeout = this.caps[`${capPrefix}_TIMEOUT`] || this.caps[Capabilities.SIMPLEREST_TIMEOUT]
     const httpConfig = {
       method: verb,
       uri: uri,
@@ -665,7 +668,7 @@ module.exports = class SimpleRestContainer {
     }
     this._addRequestOptions(httpConfig)
 
-    const retries = this.caps[`${capPrefix}_RETRIES`] || Defaults[`${capPrefix}_RETRIES`]
+    const retries = this.caps[`${capPrefix}_RETRIES`]
     const response = await this._waitForUrlResponse(httpConfig, retries)
     return response
   }

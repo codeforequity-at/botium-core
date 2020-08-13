@@ -10,9 +10,10 @@ const debug = require('debug')('botium-core-ScriptingProvider')
 
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
+const Defaults = require('../Defaults')
 const { Convo } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
-const { BotiumError, botiumErrorFromList } = require('./BotiumError')
+const { BotiumError, botiumErrorFromList, botiumErrorFromErr } = require('./BotiumError')
 const RetryHelper = require('../helpers/RetryHelper')
 const MatchFunctions = require('./MatchFunctions')
 const precompilers = require('./precompilers')
@@ -129,13 +130,13 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt))
-        if (found === undefined) {
+        if (_.isNil(found)) {
           let message = `${stepTag}: Bot response `
           message += meMsg ? `(on ${meMsg}) ` : ''
           message += botresponse ? ('"' + botresponse + '"') : '<no response>'
           message += ' expected to match '
           message += tomatch && tomatch.length > 1 ? 'one of ' : ''
-          message += `"${tomatch}"`
+          message += `${tomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
           throw new BotiumError(
             message,
             {
@@ -158,9 +159,15 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
         const found = _.find(nottomatch, (utt) => this.matchFn(botresponse, utt))
-        if (found) {
+        if (!_.isNil(found)) {
+          let message = `${stepTag}: Bot response `
+          message += meMsg ? `(on ${meMsg}) ` : ''
+          message += botresponse ? ('"' + botresponse + '"') : '<no response>'
+          message += ' expected NOT to match '
+          message += nottomatch && nottomatch.length > 1 ? 'one of ' : ''
+          message += `${nottomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
           throw new BotiumError(
-            `${stepTag}: Expected bot response ${meMsg ? `(on ${meMsg}) ` : ''}"${botresponse}" NOT to match "${found}"`,
+            message,
             {
               type: 'asserter',
               source: 'TextMatchAsserter',
@@ -228,7 +235,7 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory),
+        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, this.caps),
         isGlobal: false,
         ...rest
       }))
@@ -262,7 +269,7 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory),
+        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory, this.caps),
         isGlobal: false,
         ...rest
       })))
@@ -282,7 +289,7 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory),
+        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory, this.caps),
         ...rest
       })))
 
@@ -433,49 +440,58 @@ module.exports = class ScriptingProvider {
     let filePartialConvos = []
     let fileScriptingMemories = []
 
-    let scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
+    try {
+      let scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
 
-    const precompResponse = precompilers.execute(scriptBuffer, { convoDir, filename, caps: this.caps })
-    if (precompResponse) {
-      scriptBuffer = precompResponse.scriptBuffer
-      debug(`File ${filename} precompiled by ${precompResponse.precompiler}` +
-        (precompResponse.filename ? ` and filename changed to ${precompResponse.filename}` : '')
-      )
-      filename = precompResponse.filename || filename
-    }
+      const precompResponse = precompilers.execute(scriptBuffer, {
+        convoDir,
+        filename,
+        caps: this.caps
+      })
+      if (precompResponse) {
+        scriptBuffer = precompResponse.scriptBuffer
+        debug(`File ${filename} precompiled by ${precompResponse.precompiler}` +
+          (precompResponse.filename ? ` and filename changed to ${precompResponse.filename}` : '')
+        )
+        filename = precompResponse.filename || filename
+      }
 
-    if (filename.endsWith('.xlsx')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
-      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
-    } else if (filename.endsWith('.convo.txt')) {
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
-    } else if (filename.endsWith('.pconvo.txt')) {
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
-    } else if (filename.endsWith('.utterances.txt')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
-    } else if (filename.endsWith('.scriptingmemory.txt')) {
-      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
-    } else if (filename.endsWith('.convo.csv')) {
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
-    } else if (filename.endsWith('.pconvo.csv')) {
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
-    } else if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_UTTERANCES)
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_PCONVO)
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_CONVO)
-      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
-    } else if (filename.endsWith('.json')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_UTTERANCES)
-      filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
-      fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
-    } else if (filename.endsWith('.markdown') || filename.endsWith('.md')) {
-      fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
-      fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
-    } else {
-      debug(`ReadScript - dropped file: ${filename}`)
+      if (filename.endsWith('.xlsx')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
+        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+      } else if (filename.endsWith('.convo.txt')) {
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
+      } else if (filename.endsWith('.pconvo.txt')) {
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
+      } else if (filename.endsWith('.utterances.txt')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
+      } else if (filename.endsWith('.scriptingmemory.txt')) {
+        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+      } else if (filename.endsWith('.convo.csv')) {
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
+      } else if (filename.endsWith('.pconvo.csv')) {
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
+      } else if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_UTTERANCES)
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_PCONVO)
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_CONVO)
+        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+      } else if (filename.endsWith('.json')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_UTTERANCES)
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
+        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+      } else if (filename.endsWith('.markdown') || filename.endsWith('.md')) {
+        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
+        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
+      } else {
+        debug(`ReadScript - dropped file: ${filename}, filename not supported`)
+      }
+    } catch (err) {
+      debug(`ReadScript - an error occurred at '${filename}' file: ${err}`)
+      throw botiumErrorFromErr(`ReadScript - an error occurred at '${filename}' file: ${err.message}`, err)
     }
 
     // Compilers saved the convos, and we alter here the saved version too
@@ -691,6 +707,20 @@ module.exports = class ScriptingProvider {
    * @private
    */
   _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
+    const utterancePostfix = (lineTag, uttOrUserInput) => {
+      const naming = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE] || Defaults.capabilities[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]
+      if (naming === 'justLineTag') {
+        return `L${lineTag}`
+      }
+      const utteranceMax = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX] || 0
+      let postfix
+      if (utteranceMax > 3 && uttOrUserInput.length > utteranceMax) {
+        postfix = uttOrUserInput.substring(0, utteranceMax - 3) + '...'
+      } else {
+        postfix = uttOrUserInput
+      }
+      return `L${lineTag}-${postfix}`
+    }
     if (convoStepIndex < currentConvo.conversation.length) {
       const currentStep = currentConvo.conversation[convoStepIndex]
       if (currentStep.sender === 'bot' || currentStep.sender === 'begin' || currentStep.sender === 'end') {
@@ -731,7 +761,7 @@ module.exports = class ScriptingProvider {
               }
               currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: utt }))
               const currentConvoLabeled = _.cloneDeep(currentConvo)
-              Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-L${lineTag}` })
+              Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-${utterancePostfix(lineTag, utt)}` })
               if (!currentConvoLabeled.sourceTag) currentConvoLabeled.sourceTag = {}
               if (!currentConvoLabeled.sourceTag.origConvoName) currentConvoLabeled.sourceTag.origConvoName = currentConvo.header.name
               this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
@@ -763,7 +793,7 @@ module.exports = class ScriptingProvider {
 
                   currentStepsStack.push(currentStepMod)
                   const currentConvoLabeled = _.cloneDeep(currentConvo)
-                  Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-L${lineTag}` })
+                  Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-${utterancePostfix(lineTag, (sampleinput.args && sampleinput.args.length) ? sampleinput.args.join(', ') : 'no-args')}` })
                   this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
                 })
                 useUnexpanded = false
@@ -806,6 +836,27 @@ module.exports = class ScriptingProvider {
   }
 
   AddUtterances (utterances) {
+    const findAmbiguous = (utterances) => {
+      const ambiguous = []
+      let expected = null
+      let base = null
+      if (utterances && utterances.length > 1) {
+        base = utterances[0]
+        expected = ScriptingMemory.extractVarNames(utterances[0]).sort()
+        const expectedString = JSON.stringify(expected)
+
+        for (let i = 1; i < utterances.length; i++) {
+          const actualString = JSON.stringify(ScriptingMemory.extractVarNames(utterances[i]).sort())
+
+          if (actualString !== expectedString) {
+            ambiguous.push(utterances[i])
+          }
+        }
+      }
+
+      return { expected, ambiguous, base }
+    }
+
     if (utterances && !_.isArray(utterances)) {
       utterances = [utterances]
     }
@@ -816,6 +867,12 @@ module.exports = class ScriptingProvider {
           eu.utterances = _.uniq(_.concat(eu.utterances, utt.utterances))
         } else {
           this.utterances[utt.name] = utt
+        }
+
+        const { ambiguous, expected } = findAmbiguous(this.utterances[utt.name].utterances)
+
+        if (ambiguous && ambiguous.length > 0) {
+          debug(`Ambigous utterance "${utt.name}", expecting exact ${expected.length ? ('"' + expected.join(', ') + '"') : '<none>'} scripting memory variables in following user examples: ${ambiguous.map(d => `"${d}"`).join(', ')}`)
         }
       })
     }

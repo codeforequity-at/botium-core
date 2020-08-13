@@ -6,6 +6,8 @@ const mime = require('mime-types')
 const url = require('url')
 const _ = require('lodash')
 
+const { BotiumMockMedia } = require('../../../../src/mocks/BotiumMockRichMessageTypes')
+
 module.exports = class MediaInput {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
@@ -18,9 +20,15 @@ module.exports = class MediaInput {
       return new url.URL(uri, this.globalArgs.baseUri)
     } else if (this.globalArgs && this.globalArgs.baseDir) {
       const basePath = path.resolve(this.globalArgs.baseDir)
+      if (!path.resolve(this.globalArgs.baseDir, uri).startsWith(basePath)) {
+        throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
+      }
       return new url.URL(uri, `file://${basePath}/`)
     } else if (convoDir && convoFilename) {
       const basePath = path.resolve(convoDir)
+      if (!path.resolve(convoDir, uri).startsWith(basePath)) {
+        throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
+      }
       return new url.URL(uri, `file://${basePath}/${convoFilename}`)
     } else {
       try {
@@ -117,22 +125,22 @@ module.exports = class MediaInput {
         const uri = this._getResolvedUri(args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
         if (uri) {
           const buffer = await this._downloadMedia(uri)
-          meMsg.media.push({
+          meMsg.media.push(new BotiumMockMedia({
             mediaUri: args[0],
             downloadUri: uri.toString(),
             mimeType: mime.lookup(args[0]),
             buffer
-          })
+          }))
         }
       } catch (err) {
         throw new Error(err.message)
       }
     } else if (args.length === 2) {
-      meMsg.media.push({
+      meMsg.media.push(new BotiumMockMedia({
         mediaUri: args[0],
         mimeType: mime.lookup(args[0]),
         buffer: args[1]
-      })
+      }))
     }
   }
 }

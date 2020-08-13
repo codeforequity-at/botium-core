@@ -127,6 +127,7 @@ const getPlugins = async (type, resourcesDir) => {
   let items
   try {
     items = fs.readdirSync(pathToRes)
+      .filter(item => path.extname(item) === '.js' || item.indexOf('.') === -1)
   } catch (err) {
     debug(`Cant load plugins, failed to read directory ${pathToRes} - ${err.message}`)
     return []
@@ -153,5 +154,6 @@ module.exports = {
   PLUGIN_TYPE_CONNECTOR,
   PLUGIN_TYPE_ASSERTER,
   PLUGIN_TYPE_LOGICHOOK,
-  PLUGIN_TYPE_USERINPUT
+  PLUGIN_TYPE_USERINPUT,
+  TYPE_TO_PREFIX
 }

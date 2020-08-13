@@ -1,6 +1,9 @@
 const util = require('util')
-const { isJson } = require('../../helpers/Utils')
 const debug = require('debug')('botium-core-Precompilers')
+
+const { isJsonObject } = require('../../helpers/Utils')
+const Capabilities = require('../../Capabilities')
+const { BotiumError } = require('./../BotiumError')
 
 const PROVIDERS = {
   JSON_TO_JSON_JSONPATH: require('./JsonToJson'),
@@ -28,12 +31,30 @@ module.exports.execute = (scriptBuffer, options) => {
       throw new Error(`Precompiler ${util.inspect(capSuffixAndVal.NAME)} not found using caps ${util.inspect(capSuffixAndVal)}`)
     }
 
+    if (!caps[Capabilities.SECURITY_ALLOW_UNSAFE] && provider.unsafe) {
+      throw new BotiumError(
+        `Security Error. Using unsafe precompiler ${capSuffixAndVal.NAME} is not allowed`,
+        {
+          type: 'security',
+          subtype: 'allow unsafe',
+          source: 'precompilers',
+          cause: {
+            SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
+            precompilerName: capSuffixAndVal.NAME
+          }
+        }
+      )
+    }
+
     const result = provider.precompile(scriptBuffer, capSuffixAndVal, filename)
     if (result) {
       if (!result.scriptBuffer) {
         return null
       }
-      result.scriptBuffer = isJson(result.scriptBuffer)
+      if (isJsonObject(result.scriptBuffer, false)) {
+        result.scriptBuffer = JSON.stringify(result.scriptBuffer)
+      }
+
       result.precompiler = capSuffixAndVal.NAME
       // dont let chain the precompilers. It looks more robust
       return result

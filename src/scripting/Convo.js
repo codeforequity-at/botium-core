@@ -215,7 +215,6 @@ class Convo {
       err: null
     })
     const scriptingMemory = {}
-
     try {
       try {
         const effectiveConversation = this._getEffectiveConversation()
@@ -244,7 +243,21 @@ class Convo {
       } catch (err) {
         throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
       }
-      if (transcript.err) {
+      if (transcript.err && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+        let assertConvoEndErr = null
+        try {
+          await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
+        } catch (err) {
+          assertConvoEndErr = botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err)
+        }
+        if (assertConvoEndErr) {
+          const err = transcript.err
+          transcript.err = botiumErrorFromList([transcript.err, assertConvoEndErr], {})
+          transcript.err.context.input = err.context.input
+          transcript.err.context.transcript = err.context.transcript
+        }
+        throw new TranscriptError(transcript.err, transcript)
+      } else if (transcript.err) {
         throw new TranscriptError(transcript.err, transcript)
       }
       try {

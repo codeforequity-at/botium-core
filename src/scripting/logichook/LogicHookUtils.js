@@ -4,6 +4,8 @@ const path = require('path')
 const isClass = require('is-class')
 const debug = require('debug')('botium-core-asserterUtils')
 
+const { BotiumError } = require('../BotiumError')
+
 const { DEFAULT_ASSERTERS, DEFAULT_LOGIC_HOOKS, DEFAULT_USER_INPUTS } = require('./LogicHookConsts')
 
 DEFAULT_ASSERTERS.forEach((asserter) => {
@@ -137,6 +139,7 @@ module.exports = class LogicHookUtils {
         return new (ui.Class)(this.buildScriptContext, this.caps, args)
       }
     }
+
     if (!src) {
       const packageName = `botium-${hookType}-${ref}`
       try {
@@ -157,6 +160,19 @@ module.exports = class LogicHookUtils {
         throw new Error(`Failed to fetch package ${packageName} - ${util.inspect(err)}`)
       }
     }
+
+    if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
+      throw new BotiumError(
+        'Security Error. Using unsafe component is not allowed',
+        {
+          type: 'security',
+          subtype: 'allow unsafe',
+          source: path.basename(__filename),
+          cause: { src: !!src, ref, args, hookType }
+        }
+      )
+    }
+
     if (isClass(src)) {
       try {
         const CheckClass = src
