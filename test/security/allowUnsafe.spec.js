@@ -72,7 +72,7 @@ describe('simple rest, scripting memory', function () {
   })
 
   it('should use env variables succesful', async function () {
-    const driver = new BotDriver( _getSimpleRestCaps(
+    const driver = new BotDriver(_getSimpleRestCaps(
       {
         [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
           SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}'
