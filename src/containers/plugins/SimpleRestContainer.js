@@ -76,7 +76,7 @@ module.exports = class SimpleRestContainer {
           }
 
           if (this.caps[Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE]) {
-            this.view.botium.conversationId = this._getMustachedCap(Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE, false)
+            this.view.botium.conversationId = this._getMustachedCap(Capabilities.SIMPLEREST_CONVERSATION_ID_TEMPLATE)
           } else {
             this.view.botium.conversationId = uuidv4()
           }
@@ -359,12 +359,12 @@ module.exports = class SimpleRestContainer {
     this.view.msg.messageText = nonEncodedMessage && encodeURIComponent(nonEncodedMessage)
 
     if (this.caps[Capabilities.SIMPLEREST_STEP_ID_TEMPLATE]) {
-      this.view.botium.stepId = this._getMustachedCap(Capabilities.SIMPLEREST_STEP_ID_TEMPLATE, false)
+      this.view.botium.stepId = this._getMustachedCap(Capabilities.SIMPLEREST_STEP_ID_TEMPLATE)
     } else {
       this.view.botium.stepId = uuidv4()
     }
 
-    const uri = this._getMustachedCap(Capabilities.SIMPLEREST_URL, false)
+    const uri = this._getMustachedCap(Capabilities.SIMPLEREST_URL)
     const timeout = this.caps[Capabilities.SIMPLEREST_TIMEOUT]
 
     const requestOptions = {
@@ -377,7 +377,7 @@ module.exports = class SimpleRestContainer {
     if (this.caps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE]) {
       this.view.msg.messageText = nonEncodedMessage
       try {
-        requestOptions.headers = this._getMustachedCap(Capabilities.SIMPLEREST_HEADERS_TEMPLATE, true)
+        requestOptions.headers = this._getMustachedCap(Capabilities.SIMPLEREST_HEADERS_TEMPLATE)
       } catch (err) {
         throw new Error(`composing headers from SIMPLEREST_HEADERS_TEMPLATE failed (${util.inspect(err)})`)
       }
@@ -389,7 +389,7 @@ module.exports = class SimpleRestContainer {
         this.view.msg.messageText = nonEncodedMessage && escapeJSONString(nonEncodedMessage)
       }
       try {
-        requestOptions.body = this._getMustachedCap(Capabilities.SIMPLEREST_BODY_TEMPLATE, !this.caps[Capabilities.SIMPLEREST_BODY_RAW])
+        requestOptions.body = this._getMustachedCap(Capabilities.SIMPLEREST_BODY_TEMPLATE)
         requestOptions.json = !this.caps[Capabilities.SIMPLEREST_BODY_RAW]
       } catch (err) {
         throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${util.inspect(err)})`)
@@ -398,7 +398,13 @@ module.exports = class SimpleRestContainer {
     this.view.msg.messageText = nonEncodedMessage
 
     if (msg.ADD_QUERY_PARAM && Object.keys(msg.ADD_QUERY_PARAM).length > 0) {
-      const appendToUri = Object.keys(msg.ADD_QUERY_PARAM).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(this._getMustachedVal(msg.ADD_QUERY_PARAM[key], false))}`).join('&')
+      const appendToUri = Object.keys(msg.ADD_QUERY_PARAM).map(key => {
+        let queryParam = this._getMustachedVal(msg.ADD_QUERY_PARAM[key])
+        if (_.isObject(queryParam)) {
+          queryParam = JSON.stringify(queryParam)
+        }
+        return `${encodeURIComponent(key)}=${encodeURIComponent(queryParam)}`
+      }).join('&')
       if (requestOptions.uri.indexOf('?') > 0) {
         requestOptions.uri = `${requestOptions.uri}&${appendToUri}`
       } else {
@@ -409,7 +415,7 @@ module.exports = class SimpleRestContainer {
       requestOptions.headers = requestOptions.headers || {}
 
       for (const headerKey of Object.keys(msg.ADD_HEADER)) {
-        const headerValue = this._getMustachedVal(msg.ADD_HEADER[headerKey], false)
+        const headerValue = this._getMustachedVal(msg.ADD_HEADER[headerKey])
         requestOptions.headers[headerKey] = headerValue
       }
     }
@@ -449,13 +455,18 @@ module.exports = class SimpleRestContainer {
     }
   }
 
-  _getMustachedCap (capName, json) {
-    const template = _.isString(this.caps[capName]) ? this.caps[capName] : JSON.stringify(this.caps[capName])
-    return this._getMustachedVal(template, json)
+  _getMustachedCap (capName) {
+    return this._getMustachedVal(this.caps[capName])
   }
 
-  _getMustachedVal (template, json) {
-    const raw = Mustache.render(template, this.view)
+  _getMustachedVal (template) {
+    let temp = template
+    let json = false
+    if (!_.isString(template)) {
+      temp = JSON.stringify(template)
+      json = true
+    }
+    const raw = Mustache.render(temp, this.view)
     if (json) {
       try {
         return JSON.parse(raw)
@@ -475,10 +486,10 @@ module.exports = class SimpleRestContainer {
     if (jsonPathsSelector && jsonPathsSelector.length > 0) {
       let isSelected = false
       for (const jsonPathTemplate of jsonPathsSelector) {
-        const jsonPath = this._getMustachedVal(jsonPathTemplate, false)
+        const jsonPath = this._getMustachedVal(jsonPathTemplate)
         const hasResult = jp.query(event, jsonPath)
         if (hasResult && hasResult.length > 0) {
-          const check = jsonPathValue && this._getMustachedVal(jsonPathValue, false)
+          const check = jsonPathValue && this._getMustachedVal(jsonPathValue)
           if (check) {
             if (hasResult[0] === check) {
               isSelected = true
@@ -570,7 +581,7 @@ module.exports = class SimpleRestContainer {
     if (!this.processInbound) return
 
     if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
-      const uri = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_URL, false)
+      const uri = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_URL)
       const verb = this.caps[Capabilities.SIMPLEREST_POLL_VERB]
       const timeout = this.caps[Capabilities.SIMPLEREST_POLL_TIMEOUT]
       const pollConfig = {
@@ -581,7 +592,7 @@ module.exports = class SimpleRestContainer {
       }
       if (this.caps[Capabilities.SIMPLEREST_POLL_HEADERS]) {
         try {
-          pollConfig.headers = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_HEADERS, true)
+          pollConfig.headers = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_HEADERS)
         } catch (err) {
           debug(`_runPolling: composing headers from SIMPLEREST_POLL_HEADERS failed (${util.inspect(err)})`)
           return
@@ -589,7 +600,7 @@ module.exports = class SimpleRestContainer {
       }
       if (this.caps[Capabilities.SIMPLEREST_POLL_BODY]) {
         try {
-          pollConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_BODY, !this.caps[Capabilities.SIMPLEREST_POLL_BODY_RAW])
+          pollConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_BODY)
           pollConfig.json = !this.caps[Capabilities.SIMPLEREST_POLL_BODY_RAW]
         } catch (err) {
           debug(`_runPolling: composing body from SIMPLEREST_POLL_BODY failed (${util.inspect(err)})`)
@@ -642,7 +653,7 @@ module.exports = class SimpleRestContainer {
   }
 
   async _makeCall (capPrefix) {
-    const uri = this._getMustachedCap(`${capPrefix}_URL`, false)
+    const uri = this._getMustachedCap(`${capPrefix}_URL`)
     const verb = this.caps[`${capPrefix}_VERB`]
     const timeout = this.caps[`${capPrefix}_TIMEOUT`] || this.caps[Capabilities.SIMPLEREST_TIMEOUT]
     const httpConfig = {
@@ -653,14 +664,14 @@ module.exports = class SimpleRestContainer {
     }
     if (this.caps[`${capPrefix}_HEADERS`]) {
       try {
-        httpConfig.headers = this._getMustachedCap(`${capPrefix}_HEADERS`, true)
+        httpConfig.headers = this._getMustachedCap(`${capPrefix}_HEADERS`)
       } catch (err) {
         throw new Error(`composing headers from ${capPrefix}_HEADERS failed (${err.message})`)
       }
     }
     if (this.caps[`${capPrefix}_BODY`]) {
       try {
-        httpConfig.body = this._getMustachedCap(`${capPrefix}_BODY`, !this.caps[`${capPrefix}_BODY_RAW`])
+        httpConfig.body = this._getMustachedCap(`${capPrefix}_BODY`)
         httpConfig.json = !this.caps[`${capPrefix}_BODY_RAW`]
       } catch (err) {
         throw new Error(`composing body from ${capPrefix}_BODY failed (${err.message})`)

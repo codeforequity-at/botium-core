@@ -473,6 +473,28 @@ describe('connectors.simplerest.build', function () {
 
     await container.Clean()
   })
+  it('should handle non string query params from UPDATE_CUSTOM', async function () {
+    const myCaps = Object.assign({}, myCapsGet)
+    const myMsg = Object.assign({}, msg)
+    const jsonObject = { firstName: 'First', middleName: null, lastName: 'Last' }
+    myMsg.ADD_QUERY_PARAM = {
+      queryparam1: 'valueparam1',
+      queryparam2: jsonObject,
+      queryparam3: 11
+    }
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const request = await container.pluginInstance._buildRequest(myMsg)
+    assert.isObject(request.headers)
+    assert.equal(request.uri,
+      `http://my-host.com/api/endpoint/messageText?queryparam1=valueparam1&queryparam2=${encodeURIComponent(JSON.stringify(jsonObject))}&queryparam3=11`)
+
+    await container.Clean()
+  })
   it('should add header from UPDATE_CUSTOM', async function () {
     const myCaps = Object.assign({}, myCapsGet)
     const myMsg = Object.assign({}, msg)
@@ -490,6 +512,29 @@ describe('connectors.simplerest.build', function () {
     assert.isObject(request.headers)
     assert.equal(request.headers.headerparam1, 'headerparam1')
     assert.equal(request.headers.headerparam2, 'messageText')
+
+    await container.Clean()
+  })
+  it('should handle and add non string header from UPDATE_CUSTOM', async function () {
+    const myCaps = Object.assign({}, myCapsGet)
+    const myMsg = Object.assign({}, msg)
+    myMsg.ADD_HEADER = {
+      headerparam1: 'headerparam1',
+      headerparam2: { firstName: 'First', middleName: null, lastName: 'Last' }
+    }
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const request = await container.pluginInstance._buildRequest(myMsg)
+    assert.isObject(request.headers)
+    assert.equal(request.headers.headerparam1, 'headerparam1')
+    assert.isObject(request.headers.headerparam2)
+    assert.equal(request.headers.headerparam2.firstName, 'First')
+    assert.isNull(request.headers.headerparam2.middleName)
+    assert.equal(request.headers.headerparam2.lastName, 'Last')
 
     await container.Clean()
   })
