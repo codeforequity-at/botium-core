@@ -1,6 +1,6 @@
-## intent:affirm
-- yes
-- yes sure
+## intent:affirm <!-- some comment -->
+- yes <!-- some comment -->
+- yes sure <!-- some comment -->
 
 ## intent:deny
 - no

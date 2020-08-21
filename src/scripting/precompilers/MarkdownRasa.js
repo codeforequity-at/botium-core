@@ -3,6 +3,8 @@ const debug = require('debug')('botium-core-PrecompilerMarkdownRasa')
 const util = require('util')
 const _ = require('lodash')
 
+const htmlCommentRegexp = /(\<!--.*?\-->)/g
+
 module.exports.precompile = (scriptBuffer, options, filename) => {
   if (!filename.endsWith('.md')) {
     return
@@ -11,7 +13,13 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
   const md = new MarkdownIt()
   const parsed = md.parse(scriptBuffer, {})
 
+  const _extractFromRasaIntent = (content) => {
+    return content.replace(htmlCommentRegexp, '').substring('intent:'.length).trim()
+  }
+
   const _extractFromRasaSentence = (rasaSentence) => {
+    rasaSentence = rasaSentence.replace(htmlCommentRegexp, '')
+
     const regex = /\[([^\]]+)\]\(([a-zA-Z][_:\-a-zA-Z0-9]+)\)/
     let matched = rasaSentence.match(regex)
     while (matched) {
@@ -55,7 +63,7 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
     if (entry.type === 'heading_open') {
       state = 'heading_open'
     } else if (entry.type === 'inline' && entry.content.startsWith('intent:')) {
-      intent = entry.content.substring('intent:'.length)
+      intent = _extractFromRasaIntent(entry.content)
       processLeafs = true
       state = 'inline_intent'
     } else if (entry.type === 'inline' && entry.content.startsWith('synonym:')) {
