@@ -3,7 +3,7 @@ const debug = require('debug')('botium-core-PrecompilerMarkdownRasa')
 const util = require('util')
 const _ = require('lodash')
 
-const htmlCommentRegexp = /(\<!--.*?\-->)/g
+const htmlCommentRegexp = /(<!--.*?-->)/g
 
 module.exports.precompile = (scriptBuffer, options, filename) => {
   if (!filename.endsWith('.md')) {
