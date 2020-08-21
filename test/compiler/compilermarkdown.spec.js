@@ -83,8 +83,24 @@ describe('compiler.compilermarkdown', function () {
     assert.equal(context.convos.length, 0)
   })
 
-  it('should handle invalid markdown', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_precompiler_markdown_invalid.md'))
+  it('should handle invalid markdown (no h1)', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_precompiler_markdown_invalid_noh1.md'))
+    const context = buildContext()
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    try {
+      compiler.Compile(scriptBuffer, Constants.SCRIPTING_TYPE_CONVO)
+    } catch (err) {
+      assert.isTrue(err.message === '"##" not expected here (Line 0): expecting parent "#" for "##"')
+      return
+    }
+    assert.fail('should have failed')
+  })
+
+  it('should handle invalid markdown (no h2)', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_precompiler_markdown_invalid_noh2.md'))
     const context = buildContext()
     const caps = {
     }

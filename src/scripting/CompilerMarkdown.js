@@ -28,10 +28,11 @@ module.exports = class CompilerObjectBase extends CompilerBase {
     const parsed = md.parse(scriptBuffer, {})
 
     const _toStructuredMarkdown = (parsed) => {
-      let depth = null
+      let depth = -1
       const struct = [{ children: [] }, null, null, null, null, null]
 
       const _add = (entry) => {
+        if (!struct[depth] || !struct[depth].children) throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0]}): format invalid`)
         struct[depth].children.push(entry)
         entry.children = []
         struct[depth + 1] = entry
@@ -42,7 +43,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
           if (entry.tag === 'h1') {
             depth = 0
           } else if (entry.tag === 'h2') {
-            if (depth > 1) {
+            if (depth < 0 || depth > 1) {
               throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0]}): expecting parent "#" for "${entry.markup}"`)
             }
             depth = 1
