@@ -32,7 +32,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
       const struct = [{ children: [] }, null, null, null, null, null]
 
       const _add = (entry) => {
-        if (!struct[depth] || !struct[depth].children) throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0]}): format invalid`)
+        if (!struct[depth] || !struct[depth].children) throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0] + 1}): format invalid`)
         struct[depth].children.push(entry)
         entry.children = []
         struct[depth + 1] = entry
@@ -44,7 +44,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
             depth = 0
           } else if (entry.tag === 'h2') {
             if (depth < 0 || depth > 1) {
-              throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0]}): expecting parent "#" for "${entry.markup}"`)
+              throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0] + 1}): expecting parent "#" for "${entry.markup}"`)
             }
             depth = 1
           } else {
@@ -52,10 +52,10 @@ module.exports = class CompilerObjectBase extends CompilerBase {
           }
         } else if (entry.type === 'bullet_list_open') {
           if (depth < 1) {
-            throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0]}): expecting parent "##" for "${entry.markup}"`)
+            throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0] + 1}): expecting parent "##" for "${entry.markup}"`)
           }
           if (depth > 3) {
-            throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0]}): Bullet list depth 3 not supported`)
+            throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0] + 1}): Bullet list depth 3 not supported`)
           }
           depth++
         } else if (entry.type === 'bullet_list_close') {

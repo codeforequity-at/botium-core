@@ -93,7 +93,7 @@ describe('compiler.compilermarkdown', function () {
     try {
       compiler.Compile(scriptBuffer, Constants.SCRIPTING_TYPE_CONVO)
     } catch (err) {
-      assert.isTrue(err.message === '"##" not expected here (Line 0): expecting parent "#" for "##"')
+      assert.isTrue(err.message === '"##" not expected here (Line 1): expecting parent "#" for "##"')
       return
     }
     assert.fail('should have failed')
@@ -109,7 +109,7 @@ describe('compiler.compilermarkdown', function () {
     try {
       compiler.Compile(scriptBuffer, Constants.SCRIPTING_TYPE_CONVO)
     } catch (err) {
-      assert.isTrue(err.message === '"-" not expected here (Line 1): expecting parent "##" for "-"')
+      assert.isTrue(err.message === '"-" not expected here (Line 2): expecting parent "##" for "-"')
       return
     }
     assert.fail('should have failed')
