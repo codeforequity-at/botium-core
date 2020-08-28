@@ -1,3 +1,5 @@
+const _ = require('lodash')
+
 class BotiumMockMedia {
   constructor (fromJson = {}) {
     this.mediaUri = fromJson.mediaUri
@@ -26,7 +28,7 @@ class BotiumMockButton {
   prettify (indent = 0) {
     const sections = []
     if (this.text) sections.push(this.text)
-    if (this.payload) sections.push(this.payload)
+    if (this.payload) sections.push(_.isObject(this.payload) ? JSON.stringify(this.payload) : this.payload)
     if (this.imageUri) sections.push(this.imageUri)
     return `${' '.repeat(indent)}BUTTON(${sections.join(' | ')})`
   }
