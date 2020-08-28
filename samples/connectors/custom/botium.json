@@ -1,0 +1,9 @@
+{
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "Custom Connector Sample",
+      "CONTAINERMODE": "./botium-connector-myapi.js",
+      "MYAPI_URL": "https://demo.botiumbox.com/iambotium/reply"
+    }
+  }
+}

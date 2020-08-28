@@ -1,0 +1,10 @@
+{
+  "name": "custom-connector-sample",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node botiumFluent.js"
+  },
+  "dependencies": {
+    "botium-core": "../../.."
+  }
+}
