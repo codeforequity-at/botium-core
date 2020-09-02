@@ -2,9 +2,19 @@
   "name": "custom-connector-sample",
   "version": "1.0.0",
   "scripts": {
-    "test": "node botiumFluent.js"
+    "test": "mocha spec",
+    "test:debug": "DEBUG=botium* mocha spec"
   },
   "dependencies": {
-    "botium-core": "../../.."
+    "botium-bindings": "latest",
+    "mocha": "latest"
+  },
+  "botium": {
+    "convodirs": [
+      "spec/convo"
+    ],
+    "expandConvos": true,
+    "expandUtterancesToConvos": false,
+    "expandScriptingMemoryToConvos": false
   }
 }
