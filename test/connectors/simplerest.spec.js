@@ -476,12 +476,13 @@ describe('connectors.simplerest.build', function () {
   it('should handle non string query params from UPDATE_CUSTOM', async function () {
     const myCaps = Object.assign({}, myCapsGet)
     const myMsg = Object.assign({}, msg)
-    const jsonObject = { firstName: 'First', middleName: null, lastName: 'Last' }
+    const jsonObject = { firstName: 'First', middleName: '{{msg.messageText}}', lastName: 'Last' }
     myMsg.ADD_QUERY_PARAM = {
       queryparam1: 'valueparam1',
       queryparam2: jsonObject,
       queryparam3: 11
     }
+    jsonObject.middleName = 'messageText'
 
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
