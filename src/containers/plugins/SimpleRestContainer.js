@@ -398,7 +398,11 @@ module.exports = class SimpleRestContainer {
     this.view.msg.messageText = nonEncodedMessage
 
     if (msg.ADD_QUERY_PARAM && Object.keys(msg.ADD_QUERY_PARAM).length > 0) {
-      const appendToUri = Object.keys(msg.ADD_QUERY_PARAM).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(this._getMustachedVal(msg.ADD_QUERY_PARAM[key], false))}`).join('&')
+      const appendToUri = Object.keys(msg.ADD_QUERY_PARAM).map(key =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(this._getMustachedVal(
+          _.isString(msg.ADD_QUERY_PARAM[key]) ? msg.ADD_QUERY_PARAM[key] : JSON.stringify(msg.ADD_QUERY_PARAM[key]),
+          false))}`)
+        .join('&')
       if (requestOptions.uri.indexOf('?') > 0) {
         requestOptions.uri = `${requestOptions.uri}&${appendToUri}`
       } else {
@@ -409,7 +413,12 @@ module.exports = class SimpleRestContainer {
       requestOptions.headers = requestOptions.headers || {}
 
       for (const headerKey of Object.keys(msg.ADD_HEADER)) {
-        const headerValue = this._getMustachedVal(msg.ADD_HEADER[headerKey], false)
+        let headerValue
+        if (_.isString(msg.ADD_HEADER[headerKey])) {
+          headerValue = this._getMustachedVal(msg.ADD_HEADER[headerKey], false)
+        } else {
+          headerValue = this._getMustachedVal(JSON.stringify(msg.ADD_HEADER[headerKey]), true)
+        }
         requestOptions.headers[headerKey] = headerValue
       }
     }
