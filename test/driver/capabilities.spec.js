@@ -46,18 +46,18 @@ describe('driver.loadConfigFile', function () {
 describe('driver.capabilities', function () {
   it('should merge boolean caps', function () {
     const myCaps = {
-      [Capabilities.DOCKERMACHINE]: 'YES'
+      [Capabilities.SIMULATE_WRITING_SPEED]: 'YES'
     }
     const driver = new BotDriver(myCaps)
-    assert.isBoolean(driver.caps[Capabilities.DOCKERMACHINE])
-    assert.isTrue(driver.caps[Capabilities.DOCKERMACHINE])
+    assert.isBoolean(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
+    assert.isTrue(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
   })
   it('should merge boolean envs', function () {
-    process.env.BOTIUM_DOCKERMACHINE = 'NO'
+    process.env.BOTIUM_SIMULATE_WRITING_SPEED = 'NO'
     const driver = new BotDriver()
-    delete process.env.BOTIUM_DOCKERMACHINE
-    assert.isBoolean(driver.caps[Capabilities.DOCKERMACHINE])
-    assert.isFalse(driver.caps[Capabilities.DOCKERMACHINE])
+    delete process.env.BOTIUM_SIMULATE_WRITING_SPEED
+    assert.isBoolean(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
+    assert.isFalse(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
   })
   it('should parse array caps', function () {
     DefaultCapabilities.MYCAP = []
