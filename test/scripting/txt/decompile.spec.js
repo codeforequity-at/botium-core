@@ -137,7 +137,7 @@ PAUSE 100
     assert.equal(script, `test convo
 
 #bot
-BUTTONS buttonpayload|buttontext|{"bp2":"buttonpayload2"}|buttontext 2
+BUTTONS buttontext|buttontext 2
 `
     )
   })
@@ -369,7 +369,7 @@ MEDIA test1.png
 
 #bot
 CARDS text of card|subtext|content
-BUTTONS payload|text of button|{"p2":"payload2"}|text of button2
+BUTTONS text of button|text of button2
 MEDIA mediaUri
 CARDS text of card2
 `
