@@ -33,33 +33,33 @@ module.exports = class GridContainer extends BaseContainer {
           this.socket.emit('authentication', { apiToken: this.caps[Capabilities.BOTIUMAPITOKEN] })
         })
         this.socket.on('connect_error', (err) => {
-          debug(`connect_error ${util.inspect(err)}`)
+          debug(`connect_error ${err.message}`)
         })
         this.socket.on('connect_timeout', (timeout) => {
           debug(`connect_timeout ${util.inspect(timeout)}`)
         })
         this.socket.on('error', (err) => {
-          debug(`error ${util.inspect(err)}`)
+          debug(`error ${err.message}`)
         })
         this.socket.on('authenticated', () => {
           debug('authenticated')
           this.socket.emit(Commands.BUILD_CONTAINER, this.caps, this.repo.sources, this.envs)
         })
         this.socket.on('unauthorized', (err) => {
-          debug(`unauthorized ${util.inspect(err)}`)
-          socketComplete(`Grid Access not authorized: ${util.inspect(err)}`)
+          debug(`unauthorized ${err.message}`)
+          socketComplete(`Grid Access not authorized: ${err.message}`)
         })
         this.socket.on(Events.TOOMUCHWORKERS_ERROR, (err) => {
-          debug(`TOOMUCHWORKERS_ERROR ${util.inspect(err)}`)
-          socketComplete(`Grid Access not possible: ${util.inspect(err)}`)
+          debug(`TOOMUCHWORKERS_ERROR ${err.message}`)
+          socketComplete(`Grid Access not possible: ${err.message}`)
         })
         this.socket.on(Events.CONTAINER_BUILT, () => {
           debug(Events.CONTAINER_BUILT)
           socketComplete()
         })
         this.socket.on(Events.CONTAINER_BUILD_ERROR, (err) => {
-          debug(`CONTAINER_BUILD_ERROR ${util.inspect(err)}`)
-          socketComplete(`Grid Build failed: ${util.inspect(err)}`)
+          debug(`CONTAINER_BUILD_ERROR ${err.message}`)
+          socketComplete(`Grid Build failed: ${err.message}`)
         })
 
         this.socket.on(Events.CONTAINER_STARTED, () => {
@@ -71,10 +71,10 @@ module.exports = class GridContainer extends BaseContainer {
           }
         })
         this.socket.on(Events.CONTAINER_START_ERROR, (err) => {
-          debug(`CONTAINER_START_ERROR ${util.inspect(err)}`)
+          debug(`CONTAINER_START_ERROR ${err.message}`)
           this.eventEmitter.emit(Events.CONTAINER_START_ERROR, this, err)
           if (this.startPromise) {
-            this.startPromise.reject(`Grid Start failed: ${util.inspect(err)}`)
+            this.startPromise.reject(`Grid Start failed: ${err.message}`)
             this.startPromise = null
           }
         })
@@ -93,10 +93,10 @@ module.exports = class GridContainer extends BaseContainer {
           }
         })
         this.socket.on(Events.CONTAINER_STOP_ERROR, (err) => {
-          debug(`CONTAINER_STOP_ERROR ${util.inspect(err)}`)
+          debug(`CONTAINER_STOP_ERROR ${err.message}`)
           this.eventEmitter.emit(Events.CONTAINER_STOP_ERROR, this, err)
           if (this.stopPromise) {
-            this.stopPromise.reject(`Grid Stop failed: ${util.inspect(err)}`)
+            this.stopPromise.reject(`Grid Stop failed: ${err.message}`)
             this.stopPromise = null
           }
         })
@@ -112,10 +112,10 @@ module.exports = class GridContainer extends BaseContainer {
           this.socket = null
         })
         this.socket.on(Events.CONTAINER_CLEAN_ERROR, (err) => {
-          debug(`CONTAINER_CLEAN_ERROR ${JSON.stringify(err)}`)
+          debug(`CONTAINER_CLEAN_ERROR ${err.message}`)
           this.eventEmitter.emit(Events.CONTAINER_CLEAN_ERROR, this, err)
           if (this.cleanPromise) {
-            this.cleanPromise.reject(`Grid Clean failed: ${util.inspect(err)}`)
+            this.cleanPromise.reject(`Grid Clean failed: ${err.message}`)
             this.cleanPromise = null
           }
           this.socket.disconnect()
@@ -124,7 +124,7 @@ module.exports = class GridContainer extends BaseContainer {
       }
     ], (err) => {
       if (err) {
-        this.buildPromise.reject(new Error(`Cannot build docker containers: ${util.inspect(err)}`))
+        this.buildPromise.reject(new Error(`Cannot build grid containers: ${err.message}`))
       } else {
         this.buildPromise.resolve(this)
       }

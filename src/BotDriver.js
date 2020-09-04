@@ -336,10 +336,6 @@ module.exports = class BotDriver {
     if (!this.caps[Capabilities.CONTAINERMODE]) {
       throw new Error(`Capability '${Capabilities.CONTAINERMODE}' missing`)
     }
-    if (this.caps[Capabilities.CONTAINERMODE] === 'docker') {
-      const DockerContainer = require('./containers/DockerContainer')
-      return new DockerContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
-    }
     if (this.caps[Capabilities.CONTAINERMODE] === 'inprocess') {
       const InProcessContainer = require('./containers/InProcessContainer')
       return new InProcessContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
