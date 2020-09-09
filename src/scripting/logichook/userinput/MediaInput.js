@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const glob = require('glob')
+const glob = require('glob-gitignore')
 const request = require('request')
 const mime = require('mime-types')
 const url = require('url')
