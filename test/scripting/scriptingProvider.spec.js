@@ -21,7 +21,7 @@ describe('scriptingProvider.ReadScriptsFromDirectory', function () {
 
     assert.isArray(convos)
     assert.equal(convos.length, 2)
-  })  
+  })
   it('should ignore files from dir with globFilter', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
@@ -29,7 +29,7 @@ describe('scriptingProvider.ReadScriptsFromDirectory', function () {
 
     assert.isArray(convos)
     assert.equal(convos.length, 0)
-  })  
+  })
   it('should read single file from file path', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
