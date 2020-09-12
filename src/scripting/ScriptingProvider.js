@@ -2,7 +2,7 @@ const LogicHookUtils = require('./logichook/LogicHookUtils')
 const util = require('util')
 const fs = require('fs')
 const path = require('path')
-const glob = require('glob')
+const globby = require('globby')
 const _ = require('lodash')
 const promiseRetry = require('promise-retry')
 require('promise.allsettled').shim()
@@ -408,9 +408,9 @@ module.exports = class ScriptingProvider {
       filelist = [path.basename(convoDir)]
       convoDir = path.dirname(convoDir)
     } else {
-      filelist = glob.sync(globPattern, { cwd: convoDir })
+      filelist = globby.sync(globPattern, { cwd: convoDir, gitignore: true })
       if (globFilter) {
-        const filelistGlobbed = glob.sync(globFilter, { cwd: convoDir })
+        const filelistGlobbed = globby.sync(globFilter, { cwd: convoDir, gitignore: true })
         _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
       }
     }

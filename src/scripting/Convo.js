@@ -86,7 +86,7 @@ class ConvoStep {
     return this.stepTag +
       ': #' + this.sender +
       ' - ' + (this.not ? '!' : '') +
-      this.messageText +
+      (this.messageText || '') +
       (this.asserters && this.asserters.length > 0 ? ' ' + this.asserters.map(a => a.toString()).join(' ASS: ') : '') +
       (this.logicHooks && this.logicHooks.length > 0 ? ' ' + this.logicHooks.map(l => l.toString()).join(' LH: ') : '') +
       (this.userInputs && this.userInputs.length > 0 ? ' ' + this.userInputs.map(u => u.toString()).join(' UI: ') : '')

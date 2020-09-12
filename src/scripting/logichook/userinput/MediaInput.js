@@ -1,18 +1,33 @@
 const fs = require('fs')
 const path = require('path')
-const glob = require('glob')
+const globby = require('globby')
 const request = require('request')
 const mime = require('mime-types')
 const url = require('url')
 const _ = require('lodash')
 
 const { BotiumMockMedia } = require('../../../../src/mocks/BotiumMockRichMessageTypes')
+const { BotiumError } = require('../../../../src/scripting/BotiumError')
+const Capabilities = require('../../../../src/Capabilities')
 
 module.exports = class MediaInput {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
     this.globalArgs = globalArgs
+    if (!caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
+      if (globalArgs && globalArgs.baseDir) {
+        throw new BotiumError(
+          'Security Error. Using base dir global argument in MediaInput is not allowed',
+          {
+            type: 'security',
+            subtype: 'allow unsafe',
+            source: path.basename(__filename),
+            cause: { globalArgs }
+          }
+        )
+      }
+    }
   }
 
   _getResolvedUri (uri, convoDir, convoFilename) {
@@ -49,9 +64,21 @@ module.exports = class MediaInput {
     }
   }
 
-  async _downloadMedia (uri) {
+  async _downloadMedia (uri, fileSpec, sourceTag) {
     if (this.globalArgs && this.globalArgs.downloadMedia) {
       if (uri.protocol === 'file:') {
+        if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
+          throw new BotiumError(
+            'Security Error. Access to local filesystem is not allowed in Media Input',
+            {
+              type: 'security',
+              subtype: 'allow unsafe',
+              source: path.basename(__filename),
+              cause: { uri, fileSpec, sourceTag, globalArgs: this.globalArgs }
+            }
+          )
+        }
+
         try {
           return fs.readFileSync(uri)
         } catch (err) {
@@ -85,11 +112,25 @@ module.exports = class MediaInput {
   }
 
   expandConvo ({ convo, convoStep, args }) {
-    if (args && (args.length > 1 || args.findIndex(a => this._isWildcard(a)) >= 0)) {
+    const hasWildcard = args.findIndex(a => this._isWildcard(a)) >= 0
+
+    if (hasWildcard && !this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
+      throw new BotiumError(
+        'Security Error. Using wildcard as argument in MediaInput is not allowed',
+        {
+          type: 'security',
+          subtype: 'allow unsafe',
+          source: path.basename(__filename),
+          cause: { args }
+        }
+      )
+    }
+
+    if (args && (args.length > 1 || hasWildcard)) {
       const baseDir = this._getBaseDir(convo.sourceTag.convoDir)
       return args.reduce((e, arg) => {
         if (this._isWildcard(arg)) {
-          const mediaFiles = glob.sync(arg, { cwd: baseDir })
+          const mediaFiles = globby.sync(arg, { cwd: baseDir, gitignore: true })
           mediaFiles.forEach(mf => {
             e.push({
               name: 'MEDIA',
@@ -124,7 +165,7 @@ module.exports = class MediaInput {
       try {
         const uri = this._getResolvedUri(args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
         if (uri) {
-          const buffer = await this._downloadMedia(uri)
+          const buffer = await this._downloadMedia(uri, args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
           meMsg.media.push(new BotiumMockMedia({
             mediaUri: args[0],
             downloadUri: uri.toString(),

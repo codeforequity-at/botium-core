@@ -13,20 +13,33 @@ const myCapsSimpleRest = {
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
   [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
   [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-  [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
-    FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
-  },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 
+const _getSimpleRestCaps = (caps) => {
+  return Object.assign(
+    {},
+    myCapsSimpleRest,
+    caps || {}
+  )
+}
+
 const emptyMsg = {}
+
+const functionConnector = ({ queueBotSays }) => {
+  return {
+    UserSays (msg) {
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: `Response of ${msg.messageText}` }
+      queueBotSays(botMsg)
+    }
+  }
+}
 
 describe('scripting memory', function () {
   it('should throw security error for using function', async function () {
     const driver = new BotDriver(myCapsSimpleRest)
     const compiler = driver.BuildCompiler()
     const container = await driver.Build()
-
     await container.Start()
 
     try {
@@ -42,18 +55,15 @@ describe('scripting memory', function () {
 
 describe('simple rest, scripting memory', function () {
   it('should use variables succesful', async function () {
-    const myCaps = Object.assign({}, Object.assign(
-      {},
-      myCapsSimpleRest,
+    const myCaps = _getSimpleRestCaps(
       {
         [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
           FUNCTION_WITHOUT_PARAM: '{{fnc.year}}'
         }
       }
-    ))
+    )
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
-
     await container.Start()
 
     await container.pluginInstance._buildRequest(emptyMsg)
@@ -62,9 +72,7 @@ describe('simple rest, scripting memory', function () {
   })
 
   it('should use env variables succesful', async function () {
-    const driver = new BotDriver(Object.assign(
-      {},
-      myCapsSimpleRest,
+    const driver = new BotDriver(_getSimpleRestCaps(
       {
         [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
           SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}'
@@ -72,7 +80,6 @@ describe('simple rest, scripting memory', function () {
       }
     ))
     const container = await driver.Build()
-
     await container.Start()
 
     await container.pluginInstance._buildRequest(emptyMsg)
@@ -83,9 +90,7 @@ describe('simple rest, scripting memory', function () {
 
 describe('simple rest, hooks', function () {
   it('should create and use simplerest with hooks', async function () {
-    const driver = new BotDriver(Object.assign(
-      {},
-      myCapsSimpleRest,
+    const driver = new BotDriver(_getSimpleRestCaps(
       {
         [Capabilities.SIMPLEREST_REQUEST_HOOK]: '1+1'
       }
@@ -93,7 +98,6 @@ describe('simple rest, hooks', function () {
 
     const compiler = driver.BuildCompiler()
     const container = await driver.Build()
-
     await container.Start()
 
     compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
@@ -102,9 +106,7 @@ describe('simple rest, hooks', function () {
 
 describe('precompilers', function () {
   it('should throw security error for script type', async function () {
-    const driver = new BotDriver(Object.assign(
-      {},
-      myCapsSimpleRest,
+    const driver = new BotDriver(_getSimpleRestCaps(
       {
         [Capabilities.PRECOMPILERS]: {
           NAME: 'SCRIPT',
@@ -133,9 +135,7 @@ describe('precompilers', function () {
 
 describe('base container, hooks', function () {
   it('should throw security error for using hook', async function () {
-    const driver = new BotDriver(Object.assign(
-      {},
-      myCapsSimpleRest,
+    const driver = new BotDriver(_getSimpleRestCaps(
       { [Capabilities.CUSTOMHOOK_ONUSERSAYS]: '1+1' }
     ))
 
@@ -153,11 +153,9 @@ describe('base container, hooks', function () {
   })
 })
 
-describe('Logic hook, asserter', function () {
+describe('logic hook, asserter', function () {
   it('should load asserter from file', async function () {
-    const driver = new BotDriver(Object.assign(
-      {},
-      myCapsSimpleRest,
+    const driver = new BotDriver(_getSimpleRestCaps(
       {
         [Capabilities.ASSERTERS]: [
           {
@@ -170,9 +168,7 @@ describe('Logic hook, asserter', function () {
     driver.BuildCompiler()
   })
   it('should throw security error for logic hook with src', async function () {
-    const driver = new BotDriver(Object.assign(
-      {},
-      myCapsSimpleRest,
+    const driver = new BotDriver(_getSimpleRestCaps(
       {
         [Capabilities.LOGIC_HOOKS]: [
           {
@@ -202,9 +198,7 @@ describe('Logic hook, asserter', function () {
     }
   })
   it('should throw security error for global logic hook with src', async function () {
-    const driver = new BotDriver(Object.assign(
-      {},
-      myCapsSimpleRest,
+    const driver = new BotDriver(_getSimpleRestCaps(
       {
         [Capabilities.LOGIC_HOOKS]: [
           {
@@ -260,17 +254,8 @@ describe('connectors', function () {
   })
 
   it('should throw exception creating function connectors', async function () {
-    const functionConnector = ({ queueBotSays }) => {
-      return {
-        UserSays (msg) {
-          const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: `Response of ${msg.messageText}` }
-          queueBotSays(botMsg)
-        }
-      }
-    }
-
     const myCapsFunction = {
-      [Capabilities.PROJECTNAME]: 'security.allowUnsafe',
+      [Capabilities.PROJECTNAME]: 'security.allowUnsafe.connectors',
       [Capabilities.CONTAINERMODE]: functionConnector,
       [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
       [Capabilities.SECURITY_ALLOW_UNSAFE]: false
@@ -291,5 +276,108 @@ describe('connectors', function () {
       assert.equal(err.context.cause.mode, 'Function call')
       assert.exists(err.context.cause.containermode)
     }
+  })
+})
+
+describe('media input', function () {
+  it('should throw error if basedir is set', async function () {
+    const args = {
+      baseDir: path.join(__dirname, 'convos', 'files')
+    }
+
+    const driver = new BotDriver(_getSimpleRestCaps({
+      [Capabilities.USER_INPUTS]: [
+        {
+          ref: 'MEDIA',
+          src: 'MediaInput',
+          args
+        }
+      ]
+    }))
+
+    try {
+      driver.BuildCompiler()
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err instanceof BotiumError)
+      assert.exists(err.context)
+      assert.equal(err.context.message, 'Security Error. Using base dir global argument in MediaInput is not allowed')
+      assert.equal(err.context.source, 'MediaInput.js')
+      assert.equal(err.context.type, 'security')
+      assert.equal(err.context.subtype, 'allow unsafe')
+      assert.deepEqual(err.context.cause, { globalArgs: args })
+    }
+  })
+
+  it('should fail for downloadMedia global arg', async function () {
+    const args = {
+      downloadMedia: true
+    }
+
+    const driver = new BotDriver(_getSimpleRestCaps({
+      [Capabilities.USER_INPUTS]: [
+        {
+          ref: 'MEDIA',
+          src: 'MediaInput',
+          args
+        }
+      ]
+    }))
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+    await container.Start()
+
+    try {
+      compiler.ReadScript(path.resolve(__dirname, 'convos'), 'media.convo.txt')
+      await compiler.convos[0].Run(container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Security Error. Access to local filesystem is not allowed in Media Input') >= 0)
+    }
+    await container && container.Clean()
+  })
+
+  it('should fail for downloadMedia global arg as file', async function () {
+    const args = {
+      downloadMedia: true
+    }
+
+    const driver = new BotDriver(_getSimpleRestCaps({
+      [Capabilities.USER_INPUTS]: [
+        {
+          ref: 'MEDIA',
+          src: 'MediaInput',
+          args
+        }
+      ]
+    }))
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+    await container.Start()
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'mediaasfile.convo.txt')
+
+    try {
+      await compiler.convos[0].Run(container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Security Error. Access to local filesystem is not allowed in Media Input') >= 0)
+    }
+    await container && container.Clean()
+  })
+
+  it('should fail for wildcard arg', async function () {
+    const driver = new BotDriver(_getSimpleRestCaps())
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+    await container.Start()
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'mediawildcard.convo.txt')
+
+    try {
+      compiler.ExpandConvos()
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Security Error. Using wildcard as argument in MediaInput is not allowed') >= 0)
+    }
+    await container && container.Clean()
   })
 })

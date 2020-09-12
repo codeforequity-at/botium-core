@@ -44,7 +44,9 @@ describe('compiler.compilermarkdown', function () {
     assert.equal(context.convos[0].conversation.length, 2)
     assert.equal(context.convos[0].conversation[0].sender, 'me')
     assert.equal(context.convos[0].conversation[0].messageText, 'hello bot')
+    assert.equal(context.convos[0].conversation[0].stepTag, 'Line 3')
     assert.equal(context.convos[0].conversation[1].sender, 'bot')
+    assert.equal(context.convos[0].conversation[1].stepTag, 'Line 5')
     assert.equal(context.convos[0].conversation[1].asserters.length, 1)
     assert.equal(context.convos[0].conversation[1].asserters[0].name, 'BUTTONS')
     assert.equal(context.convos[0].conversation[1].asserters[0].args.length, 2)
@@ -79,5 +81,37 @@ describe('compiler.compilermarkdown', function () {
     assert.equal(context.utterances[0].utterances[2], 'greeting')
 
     assert.equal(context.convos.length, 0)
+  })
+
+  it('should handle invalid markdown (no h1)', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_precompiler_markdown_invalid_noh1.md'))
+    const context = buildContext()
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    try {
+      compiler.Compile(scriptBuffer, Constants.SCRIPTING_TYPE_CONVO)
+    } catch (err) {
+      assert.isTrue(err.message === '"##" not expected here (Line 1): expecting parent "#" for "##"')
+      return
+    }
+    assert.fail('should have failed')
+  })
+
+  it('should handle invalid markdown (no h2)', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_precompiler_markdown_invalid_noh2.md'))
+    const context = buildContext()
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    try {
+      compiler.Compile(scriptBuffer, Constants.SCRIPTING_TYPE_CONVO)
+    } catch (err) {
+      assert.isTrue(err.message === '"-" not expected here (Line 2): expecting parent "##" for "-"')
+      return
+    }
+    assert.fail('should have failed')
   })
 })

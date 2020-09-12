@@ -28,10 +28,11 @@ module.exports = class CompilerObjectBase extends CompilerBase {
     const parsed = md.parse(scriptBuffer, {})
 
     const _toStructuredMarkdown = (parsed) => {
-      let depth = null
+      let depth = -1
       const struct = [{ children: [] }, null, null, null, null, null]
 
       const _add = (entry) => {
+        if (!struct[depth] || !struct[depth].children) throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0] + 1}): format invalid`)
         struct[depth].children.push(entry)
         entry.children = []
         struct[depth + 1] = entry
@@ -42,15 +43,21 @@ module.exports = class CompilerObjectBase extends CompilerBase {
           if (entry.tag === 'h1') {
             depth = 0
           } else if (entry.tag === 'h2') {
+            if (depth < 0 || depth > 1) {
+              throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0] + 1}): expecting parent "#" for "${entry.markup}"`)
+            }
             depth = 1
           } else {
             debug(`Markdown entry "${util.inspect(entry)}" ignored. Unknown heading`)
           }
         } else if (entry.type === 'bullet_list_open') {
-          depth++
-          if (depth > 4) {
-            throw new Error('Bullet list depth 3 not supported')
+          if (depth < 1) {
+            throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0] + 1}): expecting parent "##" for "${entry.markup}"`)
           }
+          if (depth > 3) {
+            throw new Error(`"${entry.markup}" not expected here (Line ${entry.map[0] + 1}): Bullet list depth 3 not supported`)
+          }
+          depth++
         } else if (entry.type === 'bullet_list_close') {
           depth--
         } else if (entry.type === 'inline') {
@@ -69,7 +76,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
           for (const step of convo.children) {
             const sender = step.content.toLowerCase()
             if (['me', 'bot'].includes(sender)) {
-              // handle booth:
+              // handle both:
               //   - BUTTONS checkbutton|checkbutton2
               // and
               // - BUTTONS
@@ -77,7 +84,8 @@ module.exports = class CompilerObjectBase extends CompilerBase {
               //   - checkbutton2
               conversation.push(Object.assign(
                 {
-                  sender
+                  sender,
+                  stepTag: 'Line ' + (step.map[0] + 1)
                 },
                 linesToConvoStep(step.children.map(child => child.content +
                   (child.children ? ' ' + child.children.map(child => child.content).join('|') : '')), sender, this.context, this.eol)

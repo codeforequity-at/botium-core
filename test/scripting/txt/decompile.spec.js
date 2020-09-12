@@ -120,7 +120,15 @@ PAUSE 100
       conversation: [
         {
           sender: 'bot',
-          buttons: [{ text: 'buttontext', payload: 'buttonpayload' }]
+          buttons: [
+            { text: 'buttontext', payload: 'buttonpayload' },
+            {
+              text: 'buttontext\n2',
+              payload: {
+                bp2: 'buttonpayload2'
+              }
+            }
+          ]
         }
       ]
     }
@@ -129,7 +137,7 @@ PAUSE 100
     assert.equal(script, `test convo
 
 #bot
-BUTTONS buttontext
+BUTTONS buttontext|buttontext 2
 `
     )
   })
@@ -230,6 +238,36 @@ BUTTON buttonpayload|buttontext
 `
     )
   })
+  it('should decompile button with object payload user input', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          messageText: 'buttontext',
+          buttons: [{
+            text: 'buttontext',
+            payload: {
+              bp: 'buttonpayload'
+            }
+          }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+BUTTON {"bp":"buttonpayload"}|buttontext
+`
+    )
+  })
   it('should decompile media user input', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
@@ -299,7 +337,9 @@ MEDIA test1.png
                 },
                 {
                   text: 'text of button2',
-                  payload: 'payload2',
+                  payload: {
+                    p2: 'payload2'
+                  },
                   imageUri: 'imageUri2'
                 }
               ],

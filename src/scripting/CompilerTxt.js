@@ -174,15 +174,7 @@ module.exports = class CompilerTxt extends CompilerBase {
           script += `FORM ${form.name}|${form.value}${this.eol}`
         })
         if (set.buttons && set.buttons.length > 0) {
-          if (set.buttons[0].payload) {
-            script += `BUTTON ${set.buttons[0].payload}`
-            if (set.buttons[0].text) {
-              script += `|${set.buttons[0].text}`
-            }
-          } else {
-            script += `BUTTON ${set.buttons[0].text}`
-          }
-          script += this.eol
+          script += 'BUTTON ' + this._decompileButton(set.buttons[0]) + this.eol
         } else if (set.media && set.media.length > 0) {
           script += 'MEDIA ' + set.media[0].mediaUri + this.eol
         } else if (set.messageText) {
@@ -211,7 +203,7 @@ module.exports = class CompilerTxt extends CompilerBase {
             if (c.content) cardTexts = cardTexts.concat(_.isArray(c.content) ? c.content : [c.content])
             if (cardTexts.length > 0) script += 'CARDS ' + cardTexts.map(c => flatString(c)).join('|') + this.eol
 
-            if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + this.eol
+            if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => flatString(b.text)).join('|') + this.eol
             if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
           })
         }
@@ -227,5 +219,18 @@ module.exports = class CompilerTxt extends CompilerBase {
       }
     })
     return script
+  }
+
+  _decompileButton (b) {
+    let buttonScript = ''
+    if (b.payload) {
+      buttonScript += _.isObject(b.payload) ? JSON.stringify(b.payload) : flatString(b.payload)
+      if (b.text) {
+        buttonScript += `|${flatString(b.text)}`
+      }
+    } else {
+      buttonScript += flatString(b.text)
+    }
+    return buttonScript
   }
 }
