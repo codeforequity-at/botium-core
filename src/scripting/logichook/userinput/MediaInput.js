@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const glob = require('glob-gitignore')
+const globby = require('globby')
 const request = require('request')
 const mime = require('mime-types')
 const url = require('url')
@@ -130,7 +130,7 @@ module.exports = class MediaInput {
       const baseDir = this._getBaseDir(convo.sourceTag.convoDir)
       return args.reduce((e, arg) => {
         if (this._isWildcard(arg)) {
-          const mediaFiles = glob.sync(arg, { cwd: baseDir })
+          const mediaFiles = globby.sync(arg, { cwd: baseDir, gitignore: true })
           mediaFiles.forEach(mf => {
             e.push({
               name: 'MEDIA',

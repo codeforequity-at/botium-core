@@ -2,8 +2,7 @@ const LogicHookUtils = require('./logichook/LogicHookUtils')
 const util = require('util')
 const fs = require('fs')
 const path = require('path')
-const glob = require('glob-gitignore')
-const parseGitignore = require('parse-gitignore')
+const globby = require('globby')
 const _ = require('lodash')
 const promiseRetry = require('promise-retry')
 require('promise.allsettled').shim()
@@ -409,14 +408,10 @@ module.exports = class ScriptingProvider {
       filelist = [path.basename(convoDir)]
       convoDir = path.dirname(convoDir)
     } else {
-      let ignore
-      if (fs.existsSync(path.join(convoDir, '.gitignore'))) {
-        ignore = parseGitignore(fs.readFileSync(path.join(convoDir, '.gitignore')))
-      }
-      if (!globFilter) {
-        filelist = glob.sync(globPattern, { cwd: convoDir, ignore })
-      } else {
-        filelist = glob.sync(globFilter, { cwd: convoDir, ignore })
+      filelist = globby.sync(globPattern, { cwd: convoDir, gitignore: true })
+      if (globFilter) {
+        const filelistGlobbed = globby.sync(globFilter, { cwd: convoDir, gitignore: true })
+        _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
       }
     }
     debug(`ReadConvosFromDirectory(${convoDir}) found filenames: ${filelist}`)

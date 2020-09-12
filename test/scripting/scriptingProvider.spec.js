@@ -14,6 +14,22 @@ describe('scriptingProvider.ReadScriptsFromDirectory', function () {
     assert.isArray(convos)
     assert.equal(convos.length, 2)
   })
+  it('should read multiple files from dir with globFilter', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const { convos } = await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos'), '**/*.convo.txt')
+
+    assert.isArray(convos)
+    assert.equal(convos.length, 2)
+  })  
+  it('should ignore files from dir with globFilter', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const { convos } = await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos'), 'sepp.txt')
+
+    assert.isArray(convos)
+    assert.equal(convos.length, 0)
+  })  
   it('should read single file from file path', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
