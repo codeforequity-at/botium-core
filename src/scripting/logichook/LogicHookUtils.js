@@ -1,6 +1,7 @@
 const util = require('util')
 const vm = require('vm')
 const path = require('path')
+const fs = require('fs')
 const isClass = require('is-class')
 const debug = require('debug')('botium-core-asserterUtils')
 
@@ -140,6 +141,20 @@ module.exports = class LogicHookUtils {
       }
     }
 
+    const _checkUnsafe = () => {
+      if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
+        throw new BotiumError(
+          'Security Error. Using unsafe component is not allowed',
+          {
+            type: 'security',
+            subtype: 'allow unsafe',
+            source: path.basename(__filename),
+            cause: { src: !!src, ref, args, hookType }
+          }
+        )
+      }
+    }
+
     if (!src) {
       const packageName = `botium-${hookType}-${ref}`
       try {
@@ -161,19 +176,8 @@ module.exports = class LogicHookUtils {
       }
     }
 
-    if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
-      throw new BotiumError(
-        'Security Error. Using unsafe component is not allowed',
-        {
-          type: 'security',
-          subtype: 'allow unsafe',
-          source: path.basename(__filename),
-          cause: { src: !!src, ref, args, hookType }
-        }
-      )
-    }
-
     if (isClass(src)) {
+      _checkUnsafe()
       try {
         const CheckClass = src
         debug(`Loading ${ref} ${hookType}. Using src as class.`)
@@ -183,6 +187,7 @@ module.exports = class LogicHookUtils {
       }
     }
     if (_.isFunction(src)) {
+      _checkUnsafe()
       try {
         debug(`Loading ${ref} ${hookType}. Using src as function.`)
         return src(this.buildScriptContext, this.caps, args)
@@ -191,6 +196,7 @@ module.exports = class LogicHookUtils {
       }
     }
     if (_.isObject(src) && !_.isString(src)) {
+      _checkUnsafe()
       try {
         const hookObject = Object.keys(src).reduce((result, key) => {
           result[key] = (args) => {
@@ -243,25 +249,28 @@ module.exports = class LogicHookUtils {
     }
 
     const tryLoadFile = path.resolve(process.cwd(), src)
-    try {
-      let CheckClass = require(tryLoadFile)
-      if (CheckClass.default) {
-        CheckClass = CheckClass.default
+    if (fs.existsSync(tryLoadFile)) {
+      _checkUnsafe()
+      try {
+        let CheckClass = require(tryLoadFile)
+        if (CheckClass.default) {
+          CheckClass = CheckClass.default
+        }
+        if (isClass(CheckClass)) {
+          debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class`)
+          return new CheckClass(this.buildScriptContext, this.caps, args)
+        } else if (_.isFunction(CheckClass)) {
+          debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a function. Loading from ${tryLoadFile} as class`)
+          return CheckClass(this.buildScriptContext, this.caps, args)
+        } else if (isClass(CheckClass.PluginClass)) {
+          debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class using PluginClass`)
+          return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
+        } else {
+          throw new Error(`${tryLoadFile} class or function expected`)
+        }
+      } catch (err) {
+        loadErr.push(`Failed to fetch ${ref} ${hookType} from ${tryLoadFile} - ${util.inspect(err)} `)
       }
-      if (isClass(CheckClass)) {
-        debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class`)
-        return new CheckClass(this.buildScriptContext, this.caps, args)
-      } else if (_.isFunction(CheckClass)) {
-        debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a function. Loading from ${tryLoadFile} as class`)
-        return CheckClass(this.buildScriptContext, this.caps, args)
-      } else if (isClass(CheckClass.PluginClass)) {
-        debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class using PluginClass`)
-        return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
-      } else {
-        throw new Error(`${tryLoadFile} class or function expected`)
-      }
-    } catch (err) {
-      loadErr.push(`Failed to fetch ${ref} ${hookType} from ${tryLoadFile} - ${util.inspect(err)} `)
     }
     loadErr.forEach(debug)
     throw new Error(`Failed to fetch ${ref} ${hookType}, no idea how to load ...`)
