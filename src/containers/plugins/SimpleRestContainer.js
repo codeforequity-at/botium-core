@@ -20,13 +20,12 @@ const { escapeJSONString } = require('../../helpers/Utils')
 
 Mustache.escape = s => s
 
-const REDIS_TOPIC = 'SIMPLEREST_INBOUND_SUBSCRIPTION'
-
 module.exports = class SimpleRestContainer {
   constructor ({ queueBotSays, caps }) {
     this.queueBotSays = queueBotSays
     this.caps = Object.assign({}, Defaults, caps)
     this.processInbound = false
+    this.redisTopic = this.caps[Capabilities.SIMPLEREST_REDIS_TOPIC] || 'SIMPLEREST_INBOUND_SUBSCRIPTION'
   }
 
   Validate () {
@@ -542,11 +541,11 @@ module.exports = class SimpleRestContainer {
     this.processingEvents = true
     if (this.redis) {
       try {
-        const count = await this.redis.subscribe(REDIS_TOPIC)
-        debug(`Redis subscribed to ${count} channels. Listening for inbound messages on the ${REDIS_TOPIC} channel.`)
+        const count = await this.redis.subscribe(this.redisTopic)
+        debug(`Redis subscribed to ${count} channels. Listening for inbound messages on the ${this.redisTopic} channel.`)
       } catch (err) {
         debug(err)
-        throw new Error(`Redis failed to subscribe channel ${REDIS_TOPIC}: ${err.message || err}`)
+        throw new Error(`Redis failed to subscribe channel ${this.redisTopic}: ${err.message || err}`)
       }
     }
   }
@@ -555,11 +554,11 @@ module.exports = class SimpleRestContainer {
     this.processingEvents = false
     if (this.redis) {
       try {
-        await this.redis.unsubscribe(REDIS_TOPIC)
-        debug(`Redis unsubscribed from ${REDIS_TOPIC} channel.`)
+        await this.redis.unsubscribe(this.redisTopic)
+        debug(`Redis unsubscribed from ${this.redisTopic} channel.`)
       } catch (err) {
         debug(err)
-        throw new Error(`Redis failed to unsubscribe channel ${REDIS_TOPIC}: ${err.message || err}`)
+        throw new Error(`Redis failed to unsubscribe channel ${this.redisTopic}: ${err.message || err}`)
       }
     }
   }
@@ -692,4 +691,3 @@ module.exports = class SimpleRestContainer {
     }
   }
 }
-module.exports.REDIS_TOPIC = REDIS_TOPIC
