@@ -18,12 +18,12 @@ const echoConnector = ({ queueBotSays }) => {
     UserSays (msg) {
       const intent = messageTextToIntent[msg.messageText]
       if (!intent) {
-        throw new Error(`No intent for ${msg.messageText}`)
+        throw new Error(`No intent for "${msg.messageText}"`)
       }
       const botMsg = {
         sender: 'bot',
         sourceData: msg.sourceData,
-        messageText: `Response of ${msg.messageText}`,
+        messageText: `Response of "${msg.messageText}"`,
         nlp: {
           intent: {
             name: messageTextToIntent[msg.messageText]
@@ -55,11 +55,16 @@ describe('compiler.precompiler.markdown', function () {
 
   it('should execute RASA markdown without extra parameters', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_markdown_rasa.md')
+    assert.equal(Object.keys(this.compiler.utterances).length, 4)
+    this.compiler.ExpandUtterancesToConvos({ useNameAsIntent: true })
     this.compiler.ExpandConvos()
     assert.equal(this.compiler.convos.length, 6)
-    const transcript = await this.compiler.convos[4].Run(this.container)
-    assert.equal(transcript.steps.length, 2)
-    assert.equal(transcript.steps[0].actual.sender, 'me')
-    assert.equal(transcript.steps[0].actual.messageText, 'hi i am in San Diego i need a hospital')
+    const transcripts = []
+    for (const convo of this.compiler.convos) {
+      transcripts.push(await convo.Run(this.container))
+    }
+    assert.equal(transcripts[4].steps.length, 2)
+    assert.equal(transcripts[4].steps[0].actual.sender, 'me')
+    assert.equal(transcripts[4].steps[0].actual.messageText, 'i need a hospital')
   })
 })
