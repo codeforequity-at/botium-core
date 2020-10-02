@@ -328,6 +328,7 @@ class Convo {
                 continue
               } else {
                 debug(`${this.header.name}/${convoStep.stepTag}: message not found in #me section, message not sent to container ${util.inspect(convoStep)}`)
+                transcriptStep.botEnd = new Date()
                 await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
                 continue
               }
