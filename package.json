@@ -1,6 +1,6 @@
 {
   "name": "botium-core",
-  "version": "1.9.12",
+  "version": "1.10.0",
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "module": "dist/botium-es.js",
@@ -64,6 +64,7 @@
     "swagger-jsdoc": "^4.0.0",
     "swagger-ui-express": "^4.1.4",
     "uuid": "^8.3.0",
+    "vm2": "^3.9.2",
     "write-yaml": "^1.0.0",
     "xlsx": "^0.16.7",
     "xregexp": "^4.3.0",

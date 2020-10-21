@@ -4,14 +4,12 @@ const rimraf = require('rimraf')
 const Bottleneck = require('bottleneck')
 const _ = require('lodash')
 const debug = require('debug')('botium-connector-BaseContainer')
-const path = require('path')
 
 const Events = require('../Events')
 const Capabilities = require('../Capabilities')
 const Queue = require('../helpers/Queue')
 const { executeHook, getHook } = require('../helpers/HookUtils')
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
-const { BotiumError } = require('../scripting/BotiumError')
 
 module.exports = class BaseContainer {
   constructor (eventEmitter, tempDirectory, repo, caps, envs) {
@@ -26,39 +24,12 @@ module.exports = class BaseContainer {
   }
 
   Validate () {
-    this.onBuildHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONBUILD])
-    this.onStartHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONSTART])
-    this.onUserSaysHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONUSERSAYS])
-    this.onBotResponseHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONBOTRESPONSE])
-    this.onStopHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONSTOP])
-    this.onCleanHook = getHook(this.caps[Capabilities.CUSTOMHOOK_ONCLEAN])
-
-    if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE] &&
-      (
-        this.caps[Capabilities.CUSTOMHOOK_ONBUILD] ||
-        this.caps[Capabilities.CUSTOMHOOK_ONSTART] ||
-        this.caps[Capabilities.CUSTOMHOOK_ONUSERSAYS] ||
-        this.caps[Capabilities.CUSTOMHOOK_ONBOTRESPONSE] ||
-        this.caps[Capabilities.CUSTOMHOOK_ONSTOP] ||
-        this.caps[Capabilities.CUSTOMHOOK_ONCLEAN])) {
-      throw new BotiumError(
-        'Security Error. Using unsafe custom hooks is not allowed',
-        {
-          type: 'security',
-          subtype: 'allow unsafe',
-          source: path.basename(__filename),
-          cause: {
-            SECURITY_ALLOW_UNSAFE: this.caps[Capabilities.SECURITY_ALLOW_UNSAFE],
-            onBuildHook: !!this.caps[Capabilities.CUSTOMHOOK_ONBUILD],
-            onStartHook: !!this.caps[Capabilities.CUSTOMHOOK_ONSTART],
-            onUserSaysHook: !!this.caps[Capabilities.CUSTOMHOOK_ONUSERSAYS],
-            onBotResponseHook: !!this.caps[Capabilities.CUSTOMHOOK_ONBOTRESPONSE],
-            onStopHook: !!this.caps[Capabilities.CUSTOMHOOK_ONSTOP],
-            onCleanHook: !!this.caps[Capabilities.CUSTOMHOOK_ONCLEAN]
-          }
-        }
-      )
-    }
+    this.onBuildHook = getHook(this.caps, this.caps[Capabilities.CUSTOMHOOK_ONBUILD])
+    this.onStartHook = getHook(this.caps, this.caps[Capabilities.CUSTOMHOOK_ONSTART])
+    this.onUserSaysHook = getHook(this.caps, this.caps[Capabilities.CUSTOMHOOK_ONUSERSAYS])
+    this.onBotResponseHook = getHook(this.caps, this.caps[Capabilities.CUSTOMHOOK_ONBOTRESPONSE])
+    this.onStopHook = getHook(this.caps, this.caps[Capabilities.CUSTOMHOOK_ONSTOP])
+    this.onCleanHook = getHook(this.caps, this.caps[Capabilities.CUSTOMHOOK_ONCLEAN])
 
     return Promise.resolve()
   }
@@ -245,7 +216,7 @@ module.exports = class BaseContainer {
 
   async _RunCustomHook (name, hook, args) {
     try {
-      await executeHook(hook, Object.assign({}, { container: this }, args))
+      await executeHook(this.caps, hook, Object.assign({}, { container: this }, args))
       debug(`_RunCustomHook ${name} finished`)
     } catch (err) {
       debug(`_RunCustomHook ${name} finished with error: ${err.message || util.inspect(err)}`)

@@ -7,6 +7,7 @@ module.exports = {
   Plugins: require('./src/Plugins'),
   BotiumError: require('./src/scripting/BotiumError').BotiumError,
   ScriptingMemory: require('./src/scripting/ScriptingMemory'),
+  HookUtils: require('./src/helpers/HookUtils'),
   Lib: {
     tryLoadPlugin: require('./src/containers/plugins/index').tryLoadPlugin
   },

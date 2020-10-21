@@ -5,7 +5,7 @@ const _ = require('lodash')
 
 const htmlCommentRegexp = /(<!--.*?-->)/g
 
-module.exports.precompile = (scriptBuffer, options, filename) => {
+module.exports.precompile = (caps, scriptBuffer, options, filename) => {
   if (!filename.endsWith('.md')) {
     return
   }

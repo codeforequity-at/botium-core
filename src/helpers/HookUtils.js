@@ -1,68 +1,84 @@
 const util = require('util')
 const path = require('path')
 const fs = require('fs')
-const vm = require('vm')
+const { NodeVM } = require('vm2')
 const esprima = require('esprima')
 const _ = require('lodash')
 const debug = require('debug')('botium-core-HookUtils')
 
-const executeHook = async (hook, args) => {
-  return executeHookSync(hook, args)
+const Capabilities = require('../Capabilities')
+const { BotiumError } = require('../scripting/BotiumError')
+
+const executeHook = async (caps, hook, args) => {
+  return executeHookSync(caps, hook, args)
 }
 
-const executeHookSync = (hook, args) => {
+const executeHookSync = (caps, hook, args) => {
   if (!hook) {
     return
   }
-  if (_.isFunction(hook)) {
-    try {
-      return hook(args)
-    } catch (err) {
-      throw new Error(`Calling Hook function failed: ${err.message}`)
+  const allowUnsafe = !!caps[Capabilities.SECURITY_ALLOW_UNSAFE]
+  if (allowUnsafe) {
+    if (_.isFunction(hook)) {
+      try {
+        return hook(args)
+      } catch (err) {
+        throw new Error(`Calling Hook function failed: ${err.message}`)
+      }
     }
   }
+
   if (_.isString(hook)) {
     try {
-      const sandbox = vm.createContext({ debug, console, process, ...args })
-      vm.runInContext(hook, sandbox)
-      return sandbox.result
+      const vm = new NodeVM({
+        eval: false,
+        require: false,
+        sandbox: args
+      })
+      const r = vm.run(hook);
+      //`let result = null; ${hook} ; module.exports = result;`)
+      return r
     } catch (err) {
       throw new Error(`Calling Hook Javascript code failed: ${err.message}`)
     }
   }
   throw new Error(`Unknown hook ${typeof hook}`)
 }
-const getHook = (data) => {
+const getHook = (caps, data) => {
   if (!data) {
     return null
   }
 
-  if (_.isFunction(data)) {
-    debug('found hook, type: function definition')
-    return data
-  }
+  const allowUnsafe = !!caps[Capabilities.SECURITY_ALLOW_UNSAFE]
 
-  let resultWithRequire
-  let tryLoadFile = path.resolve(process.cwd(), data)
-  if (fs.existsSync(tryLoadFile)) {
-    try {
-      resultWithRequire = require(tryLoadFile)
-    } catch (err) {
+  if (allowUnsafe) {
+    if (_.isFunction(data)) {
+      debug('found hook, type: function definition')
+      return data
     }
-  } else {
-    tryLoadFile = data
-    try {
-      resultWithRequire = require(data)
-    } catch (err) {
-    }
-  }
 
-  if (resultWithRequire) {
-    if (_.isFunction(resultWithRequire)) {
-      debug(`found hook, type: require, in ${tryLoadFile}`)
-      return resultWithRequire
+    let resultWithRequire
+    let tryLoadFile = path.resolve(process.cwd(), data)
+    if (fs.existsSync(tryLoadFile)) {
+      try {
+        resultWithRequire = require(tryLoadFile)
+      } catch (err) {
+      }
     } else {
-      throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
+      tryLoadFile = data
+      try {
+        resultWithRequire = require(data)
+      } catch (err) {
+      }
+    }
+
+    if (resultWithRequire) {
+      if (_.isFunction(resultWithRequire)) {
+        debug(`found hook, type: require, in ${tryLoadFile}`)
+        return resultWithRequire
+      } else {
+        throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
+      }
     }
   }
 
@@ -77,7 +93,22 @@ const getHook = (data) => {
     return data
   }
 
-  throw new Error(`Not valid hook ${util.inspect(data)}`)
+  if (!allowUnsafe) {
+    throw new BotiumError(
+      'Security Error. Using unsafe custom hook is not allowed',
+      {
+        type: 'security',
+        subtype: 'allow unsafe',
+        source: path.basename(__filename),
+        cause: {
+          SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
+          hookData: data
+        }
+      }
+    )
+  } else {
+    throw new Error(`Not valid hook ${util.inspect(data)}`)
+  }
 }
 
 module.exports = {
