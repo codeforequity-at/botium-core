@@ -35,9 +35,7 @@ const executeHookSync = (caps, hook, args) => {
         require: false,
         sandbox: args
       })
-      const r = vm.run(hook);
-      //`let result = null; ${hook} ; module.exports = result;`)
-      return r
+      return vm.run(hook)
     } catch (err) {
       throw new Error(`Calling Hook Javascript code failed: ${err.message}`)
     }
