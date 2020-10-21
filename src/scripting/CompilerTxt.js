@@ -92,7 +92,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       if (line && line.startsWith('#')) {
         pushPrev()
 
-        convoStepSender = line.substr(1)
+        convoStepSender = line.substr(1).trim()
         convoStepChannel = null
         convoStepLineIndex = currentLineIndex
         if (convoStepSender.indexOf(' ') > 0) {
