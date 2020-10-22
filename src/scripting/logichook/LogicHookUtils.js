@@ -1,5 +1,5 @@
 const util = require('util')
-const vm = require('vm')
+const { NodeVM } = require('vm2')
 const path = require('path')
 const fs = require('fs')
 const isClass = require('is-class')
@@ -196,18 +196,21 @@ module.exports = class LogicHookUtils {
       }
     }
     if (_.isObject(src) && !_.isString(src)) {
-      _checkUnsafe()
       try {
         const hookObject = Object.keys(src).reduce((result, key) => {
           result[key] = (args) => {
             const script = src[key]
             if (_.isFunction(script)) {
+              _checkUnsafe()
               return script(args)
             } else if (_.isString(script)) {
               try {
-                const sandbox = vm.createContext({ debug, console, process, ...args })
-                vm.runInContext(script, sandbox)
-                return sandbox.result || Promise.resolve()
+                const vm = new NodeVM({
+                  eval: false,
+                  require: false,
+                  sandbox: args
+                })
+                return vm.run(script)
               } catch (err) {
                 throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
               }

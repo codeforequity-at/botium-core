@@ -8,7 +8,7 @@ const _ensureList = (queryResult) => {
   return [queryResult]
 }
 
-module.exports.precompile = (scriptBuffer, options, filename) => {
+module.exports.precompile = (caps, scriptBuffer, options, filename) => {
   if (!filename.endsWith('.json')) {
     return
   }

@@ -43,7 +43,7 @@ describe('logichooks.hookfromsrc', function () {
       [Capabilities.ASSERTERS]: [{
         ref: 'CUSTOMASSERTER',
         src: {
-          assertConvoStep: 'if (botMsg.messageText === "Hello1") result=Promise.resolve(); else result=Promise.reject(new Error("expected Hello1"))'
+          assertConvoStep: 'if (botMsg.messageText === "Hello1") module.exports=Promise.resolve(); else module.exports=Promise.reject(new Error("expected Hello1"))'
         }
       }]
     })

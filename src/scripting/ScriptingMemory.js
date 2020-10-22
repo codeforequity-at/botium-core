@@ -3,7 +3,7 @@ const debug = require('debug')('botium-core-ScriptingMemory')
 const randomize = require('randomatic')
 const { v1: uuidv1 } = require('uuid')
 const moment = require('moment')
-const vm = require('vm')
+const { NodeVM } = require('vm2')
 const _ = require('lodash')
 const path = require('path')
 
@@ -118,12 +118,16 @@ const SCRIPTING_FUNCTIONS_RAW = {
         throw Error('func function used without args!')
       }
       try {
-        return vm.runInNewContext(code, { process: process, debug: debug, console: console, require: require })
+        const vm = new NodeVM({
+          eval: false,
+          require: false,
+          sandbox: {}
+        })
+        return vm.run(`module.exports = (${code})`)
       } catch (err) {
         throw Error(`func function execution failed - ${err}`)
       }
-    },
-    unsafe: true
+    }
   }
 }
 
