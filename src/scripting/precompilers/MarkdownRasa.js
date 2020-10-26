@@ -5,7 +5,7 @@ const _ = require('lodash')
 
 const htmlCommentRegexp = /(<!--.*?-->)/g
 
-module.exports.precompile = (scriptBuffer, options, filename) => {
+module.exports.precompile = (caps, scriptBuffer, options, filename) => {
   if (!filename.endsWith('.md')) {
     return
   }
@@ -32,28 +32,11 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
       rasaSentence = rasaSentence.replace(matched[0], value)
       matched = rasaSentence.match(regex)
     }
-    return { meText: rasaSentence }
+    return { meText: rasaSentence.trim() }
   }
 
-  const _toConvos = (intent, meTexts, options) => {
-    return meTexts.map(meText => ({
-      name: `${intent}/${meText}`,
-      description: `${intent}/${meText}`,
-      steps: [
-        {
-          me: [
-            meText
-          ]
-        },
-        {
-          bot: [
-            `INTENT ${intent}`
-          ]
-        }
-      ]
-    }))
-  }
-  const convos = []
+  const utterances = {}
+
   let meTexts = []
   let intent = null
   // state got every possible value, but just few are used. Could be simplified.
@@ -103,7 +86,7 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
           debug(`Intent not found, dropping me texts ${JSON.stringify(meTexts)}`)
         } else {
           meTexts = _.uniq(meTexts)
-          convos.push(..._toConvos(intent, meTexts))
+          utterances[intent] = meTexts
         }
       }
       intent = null
@@ -114,7 +97,7 @@ module.exports.precompile = (scriptBuffer, options, filename) => {
   }
 
   return {
-    scriptBuffer: { convos },
+    scriptBuffer: { utterances },
     filename: `${filename}.json`
   }
 }

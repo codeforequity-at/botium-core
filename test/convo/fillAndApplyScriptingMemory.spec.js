@@ -781,14 +781,6 @@ describe('convo.scriptingMemory.api', function () {
         assert.isTrue(err.message.indexOf('func function execution failed') >= 0)
       }
     })
-    it('func full code', async function () {
-      const result = ScriptingMemory.apply(
-        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
-        { },
-        '$func(require("os"\\).hostname(\\);)'
-      )
-      assert.isNotNull(result)
-    })
     it('func environment variable', async function () {
       process.env.MY_VAR_VALUE = 'botium'
       const result = ScriptingMemory.apply(

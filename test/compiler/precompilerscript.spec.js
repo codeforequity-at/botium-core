@@ -38,7 +38,7 @@ describe('compiler.precompiler.script', function () {
       for (const entry of scriptData) {
         utterances[entry.intent] = entry.sentences
       }
-      result = {utterances}
+      module.exports = {utterances}
     `)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
     this.compiler.ExpandUtterancesToConvos()
@@ -60,7 +60,7 @@ describe('compiler.precompiler.script', function () {
         for (const entry of scriptData) {
           utterances[entry.intent] = entry.sentences
         }
-        result = {utterances}
+        module.exports = {utterances}
       }
     `)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
@@ -77,7 +77,7 @@ describe('compiler.precompiler.script', function () {
         for (const entry of scriptData) {
           utterances[entry.intent] = entry.sentences
         }
-        result = {utterances}
+        module.exports = {utterances}
       }
     `)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
@@ -94,8 +94,8 @@ describe('compiler.precompiler.script', function () {
         for (const entry of scriptData) {
           utterances[entry.intent] = entry.sentences
         }
-        result = {utterances}
-        }
+        module.exports = {utterances}
+      }
     `)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
     this.compiler.ExpandUtterancesToConvos()
@@ -111,7 +111,7 @@ describe('compiler.precompiler.script', function () {
         for (const entry of scriptData.utterances) {
           utterances[entry.intent] = entry.sentences
         }
-        result = {utterances}
+        module.exports = {utterances}
       }
   `)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
@@ -127,7 +127,7 @@ describe('compiler.precompiler.script', function () {
       for (const entry of scriptData) {
         utterances[entry.intent] = entry.sentences
       }
-      result = { scriptBuffer:{utterances}, filename: filename + ".json" }
+      module.exports = { scriptBuffer:{utterances}, filename: filename + ".json" }
   `)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json.txt')
     this.compiler.ExpandUtterancesToConvos()
@@ -142,7 +142,7 @@ describe('compiler.precompiler.script', function () {
       for (const entry of scriptData) {
         utterances[entry.intent] = entry.sentences
       }
-      result = { scriptBuffer:{utterances} }
+      module.exports = { scriptBuffer:{utterances} }
   `)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json.txt')
     this.compiler.ExpandUtterancesToConvos()
@@ -153,7 +153,7 @@ describe('compiler.precompiler.script', function () {
 
   it('should be able to precompile text to text', async function () {
     await beforeCustom(this, `
-      result = scriptData.replace("Hi!", "Hi Bot!")
+      module.exports = scriptData.replace("Hi!", "Hi Bot!")
   `)
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script_text_to_text.convo.txt')
     this.compiler.ExpandUtterancesToConvos()

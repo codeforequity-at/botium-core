@@ -37,10 +37,10 @@ module.exports = class SimpleRestContainer {
     }
     if (this.caps[Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE] !== 'MERGE' && this.caps[Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE] !== 'REPLACE') throw new Error('SIMPLEREST_CONTEXT_MERGE_OR_REPLACE capability only MERGE or REPLACE allowed')
 
-    this.startHook = getHook(this.caps[Capabilities.SIMPLEREST_START_HOOK])
-    this.stopHook = getHook(this.caps[Capabilities.SIMPLEREST_STOP_HOOK])
-    this.requestHook = getHook(this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
-    this.responseHook = getHook(this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])
+    this.startHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_START_HOOK])
+    this.stopHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_STOP_HOOK])
+    this.requestHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
+    this.responseHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])
   }
 
   Build () {
@@ -91,7 +91,7 @@ module.exports = class SimpleRestContainer {
         },
 
         (startHookComplete) => {
-          executeHook(this.startHook, this.view).then(() => startHookComplete()).catch(startHookComplete)
+          executeHook(this.caps, this.startHook, this.view).then(() => startHookComplete()).catch(startHookComplete)
         },
 
         (pingComplete) => {
@@ -160,7 +160,7 @@ module.exports = class SimpleRestContainer {
         throw new Error(`Failed to call url ${this.caps[Capabilities.SIMPLEREST_STOP_URL]} to stop session: ${err.message}`)
       }
     }
-    await executeHook(this.stopHook, this.view)
+    await executeHook(this.caps, this.stopHook, this.view)
     await this._unsubscribeInbound()
     await this._stopPolling()
     this.view = {}
@@ -289,14 +289,14 @@ module.exports = class SimpleRestContainer {
 
             hasMessageText = true
             const botMsg = { sourceData: body, messageText, media, buttons }
-            await executeHook(this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot, messageTextIndex }, this.view))
+            await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot, messageTextIndex }, this.view))
             result.push(botMsg)
           }
         }
 
         if (!hasMessageText) {
           const botMsg = { messageText: '', sourceData: body, media, buttons }
-          await executeHook(this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
+          await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
           result.push(botMsg)
         }
       }
@@ -423,7 +423,7 @@ module.exports = class SimpleRestContainer {
     }
     this._addRequestOptions(requestOptions)
 
-    await executeHook(this.requestHook, Object.assign({ requestOptions }, this.view))
+    await executeHook(this.caps, this.requestHook, Object.assign({ requestOptions }, this.view))
 
     return requestOptions
   }

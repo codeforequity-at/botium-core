@@ -30,6 +30,16 @@ const buildContextWithPause = () => {
   return result
 }
 describe('compiler.compilertxt', function () {
+  it('should trim invalid sender', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_invalidsender.convo.txt'))
+    const context = buildContext()
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.equal(context.convos[0].conversation[0].sender, 'me')
+    assert.equal(context.convos[0].conversation[1].sender, 'bot')
+  })
   it('should read ! as not', async function () {
     const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_with!.convo.txt'))
     const context = buildContext()
