@@ -306,4 +306,28 @@ describe('compiler.compilerxlsx', function () {
     compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
     assert.lengthOf(context.convos, 3)
   })
+  it('should read 2 convos with name', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_2convos_with_names.xlsx'))
+    const context = buildContext()
+
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.lengthOf(context.convos, 3)
+    assert.equal(context.convos[0].header.name, 'Convo1')
+    assert.equal(context.convos[1].header.name, 'Convo2')
+    assert.equal(context.convos[2].header.name, 'Convo3')
+
+    assert.lengthOf(context.convos[0].conversation, 5)
+    assert.lengthOf(context.convos[1].conversation, 2)
+    assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
+    assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
+    assert.equal(context.convos[0].conversation[2].messageText, 'test 3')
+    assert.equal(context.convos[0].conversation[3].messageText, 'test 4')
+    assert.equal(context.convos[0].conversation[4].messageText, 'test 5')
+
+    assert.lengthOf(context.utterances, 0)
+  })
 })
