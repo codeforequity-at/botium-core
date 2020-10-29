@@ -41,6 +41,11 @@ describe('driver.loadConfigFile', function () {
     const driver = new BotDriver()
     assert.throws(() => driver._loadConfigFile('test/driver/configFiles/configNonExisting.json'))
   })
+  it('load Config from file only once', function () {
+    const driver = new BotDriver()
+    const result = driver._fetchConfigFromFiles([ 'test/driver/configFiles/config1.json', 'test/driver/configFiles/config1.json', 'test/driver/configFiles/config1.json' ])
+    assert.lengthOf(driver._fetchedConfigFiles, 1)
+  })
 })
 
 describe('driver.capabilities', function () {

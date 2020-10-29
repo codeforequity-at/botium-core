@@ -29,6 +29,7 @@ module.exports = class BotDriver {
     this.sources = _.cloneDeep(Defaults.Sources)
     this.envs = _.cloneDeep(Defaults.Envs)
 
+    this._fetchedConfigFiles = []
     this._fetchConfigFromFiles([
       './botium.json', process.env.NODE_ENV && `./botium.${process.env.NODE_ENV}.json`,
       './botium.local.json', process.env.NODE_ENV && `./botium.${process.env.NODE_ENV}.local.json`])
@@ -205,12 +206,20 @@ module.exports = class BotDriver {
 
   // fetches config from files ordered by priority later files overwrite previous
   _fetchConfigFromFiles (files) {
-    return files
-      .filter(file => file && fs.existsSync(file))
-      .map(file => {
-        this._loadConfigFile(file)
-        return file
-      })
+    const fetchedFiles = []
+    for (const file of files) {
+      if (file && fs.existsSync(file)) {
+        const absFilePath = path.resolve(file)
+        if (this._fetchedConfigFiles.indexOf(absFilePath) < 0) {
+          this._loadConfigFile(file)
+          fetchedFiles.push(file)
+          this._fetchedConfigFiles.push(absFilePath)
+        } else {
+          fetchedFiles.push(file)
+        }
+      }
+    }
+    return fetchedFiles
   }
 
   _findKeyProperty (obj) {
