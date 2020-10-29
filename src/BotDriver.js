@@ -263,8 +263,12 @@ module.exports = class BotDriver {
                 _.merge(oldElement, capElement)
                 return
               }
+              caps[capKey].push(capElement)
+            } else {
+              if (caps[capKey].indexOf(capElement) < 0) {
+                caps[capKey].push(capElement)
+              }
             }
-            caps[capKey].push(capElement)
           })
           return
         }

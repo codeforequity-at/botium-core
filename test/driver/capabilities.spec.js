@@ -43,8 +43,16 @@ describe('driver.loadConfigFile', function () {
   })
   it('load Config from file only once', function () {
     const driver = new BotDriver()
-    const result = driver._fetchConfigFromFiles([ 'test/driver/configFiles/config1.json', 'test/driver/configFiles/config1.json', 'test/driver/configFiles/config1.json' ])
+    driver._fetchConfigFromFiles(['test/driver/configFiles/config1.json', 'test/driver/configFiles/config1.json', 'test/driver/configFiles/config1.json'])
     assert.lengthOf(driver._fetchedConfigFiles, 1)
+    assert.lengthOf(driver.caps.ARR_CAP, 2)
+  })
+  it('should make unique array', function () {
+    const driver = new BotDriver()
+    driver._fetchConfigFromFiles(['test/driver/configFiles/config1.json', 'test/driver/configFiles/config2.json'])
+    assert.lengthOf(driver._fetchedConfigFiles, 2)
+    assert.lengthOf(driver.caps.ARR_CAP, 3)
+    assert.deepEqual(driver.caps.ARR_CAP, ['val1', 'val2', 'val3'])
   })
 })
 
