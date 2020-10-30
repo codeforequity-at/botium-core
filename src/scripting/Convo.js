@@ -214,7 +214,9 @@ class Convo {
       convoEnd: null,
       err: null
     })
-    const scriptingMemory = {}
+    const scriptingMemory = {
+    }
+    container.caps[Capabilities.TESTCASENAME] = this.header.name
     try {
       try {
         const effectiveConversation = this._getEffectiveConversation()

@@ -769,6 +769,14 @@ describe('convo.scriptingMemory.api', function () {
 
       assert(result === '15', 'func invalid')
     })
+    it('func with caps', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: Object.assign({}, CAPS_ENABLE_SCRIPTING_MEMORY, { mycap: 'botium' }) },
+        { },
+        '$func(caps.mycap)'
+      )
+      assert.equal(result, 'botium')
+    })
     it('func invalid code', async function () {
       try {
         ScriptingMemory.apply(
@@ -788,7 +796,61 @@ describe('convo.scriptingMemory.api', function () {
         { },
         '$func(process.env.MY_VAR_VALUE)'
       )
-      assert.isNotNull(result)
+      assert.equal(result, 'botium')
+    })
+    it('environment variable', async function () {
+      process.env.MY_VAR_VALUE = 'botium'
+      const result = ScriptingMemory.apply(
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+        { },
+        '$env(MY_VAR_VALUE)'
+      )
+      assert.equal(result, 'botium')
+    })
+    it('environment variable reject', async function () {
+      process.env.MY_VAR_VALUE = 'botium'
+      try {
+        ScriptingMemory.apply(
+          { caps: Object.assign({}, CAPS_ENABLE_SCRIPTING_MEMORY, { SECURITY_ALLOW_UNSAFE: false }) },
+          { },
+          '$env(MY_VAR_VALUE)'
+        )
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('Using unsafe scripting memory function $env is not allowed') >= 0)
+      }
+    })
+    it('cap', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: Object.assign({}, CAPS_ENABLE_SCRIPTING_MEMORY, { mycap: 'botium' }) },
+        { },
+        '$cap(mycap)'
+      )
+      assert.equal(result, 'botium')
+    })
+    it('projectname', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: Object.assign({}, CAPS_ENABLE_SCRIPTING_MEMORY, { PROJECTNAME: 'botium' }) },
+        { },
+        '$projectname'
+      )
+      assert.equal(result, 'botium')
+    })
+    it('testsessionname', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: Object.assign({}, CAPS_ENABLE_SCRIPTING_MEMORY, { TESTSESSIONNAME: 'botium' }) },
+        { },
+        '$testsessionname'
+      )
+      assert.equal(result, 'botium')
+    })
+    it('testcasename', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: Object.assign({}, CAPS_ENABLE_SCRIPTING_MEMORY, { TESTCASENAME: 'botium' }) },
+        { },
+        '$testcasename'
+      )
+      assert.equal(result, 'botium')
     })
   })
 })

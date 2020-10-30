@@ -102,8 +102,26 @@ const SCRIPTING_FUNCTIONS_RAW = {
     return uuidv1()
   },
 
+  $projectname: {
+    handler: (caps) => {
+      return caps[Capabilities.PROJECTNAME]
+    }
+  },
+
+  $testsessionname: {
+    handler: (caps) => {
+      return caps[Capabilities.TESTSESSIONNAME]
+    }
+  },
+
+  $testcasename: {
+    handler: (caps) => {
+      return caps[Capabilities.TESTCASENAME]
+    }
+  },
+
   $env: {
-    handler: (name) => {
+    handler: (caps, name) => {
       if (!name) {
         throw Error('env function used without args!')
       }
@@ -112,8 +130,17 @@ const SCRIPTING_FUNCTIONS_RAW = {
     unsafe: true
   },
 
+  $cap: {
+    handler: (caps, name) => {
+      if (!name) {
+        throw Error('cap function used without args!')
+      }
+      return caps[name]
+    }
+  },
+
   $func: {
-    handler: (code) => {
+    handler: (caps, code) => {
       if (code == null) {
         throw Error('func function used without args!')
       }
@@ -121,7 +148,10 @@ const SCRIPTING_FUNCTIONS_RAW = {
         const vm = new NodeVM({
           eval: false,
           require: false,
-          sandbox: {}
+          env: caps[Capabilities.SECURITY_ALLOW_UNSAFE] ? process.env : {},
+          sandbox: {
+            caps
+          }
         })
         return vm.run(`module.exports = (${code})`)
       } catch (err) {
@@ -136,9 +166,6 @@ const SCRIPTING_FUNCTIONS = _.mapValues(SCRIPTING_FUNCTIONS_RAW, (funcOrStruct, 
 
   return {
     handler: (caps, ...rest) => {
-      if (!caps) {
-        throw new Error('Caps not defined')
-      }
       if (!caps[Capabilities.SECURITY_ALLOW_UNSAFE] && funcOrStruct.unsafe) {
         throw new BotiumError(
           `Security Error. Using unsafe scripting memory function ${name} is not allowed`,
@@ -153,7 +180,11 @@ const SCRIPTING_FUNCTIONS = _.mapValues(SCRIPTING_FUNCTIONS_RAW, (funcOrStruct, 
           }
         )
       }
-      return func(...rest)
+      if (funcOrStruct.handler) {
+        return func(caps, ...rest)
+      } else {
+        return func(...rest)
+      }
     },
     numberOfArguments: func.length
   }

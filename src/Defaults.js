@@ -5,6 +5,7 @@ module.exports = {
   Capabilities: {
     [Capabilities.PROJECTNAME]: 'Botium Project',
     [Capabilities.TESTSESSIONNAME]: 'Botium Test Session',
+    [Capabilities.TESTCASENAME]: 'Botium Test Case',
     [Capabilities.TEMPDIR]: 'botiumwork',
     [Capabilities.CLEANUPTEMPDIR]: true,
     [Capabilities.WAITFORBOTTIMEOUT]: 10000,
