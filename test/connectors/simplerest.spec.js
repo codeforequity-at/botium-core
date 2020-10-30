@@ -556,6 +556,65 @@ describe('connectors.simplerest.processBody', function () {
 
     await container.Clean()
   })
+  it('should ignore empty response', async function () {
+    const myCaps = Object.assign({}, myCapsGet, {
+      [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+      [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media',
+      [Capabilities.SIMPLEREST_IGNORE_EMPTY]: true
+    })
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+
+    assert.exists(msgs)
+    assert.equal(msgs.length, 0)
+
+    await container.Clean()
+  })
+  it('should not ignore empty response', async function () {
+    const myCaps = Object.assign({}, myCapsGet, {
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+      [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media',
+      [Capabilities.SIMPLEREST_IGNORE_EMPTY]: false
+    })
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+
+    assert.exists(msgs)
+    assert.equal(msgs.length, 1)
+    assert.equal(msgs[0].messageText, '')
+
+    await container.Clean()
+  })
+  it('should not ignore empty response with media', async function () {
+    const myCaps = Object.assign({}, myCapsGet, {
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+      [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media',
+      [Capabilities.SIMPLEREST_IGNORE_EMPTY]: true
+    })
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({ media: ['hugo.jpg'] }, true)
+
+    assert.exists(msgs)
+    assert.equal(msgs.length, 1)
+    assert.equal(msgs[0].messageText, '')
+    assert.equal(msgs[0].media.length, 1)
+    assert.equal(msgs[0].media[0].mediaUri, 'hugo.jpg')
+
+    await container.Clean()
+  })
   it('should process multiple responses', async function () {
     const myCaps = Object.assign({}, myCapsGet, {
       [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',

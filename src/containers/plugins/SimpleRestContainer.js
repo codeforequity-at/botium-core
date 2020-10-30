@@ -295,9 +295,11 @@ module.exports = class SimpleRestContainer {
         }
 
         if (!hasMessageText) {
-          const botMsg = { messageText: '', sourceData: body, media, buttons }
-          await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
-          result.push(botMsg)
+          if (media.length > 0 || buttons.length > 0 || !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
+            const botMsg = { messageText: '', sourceData: body, media, buttons }
+            await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
+            result.push(botMsg)
+          }
         }
       }
     }

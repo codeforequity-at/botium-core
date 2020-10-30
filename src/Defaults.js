@@ -20,6 +20,7 @@ module.exports = {
     [Capabilities.SIMPLEREST_POLL_TIMEOUT]: 10000,
     [Capabilities.SIMPLEREST_POLL_UPDATE_CONTEXT]: true,
     [Capabilities.SIMPLEREST_METHOD]: 'GET',
+    [Capabilities.SIMPLEREST_IGNORE_EMPTY]: true,
     [Capabilities.SIMPLEREST_TIMEOUT]: 10000,
     [Capabilities.SIMPLEREST_EXTRA_OPTIONS]: {},
     [Capabilities.SIMPLEREST_STRICT_SSL]: true,
