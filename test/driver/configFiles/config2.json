@@ -1,7 +1,8 @@
 {
   "botium": {
     "Capabilities": {
-      "PROJECTNAME": "Botium Example 2"
+      "PROJECTNAME": "Botium Example 2",
+      "ARR_CAP": ["val1", "val3"]
     },
     "Sources": {
       "GITURL": "https://github.com/codeforequity-at/botium-bindings"
