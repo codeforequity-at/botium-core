@@ -45,7 +45,7 @@ describe('UserInputs.defaults.buttonInput', function () {
 
 describe('UserInputs.defaults.mediaInput', function () {
   it('correct number of args', async function () {
-    const mi = new MediaInput()
+    const mi = new MediaInput({}, { SECURITY_ALLOW_UNSAFE: true })
     await mi.setUserInput({ convoStep, args: ['Test1'], meMsg: {}, convo: { sourceTag: { filename: '' } } })
   })
   it('correct number of args with buffer', async function () {
@@ -71,7 +71,7 @@ describe('UserInputs.defaults.mediaInput', function () {
       })
   })
   it('should set media in message', async function () {
-    const mi = new MediaInput()
+    const mi = new MediaInput({}, { SECURITY_ALLOW_UNSAFE: true })
 
     const meMsg = {}
     await mi.setUserInput({ convoStep, args: ['Test1'], meMsg, convo: { sourceTag: { convoDir: 'mydir', filename: 'myfile.convo.txt' } } })

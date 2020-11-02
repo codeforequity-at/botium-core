@@ -15,19 +15,6 @@ module.exports = class MediaInput {
     this.context = context
     this.caps = caps
     this.globalArgs = globalArgs
-    if (!caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
-      if (globalArgs && globalArgs.baseDir) {
-        throw new BotiumError(
-          'Security Error. Using base dir global argument in MediaInput is not allowed',
-          {
-            type: 'security',
-            subtype: 'allow unsafe',
-            source: path.basename(__filename),
-            cause: { globalArgs }
-          }
-        )
-      }
-    }
   }
 
   _getResolvedUri (uri, convoDir, convoFilename) {
@@ -39,7 +26,19 @@ module.exports = class MediaInput {
         throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
       }
       return new url.URL(uri, `file://${basePath}/`)
-    } else if (convoDir && convoFilename) {
+    }
+    if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
+      throw new BotiumError(
+        'Security Error. Using base dir global argument in MediaInput is required',
+        {
+          type: 'security',
+          subtype: 'allow unsafe',
+          source: path.basename(__filename),
+          cause: { globalArgs: this.globalArgs }
+        }
+      )
+    }
+    if (convoDir && convoFilename) {
       const basePath = path.resolve(convoDir)
       if (!path.resolve(convoDir, uri).startsWith(basePath)) {
         throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
@@ -57,7 +56,19 @@ module.exports = class MediaInput {
   _getBaseDir (convoDir) {
     if (this.globalArgs && this.globalArgs.baseDir) {
       return path.resolve(this.globalArgs.baseDir)
-    } else if (convoDir) {
+    }
+    if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
+      throw new BotiumError(
+        'Security Error. Using base dir global argument in MediaInput is required',
+        {
+          type: 'security',
+          subtype: 'allow unsafe',
+          source: path.basename(__filename),
+          cause: { globalArgs: this.globalArgs }
+        }
+      )
+    }
+    if (convoDir) {
       return path.resolve(convoDir)
     } else {
       return '.'
@@ -67,18 +78,6 @@ module.exports = class MediaInput {
   async _downloadMedia (uri, fileSpec, sourceTag) {
     if (this.globalArgs && this.globalArgs.downloadMedia) {
       if (uri.protocol === 'file:') {
-        if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
-          throw new BotiumError(
-            'Security Error. Access to local filesystem is not allowed in Media Input',
-            {
-              type: 'security',
-              subtype: 'allow unsafe',
-              source: path.basename(__filename),
-              cause: { uri, fileSpec, sourceTag, globalArgs: this.globalArgs }
-            }
-          )
-        }
-
         try {
           return fs.readFileSync(uri)
         } catch (err) {
@@ -113,18 +112,6 @@ module.exports = class MediaInput {
 
   expandConvo ({ convo, convoStep, args }) {
     const hasWildcard = args.findIndex(a => this._isWildcard(a)) >= 0
-
-    if (hasWildcard && !this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
-      throw new BotiumError(
-        'Security Error. Using wildcard as argument in MediaInput is not allowed',
-        {
-          type: 'security',
-          subtype: 'allow unsafe',
-          source: path.basename(__filename),
-          cause: { args }
-        }
-      )
-    }
 
     if (args && (args.length > 1 || hasWildcard)) {
       const baseDir = this._getBaseDir(convo.sourceTag.convoDir)
@@ -162,19 +149,15 @@ module.exports = class MediaInput {
     }
 
     if (args.length === 1) {
-      try {
-        const uri = this._getResolvedUri(args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
-        if (uri) {
-          const buffer = await this._downloadMedia(uri, args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
-          meMsg.media.push(new BotiumMockMedia({
-            mediaUri: args[0],
-            downloadUri: uri.toString(),
-            mimeType: mime.lookup(args[0]),
-            buffer
-          }))
-        }
-      } catch (err) {
-        throw new Error(err.message)
+      const uri = this._getResolvedUri(args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
+      if (uri) {
+        const buffer = await this._downloadMedia(uri, args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
+        meMsg.media.push(new BotiumMockMedia({
+          mediaUri: args[0],
+          downloadUri: uri.toString(),
+          mimeType: mime.lookup(args[0]),
+          buffer
+        }))
       }
     } else if (args.length === 2) {
       meMsg.media.push(new BotiumMockMedia({
