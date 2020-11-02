@@ -615,6 +615,52 @@ describe('connectors.simplerest.processBody', function () {
 
     await container.Clean()
   })
+  it('should not ignore empty response with hook NLP data', async function () {
+    const myCaps = Object.assign({}, myCapsGet, {
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+      [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media',
+      [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
+        botMsg.nlp = { intent: { name: 'hugo' } }
+      `,
+      [Capabilities.SIMPLEREST_IGNORE_EMPTY]: true
+    })
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+
+    assert.exists(msgs)
+    assert.equal(msgs.length, 1)
+    assert.equal(msgs[0].messageText, '')
+    assert.isNotNull(msgs[0].nlp)
+
+    await container.Clean()
+  })
+  it('should not ignore empty response with custom hook data', async function () {
+    const myCaps = Object.assign({}, myCapsGet, {
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+      [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media',
+      [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
+        botMsg.someextradata = 'message text from hook'
+      `,
+      [Capabilities.SIMPLEREST_IGNORE_EMPTY]: true
+    })
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+
+    assert.exists(msgs)
+    assert.equal(msgs.length, 1)
+    assert.equal(msgs[0].messageText, '')
+    assert.equal(msgs[0].someextradata, 'message text from hook')
+
+    await container.Clean()
+  })
   it('should process multiple responses', async function () {
     const myCaps = Object.assign({}, myCapsGet, {
       [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',
