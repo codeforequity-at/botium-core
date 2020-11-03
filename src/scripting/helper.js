@@ -44,6 +44,8 @@ const removeBuffers = obj => {
   const jsonString = JSON.stringify(obj, (key, value) => {
     if (_.isBuffer(value)) {
       return '(binary data)'
+    } else if (value && value.type && value.type === 'Buffer') {
+      return '(binary data)'
     } else if (key.toLowerCase() === 'base64') {
       return '(base64 data)'
     }
