@@ -116,7 +116,7 @@ module.exports = class JsonPathAsserter {
               }
             },
             cause: {
-              expected: assert,
+              expected: assert || (args && `any element for ${args.join('|')}`) || (!args && `any element in ${path}`),
               actual: null,
               path
             }
