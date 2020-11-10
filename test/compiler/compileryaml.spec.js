@@ -5,6 +5,8 @@ const Compiler = require('../../src/scripting/CompilerYaml')
 const Constants = require('../../src/scripting/Constants')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 
+const CONVOS_DIR = 'convos/yaml'
+
 const buildContext = () => {
   const result = {
     IsAsserterValid: (name) => {
@@ -35,7 +37,7 @@ const buildContext = () => {
 
 describe('compiler.compileryml', function () {
   it('should read convos', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_and_utterances.yml'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_and_utterances.yml'))
     const context = buildContext()
     const caps = {
     }
@@ -57,18 +59,26 @@ describe('compiler.compileryml', function () {
     assert.equal(context.convos[1].conversation[1].asserters.length, 2)
     assert.equal(context.convos[1].conversation[1].asserters[0].name, 'TEXT')
     assert.equal(context.convos[1].conversation[1].asserters[0].not, true)
+    assert.equal(context.convos[1].conversation[1].asserters[0].optional, true)
     assert.equal(context.convos[1].conversation[1].asserters[0].args.length, 1)
     assert.equal(context.convos[1].conversation[1].asserters[0].args[0], 'hello')
     assert.equal(context.convos[1].conversation[1].asserters[1].name, 'INTENT')
     assert.equal(context.convos[1].conversation[1].asserters[1].not, false)
+    assert.equal(context.convos[1].conversation[1].asserters[1].optional, true)
     assert.equal(context.convos[1].conversation[1].asserters[1].args.length, 1)
     assert.equal(context.convos[1].conversation[1].asserters[1].args[0], 'intent_greeting')
+    assert.equal(context.convos[1].conversation[2].messageText, 'what can i do for you?')
+    assert.equal(context.convos[1].conversation[2].not, false)
+    assert.equal(context.convos[1].conversation[2].optional, false)
+    assert.equal(context.convos[1].conversation[4].messageText, 'thanks')
+    assert.equal(context.convos[1].conversation[4].not, true)
+    assert.equal(context.convos[1].conversation[4].optional, true)
 
     assert.equal(context.utterances.length, 0)
   })
 
   it('should read utterances', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_and_utterances.yml'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_and_utterances.yml'))
     const context = buildContext()
     const caps = {
     }

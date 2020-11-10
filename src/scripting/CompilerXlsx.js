@@ -365,11 +365,17 @@ module.exports = class CompilerXlsx extends CompilerBase {
             })
           } else {
             if (set.messageText) {
+              if (set.optional) {
+                cellContent += '?'
+              }
               if (set.not) {
                 cellContent += '!'
               }
               cellContent += set.messageText + eol
             } else if (set.sourceData) {
+              if (set.optional) {
+                cellContent += '?'
+              }
               if (set.not) {
                 cellContent += '!'
               }
@@ -384,6 +390,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
               })
             }
             set.asserters && set.asserters.map((asserter) => {
+              if (asserter.optional) {
+                cellContent += '?'
+              }
               if (asserter.not) {
                 cellContent += '!'
               }

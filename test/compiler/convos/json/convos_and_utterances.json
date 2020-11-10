@@ -33,8 +33,8 @@
           },
           {
             "bot": [
-              { "asserter": "TEXT", "args": "hello", "not": true },
-              { "asserter": "INTENT", "args": "intent_greeting" }
+              { "asserter": "TEXT", "args": "hello", "not": true, "optional": true },
+              { "asserter": "INTENT", "args": "intent_greeting", "optional": true }
             ]
           },
           {
@@ -49,7 +49,7 @@
           },
           {
             "bot": [
-              "thanks"
+              "?!thanks"
             ]
           }
         ]

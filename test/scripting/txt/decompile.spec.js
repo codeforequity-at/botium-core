@@ -34,6 +34,82 @@ botText
 `
     )
   })
+  it('should decompile convo with negated messageText', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'bot',
+          messageText: 'botText',
+          not: true
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#bot
+!botText
+`
+    )
+  })
+  it('should decompile convo with optional messageText', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'bot',
+          messageText: 'botText',
+          optional: true
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#bot
+?botText
+`
+    )
+  })
+  it('should decompile convo with optional and negated messageText', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'bot',
+          messageText: 'botText',
+          not: true,
+          optional: true
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#bot
+?!botText
+`
+    )
+  })
   it('should decompile logichook', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
@@ -162,6 +238,54 @@ BUTTONS buttontext|buttontext 2
 
 #bot
 !BUTTONS buttontext
+`
+    )
+  })
+  it('should decompile optional button asserter', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'bot',
+          asserters: [{ name: 'BUTTONS', args: ['buttontext'], not: false, optional: true }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#bot
+?BUTTONS buttontext
+`
+    )
+  })
+  it('should decompile optional button asserter with negation', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'bot',
+          asserters: [{ name: 'BUTTONS', args: ['buttontext'], not: true, optional: true }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#bot
+?!BUTTONS buttontext
 `
     )
   })

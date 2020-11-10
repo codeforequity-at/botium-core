@@ -7,6 +7,7 @@ module.exports = class BotiumMockMessage {
     this.sender = fromJson.sender
     this.channel = fromJson.channel
     this.not = fromJson.not
+    this.optional = fromJson.optional
     this.messageText = fromJson.messageText
     this.media = (fromJson.media ? fromJson.media.map((a) => new BotiumMockMedia(a)) : null)
     this.buttons = (fromJson.buttons ? fromJson.buttons.map((a) => new BotiumMockButton(a)) : null)
