@@ -5,6 +5,8 @@ const Compiler = require('../../src/scripting/CompilerCsv')
 const Capabilities = require('../../src/Capabilities')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 
+const CONVOS_DIR = 'convos/csv'
+
 const buildContext = () => {
   const result = {
     IsAsserterValid: () => false,
@@ -21,7 +23,7 @@ const buildContext = () => {
 describe('compiler.compilercsv', function () {
   describe('ROW_PER_MESSAGE mode, full', function () {
     it('should read basic case', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_basic.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_sender_basic.csv'))
       const context = buildContext()
 
       const caps = {
@@ -36,7 +38,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read different sequence and extra row', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_sequence_and_extra_row.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_sender_sequence_and_extra_row.csv'))
       const context = buildContext()
 
       const caps = {
@@ -54,7 +56,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read by cap', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_sequence_and_extra_row_no_def_colname.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_sender_sequence_and_extra_row_no_def_colname.csv'))
       const context = buildContext()
 
       const caps = {
@@ -72,7 +74,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read by index', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_sequence_and_extra_row_no_def_colname.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_sender_sequence_and_extra_row_no_def_colname.csv'))
       const context = buildContext()
 
       const caps = {
@@ -90,7 +92,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read by index, no header', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_no_header.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_sender_no_header.csv'))
       const context = buildContext()
 
       const caps = {
@@ -106,7 +108,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read more convos', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_more_convos.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_sender_more_convos.csv'))
       const context = buildContext()
 
       const caps = {
@@ -125,7 +127,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[1].conversation[1].sender, 'bot')
     })
     it('should read no text', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_sender_no_text.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_sender_no_text.csv'))
       const context = buildContext()
 
       const caps = {
@@ -142,7 +144,7 @@ describe('compiler.compilercsv', function () {
   })
   describe('QUESTION_ANSWER mode', function () {
     it('should read basic case', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_basic.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_column_basic.csv'))
       const context = buildContext()
 
       const caps = {
@@ -157,7 +159,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read different sequence', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_sequence.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_column_sequence.csv'))
       const context = buildContext()
 
       const caps = {
@@ -174,7 +176,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read by name', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_sequence_no_def_colname.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_column_sequence_no_def_colname.csv'))
       const context = buildContext()
 
       const caps = {
@@ -191,7 +193,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read by index', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_sequence_no_def_colname.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_column_sequence_no_def_colname.csv'))
       const context = buildContext()
 
       const caps = {
@@ -208,7 +210,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read by index, no header', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_no_header.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_column_no_header.csv'))
       const context = buildContext()
 
       const caps = {
@@ -224,7 +226,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[0].conversation[1].sender, 'bot')
     })
     it('should read more convos', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_more_convos.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_column_more_convos.csv'))
       const context = buildContext()
 
       const caps = {
@@ -243,7 +245,7 @@ describe('compiler.compilercsv', function () {
       assert.equal(context.convos[1].conversation[1].sender, 'bot')
     })
     it('should read user and bot columns', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_column_me_bot.csv'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_column_me_bot.csv'))
       const context = buildContext()
 
       const caps = {

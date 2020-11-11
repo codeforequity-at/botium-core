@@ -10,7 +10,7 @@ const { Convo } = require('./Convo')
 const Utterance = require('./Utterance')
 const { linesToConvoStep } = require('./helper')
 
-module.exports = class CompilerObjectBase extends CompilerBase {
+module.exports = class CompilerMarkdown extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
 

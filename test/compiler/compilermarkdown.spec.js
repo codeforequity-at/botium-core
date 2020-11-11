@@ -5,6 +5,8 @@ const Compiler = require('../../src/scripting/CompilerMarkdown')
 const Constants = require('../../src/scripting/Constants')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 
+const CONVOS_DIR = 'convos/md'
+
 const buildContext = () => {
   const result = {
     IsAsserterValid: (name) => {
@@ -32,7 +34,7 @@ const buildContext = () => {
 
 describe('compiler.compilermarkdown', function () {
   it('should read convos', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_precompiler_markdown.md'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_precompiler_markdown.md'))
     const context = buildContext()
     const caps = {
     }
@@ -67,7 +69,7 @@ describe('compiler.compilermarkdown', function () {
   })
 
   it('should read utterances', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_precompiler_markdown_utterances.md'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_precompiler_markdown_utterances.md'))
     const context = buildContext()
     const caps = {
     }
@@ -84,7 +86,7 @@ describe('compiler.compilermarkdown', function () {
   })
 
   it('should handle invalid markdown (no h1)', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_precompiler_markdown_invalid_noh1.md'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_precompiler_markdown_invalid_noh1.md'))
     const context = buildContext()
     const caps = {
     }
@@ -100,7 +102,7 @@ describe('compiler.compilermarkdown', function () {
   })
 
   it('should handle invalid markdown (no h2)', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, 'convos', 'convos_precompiler_markdown_invalid_noh2.md'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_precompiler_markdown_invalid_noh2.md'))
     const context = buildContext()
     const caps = {
     }
@@ -113,5 +115,143 @@ describe('compiler.compilermarkdown', function () {
       return
     }
     assert.fail('should have failed')
+  })
+  describe('negating', function () {
+    it('should read ! as not', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!.md'))
+      const context = buildContext()
+
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, 'hello meat bag')
+      assert.equal(context.convos[0].conversation[1].not, true)
+      assert.equal(context.convos[0].conversation[1].asserters[0].not, true)
+    })
+    it('should read !! as !', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!!.md'))
+      const context = buildContext()
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, '!hello meat bag')
+      assert.equal(context.convos[0].conversation[1].not, false)
+    })
+    it('should read n*! as (n-1)*!', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!!!!.md'))
+      const context = buildContext()
+
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, '!!!hello meat bag')
+      assert.equal(context.convos[0].conversation[1].not, false)
+    })
+    it('should read ! as ! in second line', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!_secline.md'))
+      const context = buildContext()
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, 'hello meat bag \n!hello2')
+      assert.equal(context.convos[0].conversation[1].not, true)
+    })
+  })
+  describe('optional', function () {
+    it('should read ? as optional', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?.md'))
+      const context = buildContext()
+
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, 'hello meat bag')
+      assert.equal(context.convos[0].conversation[1].optional, true)
+      assert.equal(context.convos[0].conversation[1].asserters[0].optional, true)
+    })
+    it('should fail if not all item optional in the same block', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?_invalid.md'))
+      const context = buildContext()
+
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      try {
+        compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+        assert.fail('expected error')
+      } catch (err) {
+        assert.equal(err.message, 'Failed to parse conversation. All element in convo step has to be optional or not optional: ["?hello meat bag ","BUTTONS checkbutton|checkbutton2 "]')
+      }
+    })
+    it('should read ?? as ?', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with??.md'))
+      const context = buildContext()
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, '?hello meat bag')
+      assert.equal(context.convos[0].conversation[1].optional, false)
+    })
+    it('should read n*? as (n-1)*?', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with????.md'))
+      const context = buildContext()
+
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, '???hello meat bag')
+      assert.equal(context.convos[0].conversation[1].optional, false)
+    })
+    it('should read ? as ? in second line', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?_secline.md'))
+      const context = buildContext()
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, 'hello meat bag \n?hello2')
+      assert.equal(context.convos[0].conversation[1].optional, true)
+    })
+  })
+  describe('optional and negate', function () {
+    it('should read ?! as optional and not', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?!.md'))
+      const context = buildContext()
+
+      const caps = {}
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, 'hello meat bag')
+      assert.equal(context.convos[0].conversation[1].optional, true)
+      assert.equal(context.convos[0].conversation[1].not, true)
+    })
+    it('should read ??! as ?!', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with??!.md'))
+      const context = buildContext()
+      const caps = {}
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      assert.equal(context.convos[0].conversation[1].messageText, '?!hello meat bag')
+      assert.equal(context.convos[0].conversation[1].optional, false)
+      assert.equal(context.convos[0].conversation[1].not, false)
+    })
   })
 })

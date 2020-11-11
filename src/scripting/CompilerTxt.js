@@ -188,6 +188,9 @@ module.exports = class CompilerTxt extends CompilerBase {
         })
       } else {
         if (set.messageText) {
+          if (set.optional) {
+            script += '?'
+          }
           if (set.not) {
             script += '!'
           }
@@ -208,6 +211,9 @@ module.exports = class CompilerTxt extends CompilerBase {
           })
         }
         set.asserters && set.asserters.map((asserter) => {
+          if (asserter.optional) {
+            script += '?'
+          }
           if (asserter.not) {
             script += '!'
           }
