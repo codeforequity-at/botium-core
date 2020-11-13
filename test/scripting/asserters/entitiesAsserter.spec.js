@@ -116,7 +116,7 @@ describe('scripting.asserters.entitiesAsserter', function () {
       ['no1', 'no2', 'no3'],
       { product: -1, no1: 1, no2: 1, no3: 1 }
     )
-  })  
+  })
 })
 
 const _assert = (expected, found, diff) => {
