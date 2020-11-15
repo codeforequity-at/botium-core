@@ -10,6 +10,12 @@ const echoConnector = ({ queueBotSays }) => {
   return {
     UserSays (msg) {
       const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: msg.messageText }
+      if (msg.messageText === 'buttons') {
+        botMsg.buttons = [
+          { text: 'First Button' },
+          { text: 'Second Button' }
+        ]
+      }
       queueBotSays(botMsg)
     }
   }
@@ -66,6 +72,61 @@ describe('convo.transcript', function () {
     assert.isDefined(transcript)
     assert.equal(transcript.steps.length, 2)
     assert.isTrue(transcript.steps[1].not)
+  })
+  it('should provide transcript optional steps on success', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2stepsopt.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isDefined(transcript)
+    assert.equal(transcript.steps.length, 2)
+  })
+  it('should provide transcript optional negated steps on success', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2stepsoptneg.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isDefined(transcript)
+    assert.equal(transcript.steps.length, 2)
+  })
+  it('should provide transcript optional steps on success skipping step', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2stepsoptskip.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isDefined(transcript)
+    assert.equal(transcript.steps.length, 2)
+  })
+  it('should provide transcript optional steps on failing', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2stepsoptfollowme.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.isDefined(err.transcript)
+      assert.equal(err.transcript.steps.length, 2)
+      assert.equal(err.transcript.steps[0].actual.messageText, this.compiler.convos[0].conversation[0].messageText)
+      assert.notEqual(err.transcript.steps[1].actual.messageText, this.compiler.convos[0].conversation[1].messageText)
+      assert.isDefined(err.transcript.steps[1].err)
+    }
+  })
+  it('should provide transcript optional steps on success with asserters', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'assertersopt.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isDefined(transcript)
+    assert.equal(transcript.steps.length, 2)
+  })
+  it('should provide transcript optional steps on success skipping steps with asserters', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'assertersoptskip.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isDefined(transcript)
+    assert.equal(transcript.steps.length, 2)
   })
   it('should include pause in transcript steps', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2stepsWithPause.convo.txt')

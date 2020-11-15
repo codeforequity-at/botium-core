@@ -32,10 +32,11 @@ class ConvoStepAssert {
     this.name = fromJson.name
     this.args = fromJson.args
     this.not = fromJson.not
+    this.optional = fromJson.optional
   }
 
   toString () {
-    return (this.not ? '!' : '') + this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
+    return (this.optional ? '?' : '') + (this.not ? '!' : '') + this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
   }
 }
 
@@ -69,6 +70,7 @@ class ConvoStep {
     this.sourceData = fromJson.sourceData
     this.stepTag = fromJson.stepTag
     this.not = fromJson.not
+    this.optional = fromJson.optional
     this.asserters = _.map(fromJson.asserters, (asserter) => new ConvoStepAssert(asserter))
     this.logicHooks = _.map(fromJson.logicHooks, (logicHook) => new ConvoStepLogicHook(logicHook))
     this.userInputs = _.map(fromJson.userInputs, (userInput) => new ConvoStepUserInput(userInput))
@@ -85,7 +87,7 @@ class ConvoStep {
   toString () {
     return this.stepTag +
       ': #' + this.sender +
-      ' - ' + (this.not ? '!' : '') +
+      ' - ' + (this.optional ? '?' : '') + (this.not ? '!' : '') +
       (this.messageText || '') +
       (this.asserters && this.asserters.length > 0 ? ' ' + this.asserters.map(a => a.toString()).join(' ASS: ') : '') +
       (this.logicHooks && this.logicHooks.length > 0 ? ' ' + this.logicHooks.map(l => l.toString()).join(' LH: ') : '') +
@@ -125,9 +127,10 @@ class TranscriptAttachment { // eslint-disable-line no-unused-vars
 }
 
 class TranscriptStep {
-  constructor ({ expected, not, actual, stepBegin, stepEnd, botBegin, botEnd, err }) {
+  constructor ({ expected, not, optional, actual, stepBegin, stepEnd, botBegin, botEnd, err }) {
     this.expected = expected
     this.not = not
+    this.optional = optional
     this.actual = actual
     this.stepBegin = stepBegin
     this.stepEnd = stepEnd
@@ -214,7 +217,9 @@ class Convo {
       convoEnd: null,
       err: null
     })
-    const scriptingMemory = {}
+    const scriptingMemory = {
+    }
+    container.caps[Capabilities.TESTCASENAME] = this.header.name
     try {
       try {
         const effectiveConversation = this._getEffectiveConversation()
@@ -275,10 +280,17 @@ class Convo {
     const transcriptSteps = []
     try {
       let lastMeConvoStep = null
-      for (const [currentStepIndex, convoStep] of this.conversation.entries()) {
+      let saysmsg = null
+      let waitForBotSays = true
+      let skipTranscriptStep = false
+      for (let i = 0; i < this.conversation.length; i++) {
+        const convoStep = this.conversation[i]
+        const currentStepIndex = i
+        skipTranscriptStep = false
         const transcriptStep = new TranscriptStep({
           expected: new BotiumMockMessage(convoStep),
           not: convoStep.not,
+          optional: convoStep.optional,
           actual: null,
           stepBegin: new Date(),
           stepEnd: null,
@@ -344,12 +356,19 @@ class Convo {
               throw failErr
             }
           } else if (convoStep.sender === 'bot') {
-            let saysmsg = null
+            if (waitForBotSays) {
+              saysmsg = null
+            } else {
+              waitForBotSays = true
+            }
+
             try {
               debug(`${this.header.name} wait for bot ${convoStep.channel || ''}`)
               await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript: [...transcriptSteps] })
               transcriptStep.botBegin = new Date()
-              saysmsg = await container.WaitBotSays(convoStep.channel)
+              if (!saysmsg) {
+                saysmsg = await container.WaitBotSays(convoStep.channel)
+              }
               transcriptStep.botEnd = new Date()
               transcriptStep.actual = new BotiumMockMessage(saysmsg)
 
@@ -376,6 +395,20 @@ class Convo {
               }
               throw failErr
             }
+            const isErrorHandledWithOptionConvoStep = (err) => {
+              const nextConvoStep = this.conversation[i + 1]
+              if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
+                waitForBotSays = false
+                skipTranscriptStep = true
+                return true
+              }
+              if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                assertErrors.push(err)
+                return false
+              } else {
+                throw err
+              }
+            }
             const assertErrors = []
             const scriptingMemoryUpdate = {}
             if (convoStep.messageText) {
@@ -387,20 +420,16 @@ class Convo {
                 try {
                   this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
                 } catch (err) {
-                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                    assertErrors.push(err)
-                  } else {
-                    throw err
+                  if (isErrorHandledWithOptionConvoStep(err)) {
+                    continue
                   }
                 }
               } else {
                 try {
                   this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
                 } catch (err) {
-                  if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                    assertErrors.push(err)
-                  } else {
-                    throw err
+                  if (isErrorHandledWithOptionConvoStep(err)) {
+                    continue
                   }
                 }
               }
@@ -408,10 +437,8 @@ class Convo {
               try {
                 this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
               } catch (err) {
-                if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                  assertErrors.push(err)
-                } else {
-                  throw err
+                if (isErrorHandledWithOptionConvoStep(err)) {
+                  continue
                 }
               }
             }
@@ -420,6 +447,12 @@ class Convo {
               await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps] })
               await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps] })
             } catch (err) {
+              const nextConvoStep = this.conversation[i + 1]
+              if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
+                waitForBotSays = false
+                skipTranscriptStep = true
+                continue
+              }
               const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message || err}`, err)
               debug(failErr)
               try {
@@ -463,7 +496,7 @@ class Convo {
           transcriptStep.err = err
           throw err
         } finally {
-          if (convoStep.sender !== 'begin' && convoStep.sender !== 'end') {
+          if (convoStep.sender !== 'begin' && convoStep.sender !== 'end' && !skipTranscriptStep) {
             transcriptStep.scriptingMemory = Object.assign({}, scriptingMemory)
             transcriptStep.stepEnd = new Date()
             transcriptSteps.push(transcriptStep)
@@ -489,7 +522,7 @@ class Convo {
       if (expected.length !== result.length) {
         throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
       }
-      for (var i = 0; i < expected.length; i++) {
+      for (let i = 0; i < expected.length; i++) {
         this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i])
       }
     } else if (_.isObject(expected)) {

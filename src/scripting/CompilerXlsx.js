@@ -81,7 +81,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
       const sheet = workbook.Sheets[sheetname]
       if (!sheet) return
 
-      let { rowindex, colindex } = this._findOrigin(sheet, scriptType)
+      let { rowindex, colindex, hasNameCol } = this._findOrigin(sheet, scriptType)
       debug(`evaluating sheet name for ${scriptType}: ${util.inspect(sheetname)}, rowindex ${rowindex}, colindex ${colindex}`)
 
       if (scriptType === Constants.SCRIPTING_TYPE_CONVO || scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
@@ -108,12 +108,32 @@ module.exports = class CompilerXlsx extends CompilerBase {
         }
 
         const _extractRow = (rowindex) => {
-          const meCell = this.colnames[colindex] + rowindex
-          const meCellValue = (sheet[meCell] && sheet[meCell].v) || null
-          const botCell = this.colnames[colindex + 1] + rowindex
-          const botCellValue = (sheet[botCell] && sheet[botCell].v) || null
+          const cell1 = this.colnames[colindex] + rowindex
+          const cell1Value = (sheet[cell1] && sheet[cell1].v) || null
+          const cell2 = this.colnames[colindex + 1] + rowindex
+          const cell2Value = (sheet[cell2] && sheet[cell2].v) || null
+          const cell3 = this.colnames[colindex + 2] + rowindex
+          const cell3Value = (sheet[cell3] && sheet[cell3].v) || null
 
-          return { meCell, meCellValue, botCell, botCellValue }
+          if (hasNameCol) {
+            return {
+              nameCell: cell1,
+              nameCellValue: cell1Value,
+              meCell: cell2,
+              meCellValue: cell2Value,
+              botCell: cell3,
+              botCellValue: cell3Value
+            }
+          } else {
+            return {
+              nameCell: null,
+              nameCellValue: null,
+              meCell: cell1,
+              meCellValue: cell1Value,
+              botCell: cell2,
+              botCellValue: cell2Value
+            }
+          }
         }
 
         let questionAnswerMode = this._GetOptionalCapability(Capabilities.SCRIPTING_XLSX_MODE)
@@ -152,11 +172,13 @@ module.exports = class CompilerXlsx extends CompilerBase {
 
         const convoResults = []
         let currentConvo = []
+        let currentConvoName = null
         let emptyRowCount = 0
         let startrowindex = -1
 
         while (true) {
-          const { meCell, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
+          const { nameCellValue, meCell, meCellValue, botCell, botCellValue } = _extractRow(rowindex)
+
           if (questionAnswerMode) {
             if (meCellValue || botCellValue) {
               currentConvo = []
@@ -171,6 +193,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
               ))
               convoResults.push(new Convo(this.context, {
                 header: {
+                  name: nameCellValue || null,
                   sheetname,
                   colindex,
                   rowindex: startrowindex
@@ -181,6 +204,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
               emptyRowCount++
             }
           } else {
+            if (currentConvo.length === 0) {
+              currentConvoName = nameCellValue || null
+            }
             if (meCellValue) {
               currentConvo.push(Object.assign(
                 { sender: 'me', stepTag: 'Cell ' + meCell },
@@ -199,6 +225,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
               if (currentConvo.length > 0) {
                 convoResults.push(new Convo(this.context, {
                   header: {
+                    name: currentConvoName,
                     sheetname,
                     colindex,
                     rowindex: startrowindex
@@ -207,6 +234,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
                 }))
               }
               currentConvo = []
+              currentConvoName = null
               startrowindex = -1
               emptyRowCount++
             }
@@ -221,7 +249,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
           const formatBase = '0'.repeat(formatLength)
           const formatRowIndex = (rowindex) => (formatBase + `${rowindex}`).slice(-1 * formatLength)
           convoResults.forEach(convo => {
-            convo.header.name = `${convo.header.sheetname}-${this.colnames[convo.header.colindex]}${formatRowIndex(convo.header.rowindex)}`
+            if (!convo.header.name) {
+              convo.header.name = `${convo.header.sheetname}-${this.colnames[convo.header.colindex]}${formatRowIndex(convo.header.rowindex)}`
+            }
             convo.header.sort = convo.header.name
             scriptResults.push(convo)
           })
@@ -327,19 +357,25 @@ module.exports = class CompilerXlsx extends CompilerBase {
             } else {
               cellContent += set.messageText + eol
             }
-            set.userInputs && set.userInputs.map((userInput) => {
+            set.userInputs && set.userInputs.forEach((userInput) => {
               cellContent += userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : '') + eol
             })
-            set.logicHooks && set.logicHooks.map((logicHook) => {
+            set.logicHooks && set.logicHooks.forEach((logicHook) => {
               cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
             })
           } else {
             if (set.messageText) {
+              if (set.optional) {
+                cellContent += '?'
+              }
               if (set.not) {
                 cellContent += '!'
               }
               cellContent += set.messageText + eol
             } else if (set.sourceData) {
+              if (set.optional) {
+                cellContent += '?'
+              }
               if (set.not) {
                 cellContent += '!'
               }
@@ -353,13 +389,16 @@ module.exports = class CompilerXlsx extends CompilerBase {
                 if (c.image) cellContent += 'MEDIA ' + c.image.mediaUri + eol
               })
             }
-            set.asserters && set.asserters.map((asserter) => {
+            set.asserters && set.asserters.forEach((asserter) => {
+              if (asserter.optional) {
+                cellContent += '?'
+              }
               if (asserter.not) {
                 cellContent += '!'
               }
               cellContent += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + eol
             })
-            set.logicHooks && set.logicHooks.map((logicHook) => {
+            set.logicHooks && set.logicHooks.forEach((logicHook) => {
               cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
             })
           }
@@ -384,6 +423,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
   _findOrigin (sheet, scriptType) {
     let rowindex = this.caps[Capabilities.SCRIPTING_XLSX_STARTROW]
     let colindex = this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL]
+    let hasNameCol = _.has(this.caps, Capabilities.SCRIPTING_XLSX_HASNAMECOL) ? !!this.caps[Capabilities.SCRIPTING_XLSX_HASNAMECOL] : null
 
     if (_.isString(this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL])) {
       colindex = this.colnames.findIndex((c) => c === this.caps[Capabilities.SCRIPTING_XLSX_STARTCOL])
@@ -436,6 +476,16 @@ module.exports = class CompilerXlsx extends CompilerBase {
         }
       }
     }
-    return { rowindex, colindex }
+
+    if (_.isNull(hasNameCol)) {
+      if (scriptType === Constants.SCRIPTING_TYPE_CONVO || scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
+        if (this.caps[Capabilities.SCRIPTING_XLSX_HASHEADERS]) {
+          if (this._get(sheet, rowindex - 1, colindex) && this._get(sheet, rowindex - 1, colindex + 1) && this._get(sheet, rowindex - 1, colindex + 2)) {
+            hasNameCol = true
+          }
+        }
+      }
+    }
+    return { rowindex, colindex, hasNameCol }
   }
 }

@@ -16,16 +16,16 @@ convos:
           - PAUSE:
             - 500
       - bot:
-          - NOT_TEXT:
+          - OPTIONAL_NOT_TEXT:
             - hello
-          - INTENT:
+          - OPTIONAL_INTENT:
             - intent_greeting
       - bot:
           - what can i do for you?
       - me:
           - nothing
       - bot:
-          - thanks
+          - ?!thanks
 utterances:
   GREETING:
     - hi

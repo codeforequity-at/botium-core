@@ -20,9 +20,9 @@ module.exports = class EntitiesAsserter {
 
     const currentEntities = _.has(botMsg, 'nlp.entities') ? _extractCount(botMsg.nlp.entities.map((entity) => entity.name)) : {}
 
-    const { substracted, hasMissingEntityEntity } = _substract(currentEntities, expectedEntities)
+    const { substracted, hasMissingEntity } = _substract(currentEntities, expectedEntities)
 
-    if (Object.keys(substracted).length === 0 || (acceptMoreEntities && !hasMissingEntityEntity)) {
+    if (Object.keys(substracted).length === 0 || (acceptMoreEntities && !hasMissingEntity)) {
       return Promise.resolve()
     }
 
@@ -66,7 +66,7 @@ const _extractCount = (toCount) => {
   const result = {}
   toCount.forEach((item) => {
     if (result[item]) {
-      result[item] += result[item]
+      result[item] += 1
     } else {
       result[item] = 1
     }

@@ -102,6 +102,21 @@ describe('scripting.asserters.entitiesAsserter', function () {
       assert.deepEqual(err.context.cause.actual, ['e1', 'e2', 'e3', 'e4'])
     }
   })
+
+  it('expected 1... entities, found 0 enitities, should fail', async function () {
+    return _assert(
+      ['product', '...'],
+      [],
+      { product: -1 }
+    )
+  })
+  it('expected 1... entities, found 3 other enitities, should fail', async function () {
+    return _assert(
+      ['product', '...'],
+      ['no1', 'no2', 'no3'],
+      { product: -1, no1: 1, no2: 1, no3: 1 }
+    )
+  })
 })
 
 const _assert = (expected, found, diff) => {

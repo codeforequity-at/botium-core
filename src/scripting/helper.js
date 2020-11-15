@@ -44,6 +44,8 @@ const removeBuffers = obj => {
   const jsonString = JSON.stringify(obj, (key, value) => {
     if (_.isBuffer(value)) {
       return '(binary data)'
+    } else if (value && value.type && value.type === 'Buffer') {
+      return '(binary data)'
     } else if (key.toLowerCase() === 'base64') {
       return '(base64 data)'
     }
@@ -69,7 +71,7 @@ const flatString = (str) => {
 }
 
 const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
-  const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false, sender }
+  const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false, optional: false, sender }
 
   let textLinesRaw = []
   const textLines = []
@@ -78,8 +80,15 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
   let textLinesAccepted = true
   for (const rawLine of lines) {
     if (_.isString(rawLine)) {
+      let optional = false
       let not = false
       let logicLine = rawLine
+      if (logicLine.startsWith('?')) {
+        if (!logicLine.startsWith('??')) {
+          optional = true
+        }
+        logicLine = logicLine.substr(1)
+      }
       if (logicLine.startsWith('!')) {
         if (!logicLine.startsWith('!!')) {
           not = true
@@ -89,7 +98,7 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
       const name = logicLine.split(' ')[0]
       if (sender !== 'me' && context.IsAsserterValid(name)) {
         const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-        convoStep.asserters.push({ name, args, not })
+        convoStep.asserters.push({ name, args, not, optional })
       } else if (sender === 'me' && context.IsUserInputValid(name)) {
         const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
         convoStep.userInputs.push({ name, args })
@@ -127,7 +136,8 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
         convoStep.asserters.push({
           name: rawLine.asserter,
           args: (rawLine.args && _.isString(rawLine.args) ? [rawLine.args] : rawLine.args) || [],
-          not: !!rawLine.not
+          not: !!rawLine.not,
+          optional: !!rawLine.optional
         })
       } else if (rawLine.logichook || rawLine.logicHook) {
         const logicHookName = rawLine.logichook || rawLine.logicHook
@@ -147,7 +157,15 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
       } else {
         let name = Object.keys(rawLine)[0]
         const content = rawLine[name]
+        let optional = false
         let not = false
+        if (name.startsWith('?')) {
+          optional = true
+          name = name.substr(1)
+        } else if (name.startsWith('OPTIONAL_')) {
+          optional = true
+          name = name.substr(9)
+        }
         if (name.startsWith('!')) {
           not = true
           name = name.substr(1)
@@ -159,7 +177,8 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
           convoStep.asserters.push({
             name,
             args: (content && _.isString(content) ? [content] : content) || [],
-            not
+            not,
+            optional
           })
         } else if (sender === 'me' && context.IsUserInputValid(name)) {
           convoStep.userInputs.push({
@@ -187,6 +206,12 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
   }
 
   if (textLines.length > 0) {
+    if (textLines[0].startsWith('?')) {
+      if (!textLines[0].startsWith('??')) {
+        convoStep.optional = true
+      }
+      textLines[0] = textLines[0].substr(1)
+    }
     if (textLines[0].startsWith('!')) {
       if (!textLines[0].startsWith('!!')) {
         convoStep.not = true
@@ -211,6 +236,19 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
     // no message is different from empty message
     convoStep.messageText = null
   }
+
+  // Check if all element in convo step is optional or not optional
+  const optionalSet = new Set()
+  if (convoStep.messageText) {
+    optionalSet.add(convoStep.optional)
+  }
+  for (const asserter of convoStep.asserters) {
+    optionalSet.add(asserter.optional)
+  }
+  if (optionalSet.size > 1) {
+    throw new Error(`Failed to parse conversation. All element in convo step has to be optional or not optional: ${JSON.stringify(lines)}`)
+  }
+
   return convoStep
 }
 
@@ -253,8 +291,10 @@ const convoStepToObject = (step) => {
     }
   } else {
     if (step.messageText) {
-      if (step.not) result.push('!' + step.messageText)
-      else result.push(step.messageText)
+      let messageTextPrefix = ''
+      if (step.optional) messageTextPrefix += '?'
+      if (step.not) messageTextPrefix += '!'
+      result.push(messageTextPrefix + step.messageText)
     }
     if (step.buttons && step.buttons.length > 0) {
       result.push({
@@ -300,6 +340,7 @@ const convoStepToObject = (step) => {
       result.push({
         asserter: asserter.name,
         args: asserter.args || [],
+        optional: !!asserter.optional,
         not: !!asserter.not
       })
     }

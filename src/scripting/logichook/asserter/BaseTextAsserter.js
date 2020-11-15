@@ -1,7 +1,7 @@
 const { BotiumError } = require('../../BotiumError')
 
 module.exports = class BaseTextAsserter {
-  constructor (context, caps = {}, matchFn, mode, noArgIsJoker = false) {
+  constructor (context, caps = {}, matchFn = null, mode = null, noArgIsJoker = false) {
     this.context = context
     this.caps = caps
     this.matchFn = matchFn

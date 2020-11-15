@@ -170,7 +170,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       script += this.eol
 
       if (set.sender === 'me') {
-        set.forms && set.forms.filter(form => form.value).map((form) => {
+        set.forms && set.forms.filter(form => form.value).forEach((form) => {
           script += `FORM ${form.name}|${form.value}${this.eol}`
         })
         if (set.buttons && set.buttons.length > 0) {
@@ -180,14 +180,17 @@ module.exports = class CompilerTxt extends CompilerBase {
         } else if (set.messageText) {
           script += set.messageText + this.eol
         }
-        set.userInputs && set.userInputs.map((userInput) => {
+        set.userInputs && set.userInputs.forEach((userInput) => {
           script += userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : '') + this.eol
         })
-        set.logicHooks && set.logicHooks.map((logicHook) => {
+        set.logicHooks && set.logicHooks.forEach((logicHook) => {
           script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
         })
       } else {
         if (set.messageText) {
+          if (set.optional) {
+            script += '?'
+          }
           if (set.not) {
             script += '!'
           }
@@ -207,13 +210,16 @@ module.exports = class CompilerTxt extends CompilerBase {
             if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
           })
         }
-        set.asserters && set.asserters.map((asserter) => {
+        set.asserters && set.asserters.forEach((asserter) => {
+          if (asserter.optional) {
+            script += '?'
+          }
           if (asserter.not) {
             script += '!'
           }
           script += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + this.eol
         })
-        set.logicHooks && set.logicHooks.map((logicHook) => {
+        set.logicHooks && set.logicHooks.forEach((logicHook) => {
           script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
         })
       }

@@ -400,6 +400,15 @@ module.exports = class ScriptingProvider {
     throw new Error(`No compiler found for scriptFormat ${scriptFormat}`)
   }
 
+  ReadBotiumFilesFromDirectory (convoDir, globFilter) {
+    const filelist = globby.sync(globPattern, { cwd: convoDir, gitignore: true })
+    if (globFilter) {
+      const filelistGlobbed = globby.sync(globFilter, { cwd: convoDir, gitignore: true })
+      _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
+    }
+    return filelist
+  }
+
   ReadScriptsFromDirectory (convoDir, globFilter) {
     let filelist = []
 
@@ -408,11 +417,7 @@ module.exports = class ScriptingProvider {
       filelist = [path.basename(convoDir)]
       convoDir = path.dirname(convoDir)
     } else {
-      filelist = globby.sync(globPattern, { cwd: convoDir, gitignore: true })
-      if (globFilter) {
-        const filelistGlobbed = globby.sync(globFilter, { cwd: convoDir, gitignore: true })
-        _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
-      }
+      filelist = this.ReadBotiumFilesFromDirectory(convoDir, globFilter)
     }
     debug(`ReadConvosFromDirectory(${convoDir}) found filenames: ${filelist}`)
 
@@ -657,29 +662,29 @@ module.exports = class ScriptingProvider {
           },
           useNameAsIntent
             ? {
-              sender: 'bot',
-              asserters: [
-                {
-                  name: 'INTENT',
-                  args: [utt.name]
-                }
-              ],
-              stepTag: 'Step 2 - check intent',
-              not: false
-            }
-            : incomprehensionUtt
-              ? {
                 sender: 'bot',
-                messageText: incomprehensionUtt,
-                stepTag: 'Step 2 - check incomprehension',
-                not: true
-              }
-              : {
-                sender: 'bot',
-                messageText: '',
-                stepTag: 'Step 2 - check bot response',
+                asserters: [
+                  {
+                    name: 'INTENT',
+                    args: [utt.name]
+                  }
+                ],
+                stepTag: 'Step 2 - check intent',
                 not: false
               }
+            : incomprehensionUtt
+              ? {
+                  sender: 'bot',
+                  messageText: incomprehensionUtt,
+                  stepTag: 'Step 2 - check incomprehension',
+                  not: true
+                }
+              : {
+                  sender: 'bot',
+                  messageText: '',
+                  stepTag: 'Step 2 - check bot response',
+                  not: false
+                }
         ],
         sourceTag: Object.assign({}, utt.sourceTag, { origUttName: utt.name })
       }))

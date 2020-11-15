@@ -49,7 +49,7 @@ describe('scripting memory', function () {
     } catch (err) {
       assert.isFalse(err.message.indexOf('Security Error. Using unsafe scripting memory function $func is not allowed') >= 0)
     }
-    await container && container.Clean()
+    await container.Clean()
   })
 })
 
@@ -237,36 +237,7 @@ describe('connectors', function () {
 })
 
 describe('media input', function () {
-  it('should throw error if basedir is set', async function () {
-    const args = {
-      baseDir: path.join(__dirname, 'convos', 'files')
-    }
-
-    const driver = new BotDriver(_getSimpleRestCaps({
-      [Capabilities.USER_INPUTS]: [
-        {
-          ref: 'MEDIA',
-          src: 'MediaInput',
-          args
-        }
-      ]
-    }))
-
-    try {
-      driver.BuildCompiler()
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err instanceof BotiumError)
-      assert.exists(err.context)
-      assert.equal(err.context.message, 'Security Error. Using base dir global argument in MediaInput is not allowed')
-      assert.equal(err.context.source, 'MediaInput.js')
-      assert.equal(err.context.type, 'security')
-      assert.equal(err.context.subtype, 'allow unsafe')
-      assert.deepEqual(err.context.cause, { globalArgs: args })
-    }
-  })
-
-  it('should fail for downloadMedia global arg', async function () {
+  it('should fail for downloadMedia global arg without baseDir', async function () {
     const args = {
       downloadMedia: true
     }
@@ -289,7 +260,7 @@ describe('media input', function () {
       await compiler.convos[0].Run(container)
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Security Error. Access to local filesystem is not allowed in Media Input') >= 0)
+      assert.isTrue(err.message.indexOf('Security Error. Using base dir global argument in MediaInput is required') >= 0)
     }
     await container && container.Clean()
   })
@@ -317,7 +288,7 @@ describe('media input', function () {
       await compiler.convos[0].Run(container)
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Security Error. Access to local filesystem is not allowed in Media Input') >= 0)
+      assert.isTrue(err.message.indexOf('Security Error. Using base dir global argument in MediaInput is required') >= 0)
     }
     await container && container.Clean()
   })
@@ -333,7 +304,7 @@ describe('media input', function () {
       compiler.ExpandConvos()
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Security Error. Using wildcard as argument in MediaInput is not allowed') >= 0)
+      assert.isTrue(err.message.indexOf('Security Error. Using base dir global argument in MediaInput is required') >= 0)
     }
     await container && container.Clean()
   })

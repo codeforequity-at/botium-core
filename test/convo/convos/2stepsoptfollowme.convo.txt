@@ -1,0 +1,10 @@
+2 steps neg
+
+#me
+Hello
+
+#bot
+?Hugo
+
+#me
+Hello

@@ -296,8 +296,12 @@ module.exports = class SimpleRestContainer {
 
         if (!hasMessageText) {
           const botMsg = { messageText: '', sourceData: body, media, buttons }
+          const beforeHookKeys = Object.keys(botMsg)
           await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
-          result.push(botMsg)
+          const afterHookKeys = Object.keys(botMsg)
+          if (beforeHookKeys.length !== afterHookKeys.length || !!(botMsg.messageText && botMsg.messageText.length > 0) || media.length > 0 || buttons.length > 0 || !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
+            result.push(botMsg)
+          }
         }
       }
     }
