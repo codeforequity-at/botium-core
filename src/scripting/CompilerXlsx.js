@@ -357,10 +357,10 @@ module.exports = class CompilerXlsx extends CompilerBase {
             } else {
               cellContent += set.messageText + eol
             }
-            set.userInputs && set.userInputs.map((userInput) => {
+            set.userInputs && set.userInputs.forEach((userInput) => {
               cellContent += userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : '') + eol
             })
-            set.logicHooks && set.logicHooks.map((logicHook) => {
+            set.logicHooks && set.logicHooks.forEach((logicHook) => {
               cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
             })
           } else {
@@ -389,7 +389,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
                 if (c.image) cellContent += 'MEDIA ' + c.image.mediaUri + eol
               })
             }
-            set.asserters && set.asserters.map((asserter) => {
+            set.asserters && set.asserters.forEach((asserter) => {
               if (asserter.optional) {
                 cellContent += '?'
               }
@@ -398,7 +398,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
               }
               cellContent += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + eol
             })
-            set.logicHooks && set.logicHooks.map((logicHook) => {
+            set.logicHooks && set.logicHooks.forEach((logicHook) => {
               cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
             })
           }

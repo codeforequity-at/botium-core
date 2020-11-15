@@ -522,7 +522,7 @@ class Convo {
       if (expected.length !== result.length) {
         throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
       }
-      for (var i = 0; i < expected.length; i++) {
+      for (let i = 0; i < expected.length; i++) {
         this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i])
       }
     } else if (_.isObject(expected)) {

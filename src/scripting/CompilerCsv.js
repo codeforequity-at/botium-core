@@ -181,6 +181,7 @@ module.exports = class CompilerCsv extends CompilerBase {
                 true
               ), { stepTag: `L${i + lineNumberBase}` })
           }
+          return null
         }).filter(c => c)
         return new Convo(this.context, {
           header: {

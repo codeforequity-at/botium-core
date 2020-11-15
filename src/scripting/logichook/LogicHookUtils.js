@@ -65,7 +65,7 @@ module.exports = class LogicHookUtils {
 
   _fetchAsserters () {
     this.caps[Capabilities.ASSERTERS]
-      .map(asserter => {
+      .forEach(asserter => {
         if (this.asserters[asserter.ref]) {
           debug(`${asserter.ref} asserter already exists, overwriting.`)
         }
@@ -79,7 +79,7 @@ module.exports = class LogicHookUtils {
 
   _fetchLogicHooks () {
     this.caps[Capabilities.LOGIC_HOOKS]
-      .map(logicHook => {
+      .forEach(logicHook => {
         if (this.logicHooks[logicHook.ref]) {
           debug(`${logicHook.ref} logic hook already exists, overwriting.`)
         }
@@ -94,7 +94,7 @@ module.exports = class LogicHookUtils {
 
   _fetchUserInputs () {
     this.caps[Capabilities.USER_INPUTS]
-      .map(userInput => {
+      .forEach(userInput => {
         if (this.userInputs[userInput.ref]) {
           debug(`${userInput.ref} userinput already exists, overwriting.`)
         }

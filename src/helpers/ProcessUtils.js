@@ -15,10 +15,10 @@ module.exports = {
     return new Promise((resolve, reject) => {
       debug('Running Command: ' + cmd + ' ' + _.join(cmdOptions, ' '))
 
-      var runningProcess = childProcess.spawn(cmd, cmdOptions, processOptions)
+      const runningProcess = childProcess.spawn(cmd, cmdOptions, processOptions)
 
-      var stdout = []
-      var stderr = []
+      const stdout = []
+      const stderr = []
 
       runningProcess.stdout.on('data', (data) => {
         if (data) {

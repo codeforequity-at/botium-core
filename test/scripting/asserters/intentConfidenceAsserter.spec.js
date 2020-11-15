@@ -66,11 +66,11 @@ const _params = (expected, found, steptag) => {
     botMsg: {
       nlp: found
         ? {
-          intent: {
-            name: 'not_important',
-            confidence: found
+            intent: {
+              name: 'not_important',
+              confidence: found
+            }
           }
-        }
         : null
     }
   }

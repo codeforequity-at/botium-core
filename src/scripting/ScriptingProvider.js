@@ -662,29 +662,29 @@ module.exports = class ScriptingProvider {
           },
           useNameAsIntent
             ? {
-              sender: 'bot',
-              asserters: [
-                {
-                  name: 'INTENT',
-                  args: [utt.name]
-                }
-              ],
-              stepTag: 'Step 2 - check intent',
-              not: false
-            }
-            : incomprehensionUtt
-              ? {
                 sender: 'bot',
-                messageText: incomprehensionUtt,
-                stepTag: 'Step 2 - check incomprehension',
-                not: true
-              }
-              : {
-                sender: 'bot',
-                messageText: '',
-                stepTag: 'Step 2 - check bot response',
+                asserters: [
+                  {
+                    name: 'INTENT',
+                    args: [utt.name]
+                  }
+                ],
+                stepTag: 'Step 2 - check intent',
                 not: false
               }
+            : incomprehensionUtt
+              ? {
+                  sender: 'bot',
+                  messageText: incomprehensionUtt,
+                  stepTag: 'Step 2 - check incomprehension',
+                  not: true
+                }
+              : {
+                  sender: 'bot',
+                  messageText: '',
+                  stepTag: 'Step 2 - check bot response',
+                  not: false
+                }
         ],
         sourceTag: Object.assign({}, utt.sourceTag, { origUttName: utt.name })
       }))
