@@ -26,6 +26,23 @@ module.exports = class SimpleRestContainer {
     this.caps = Object.assign({}, Defaults, caps)
     this.processInbound = false
     this.redisTopic = this.caps[Capabilities.SIMPLEREST_REDIS_TOPIC] || 'SIMPLEREST_INBOUND_SUBSCRIPTION'
+
+    if (this.caps[Capabilities.SIMPLEREST_INBOUND_ORDER_UNSETTLED_EVENTS_JSONPATH]) {
+      const debounceTimeout = this.caps[Capabilities.SIMPLEREST_INBOUND_DEBOUNCE_TIMEOUT] || 500
+      this.inboundEvents = []
+      this._processOrderedInboundEventsArrayAsync = _.debounce(() => {
+        const events = [...this.inboundEvents]
+        this.inboundEvents = []
+        const jsonPath = this._getMustachedVal(this.caps[Capabilities.SIMPLEREST_INBOUND_ORDER_UNSETTLED_EVENTS_JSONPATH], false)
+        const sortedEvents = _.sortBy(events, (event) => {
+          const qr = jp.query(event, jsonPath)
+          return qr[0]
+        })
+        for (const event of sortedEvents) {
+          setTimeout(() => this._processBodyAsync(event.body, true, !!this.caps[Capabilities.SIMPLEREST_INBOUND_UPDATE_CONTEXT]), 0)
+        }
+      }, debounceTimeout)
+    }
   }
 
   Validate () {
@@ -506,7 +523,12 @@ module.exports = class SimpleRestContainer {
     }
 
     debug(`Received an inbound message: ${JSON.stringify(event)}`)
-    setTimeout(() => this._processBodyAsync(event.body, true, !!this.caps[Capabilities.SIMPLEREST_INBOUND_UPDATE_CONTEXT]), 0)
+    if (this.caps[Capabilities.SIMPLEREST_INBOUND_ORDER_UNSETTLED_EVENTS_JSONPATH]) {
+      this.inboundEvents.push(event)
+      this._processOrderedInboundEventsArrayAsync()
+    } else {
+      setTimeout(() => this._processBodyAsync(event.body, true, !!this.caps[Capabilities.SIMPLEREST_INBOUND_UPDATE_CONTEXT]), 0)
+    }
   }
 
   async _buildInbound () {
