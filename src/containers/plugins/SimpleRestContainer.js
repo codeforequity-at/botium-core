@@ -28,6 +28,7 @@ module.exports = class SimpleRestContainer {
     this.redisTopic = this.caps[Capabilities.SIMPLEREST_REDIS_TOPIC] || 'SIMPLEREST_INBOUND_SUBSCRIPTION'
 
     if (this.caps[Capabilities.SIMPLEREST_INBOUND_ORDER_UNSETTLED_EVENTS_JSONPATH]) {
+      const debounceTimeout = this.caps[Capabilities.SIMPLEREST_INBOUND_DEBOUNCE_TIMEOUT] || 500
       this.inboundEvents = []
       this._processOrderedInboundEventsArrayAsync = _.debounce(() => {
         const events = [...this.inboundEvents]
@@ -40,7 +41,7 @@ module.exports = class SimpleRestContainer {
         for (const event of sortedEvents) {
           setTimeout(() => this._processBodyAsync(event.body, true, !!this.caps[Capabilities.SIMPLEREST_INBOUND_UPDATE_CONTEXT]), 0)
         }
-      }, 500)
+      }, debounceTimeout)
     }
   }
 

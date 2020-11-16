@@ -805,6 +805,7 @@ describe('connectors.simplerest.inbound', function () {
     myCaps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH] = '$.body.conversationId'
     myCaps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE] = '{{botium.conversationId}}'
     myCaps[Capabilities.SIMPLEREST_INBOUND_ORDER_UNSETTLED_EVENTS_JSONPATH] = '$.body.timestamp'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_DEBOUNCE_TIMEOUT] = 300
 
     const driver = new BotDriver(myCaps)
     const container = await driver.Build()
