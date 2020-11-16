@@ -799,6 +799,64 @@ describe('connectors.simplerest.inbound', function () {
 
     return result
   })
+  it('should reorder multiple inbound message with order jsonpath', async function () {
+    const myCaps = Object.assign({}, myCapsGet)
+    myCaps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH] = '$.text'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH] = '$.body.conversationId'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE] = '{{botium.conversationId}}'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_ORDER_UNSETTLED_EVENTS_JSONPATH] = '$.body.timestamp'
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    await container.Start()
+
+    let resultResolve, resultReject
+    const result = new Promise((resolve, reject) => {
+      resultResolve = resolve
+      resultReject = reject
+    })
+
+    let i = 0
+    container.pluginInstance.queueBotSays = (botMsg) => {
+      try {
+        if (i === 0) {
+          assert.equal(botMsg.messageText, 'Message1')
+          container.Clean().then(resultResolve)
+        } else if (i === 1) {
+          assert.equal(botMsg.messageText, 'Message2')
+          container.Clean().then(resultResolve)
+        }
+        i++
+      } catch (err) {
+        resultReject(err)
+      }
+    }
+
+    const now = Date.now()
+    const littlebitLater = now + 100
+
+    container.pluginInstance._processInboundEvent({
+      originalUrl: '/api/inbound/xxxx',
+      originalMethod: 'POST',
+      body: {
+        conversationId: container.pluginInstance.view.botium.conversationId,
+        timestamp: littlebitLater,
+        text: 'Message2'
+      }
+    })
+
+    container.pluginInstance._processInboundEvent({
+      originalUrl: '/api/inbound/xxxx',
+      originalMethod: 'POST',
+      body: {
+        conversationId: container.pluginInstance.view.botium.conversationId,
+        timestamp: now,
+        text: 'Message1'
+      }
+    })
+
+    return result
+  })
 })
 
 describe('connectors.simplerest.polling', function () {
