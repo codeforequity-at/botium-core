@@ -8,7 +8,7 @@ const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const Utterance = require('./Utterance')
 const { Convo } = require('./Convo')
-const { linesToConvoStep } = require('./helper')
+const { linesToConvoStep, validateConvo } = require('./helper')
 
 module.exports = class CompilerXlsx extends CompilerBase {
   constructor (context, caps = {}) {
@@ -342,9 +342,16 @@ module.exports = class CompilerXlsx extends CompilerBase {
       sheetname = this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES])[0]
     }
     const data = []
+    const errors = []
     if (convos) {
-      convos.forEach((convo) => {
+      for (let i = 0; i < convos.length; i++) {
+        const convo = convos[i]
         if (!convo.conversation) return
+
+        const validationResult = validateConvo(convo)
+        if (validationResult.errors.length > 0) {
+          errors.push(...validationResult.errors.map(e => new Error(`Convo ${i + 1} ${e.message}`)))
+        }
 
         convo.conversation.forEach((set) => {
           let cellContent = ''
@@ -405,8 +412,12 @@ module.exports = class CompilerXlsx extends CompilerBase {
           data.push({ [set.sender]: cellContent })
         })
         data.push({})
-      })
+      }
     }
+    if (errors.length > 0) {
+      throw new Error(errors.map(e => e.message).join(' - '))
+    }
+
     const wb = XLSX.utils.book_new()
     const ws = XLSX.utils.json_to_sheet(data, { header: ['me', 'bot'] })
     XLSX.utils.book_append_sheet(wb, ws, sheetname)

@@ -354,6 +354,38 @@ const convoStepToObject = (step) => {
   return result
 }
 
+const validateConvo = (convo) => {
+  const validationResult = {
+    errors: []
+  }
+  for (let i = 0; i < convo.conversation.length; i++) {
+    const step = convo.conversation[i]
+    if (step.sender === 'bot') {
+      // Check if all element in convo step is optional or not optional
+      const optionalSet = new Set()
+      if (step.messageText) {
+        optionalSet.add(step.optional)
+      }
+      if (step.asserters) {
+        for (const asserter of step.asserters) {
+          optionalSet.add(asserter.optional)
+        }
+      }
+      if (optionalSet.size > 1) {
+        validationResult.errors.push(new Error(`Step ${i + 1}: Failed to decompile conversation. Mixed optional flag is not allowed inside one step.`))
+      }
+
+      if (optionalSet.size === 1 && optionalSet.has(true)) {
+        const nextStep = convo.conversation[i + 1]
+        if (!nextStep || nextStep.sender !== 'bot') {
+          validationResult.errors.push(new Error(`Step ${i + 1}: Optional bot convo step has to be followed by a bot convo step.`))
+        }
+      }
+    }
+  }
+  return validationResult
+}
+
 module.exports = {
   normalizeText,
   quoteRegexpString,
@@ -361,5 +393,6 @@ module.exports = {
   flatString,
   removeBuffers,
   linesToConvoStep,
-  convoStepToObject
+  convoStepToObject,
+  validateConvo
 }
