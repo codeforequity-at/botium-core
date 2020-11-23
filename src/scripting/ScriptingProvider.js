@@ -19,6 +19,7 @@ const MatchFunctions = require('./MatchFunctions')
 const precompilers = require('./precompilers')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
+const skipPattern = /^skip[.\-_]/i
 
 const p = (retryHelper, fn) => {
   const promise = () => new Promise((resolve, reject) => {
@@ -406,6 +407,11 @@ module.exports = class ScriptingProvider {
       const filelistGlobbed = globby.sync(globFilter, { cwd: convoDir, gitignore: true })
       _.remove(filelist, (file) => filelistGlobbed.indexOf(file) < 0)
     }
+    _.remove(filelist, (file) => {
+      const isSkip = skipPattern.test(path.basename(file))
+      if (isSkip) debug(`ReadBotiumFilesFromDirectory - skipping file '${file}'`)
+      return isSkip
+    })
     return filelist
   }
 
@@ -507,6 +513,9 @@ module.exports = class ScriptingProvider {
           fileConvo.header.name = filename
         }
       })
+      const isSkip = (c) => c.header.name && skipPattern.test(c.header.name.toLowerCase())
+      fileConvos.filter(c => isSkip(c)).forEach(c => debug(`ReadScript - skipping convo '${c.header.name}'`))
+      fileConvos = fileConvos.filter(c => !isSkip(c))
     }
     if (filePartialConvos) {
       filePartialConvos.forEach((filePartialConvo) => {

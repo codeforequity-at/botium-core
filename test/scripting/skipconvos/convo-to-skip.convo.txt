@@ -1,0 +1,6 @@
+skip_convo
+
+#me
+hi
+
+#bot
