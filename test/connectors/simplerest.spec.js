@@ -726,7 +726,7 @@ describe('connectors.simplerest.processBody', function () {
 describe('connectors.simplerest.parseCapabilities', function () {
   it('should get multiple cap values from array', async function () {
     const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: [
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: () => [
         '$.1',
         '$.2'
       ]
@@ -736,7 +736,7 @@ describe('connectors.simplerest.parseCapabilities', function () {
   })
   it('should get multiple cap values from splitted string', async function () {
     const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.1,$.2'
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: () => '$.1,$.2'
     })
     assert.lengthOf(values, 2)
     assert.deepEqual(values, ['$.1', '$.2'])
@@ -864,9 +864,9 @@ describe('connectors.simplerest.polling', function () {
   it('should poll HTTP url', async () => {
     const caps = {
       [Capabilities.CONTAINERMODE]: 'simplerest',
-      [Capabilities.SIMPLEREST_URL]: 'https://mock.com/endpoint',
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
-      [Capabilities.SIMPLEREST_POLL_URL]: 'https://mock.com/poll'
+      [Capabilities.SIMPLEREST_URL]: () => 'https://mock.com/endpoint',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: () => ['$.text'],
+      [Capabilities.SIMPLEREST_POLL_URL]: () => 'https://mock.com/poll'
     }
     const scope = nock('https://mock.com')
       .get('/endpoint')
