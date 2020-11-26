@@ -101,7 +101,7 @@ module.exports = class SimpleRestContainer {
             try {
               this.view.context = _.isObject(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) ? _.cloneDeep(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT]) : JSON.parse(this.caps[Capabilities.SIMPLEREST_INIT_CONTEXT])
             } catch (err) {
-              contextInitComplete(`parsing SIMPLEREST_INIT_CONTEXT failed, no JSON detected (${util.inspect(err)})`)
+              contextInitComplete(`parsing SIMPLEREST_INIT_CONTEXT failed, no JSON detected (${err.message})`)
             }
           }
           contextInitComplete()
@@ -152,13 +152,23 @@ module.exports = class SimpleRestContainer {
           this._startPolling()
             .then(() => startPollingComplete())
             .catch(startPollingComplete)
+        },
+
+        (startCallComplete) => {
+          this.processInbound = true
+          if (this.caps[Capabilities.SIMPLEREST_START_URL]) {
+            this._makeCall('SIMPLEREST_START')
+              .then(() => startCallComplete())
+              .catch(err => startCallComplete(new Error(`Failed to call url ${this.caps[Capabilities.SIMPLEREST_START_URL]} to start session: ${err.message}`)))
+          } else {
+            startCallComplete()
+          }
         }
 
       ], (err) => {
         if (err) {
-          return reject(new Error(`Start failed ${util.inspect(err)}`))
+          return reject(new Error(`Start failed: ${err.message}`))
         }
-        this.processInbound = true
         resolve()
       })
     })
@@ -336,7 +346,7 @@ module.exports = class SimpleRestContainer {
 
         request(requestOptions, (err, response, body) => {
           if (err) {
-            reject(new Error(`rest request failed: ${util.inspect(err)}`))
+            reject(new Error(`rest request failed: ${err.message}`))
           } else {
             if (response.statusCode >= 400) {
               debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
@@ -385,11 +395,11 @@ module.exports = class SimpleRestContainer {
     }
 
     const uri = this._getMustachedCap(Capabilities.SIMPLEREST_URL, false)
-    const timeout = this.caps[Capabilities.SIMPLEREST_TIMEOUT]
+    const timeout = this._getCapValue(Capabilities.SIMPLEREST_TIMEOUT)
 
     const requestOptions = {
       uri,
-      method: this.caps[Capabilities.SIMPLEREST_VERB] || this.caps[Capabilities.SIMPLEREST_METHOD],
+      method: this._getCapValue(Capabilities.SIMPLEREST_VERB) || this._getCapValue(Capabilities.SIMPLEREST_METHOD),
       followAllRedirects: true,
       timeout
     }
@@ -399,20 +409,21 @@ module.exports = class SimpleRestContainer {
       try {
         requestOptions.headers = this._getMustachedCap(Capabilities.SIMPLEREST_HEADERS_TEMPLATE, true)
       } catch (err) {
-        throw new Error(`composing headers from SIMPLEREST_HEADERS_TEMPLATE failed (${util.inspect(err)})`)
+        throw new Error(`composing headers from SIMPLEREST_HEADERS_TEMPLATE failed (${err.message})`)
       }
     }
     if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
-      if (this.caps[Capabilities.SIMPLEREST_BODY_RAW]) {
+      const bodyRaw = this._getCapValue(Capabilities.SIMPLEREST_BODY_RAW)
+      if (bodyRaw) {
         this.view.msg.messageText = nonEncodedMessage
       } else {
         this.view.msg.messageText = nonEncodedMessage && escapeJSONString(nonEncodedMessage)
       }
       try {
-        requestOptions.body = this._getMustachedCap(Capabilities.SIMPLEREST_BODY_TEMPLATE, !this.caps[Capabilities.SIMPLEREST_BODY_RAW])
-        requestOptions.json = !this.caps[Capabilities.SIMPLEREST_BODY_RAW]
+        requestOptions.body = this._getMustachedCap(Capabilities.SIMPLEREST_BODY_TEMPLATE, !bodyRaw)
+        requestOptions.json = !bodyRaw
       } catch (err) {
-        throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${util.inspect(err)})`)
+        throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${err.message})`)
       }
     }
     this.view.msg.messageText = nonEncodedMessage
@@ -478,8 +489,13 @@ module.exports = class SimpleRestContainer {
     }
   }
 
+  _getCapValue (capName) {
+    return _.isFunction(this.caps[capName]) ? (this.caps[capName])() : this.caps[capName]
+  }
+
   _getMustachedCap (capName, json) {
-    const template = _.isString(this.caps[capName]) ? this.caps[capName] : JSON.stringify(this.caps[capName])
+    const capValue = this._getCapValue(capName)
+    const template = _.isString(capValue) ? capValue : JSON.stringify(capValue)
     return this._getMustachedVal(template, json)
   }
 
@@ -605,8 +621,8 @@ module.exports = class SimpleRestContainer {
 
     if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
       const uri = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_URL, false)
-      const verb = this.caps[Capabilities.SIMPLEREST_POLL_VERB]
-      const timeout = this.caps[Capabilities.SIMPLEREST_POLL_TIMEOUT]
+      const verb = this._getCapValue(Capabilities.SIMPLEREST_POLL_VERB)
+      const timeout = this._getCapValue(Capabilities.SIMPLEREST_POLL_TIMEOUT)
       const pollConfig = {
         method: verb,
         uri: uri,
@@ -617,16 +633,17 @@ module.exports = class SimpleRestContainer {
         try {
           pollConfig.headers = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_HEADERS, true)
         } catch (err) {
-          debug(`_runPolling: composing headers from SIMPLEREST_POLL_HEADERS failed (${util.inspect(err)})`)
+          debug(`_runPolling: composing headers from SIMPLEREST_POLL_HEADERS failed (${err.message})`)
           return
         }
       }
       if (this.caps[Capabilities.SIMPLEREST_POLL_BODY]) {
+        const bodyRaw = this._getCapValue(Capabilities.SIMPLEREST_POLL_BODY_RAW)
         try {
-          pollConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_BODY, !this.caps[Capabilities.SIMPLEREST_POLL_BODY_RAW])
-          pollConfig.json = !this.caps[Capabilities.SIMPLEREST_POLL_BODY_RAW]
+          pollConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_BODY, !bodyRaw)
+          pollConfig.json = !bodyRaw
         } catch (err) {
-          debug(`_runPolling: composing body from SIMPLEREST_POLL_BODY failed (${util.inspect(err)})`)
+          debug(`_runPolling: composing body from SIMPLEREST_POLL_BODY failed (${err.message})`)
           return
         }
       }
@@ -634,7 +651,7 @@ module.exports = class SimpleRestContainer {
 
       request(pollConfig, (err, response, body) => {
         if (err) {
-          debug(`_runPolling: rest request failed: ${util.inspect(err)}, request: ${JSON.stringify(pollConfig)}`)
+          debug(`_runPolling: rest request failed: ${err.message}, request: ${JSON.stringify(pollConfig)}`)
         } else {
           if (response.statusCode >= 400) {
             debug(`_runPolling: got error response: ${response.statusCode}/${response.statusMessage}, request: ${JSON.stringify(pollConfig)}`)
@@ -677,8 +694,8 @@ module.exports = class SimpleRestContainer {
 
   async _makeCall (capPrefix) {
     const uri = this._getMustachedCap(`${capPrefix}_URL`, false)
-    const verb = this.caps[`${capPrefix}_VERB`]
-    const timeout = this.caps[`${capPrefix}_TIMEOUT`] || this.caps[Capabilities.SIMPLEREST_TIMEOUT]
+    const verb = this._getCapValue(`${capPrefix}_VERB`)
+    const timeout = this._getCapValue(`${capPrefix}_TIMEOUT`) || this._getCapValue(Capabilities.SIMPLEREST_TIMEOUT)
     const httpConfig = {
       method: verb,
       uri: uri,
@@ -693,16 +710,18 @@ module.exports = class SimpleRestContainer {
       }
     }
     if (this.caps[`${capPrefix}_BODY`]) {
+      const bodyRaw = this._getCapValue(`${capPrefix}_BODY_RAW`)
       try {
-        httpConfig.body = this._getMustachedCap(`${capPrefix}_BODY`, !this.caps[`${capPrefix}_BODY_RAW`])
-        httpConfig.json = !this.caps[`${capPrefix}_BODY_RAW`]
+        httpConfig.body = this._getMustachedCap(`${capPrefix}_BODY`, !bodyRaw)
+        httpConfig.json = !bodyRaw
       } catch (err) {
         throw new Error(`composing body from ${capPrefix}_BODY failed (${err.message})`)
       }
     }
     this._addRequestOptions(httpConfig)
 
-    const retries = this.caps[`${capPrefix}_RETRIES`]
+    const retries = this._getCapValue(`${capPrefix}_RETRIES`)
+    debug(`_makeCall(${capPrefix}): rest request: ${JSON.stringify(httpConfig)}`)
     const response = await this._waitForUrlResponse(httpConfig, retries)
     return response
   }
