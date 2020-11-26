@@ -381,7 +381,7 @@ describe('compiler.compilerxlsx', function () {
     compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
     assert.lengthOf(context.convos, 3)
   })
-  it('should read 2 convos with name', async function () {
+  it('should read 3 convos with name', async function () {
     const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_2convos_with_names.xlsx'))
     const context = buildContext()
 
@@ -394,6 +394,83 @@ describe('compiler.compilerxlsx', function () {
     assert.equal(context.convos[0].header.name, 'Convo1')
     assert.equal(context.convos[1].header.name, 'Convo2')
     assert.equal(context.convos[2].header.name, 'Convo3')
+
+    assert.lengthOf(context.convos[0].conversation, 5)
+    assert.lengthOf(context.convos[1].conversation, 2)
+    assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
+    assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
+    assert.equal(context.convos[0].conversation[2].messageText, 'test 3')
+    assert.equal(context.convos[0].conversation[3].messageText, 'test 4')
+    assert.equal(context.convos[0].conversation[4].messageText, 'test 5')
+
+    assert.lengthOf(context.utterances, 0)
+  })
+  it('should read 3 convos with name (forced)', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_2convos_with_names_noheader.xlsx'))
+    const context = buildContext()
+
+    const caps = {
+      SCRIPTING_XLSX_HASHEADERS: false,
+      SCRIPTING_XLSX_HASNAMECOL: true
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.lengthOf(context.convos, 3)
+    assert.equal(context.convos[0].header.name, 'Convo1')
+    assert.equal(context.convos[1].header.name, 'Convo2')
+    assert.equal(context.convos[2].header.name, 'Convo3')
+
+    assert.lengthOf(context.convos[0].conversation, 5)
+    assert.lengthOf(context.convos[1].conversation, 2)
+    assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
+    assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
+    assert.equal(context.convos[0].conversation[2].messageText, 'test 3')
+    assert.equal(context.convos[0].conversation[3].messageText, 'test 4')
+    assert.equal(context.convos[0].conversation[4].messageText, 'test 5')
+
+    assert.lengthOf(context.utterances, 0)
+  })
+  it('should read 3 convos without name (forced)', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_2convos_without_names.xlsx'))
+    const context = buildContext()
+
+    const caps = {
+      SCRIPTING_XLSX_HASNAMECOL: false
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.lengthOf(context.convos, 3)
+    assert.equal(context.convos[0].header.name, 'Convos1-A002')
+    assert.equal(context.convos[1].header.name, 'Convos2-A002')
+    assert.equal(context.convos[2].header.name, 'Convos2-A005')
+
+    assert.lengthOf(context.convos[0].conversation, 5)
+    assert.lengthOf(context.convos[1].conversation, 2)
+    assert.equal(context.convos[0].conversation[0].messageText, 'test 1')
+    assert.equal(context.convos[0].conversation[1].messageText, 'test 2')
+    assert.equal(context.convos[0].conversation[2].messageText, 'test 3')
+    assert.equal(context.convos[0].conversation[3].messageText, 'test 4')
+    assert.equal(context.convos[0].conversation[4].messageText, 'test 5')
+
+    assert.lengthOf(context.utterances, 0)
+  })
+  it('should read 3 convos without name (forced)', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_2convos_without_names_noheader.xlsx'))
+    const context = buildContext()
+
+    const caps = {
+      SCRIPTING_XLSX_HASHEADERS: false,
+      SCRIPTING_XLSX_HASNAMECOL: false
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.lengthOf(context.convos, 3)
+    assert.equal(context.convos[0].header.name, 'Convos1-A001')
+    assert.equal(context.convos[1].header.name, 'Convos2-A001')
+    assert.equal(context.convos[2].header.name, 'Convos2-A004')
 
     assert.lengthOf(context.convos[0].conversation, 5)
     assert.lengthOf(context.convos[1].conversation, 2)

@@ -6,7 +6,7 @@ module.exports.getAllCapValues = (capNamePrefix, caps) => {
   const allCapValues = []
   const jsonPathCaps = _.pickBy(caps, (v, k) => k.startsWith(capNamePrefix))
   _(jsonPathCaps).keys().sort().each((key) => {
-    const val = caps[key]
+    const val = _.isFunction(caps[key]) ? (caps[key])() : caps[key]
 
     if (_.isArray(val)) {
       val.forEach(p => {

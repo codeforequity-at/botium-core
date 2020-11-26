@@ -726,7 +726,7 @@ describe('connectors.simplerest.processBody', function () {
 describe('connectors.simplerest.parseCapabilities', function () {
   it('should get multiple cap values from array', async function () {
     const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: [
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: () => [
         '$.1',
         '$.2'
       ]
@@ -736,7 +736,7 @@ describe('connectors.simplerest.parseCapabilities', function () {
   })
   it('should get multiple cap values from splitted string', async function () {
     const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.1,$.2'
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: () => '$.1,$.2'
     })
     assert.lengthOf(values, 2)
     assert.deepEqual(values, ['$.1', '$.2'])
@@ -799,15 +799,74 @@ describe('connectors.simplerest.inbound', function () {
 
     return result
   })
+  it('should reorder multiple inbound message with order jsonpath', async function () {
+    const myCaps = Object.assign({}, myCapsGet)
+    myCaps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH] = '$.text'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_JSONPATH] = '$.body.conversationId'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_SELECTOR_VALUE] = '{{botium.conversationId}}'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_ORDER_UNSETTLED_EVENTS_JSONPATH] = '$.body.timestamp'
+    myCaps[Capabilities.SIMPLEREST_INBOUND_DEBOUNCE_TIMEOUT] = 300
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    await container.Start()
+
+    let resultResolve, resultReject
+    const result = new Promise((resolve, reject) => {
+      resultResolve = resolve
+      resultReject = reject
+    })
+
+    let i = 0
+    container.pluginInstance.queueBotSays = (botMsg) => {
+      try {
+        if (i === 0) {
+          assert.equal(botMsg.messageText, 'Message1')
+          container.Clean().then(resultResolve)
+        } else if (i === 1) {
+          assert.equal(botMsg.messageText, 'Message2')
+          container.Clean().then(resultResolve)
+        }
+        i++
+      } catch (err) {
+        resultReject(err)
+      }
+    }
+
+    const now = Date.now()
+    const littlebitLater = now + 100
+
+    container.pluginInstance._processInboundEvent({
+      originalUrl: '/api/inbound/xxxx',
+      originalMethod: 'POST',
+      body: {
+        conversationId: container.pluginInstance.view.botium.conversationId,
+        timestamp: littlebitLater,
+        text: 'Message2'
+      }
+    })
+
+    container.pluginInstance._processInboundEvent({
+      originalUrl: '/api/inbound/xxxx',
+      originalMethod: 'POST',
+      body: {
+        conversationId: container.pluginInstance.view.botium.conversationId,
+        timestamp: now,
+        text: 'Message1'
+      }
+    })
+
+    return result
+  })
 })
 
 describe('connectors.simplerest.polling', function () {
   it('should poll HTTP url', async () => {
     const caps = {
       [Capabilities.CONTAINERMODE]: 'simplerest',
-      [Capabilities.SIMPLEREST_URL]: 'https://mock.com/endpoint',
-      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
-      [Capabilities.SIMPLEREST_POLL_URL]: 'https://mock.com/poll'
+      [Capabilities.SIMPLEREST_URL]: () => 'https://mock.com/endpoint',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: () => ['$.text'],
+      [Capabilities.SIMPLEREST_POLL_URL]: () => 'https://mock.com/poll'
     }
     const scope = nock('https://mock.com')
       .get('/endpoint')

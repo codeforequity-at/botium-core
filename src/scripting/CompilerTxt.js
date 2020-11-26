@@ -5,7 +5,7 @@ const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
 const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
-const { linesToConvoStep, flatString } = require('./helper')
+const { linesToConvoStep, flatString, validateConvo } = require('./helper')
 
 module.exports = class CompilerTxt extends CompilerBase {
   constructor (context, caps = {}) {
@@ -150,6 +150,11 @@ module.exports = class CompilerTxt extends CompilerBase {
     }
 
     const convo = convos[0]
+
+    const validationResult = validateConvo(convo)
+    if (validationResult.errors.length > 0) {
+      throw new Error(validationResult.errors.map(e => e.message).join(' - '))
+    }
 
     let script = ''
 

@@ -38,6 +38,14 @@ describe('scriptingProvider.ReadScriptsFromDirectory', function () {
     assert.isArray(convos)
     assert.equal(convos.length, 1)
   })
+  it('should skip convos', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const { convos } = await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'skipconvos'))
+
+    assert.isArray(convos)
+    assert.equal(convos.length, 1)
+  })
 })
 
 describe('scriptingProvider._resolveUtterances', function () {
