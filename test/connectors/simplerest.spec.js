@@ -24,6 +24,10 @@ const myCapsPost = {
 
 const myCapsScriptingMemory = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
+  [Capabilities.PROJECTNAME]: 'MYPROJECTNAME',
+  [Capabilities.TESTSESSIONNAME]: 'MYTESTSESSIONNAME',
+  [Capabilities.TESTCASENAME]: 'MYTESTCASENAME',
+  CUSTOMCAPABILITY: 'MYCUSTOMCAPABILITY',
   [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: {
@@ -32,7 +36,11 @@ const myCapsScriptingMemory = {
     FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY: '{{#fnc.random}}{{msg.scriptingMemory.functionArgument}}{{/fnc.random}}',
     USING_CODE: '{{#fnc.func}}1 + 2{{/fnc.func}}',
     SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}',
-    VARIABLE: '{{msg.scriptingMemory.variable}}'
+    VARIABLE: '{{msg.scriptingMemory.variable}}',
+    PROJECTNAME: '{{fnc.projectname}}',
+    TESTSESSIONNAME: '{{fnc.testsessionname}}',
+    TESTCASENAME: '{{fnc.testcasename}}',
+    CUSTOMCAPABILITY: '{{#fnc.cap}}CUSTOMCAPABILITY{{/fnc.cap}}'
   },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
@@ -90,7 +98,7 @@ const msg = {
   messageText: 'messageText',
   token: 'myToken',
   scriptingMemory: {
-    variable: 'value',
+    variable: 'varvalue',
     functionArgument: '7'
 
   }
@@ -375,7 +383,12 @@ describe('connectors.simplerest.build', function () {
     assert.equal(request.body.USING_CODE, 3)
 
     assert.exists(request.body.VARIABLE)
-    assert.equal(request.body.VARIABLE, 'value')
+    assert.equal(request.body.VARIABLE, 'varvalue')
+
+    assert.equal(request.body.PROJECTNAME, 'MYPROJECTNAME')
+    assert.equal(request.body.TESTSESSIONNAME, 'MYTESTSESSIONNAME')
+    assert.equal(request.body.TESTCASENAME, 'MYTESTCASENAME')
+    assert.equal(request.body.CUSTOMCAPABILITY, 'MYCUSTOMCAPABILITY')
 
     await container.Clean()
   })
