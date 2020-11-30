@@ -127,6 +127,7 @@ const SCRIPTING_FUNCTIONS_RAW = {
       }
       return process.env[name]
     },
+    numberOfArguments: 1,
     unsafe: true
   },
 
@@ -136,7 +137,8 @@ const SCRIPTING_FUNCTIONS_RAW = {
         throw Error('cap function used without args!')
       }
       return caps[name]
-    }
+    },
+    numberOfArguments: 1
   },
 
   $func: {
@@ -157,12 +159,14 @@ const SCRIPTING_FUNCTIONS_RAW = {
       } catch (err) {
         throw Error(`func function execution failed - ${err}`)
       }
-    }
+    },
+    numberOfArguments: 1
   }
 }
 
 const SCRIPTING_FUNCTIONS = _.mapValues(SCRIPTING_FUNCTIONS_RAW, (funcOrStruct, name) => {
   const func = funcOrStruct.handler || funcOrStruct
+  const numberOfArguments = funcOrStruct.handler ? funcOrStruct.numberOfArguments || 0 : funcOrStruct.length
 
   return {
     handler: (caps, ...rest) => {
@@ -186,7 +190,7 @@ const SCRIPTING_FUNCTIONS = _.mapValues(SCRIPTING_FUNCTIONS_RAW, (funcOrStruct, 
         return func(...rest)
       }
     },
-    numberOfArguments: func.length
+    numberOfArguments
   }
 })
 const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)
