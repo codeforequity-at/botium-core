@@ -207,7 +207,7 @@ describe('convo.transcript', function () {
       assert.equal(transcript.steps.length, 2)
       assert.isNotNull(transcript.steps[0].actual.sourceData)
     }, error => {
-      assert.fail('unexpected error', error)
+      assert.fail('unexpected error: ' + error)
     })
   })
   it('should handle fail with mismatching key in JSON response', async function () {

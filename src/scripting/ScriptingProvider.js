@@ -119,11 +119,18 @@ module.exports = class ScriptingProvider {
         return this._createUserInputPromises({ convo, convoStep, scriptingMemory, ...rest })
       },
       resolveUtterance: ({ utterance }) => {
-        if (this.utterances[utterance]) {
-          return this.utterances[utterance].utterances
-        } else {
-          return [utterance]
+        if (_.isString(utterance)) {
+          if (this.utterances[utterance]) {
+            return this.utterances[utterance].utterances
+          } else {
+            const parts = utterance.split(' ')
+            if (this.utterances[parts[0]]) {
+              const uttArgs = parts.slice(1)
+              return this.utterances[parts[0]].utterances.map(utt => util.format(utt, ...uttArgs))
+            }
+          }
         }
+        return [utterance]
       },
       assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
         if (!_.isArray(tomatch)) {

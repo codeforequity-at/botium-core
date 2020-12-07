@@ -110,6 +110,38 @@ describe('scriptingProvider._resolveUtterances', function () {
       assert.equal(err.context.cause.actual, 'TEXT1')
     }
   })
+  it('should resolve and format utterance args', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1 %s', 'TEXT2 %s']
+    })
+
+    const tomatch = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt1 hello' })
+    assert.isArray(tomatch)
+    assert.equal(tomatch.length, 2)
+    assert.equal(tomatch[0], 'TEXT1 hello')
+    assert.equal(tomatch[1], 'TEXT2 hello')
+    scriptingContext.scriptingEvents.assertBotResponse('TEXT1 hello', tomatch, 'test1')
+  })
+  it('should resolve and append utterance args', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+
+    const tomatch = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt1 hello' })
+    assert.isArray(tomatch)
+    assert.equal(tomatch.length, 2)
+    assert.equal(tomatch[0], 'TEXT1 hello')
+    assert.equal(tomatch[1], 'TEXT2 hello')
+    scriptingContext.scriptingEvents.assertBotResponse('TEXT1 hello', tomatch, 'test1')
+  })
 
   describe('should resolve utterance with ambiguous scripting memory variable (with a debug message)', function () {
     it('expected none, found $name', async function () {
