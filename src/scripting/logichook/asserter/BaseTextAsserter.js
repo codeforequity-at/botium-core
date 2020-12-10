@@ -86,7 +86,7 @@ module.exports = class BaseTextAsserter {
               cause: {
                 not: false,
                 expected: allUtterances,
-                actual: botMsg
+                actual: botMsg.messageText
               }
             }
           ))
@@ -102,7 +102,7 @@ module.exports = class BaseTextAsserter {
             cause: {
               not: false,
               expected: allUtterances,
-              actual: botMsg
+              actual: botMsg.messageText
             }
           }
         ))
