@@ -110,6 +110,12 @@ module.exports = class MediaInput {
     return arg.indexOf('*') >= 0
   }
 
+  _mimeLookup (file) {
+    const m = mime.lookup(file)
+    if (m === 'video/webm') return 'audio/webm'
+    return m
+  }
+
   expandConvo ({ convo, convoStep, args }) {
     const hasWildcard = args.findIndex(a => this._isWildcard(a)) >= 0
 
@@ -155,14 +161,14 @@ module.exports = class MediaInput {
         meMsg.media.push(new BotiumMockMedia({
           mediaUri: args[0],
           downloadUri: uri.toString(),
-          mimeType: mime.lookup(args[0]),
+          mimeType: this._mimeLookup(args[0]),
           buffer
         }))
       }
     } else if (args.length === 2) {
       meMsg.media.push(new BotiumMockMedia({
         mediaUri: args[0],
-        mimeType: mime.lookup(args[0]),
+        mimeType: this._mimeLookup(args[0]),
         buffer: args[1]
       }))
     }
