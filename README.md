@@ -1,3 +1,5 @@
+![Image of Botium Core](https://www.botium.ai/wp-content/uploads/2020/12/botiumcore.png)
+
 # Botium - The Selenium for Chatbots
 
 [![NPM](https://nodei.co/npm/botium-core.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/botium-core/)
