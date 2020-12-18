@@ -89,7 +89,7 @@ describe('simple rest, scripting memory', function () {
 })
 
 describe('simple rest, hooks', function () {
-  it('should create and use simplerest with hooks', async function () {
+  it('should create and use simplerest with hooks, string', async function () {
     const driver = new BotDriver(_getSimpleRestCaps(
       {
         [Capabilities.SIMPLEREST_REQUEST_HOOK]: '1+1'
@@ -101,6 +101,45 @@ describe('simple rest, hooks', function () {
     await container.Start()
 
     compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
+  })
+
+  it('should create and use simplerest with hooks, function', async function () {
+    const driver = new BotDriver(_getSimpleRestCaps(
+      {
+        [Capabilities.SIMPLEREST_REQUEST_HOOK]: () => console.log('hook')
+      }
+    ))
+
+    const compiler = driver.BuildCompiler()
+    const container = await driver.Build()
+    await container.Start()
+
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
+  })
+
+  it('should not create and use simplerest with hooks, require', async function () {
+    const driver = new BotDriver(_getSimpleRestCaps(
+      {
+        [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'test/security/someFunction.js'
+      }
+    ))
+
+    try {
+      const compiler = driver.BuildCompiler()
+      const container = await driver.Build()
+      await container.Start()
+
+      compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
+    } catch (err) {
+      assert.isTrue(err instanceof BotiumError)
+      assert.exists(err.context)
+      assert.equal(err.context.message, 'Security Error. Using unsafe custom hook with require is not allowed')
+      assert.equal(err.context.source, 'HookUtils.js')
+      assert.equal(err.context.type, 'security')
+      assert.equal(err.context.subtype, 'allow unsafe')
+      assert.exists(err.context.cause)
+      assert.equal(err.context.cause.hookData, 'test/security/someFunction.js')
+    }
   })
 })
 

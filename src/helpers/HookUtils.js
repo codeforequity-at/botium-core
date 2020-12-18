@@ -6,6 +6,9 @@ const esprima = require('esprima')
 const _ = require('lodash')
 const debug = require('debug')('botium-core-HookUtils')
 
+const Capabilities = require('../Capabilities')
+const { BotiumError } = require('../scripting/BotiumError')
+
 const executeHook = async (caps, hook, args) => {
   return executeHookSync(caps, hook, args)
 }
@@ -43,6 +46,8 @@ const getHook = (caps, data) => {
     return null
   }
 
+  const allowUnsafe = !!caps[Capabilities.SECURITY_ALLOW_UNSAFE]
+
   if (_.isFunction(data)) {
     debug('found hook, type: function definition')
     return data
@@ -64,11 +69,26 @@ const getHook = (caps, data) => {
   }
 
   if (resultWithRequire) {
-    if (_.isFunction(resultWithRequire)) {
-      debug(`found hook, type: require, in ${tryLoadFile}`)
-      return resultWithRequire
+    if (allowUnsafe) {
+      if (_.isFunction(resultWithRequire)) {
+        debug(`found hook, type: require, in ${tryLoadFile}`)
+        return resultWithRequire
+      } else {
+        throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
+      }
     } else {
-      throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
+      throw new BotiumError(
+        'Security Error. Using unsafe custom hook with require is not allowed',
+        {
+          type: 'security',
+          subtype: 'allow unsafe',
+          source: path.basename(__filename),
+          cause: {
+            SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
+            hookData: data
+          }
+        }
+      )
     }
   }
 
