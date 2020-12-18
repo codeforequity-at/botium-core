@@ -47,6 +47,23 @@ describe('hook utils', function () {
       [Capabilities.SECURITY_ALLOW_UNSAFE]: false
     }, () => null)
   })
+  it('should not accept file hook in safe mode', async function () {
+    try {
+      HookUtils.getHook({
+        [Capabilities.SECURITY_ALLOW_UNSAFE]: false
+      }, 'test/security/resources/hook-as-file.js')
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err instanceof BotiumError)
+      assert.exists(err.context)
+      assert.equal(err.context.message, 'Security Error. Using unsafe custom hook with require is not allowed')
+      assert.equal(err.context.source, 'HookUtils.js')
+      assert.equal(err.context.type, 'security')
+      assert.equal(err.context.subtype, 'allow unsafe')
+      assert.exists(err.context.cause)
+      assert.equal(err.context.cause.hookData, 'test/security/resources/hook-as-file.js')
+    }
+  })
   it('should accept file hook in unsafe mode', async function () {
     HookUtils.getHook({
       [Capabilities.SECURITY_ALLOW_UNSAFE]: true
