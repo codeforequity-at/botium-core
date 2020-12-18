@@ -202,7 +202,7 @@ module.exports = class CompilerTxt extends CompilerBase {
           script += set.messageText + this.eol
         }
         if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => flatString(b.text)).join('|') + this.eol
-        if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + this.eol
+        if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => { return m.buffer && m.buffer.startsWith('data:') ? 'data:' : m.mediaUri }).join('|') + this.eol
         if (set.cards && set.cards.length > 0) {
           set.cards.forEach(c => {
             let cardTexts = []
