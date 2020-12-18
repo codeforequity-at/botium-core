@@ -45,7 +45,6 @@ const getHook = (caps, data) => {
   if (!data) {
     return null
   }
-
   const allowUnsafe = !!caps[Capabilities.SECURITY_ALLOW_UNSAFE]
 
   if (_.isFunction(data)) {
@@ -53,46 +52,46 @@ const getHook = (caps, data) => {
     return data
   }
 
-  let resultWithRequire
-  let tryLoadFile = path.resolve(process.cwd(), data)
-  if (fs.existsSync(tryLoadFile)) {
-    try {
-      resultWithRequire = require(tryLoadFile)
-    } catch (err) {
+  if (_.isString(data)) {
+    let resultWithRequire
+    let tryLoadFile = path.resolve(process.cwd(), data)
+    if (fs.existsSync(tryLoadFile)) {
+      try {
+        resultWithRequire = require(tryLoadFile)
+      } catch (err) {
+      }
+    } else {
+      tryLoadFile = data
+      try {
+        resultWithRequire = require(data)
+      } catch (err) {
+      }
     }
-  } else {
-    tryLoadFile = data
-    try {
-      resultWithRequire = require(data)
-    } catch (err) {
-    }
-  }
 
-  if (resultWithRequire) {
-    if (allowUnsafe) {
+    if (resultWithRequire) {
+      if (!allowUnsafe) {
+        throw new BotiumError(
+          'Security Error. Using unsafe custom hook with require is not allowed',
+          {
+            type: 'security',
+            subtype: 'allow unsafe',
+            source: path.basename(__filename),
+            cause: {
+              SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
+              hookData: data
+            }
+          }
+        )
+      }
+
       if (_.isFunction(resultWithRequire)) {
         debug(`found hook, type: require, in ${tryLoadFile}`)
         return resultWithRequire
       } else {
         throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
       }
-    } else {
-      throw new BotiumError(
-        'Security Error. Using unsafe custom hook with require is not allowed',
-        {
-          type: 'security',
-          subtype: 'allow unsafe',
-          source: path.basename(__filename),
-          cause: {
-            SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
-            hookData: data
-          }
-        }
-      )
     }
-  }
 
-  if (_.isString(data)) {
     try {
       esprima.parseScript(data)
     } catch (err) {

@@ -6,6 +6,7 @@ const assert = chai.assert
 const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
 const { BotiumError } = require('../../src/scripting/BotiumError')
+const HookUtils = require('../../src/helpers/HookUtils')
 
 const myCapsSimpleRest = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -34,6 +35,46 @@ const functionConnector = ({ queueBotSays }) => {
     }
   }
 }
+
+describe('hook utils', function () {
+  it('should accept string hook in safe mode', async function () {
+    HookUtils.getHook({
+      [Capabilities.SECURITY_ALLOW_UNSAFE]: false
+    }, '1+1')
+  })
+  it('should accept javascript hook in safe mode', async function () {
+    HookUtils.getHook({
+      [Capabilities.SECURITY_ALLOW_UNSAFE]: false
+    }, () => null)
+  })
+  it('should not accept file hook in safe mode', async function () {
+    try {
+      HookUtils.getHook({
+        [Capabilities.SECURITY_ALLOW_UNSAFE]: false
+      }, 'test/security/resources/hook-as-file.js')
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err instanceof BotiumError)
+      assert.exists(err.context)
+      assert.equal(err.context.message, 'Security Error. Using unsafe custom hook with require is not allowed')
+      assert.equal(err.context.source, 'HookUtils.js')
+      assert.equal(err.context.type, 'security')
+      assert.equal(err.context.subtype, 'allow unsafe')
+      assert.exists(err.context.cause)
+      assert.equal(err.context.cause.hookData, 'test/security/resources/hook-as-file.js')
+    }
+  })
+  it('should accept file hook in unsafe mode', async function () {
+    HookUtils.getHook({
+      [Capabilities.SECURITY_ALLOW_UNSAFE]: true
+    }, 'test/security/resources/hook-as-file.js')
+  })
+  it('should accept require hook in unsafe mode', async function () {
+    HookUtils.getHook({
+      [Capabilities.SECURITY_ALLOW_UNSAFE]: true
+    }, 'hook-as-file')
+  })
+})
 
 describe('scripting memory', function () {
   it('should not throw security error for using inline function', async function () {
@@ -89,7 +130,7 @@ describe('simple rest, scripting memory', function () {
 })
 
 describe('simple rest, hooks', function () {
-  it('should create and use simplerest with hooks, string', async function () {
+  it('should create and use simplerest with javascript hook', async function () {
     const driver = new BotDriver(_getSimpleRestCaps(
       {
         [Capabilities.SIMPLEREST_REQUEST_HOOK]: '1+1'
@@ -102,11 +143,10 @@ describe('simple rest, hooks', function () {
 
     compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
   })
-
-  it('should create and use simplerest with hooks, function', async function () {
+  it('should create and use simplerest with function hooks', async function () {
     const driver = new BotDriver(_getSimpleRestCaps(
       {
-        [Capabilities.SIMPLEREST_REQUEST_HOOK]: () => console.log('hook')
+        [Capabilities.SIMPLEREST_REQUEST_HOOK]: () => 2
       }
     ))
 
@@ -115,31 +155,6 @@ describe('simple rest, hooks', function () {
     await container.Start()
 
     compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
-  })
-
-  it('should not create and use simplerest with hooks, require', async function () {
-    const driver = new BotDriver(_getSimpleRestCaps(
-      {
-        [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'test/security/someFunction.js'
-      }
-    ))
-
-    try {
-      const compiler = driver.BuildCompiler()
-      const container = await driver.Build()
-      await container.Start()
-
-      compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
-    } catch (err) {
-      assert.isTrue(err instanceof BotiumError)
-      assert.exists(err.context)
-      assert.equal(err.context.message, 'Security Error. Using unsafe custom hook with require is not allowed')
-      assert.equal(err.context.source, 'HookUtils.js')
-      assert.equal(err.context.type, 'security')
-      assert.equal(err.context.subtype, 'allow unsafe')
-      assert.exists(err.context.cause)
-      assert.equal(err.context.cause.hookData, 'test/security/someFunction.js')
-    }
   })
 })
 
