@@ -389,7 +389,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
               cellContent += JSON.stringify(set.sourceData, null, 2) + eol
             }
             if (set.buttons && set.buttons.length > 0) cellContent += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + eol
-            if (set.media && set.media.length > 0) cellContent += 'MEDIA ' + set.media.map(m => m.mediaUri).join('|') + eol
+            if (set.media && set.media.length > 0) cellContent += 'MEDIA ' + set.media.map(m => { return m.buffer && m.buffer.startsWith('data:') ? 'data:' : m.mediaUri }).join('|') + eol
             if (set.cards && set.cards.length > 0) {
               set.cards.forEach(c => {
                 if (c.buttons && c.buttons.length > 0) cellContent += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + eol
