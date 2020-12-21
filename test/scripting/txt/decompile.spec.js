@@ -497,6 +497,37 @@ MEDIA test1.png
 `
     )
   })
+  it('should decompile media with base64 in bot response', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          media: [{ mediaUri: 'test1.png' }]
+        },
+        {
+          sender: 'bot',
+          media: [{ buffer: 'data:image/png;base64,AAAAAAAAAAAAAAAAAAAAAAAA' }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+MEDIA test1.png
+
+#bot
+MEDIA data:
+`
+    )
+  })
 
   // class BotiumMockCard {
   //   constructor (fromJson = {}) {

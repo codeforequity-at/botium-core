@@ -17,14 +17,12 @@ const executeHookSync = (caps, hook, args) => {
   if (!hook) {
     return
   }
-  const allowUnsafe = !!caps[Capabilities.SECURITY_ALLOW_UNSAFE]
-  if (allowUnsafe) {
-    if (_.isFunction(hook)) {
-      try {
-        return hook(args)
-      } catch (err) {
-        throw new Error(`Calling Hook function failed: ${err.message}`)
-      }
+
+  if (_.isFunction(hook)) {
+    try {
+      return hook(args)
+    } catch (err) {
+      throw new Error(`Calling Hook function failed: ${err.message}`)
     }
   }
 
@@ -42,19 +40,19 @@ const executeHookSync = (caps, hook, args) => {
   }
   throw new Error(`Unknown hook ${typeof hook}`)
 }
+
 const getHook = (caps, data) => {
   if (!data) {
     return null
   }
-
   const allowUnsafe = !!caps[Capabilities.SECURITY_ALLOW_UNSAFE]
 
-  if (allowUnsafe) {
-    if (_.isFunction(data)) {
-      debug('found hook, type: function definition')
-      return data
-    }
+  if (_.isFunction(data)) {
+    debug('found hook, type: function definition')
+    return data
+  }
 
+  if (_.isString(data)) {
     let resultWithRequire
     let tryLoadFile = path.resolve(process.cwd(), data)
     if (fs.existsSync(tryLoadFile)) {
@@ -71,6 +69,21 @@ const getHook = (caps, data) => {
     }
 
     if (resultWithRequire) {
+      if (!allowUnsafe) {
+        throw new BotiumError(
+          'Security Error. Using unsafe custom hook with require is not allowed',
+          {
+            type: 'security',
+            subtype: 'allow unsafe',
+            source: path.basename(__filename),
+            cause: {
+              SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
+              hookData: data
+            }
+          }
+        )
+      }
+
       if (_.isFunction(resultWithRequire)) {
         debug(`found hook, type: require, in ${tryLoadFile}`)
         return resultWithRequire
@@ -78,9 +91,7 @@ const getHook = (caps, data) => {
         throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
       }
     }
-  }
 
-  if (_.isString(data)) {
     try {
       esprima.parseScript(data)
     } catch (err) {
@@ -91,22 +102,7 @@ const getHook = (caps, data) => {
     return data
   }
 
-  if (!allowUnsafe) {
-    throw new BotiumError(
-      'Security Error. Using unsafe custom hook is not allowed',
-      {
-        type: 'security',
-        subtype: 'allow unsafe',
-        source: path.basename(__filename),
-        cause: {
-          SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
-          hookData: data
-        }
-      }
-    )
-  } else {
-    throw new Error(`Not valid hook ${util.inspect(data)}`)
-  }
+  throw new Error(`Not valid hook ${util.inspect(data)}`)
 }
 
 module.exports = {

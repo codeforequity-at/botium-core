@@ -305,7 +305,7 @@ const convoStepToObject = (step) => {
     if (step.media && step.media.length > 0) {
       result.push({
         asserter: 'MEDIA',
-        args: step.media.map(m => m.mediaUri)
+        args: step.media.map(m => { return m.buffer && m.buffer.startsWith('data:') ? 'data:' : m.mediaUri })
       })
     }
     if (step.cards && step.cards.length > 0) {
