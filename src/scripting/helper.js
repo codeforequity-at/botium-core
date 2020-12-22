@@ -48,6 +48,8 @@ const removeBuffers = obj => {
       return '(binary data)'
     } else if (key.toLowerCase() === 'base64') {
       return '(base64 data)'
+    } else if (_.isString(value) && value.startsWith('data:')) {
+      return '(base64 data url)'
     }
     return value
   })
