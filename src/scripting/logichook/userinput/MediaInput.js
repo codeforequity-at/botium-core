@@ -114,7 +114,7 @@ module.exports = class MediaInput {
     const hasWildcard = args.findIndex(a => this._isWildcard(a)) >= 0
 
     if (args && (args.length > 1 || hasWildcard)) {
-      const baseDir = this._getBaseDir(convo.sourceTag.convoDir)
+      const baseDir = this._getBaseDir(convo.sourceTag ? convo.sourceTag.convoDir : null)
       return args.reduce((e, arg) => {
         if (this._isWildcard(arg)) {
           const mediaFiles = globby.sync(arg, { cwd: baseDir, gitignore: true })
