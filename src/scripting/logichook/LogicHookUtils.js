@@ -45,22 +45,18 @@ module.exports = class LogicHookUtils {
     DEFAULT_ASSERTERS.forEach((asserter) => {
       this.asserters[asserter.name] = new (asserter.Class)(this.buildScriptContext, this.caps)
     })
-
-    debug(`Loaded Default asserter - ${util.inspect(Object.keys(this.asserters))}`)
   }
 
   _setDefaultLogicHooks () {
     DEFAULT_LOGIC_HOOKS.forEach((lh) => {
       this.logicHooks[lh.name] = new (lh.Class)(this.buildScriptContext, this.caps)
     })
-    debug(`Loaded Default logic hook - ${util.inspect(Object.keys(this.logicHooks))}`)
   }
 
   _setDefaultUserInputs () {
     DEFAULT_USER_INPUTS.forEach((ui) => {
       this.userInputs[ui.name] = new (ui.Class)(this.buildScriptContext, this.caps)
     })
-    debug(`Loaded Default user input - ${util.inspect(Object.keys(this.userInputs))}`)
   }
 
   _fetchAsserters () {

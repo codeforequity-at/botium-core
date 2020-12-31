@@ -172,7 +172,6 @@ module.exports = class BotDriver {
   }
 
   BuildCompiler () {
-    debug(`BuildCompiler: Capabilites: ${util.inspect(this.caps)}`)
     try {
       const compiler = new ScriptingProvider(this.caps)
       compiler.Build()
