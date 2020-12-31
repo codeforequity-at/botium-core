@@ -524,7 +524,7 @@ MEDIA test1.png
 MEDIA test1.png
 
 #bot
-MEDIA data:
+MEDIA
 `
     )
   })

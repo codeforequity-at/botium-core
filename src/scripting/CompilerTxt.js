@@ -5,7 +5,7 @@ const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
 const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
-const { linesToConvoStep, flatString, validateConvo } = require('./helper')
+const { linesToConvoStep, convoStepToLines, validateConvo } = require('./helper')
 
 module.exports = class CompilerTxt extends CompilerBase {
   constructor (context, caps = {}) {
@@ -165,83 +165,18 @@ module.exports = class CompilerTxt extends CompilerBase {
       script += convo.header.description + this.eol
     }
 
-    convo.conversation.forEach((set) => {
+    convo.conversation.forEach((step) => {
       script += this.eol
 
-      script += '#' + set.sender
-      if (set.channel && set.channel !== 'default') {
-        script += ' ' + set.channel
+      script += '#' + step.sender
+      if (step.channel && step.channel !== 'default') {
+        script += ' ' + step.channel
       }
       script += this.eol
 
-      if (set.sender === 'me') {
-        set.forms && set.forms.filter(form => form.value).forEach((form) => {
-          script += `FORM ${form.name}|${form.value}${this.eol}`
-        })
-        if (set.buttons && set.buttons.length > 0) {
-          script += 'BUTTON ' + this._decompileButton(set.buttons[0]) + this.eol
-        } else if (set.media && set.media.length > 0) {
-          script += 'MEDIA ' + set.media[0].mediaUri + this.eol
-        } else if (set.messageText) {
-          script += set.messageText + this.eol
-        }
-        set.userInputs && set.userInputs.forEach((userInput) => {
-          script += userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : '') + this.eol
-        })
-        set.logicHooks && set.logicHooks.forEach((logicHook) => {
-          script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
-        })
-      } else {
-        if (set.messageText) {
-          if (set.optional) {
-            script += '?'
-          }
-          if (set.not) {
-            script += '!'
-          }
-          script += set.messageText + this.eol
-        }
-        if (set.buttons && set.buttons.length > 0) script += 'BUTTONS ' + set.buttons.map(b => flatString(b.text)).join('|') + this.eol
-        if (set.media && set.media.length > 0) script += 'MEDIA ' + set.media.map(m => { return m.buffer && m.buffer.startsWith('data:') ? 'data:' : m.mediaUri }).join('|') + this.eol
-        if (set.cards && set.cards.length > 0) {
-          set.cards.forEach(c => {
-            let cardTexts = []
-            if (c.text) cardTexts = cardTexts.concat(_.isArray(c.text) ? c.text : [c.text])
-            if (c.subtext) cardTexts = cardTexts.concat(_.isArray(c.subtext) ? c.subtext : [c.subtext])
-            if (c.content) cardTexts = cardTexts.concat(_.isArray(c.content) ? c.content : [c.content])
-            if (cardTexts.length > 0) script += 'CARDS ' + cardTexts.map(c => flatString(c)).join('|') + this.eol
-
-            if (c.buttons && c.buttons.length > 0) script += 'BUTTONS ' + c.buttons.map(b => flatString(b.text)).join('|') + this.eol
-            if (c.image) script += 'MEDIA ' + c.image.mediaUri + this.eol
-          })
-        }
-        set.asserters && set.asserters.forEach((asserter) => {
-          if (asserter.optional) {
-            script += '?'
-          }
-          if (asserter.not) {
-            script += '!'
-          }
-          script += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + this.eol
-        })
-        set.logicHooks && set.logicHooks.forEach((logicHook) => {
-          script += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + this.eol
-        })
-      }
+      const stepLines = convoStepToLines(step)
+      if (stepLines && stepLines.length > 0) script += stepLines.join(this.eol) + this.eol
     })
     return script
-  }
-
-  _decompileButton (b) {
-    let buttonScript = ''
-    if (b.payload) {
-      buttonScript += _.isObject(b.payload) ? JSON.stringify(b.payload) : flatString(b.payload)
-      if (b.text) {
-        buttonScript += `|${flatString(b.text)}`
-      }
-    } else {
-      buttonScript += flatString(b.text)
-    }
-    return buttonScript
   }
 }

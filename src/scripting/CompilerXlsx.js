@@ -8,7 +8,7 @@ const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const Utterance = require('./Utterance')
 const { Convo } = require('./Convo')
-const { linesToConvoStep, validateConvo } = require('./helper')
+const { linesToConvoStep, convoStepToLines, validateConvo } = require('./helper')
 
 module.exports = class CompilerXlsx extends CompilerBase {
   constructor (context, caps = {}) {
@@ -353,63 +353,13 @@ module.exports = class CompilerXlsx extends CompilerBase {
           errors.push(...validationResult.errors.map(e => new Error(`Convo ${i + 1} ${e.message}`)))
         }
 
-        convo.conversation.forEach((set) => {
+        convo.conversation.forEach((step) => {
           let cellContent = ''
 
-          if (set.sender === 'me') {
-            if (set.buttons && set.buttons.length > 0) {
-              cellContent += 'BUTTON ' + (set.buttons[0].payload || set.buttons[0].text) + eol
-            } else if (set.media && set.media.length > 0) {
-              cellContent += 'MEDIA ' + set.media[0].mediaUri + eol
-            } else {
-              cellContent += set.messageText + eol
-            }
-            set.userInputs && set.userInputs.forEach((userInput) => {
-              cellContent += userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : '') + eol
-            })
-            set.logicHooks && set.logicHooks.forEach((logicHook) => {
-              cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
-            })
-          } else {
-            if (set.messageText) {
-              if (set.optional) {
-                cellContent += '?'
-              }
-              if (set.not) {
-                cellContent += '!'
-              }
-              cellContent += set.messageText + eol
-            } else if (set.sourceData) {
-              if (set.optional) {
-                cellContent += '?'
-              }
-              if (set.not) {
-                cellContent += '!'
-              }
-              cellContent += JSON.stringify(set.sourceData, null, 2) + eol
-            }
-            if (set.buttons && set.buttons.length > 0) cellContent += 'BUTTONS ' + set.buttons.map(b => b.text).join('|') + eol
-            if (set.media && set.media.length > 0) cellContent += 'MEDIA ' + set.media.map(m => { return m.buffer && m.buffer.startsWith('data:') ? 'data:' : m.mediaUri }).join('|') + eol
-            if (set.cards && set.cards.length > 0) {
-              set.cards.forEach(c => {
-                if (c.buttons && c.buttons.length > 0) cellContent += 'BUTTONS ' + c.buttons.map(b => b.text).join('|') + eol
-                if (c.image) cellContent += 'MEDIA ' + c.image.mediaUri + eol
-              })
-            }
-            set.asserters && set.asserters.forEach((asserter) => {
-              if (asserter.optional) {
-                cellContent += '?'
-              }
-              if (asserter.not) {
-                cellContent += '!'
-              }
-              cellContent += asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : '') + eol
-            })
-            set.logicHooks && set.logicHooks.forEach((logicHook) => {
-              cellContent += logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : '') + eol
-            })
-          }
-          data.push({ [set.sender]: cellContent })
+          const stepLines = convoStepToLines(step)
+          if (stepLines && stepLines.length > 0) cellContent = stepLines.join(eol)
+
+          data.push({ [step.sender]: cellContent })
         })
         data.push({})
       }

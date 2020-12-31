@@ -388,6 +388,66 @@ const validateConvo = (convo) => {
   return validationResult
 }
 
+const _decompileButton = (b) => {
+  let buttonScript = ''
+  if (b.payload) {
+    buttonScript += _.isObject(b.payload) ? JSON.stringify(b.payload) : flatString(b.payload)
+    if (b.text) {
+      buttonScript += `|${flatString(b.text)}`
+    }
+  } else {
+    buttonScript += flatString(b.text)
+  }
+  return buttonScript
+}
+
+const convoStepToLines = (step) => {
+  const lines = []
+  if (step.sender === 'me') {
+    step.forms && step.forms.filter(form => form.value).forEach((form) => {
+      lines.push(`FORM ${form.name}|${form.value}`)
+    })
+    if (step.buttons && step.buttons.length > 0) {
+      lines.push('BUTTON ' + _decompileButton(step.buttons[0]))
+    } else if (step.media && step.media.length > 0) {
+      lines.push('MEDIA ' + step.media[0].mediaUri)
+    } else if (step.messageText) {
+      lines.push(step.messageText)
+    }
+    step.userInputs && step.userInputs.forEach((userInput) => {
+      lines.push(userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : ''))
+    })
+    step.logicHooks && step.logicHooks.forEach((logicHook) => {
+      lines.push(logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : ''))
+    })
+  } else {
+    if (step.messageText) {
+      lines.push((step.optional ? '?' : '') + (step.not ? '!' : '') + step.messageText)
+    }
+    if (step.buttons && step.buttons.length > 0) lines.push('BUTTONS ' + step.buttons.map(b => flatString(b.text)).join('|'))
+    if (step.media && step.media.length > 0) lines.push('MEDIA ' + step.media.filter(m => !m.buffer && m.mediaUri).map(m => m.mediaUri).join('|'))
+    if (step.cards && step.cards.length > 0) {
+      step.cards.forEach(c => {
+        let cardTexts = []
+        if (c.text) cardTexts = cardTexts.concat(_.isArray(c.text) ? c.text : [c.text])
+        if (c.subtext) cardTexts = cardTexts.concat(_.isArray(c.subtext) ? c.subtext : [c.subtext])
+        if (c.content) cardTexts = cardTexts.concat(_.isArray(c.content) ? c.content : [c.content])
+        if (cardTexts.length > 0) lines.push('CARDS ' + cardTexts.map(c => flatString(c)).join('|'))
+
+        if (c.buttons && c.buttons.length > 0) lines.push('BUTTONS ' + c.buttons.map(b => flatString(b.text)).join('|'))
+        if (c.image && !c.image.buffer && c.image.mediaUri) lines.push('MEDIA ' + c.image.mediaUri)
+      })
+    }
+    step.asserters && step.asserters.forEach((asserter) => {
+      lines.push((asserter.optional ? '?' : '') + (asserter.not ? '!' : '') + asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : ''))
+    })
+    step.logicHooks && step.logicHooks.forEach((logicHook) => {
+      lines.push(logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : ''))
+    })
+  }
+  return lines.map(l => l.trim())
+}
+
 module.exports = {
   normalizeText,
   quoteRegexpString,
@@ -395,6 +455,7 @@ module.exports = {
   flatString,
   removeBuffers,
   linesToConvoStep,
+  convoStepToLines,
   convoStepToObject,
   validateConvo
 }
