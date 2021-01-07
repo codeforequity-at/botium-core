@@ -5,11 +5,19 @@ module.exports = class PauseLogicHook {
     this.caps = caps
   }
 
-  onMeEnd ({ convo, convoStep, args }) {
+  onConvoBegin ({ args }) {
+    return pause('PauseLogicHook', 'onConvoBegin', args)
+  }
+
+  onMeEnd ({ convoStep, args }) {
     return pause('PauseLogicHook', convoStep.stepTag, args)
   }
 
-  onBotEnd ({ convoStep, container, args }) {
+  onBotEnd ({ convoStep, args }) {
     return pause('PauseLogicHook', convoStep.stepTag, args)
+  }
+
+  onConvoEnd ({ args }) {
+    return pause('PauseLogicHook', 'onConvoEnd', args)
   }
 }
