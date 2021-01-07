@@ -264,29 +264,15 @@ describe('connectors', function () {
     await driver.Build()
   })
 
-  it('should throw exception creating function connectors', async function () {
+  it('should create any function connectors', async function () {
     const myCapsFunction = {
       [Capabilities.PROJECTNAME]: 'security.allowUnsafe.connectors',
       [Capabilities.CONTAINERMODE]: functionConnector,
       [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
       [Capabilities.SECURITY_ALLOW_UNSAFE]: false
     }
-
     const driver = new BotDriver(myCapsFunction)
-    try {
-      await driver.Build()
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err instanceof BotiumError)
-      assert.exists(err.context)
-      assert.equal(err.context.message, 'Security Error. Using unsafe connector mode "Function call" is not allowed')
-      assert.equal(err.context.source, 'src/containers/plugins/index.js')
-      assert.equal(err.context.type, 'security')
-      assert.equal(err.context.subtype, 'allow unsafe')
-      assert.exists(err.context.cause)
-      assert.equal(err.context.cause.mode, 'Function call')
-      assert.exists(err.context.cause.containermode)
-    }
+    await driver.Build()
   })
 })
 

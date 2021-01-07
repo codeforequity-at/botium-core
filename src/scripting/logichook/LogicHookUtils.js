@@ -1,4 +1,3 @@
-const util = require('util')
 const { NodeVM } = require('vm2')
 const path = require('path')
 const fs = require('fs')
@@ -168,27 +167,25 @@ module.exports = class LogicHookUtils {
           throw new Error(`${packageName} class or function or PluginClass field expected`)
         }
       } catch (err) {
-        throw new Error(`Failed to fetch package ${packageName} - ${util.inspect(err)}`)
+        throw new Error(`Failed to fetch package ${packageName} - ${err.message}`)
       }
     }
 
     if (isClass(src)) {
-      _checkUnsafe()
       try {
         const CheckClass = src
         debug(`Loading ${ref} ${hookType}. Using src as class.`)
         return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
       } catch (err) {
-        throw new Error(`Failed to load package ${ref} from provided class - ${util.inspect(err)}`)
+        throw new Error(`Failed to load package ${ref} from provided class - ${err.message}`)
       }
     }
     if (_.isFunction(src)) {
-      _checkUnsafe()
       try {
         debug(`Loading ${ref} ${hookType}. Using src as function.`)
         return src({ ref, ...this.buildScriptContext }, this.caps, args)
       } catch (err) {
-        throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
+        throw new Error(`Failed to load package ${ref} from provided function - ${err.message}`)
       }
     }
     if (_.isObject(src) && !_.isString(src)) {
@@ -197,7 +194,6 @@ module.exports = class LogicHookUtils {
           result[key] = (args) => {
             const script = src[key]
             if (_.isFunction(script)) {
-              _checkUnsafe()
               return script(args)
             } else if (_.isString(script)) {
               try {
@@ -208,7 +204,7 @@ module.exports = class LogicHookUtils {
                 })
                 return vm.run(script)
               } catch (err) {
-                throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
+                throw new Error(`${err.message || err}`)
               }
             } else {
               throw new Error(`Script "${key}" is not valid - only functions and javascript code accepted`)
@@ -219,59 +215,82 @@ module.exports = class LogicHookUtils {
         debug(`Loading ${ref} ${hookType}. Using src as function code.`)
         return hookObject
       } catch (err) {
-        throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
+        throw new Error(`Failed to load package ${ref} from provided function - ${err.message}`)
       }
     }
 
-    const loadErr = []
+    if (_.isString(src)) {
+      const loadErr = []
 
-    const tryLoadPackage = src
-    try {
-      let CheckClass = require(tryLoadPackage)
-      if (CheckClass.default) {
-        CheckClass = CheckClass.default
+      let tryLoadPackageName = src
+      let tryLoadAsserterByName = null
+      if (src.indexOf('/') >= 0) {
+        tryLoadPackageName = src.substr(0, src.lastIndexOf('/'))
+        tryLoadAsserterByName = src.substr(src.lastIndexOf('/') + 1)
       }
-      if (isClass(CheckClass)) {
-        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class`)
-        return new CheckClass(this.buildScriptContext, this.caps, args)
-      } else if (_.isFunction(CheckClass)) {
-        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class`)
-        return CheckClass(this.buildScriptContext, this.caps, args)
-      } else if (isClass(CheckClass.PluginClass)) {
-        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class using PluginClass.`)
-        return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
-      } else {
-        throw new Error(`${tryLoadPackage} class or function expected`)
-      }
-    } catch (err) {
-      loadErr.push(`Failed to fetch ${ref} ${hookType} from ${tryLoadPackage} - ${util.inspect(err)}`)
-    }
 
-    const tryLoadFile = path.resolve(process.cwd(), src)
-    if (fs.existsSync(tryLoadFile)) {
-      _checkUnsafe()
+      const tryLoadFile = path.resolve(process.cwd(), tryLoadPackageName)
+      if (fs.existsSync(tryLoadFile)) {
+        _checkUnsafe()
+        try {
+          let CheckClass = require(tryLoadFile)
+          if (CheckClass.default) {
+            CheckClass = CheckClass.default
+          }
+          if (tryLoadAsserterByName) {
+            if (CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
+              CheckClass = CheckClass.PluginAsserters[tryLoadAsserterByName]
+            } else {
+              throw new Error(`Loaded ${tryLoadPackageName}, but ${tryLoadAsserterByName} ${hookType} not found.`)
+            }
+          }
+          if (isClass(CheckClass)) {
+            debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${src} as class`)
+            return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          } else if (_.isFunction(CheckClass)) {
+            debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a function. Loading from ${src} as class`)
+            return CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          } else if (isClass(CheckClass.PluginClass)) {
+            debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${src} as class using PluginClass`)
+            return new CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          } else {
+            throw new Error(`${src} class or function expected`)
+          }
+        } catch (err) {
+          loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
+        }
+      }
+
       try {
-        let CheckClass = require(tryLoadFile)
+        let CheckClass = require(tryLoadPackageName)
         if (CheckClass.default) {
           CheckClass = CheckClass.default
         }
+        if (tryLoadAsserterByName) {
+          if (CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
+            CheckClass = CheckClass.PluginAsserters[tryLoadAsserterByName]
+          } else {
+            throw new Error(`Loaded ${tryLoadPackageName}, but ${tryLoadAsserterByName} ${hookType} not found.`)
+          }
+        }
         if (isClass(CheckClass)) {
-          debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class`)
-          return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${src} as class`)
+          return new CheckClass(this.buildScriptContext, this.caps, args)
         } else if (_.isFunction(CheckClass)) {
-          debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a function. Loading from ${tryLoadFile} as class`)
-          return CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${src} as class`)
+          return CheckClass(this.buildScriptContext, this.caps, args)
         } else if (isClass(CheckClass.PluginClass)) {
-          debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class using PluginClass`)
-          return new CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${src} as class using PluginClass.`)
+          return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
         } else {
-          throw new Error(`${tryLoadFile} class or function expected`)
+          throw new Error(`${src} class or function expected`)
         }
       } catch (err) {
-        loadErr.push(`Failed to fetch ${ref} ${hookType} from ${tryLoadFile} - ${util.inspect(err)} `)
+        loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message}`)
       }
+
+      loadErr.forEach(debug)
     }
-    loadErr.forEach(debug)
     throw new Error(`Failed to fetch ${ref} ${hookType}, no idea how to load ...`)
   }
 }
