@@ -309,8 +309,8 @@ class Convo {
             transcriptStep.actual = meMsg
 
             try {
-              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
-              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
+              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps], transcriptStep })
+              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps], transcriptStep })
 
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
               debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
@@ -324,8 +324,6 @@ class Convo {
               lastMeConvoStep = convoStep
               transcriptStep.botBegin = new Date()
               if (!_.isNull(meMsg.messageText) || meMsg.sourceData || (meMsg.userInputs && meMsg.userInputs.length)) {
-                transcriptStep.botBegin = new Date()
-
                 try {
                   Object.assign(meMsg, { header: this.header, conversation: this.conversation, currentStepIndex, scriptingMemory })
                   await container.UserSays(meMsg)
@@ -336,12 +334,12 @@ class Convo {
                 }
 
                 transcriptStep.botEnd = new Date()
-                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps], transcriptStep })
                 continue
               } else {
                 debug(`${this.header.name}/${convoStep.stepTag}: message not found in #me section, message not sent to container ${util.inspect(convoStep)}`)
                 transcriptStep.botEnd = new Date()
-                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps], transcriptStep })
                 continue
               }
             } catch (err) {
@@ -364,7 +362,7 @@ class Convo {
 
             try {
               debug(`${this.header.name} wait for bot ${convoStep.channel || ''}`)
-              await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript: [...transcriptSteps] })
+              await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript: [...transcriptSteps], transcriptStep })
               transcriptStep.botBegin = new Date()
               if (!saysmsg) {
                 saysmsg = await container.WaitBotSays(convoStep.channel)
@@ -444,8 +442,8 @@ class Convo {
             }
             Object.assign(scriptingMemory, scriptingMemoryUpdate)
             try {
-              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps] })
-              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps] })
+              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps], transcriptStep })
+              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps], transcriptStep })
             } catch (err) {
               const nextConvoStep = this.conversation[i + 1]
               if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {

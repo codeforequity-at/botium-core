@@ -7,11 +7,11 @@ module.exports = class PauseAsserter {
     this.name = 'PauseAsserter'
   }
 
-  assertConvoBegin ({ convo, container, args }) {
+  assertConvoBegin ({ convo, args }) {
     return pause('PauseAsserter', convo.sourceTag, args)
   }
 
-  assertConvoEnd ({ convo, container, msgs, args }) {
+  assertConvoEnd ({ convo, args }) {
     return pause('PauseAsserter', convo.sourceTag, args)
   }
 }
