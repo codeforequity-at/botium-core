@@ -268,7 +268,8 @@ class Convo {
       try {
         await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
-        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
+        transcript.err = botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err)
+        throw new TranscriptError(transcript.err, transcript)
       }
       return transcript
     } finally {
