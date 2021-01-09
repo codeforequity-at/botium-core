@@ -310,8 +310,8 @@ class Convo {
             transcriptStep.actual = meMsg
 
             try {
-              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps], transcriptStep })
-              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps], transcriptStep })
+              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
+              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
 
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
               debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
@@ -335,12 +335,12 @@ class Convo {
                 }
 
                 transcriptStep.botEnd = new Date()
-                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps], transcriptStep })
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
                 continue
               } else {
                 debug(`${this.header.name}/${convoStep.stepTag}: message not found in #me section, message not sent to container ${util.inspect(convoStep)}`)
                 transcriptStep.botEnd = new Date()
-                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps], transcriptStep })
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
                 continue
               }
             } catch (err) {
@@ -363,7 +363,7 @@ class Convo {
 
             try {
               debug(`${this.header.name} wait for bot ${convoStep.channel || ''}`)
-              await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript: [...transcriptSteps], transcriptStep })
+              await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript, transcriptStep })
               transcriptStep.botBegin = new Date()
               if (!saysmsg) {
                 saysmsg = await container.WaitBotSays(convoStep.channel)
@@ -443,8 +443,8 @@ class Convo {
             }
             Object.assign(scriptingMemory, scriptingMemoryUpdate)
             try {
-              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps], transcriptStep })
-              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps], transcriptStep })
+              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript, transcriptStep })
+              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript, transcriptStep })
             } catch (err) {
               const nextConvoStep = this.conversation[i + 1]
               if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
