@@ -73,6 +73,8 @@ const flatString = (str) => {
 }
 
 const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
+  if (!validateSender(sender)) throw new Error(`Failed to parse conversation. Section "${sender}" unknown.`)
+
   const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false, optional: false, sender }
 
   let textLinesRaw = []
@@ -356,6 +358,11 @@ const convoStepToObject = (step) => {
   return result
 }
 
+const validateSender = (sender) => {
+  if (['begin', 'me', 'bot', 'end'].indexOf(sender) >= 0) return true
+  else return false
+}
+
 const validateConvo = (convo) => {
   const validationResult = {
     errors: []
@@ -383,6 +390,9 @@ const validateConvo = (convo) => {
           validationResult.errors.push(new Error(`Step ${i + 1}: Optional bot convo step has to be followed by a bot convo step.`))
         }
       }
+    }
+    if (!validateSender(step.sender)) {
+      validationResult.errors.push(new Error(`Step ${i + 1}: Sender #${step.sender} is invalid.`))
     }
   }
   return validationResult
