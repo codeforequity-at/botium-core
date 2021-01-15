@@ -358,7 +358,6 @@ module.exports = class ScriptingProvider {
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN] = new CompilerMarkdown(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN].Validate()
 
-    debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
     if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
       this.matchFn = MatchFunctions.regexp(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase') {

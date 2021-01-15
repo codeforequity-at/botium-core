@@ -217,7 +217,6 @@ module.exports = class BaseContainer {
   async _RunCustomHook (name, hook, args) {
     try {
       await executeHook(this.caps, hook, Object.assign({}, { container: this }, args))
-      debug(`_RunCustomHook ${name} finished`)
     } catch (err) {
       debug(`_RunCustomHook ${name} finished with error: ${err.message || util.inspect(err)}`)
     }

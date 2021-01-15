@@ -26,6 +26,8 @@ module.exports = class MediaInput {
         throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
       }
       return new url.URL(uri, `file://${basePath}/`)
+    } else if (uri.startsWith('http://') || uri.startsWith('https://')) {
+      return new url.URL(uri)
     }
     if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
       throw new BotiumError(

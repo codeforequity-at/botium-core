@@ -45,6 +45,7 @@ module.exports = class BotDriver {
         throw new Error(`FAILED: Botium configuration file ${botiumConfigEnv} not available`)
       }
     }
+    debug(`Loaded Botium configuration files ${this._fetchedConfigFiles.join(',')}`)
 
     const sourcesToTest = Object.keys(Source)
 
@@ -52,15 +53,12 @@ module.exports = class BotDriver {
       const elementToTest = element.replace(/^BOTIUM_/, '')
       if (sourcesToTest.includes(elementToTest)) {
         this._mergeCaps(this.sources, { [elementToTest]: process.env[element] })
-        debug('Changed source ' + elementToTest + ' to "' + this.sources[elementToTest] + '" using environment variables.')
       } else {
         this._mergeCaps(this.caps, { [elementToTest]: process.env[element] })
-        debug('Changed capability ' + elementToTest + ' to "' + this.caps[elementToTest] + '" using environment variables.')
       }
       if (element.startsWith('BOTIUM_ENV_')) {
         const envName = element.replace(/^BOTIUM_ENV_/, '')
         this.envs[envName] = process.env[element]
-        debug('Changed env ' + envName + ' to "' + process.env[element] + '" using environment variables.')
       }
     })
 
@@ -192,7 +190,6 @@ module.exports = class BotDriver {
         if (configJson.botium.Capabilities) this._mergeCaps(this.caps, configJson.botium.Capabilities)
         if (configJson.botium.Sources) this._mergeCaps(this.sources, configJson.botium.Sources)
         if (configJson.botium.Envs) this._mergeCaps(this.envs, configJson.botium.Envs)
-        debug(`Loaded Botium configuration file ${filename}`)
         return true
       } else {
         debug(`Botium configuration file ${filename} contains no botium configuration. Ignored.`)
