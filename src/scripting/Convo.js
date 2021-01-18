@@ -281,7 +281,7 @@ class Convo {
     const transcriptSteps = []
     try {
       let lastMeConvoStep = null
-      let saysmsg = null
+      let botMsg = null
       let waitForBotSays = true
       let skipTranscriptStep = false
       for (let i = 0; i < this.conversation.length; i++) {
@@ -312,6 +312,7 @@ class Convo {
             try {
               await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
               await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
+              await this.scriptingEvents.onMePrepare({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
 
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
               debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
@@ -356,7 +357,7 @@ class Convo {
             }
           } else if (convoStep.sender === 'bot') {
             if (waitForBotSays) {
-              saysmsg = null
+              botMsg = null
             } else {
               waitForBotSays = true
             }
@@ -365,13 +366,13 @@ class Convo {
               debug(`${this.header.name} wait for bot ${convoStep.channel || ''}`)
               await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript, transcriptStep })
               transcriptStep.botBegin = new Date()
-              if (!saysmsg) {
-                saysmsg = await container.WaitBotSays(convoStep.channel)
+              if (!botMsg) {
+                botMsg = await container.WaitBotSays(convoStep.channel)
               }
               transcriptStep.botEnd = new Date()
-              transcriptStep.actual = new BotiumMockMessage(saysmsg)
+              transcriptStep.actual = new BotiumMockMessage(botMsg)
 
-              const coreMsg = _.omit(removeBuffers(saysmsg), ['sourceData'])
+              const coreMsg = _.omit(removeBuffers(botMsg), ['sourceData'])
               debug(`${this.header.name}: bot says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
             } catch (err) {
               transcriptStep.botEnd = new Date()
@@ -385,7 +386,25 @@ class Convo {
               throw failErr
             }
 
-            if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData && !saysmsg.nlp)) {
+            try {
+              const prepared = await this.scriptingEvents.onBotPrepare({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
+              if (prepared) {
+                transcriptStep.actual = new BotiumMockMessage(botMsg)
+
+                const coreMsg = _.omit(removeBuffers(botMsg), ['sourceData'])
+                debug(`${this.header.name}: onBotPrepare (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
+              }
+            } catch (err) {
+              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBotPrepare error - ${err.message || err}`, err)
+              debug(failErr)
+              try {
+                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
+              } catch (failErr) {
+              }
+              throw failErr
+            }
+
+            if (!botMsg || (!botMsg.messageText && !botMsg.media && !botMsg.buttons && !botMsg.cards && !botMsg.sourceData && !botMsg.nlp)) {
               const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
               debug(failErr)
               try {
@@ -411,7 +430,7 @@ class Convo {
             const assertErrors = []
             const scriptingMemoryUpdate = {}
             if (convoStep.messageText) {
-              const response = this._checkNormalizeText(container, saysmsg.messageText)
+              const response = this._checkNormalizeText(container, botMsg.messageText)
               const messageText = this._checkNormalizeText(container, convoStep.messageText)
               ScriptingMemory.fill(container, scriptingMemoryUpdate, response, messageText, this.scriptingEvents)
               const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText)
@@ -434,7 +453,7 @@ class Convo {
               }
             } else if (convoStep.sourceData) {
               try {
-                this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
+                this._compareObject(container, scriptingMemory, convoStep, botMsg.sourceData, convoStep.sourceData)
               } catch (err) {
                 if (isErrorHandledWithOptionConvoStep(err)) {
                   continue
@@ -443,8 +462,8 @@ class Convo {
             }
             Object.assign(scriptingMemory, scriptingMemoryUpdate)
             try {
-              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript, transcriptStep })
-              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript, transcriptStep })
+              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
+              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
             } catch (err) {
               const nextConvoStep = this.conversation[i + 1]
               if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
