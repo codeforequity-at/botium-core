@@ -225,8 +225,10 @@ module.exports = class LogicHookUtils {
             CheckClass = CheckClass.default
           }
           if (tryLoadAsserterByName) {
-            if (CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
+            if (hookType === 'asserter' && CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
               CheckClass = CheckClass.PluginAsserters[tryLoadAsserterByName]
+            } else if (hookType === 'logichook' && CheckClass.PluginLogicHooks && CheckClass.PluginLogicHooks[tryLoadAsserterByName]) {
+              CheckClass = CheckClass.PluginLogicHooks[tryLoadAsserterByName]
             } else {
               throw new Error(`Loaded ${tryLoadPackageName}, but ${tryLoadAsserterByName} ${hookType} not found.`)
             }
@@ -251,8 +253,10 @@ module.exports = class LogicHookUtils {
           CheckClass = CheckClass.default
         }
         if (tryLoadAsserterByName) {
-          if (CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
+          if (hookType === 'asserter' && CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
             CheckClass = CheckClass.PluginAsserters[tryLoadAsserterByName]
+          } else if (hookType === 'logichook' && CheckClass.PluginLogicHooks && CheckClass.PluginLogicHooks[tryLoadAsserterByName]) {
+            CheckClass = CheckClass.PluginLogicHooks[tryLoadAsserterByName]
           } else {
             throw new Error(`Loaded ${tryLoadPackageName}, but ${tryLoadAsserterByName} ${hookType} not found.`)
           }
