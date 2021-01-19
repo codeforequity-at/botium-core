@@ -305,7 +305,7 @@ class Convo {
             continue
           } else if (convoStep.sender === 'me') {
             const meMsg = new BotiumMockMessage(convoStep)
-            meMsg.messageText = ScriptingMemory.apply(container, scriptingMemory, meMsg.messageText)
+            meMsg.messageText = ScriptingMemory.apply(container, scriptingMemory, meMsg.messageText, meMsg)
             convoStep.messageText = meMsg.messageText
             transcriptStep.actual = meMsg
 
@@ -433,7 +433,7 @@ class Convo {
               const response = this._checkNormalizeText(container, botMsg.messageText)
               const messageText = this._checkNormalizeText(container, convoStep.messageText)
               ScriptingMemory.fill(container, scriptingMemoryUpdate, response, messageText, this.scriptingEvents)
-              const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText)
+              const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText, botMsg)
               if (convoStep.not) {
                 try {
                   this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
@@ -453,7 +453,7 @@ class Convo {
               }
             } else if (convoStep.sourceData) {
               try {
-                this._compareObject(container, scriptingMemory, convoStep, botMsg.sourceData, convoStep.sourceData)
+                this._compareObject(container, scriptingMemory, convoStep, botMsg.sourceData, convoStep.sourceData, botMsg)
               } catch (err) {
                 if (isErrorHandledWithOptionConvoStep(err)) {
                   continue
@@ -530,7 +530,7 @@ class Convo {
     }
   }
 
-  _compareObject (container, scriptingMemory, convoStep, result, expected) {
+  _compareObject (container, scriptingMemory, convoStep, result, expected, botMsg) {
     if (expected === null || expected === undefined) return
 
     if (_.isArray(expected)) {
@@ -554,7 +554,7 @@ class Convo {
     } else {
       ScriptingMemory.fill(container, scriptingMemory, result, expected, this.scriptingEvents)
       const response = this._checkNormalizeText(container, result)
-      const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, expected)
+      const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, expected, botMsg)
       this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
     }
   }
@@ -580,10 +580,10 @@ class Convo {
     }, [])
   }
 
-  _resolveUtterancesToMatch (container, scriptingMemory, utterance) {
+  _resolveUtterancesToMatch (container, scriptingMemory, utterance, botMsg) {
     const utterances = this.scriptingEvents.resolveUtterance({ utterance })
     const normalizedUtterances = utterances.map(str => this._checkNormalizeText(container, str))
-    const tomatch = normalizedUtterances.map(str => ScriptingMemory.apply(container, scriptingMemory, str))
+    const tomatch = normalizedUtterances.map(str => ScriptingMemory.apply(container, scriptingMemory, str, botMsg))
     return tomatch
   }
 

@@ -828,6 +828,24 @@ describe('convo.scriptingMemory.api', function () {
       )
       assert.equal(result, 'botium')
     })
+    it('msg with messageText', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+        { },
+        '$msg($.messageText)',
+        { messageText: 'botium' }
+      )
+      assert.equal(result, 'botium')
+    })
+    it('msg with sourceData', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+        { },
+        '$msg($.sourceData.opt1)',
+        { messageText: 'botium', sourceData: { opt1: 'botium' } }
+      )
+      assert.equal(result, 'botium')
+    })
     it('projectname', async function () {
       const result = ScriptingMemory.apply(
         { caps: Object.assign({}, CAPS_ENABLE_SCRIPTING_MEMORY, { PROJECTNAME: 'botium' }) },

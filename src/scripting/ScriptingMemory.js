@@ -6,6 +6,7 @@ const moment = require('moment')
 const { NodeVM } = require('vm2')
 const _ = require('lodash')
 const path = require('path')
+const jp = require('jsonpath')
 
 const Capabilities = require('../Capabilities')
 const { quoteRegexpString, toString } = require('./helper')
@@ -141,6 +142,21 @@ const SCRIPTING_FUNCTIONS_RAW = {
     numberOfArguments: 1
   },
 
+  $msg: {
+    handler: (caps, jsonPath, mockMsg) => {
+      if (!jsonPath) {
+        throw Error('msg function used without jsonpath!')
+      }
+      if (!mockMsg) {
+        throw Error('msg function used at invalid position!')
+      }
+      const root = jp.query(mockMsg, jsonPath)
+      if (root && root.length > 0) return root[0]
+      else return ''
+    },
+    numberOfArguments: 1
+  },
+
   $func: {
     handler: (caps, code) => {
       if (code == null) {
@@ -195,23 +211,23 @@ const SCRIPTING_FUNCTIONS = _.mapValues(SCRIPTING_FUNCTIONS_RAW, (funcOrStruct, 
 })
 const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)
 
-const apply = (container, scriptingMemory, str) => {
+const apply = (container, scriptingMemory, str, mockMsg) => {
   if (container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
-    str = _apply(scriptingMemory, str, container.caps)
+    str = _apply(scriptingMemory, str, container.caps, mockMsg)
   }
   return str
 }
 
-const applyToArgs = (args, scriptingMemory, caps) => {
+const applyToArgs = (args, scriptingMemory, caps, mockMsg) => {
   return (args || []).map(arg => {
-    return _apply(scriptingMemory, arg, caps)
+    return _apply(scriptingMemory, arg, caps, mockMsg)
   })
 }
 
 // we have two replace longer variable first. if there is $year, and $years, $years should not be found by $year
 const _longestFirst = (a, b) => b.length - a.length
 
-const _apply = (scriptingMemory, str, caps) => {
+const _apply = (scriptingMemory, str, caps, mockMsg) => {
   if (str) {
     scriptingMemory = scriptingMemory || {}
     str = toString(str)
@@ -230,7 +246,7 @@ const _apply = (scriptingMemory, str, caps) => {
         for (const match of matches) {
           if (match.indexOf('(') > 0) {
             const arg = match.substring(match.indexOf('(') + 1, match.lastIndexOf(')')).replace(/\\\)/g, ')')
-            str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps, arg))
+            str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps, arg, mockMsg))
           } else {
             str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps))
           }
