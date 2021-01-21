@@ -105,7 +105,7 @@ module.exports = class CompilerMarkdown extends CompilerBase {
       } else if (convosOrUtterances.content === 'Utterances' && scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
         const utterancesBotium = []
         for (const utteranceStruct of convosOrUtterances.children) {
-          utterancesBotium.push(new Utterance({ name: utteranceStruct.content, utterances: utteranceStruct.children.map(child => child.content) }))
+          utterancesBotium.push(new Utterance({ name: utteranceStruct.content, utterances: utteranceStruct.children.map(child => `${child.content}`) }))
         }
         this.context.AddUtterances(utterancesBotium)
       }

@@ -266,11 +266,11 @@ module.exports = class CompilerXlsx extends CompilerBase {
           const uttCell = this.colnames[colindex + 1] + rowindex
 
           if (sheet[nameCell] && sheet[nameCell].v && sheet[uttCell] && sheet[uttCell].v) {
-            currentUtterance = new Utterance({ name: sheet[nameCell].v, utterances: [sheet[uttCell].v] })
+            currentUtterance = new Utterance({ name: sheet[nameCell].v, utterances: [`${sheet[uttCell].v}`] })
             scriptResults.push(currentUtterance)
             emptylines = 0
           } else if (sheet[uttCell] && sheet[uttCell].v) {
-            if (currentUtterance) currentUtterance.utterances.push(sheet[uttCell].v)
+            if (currentUtterance) currentUtterance.utterances.push(`${sheet[uttCell].v}`)
             emptylines = 0
           } else {
             currentUtterance = null
