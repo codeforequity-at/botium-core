@@ -16,8 +16,8 @@ module.exports = class DummyAsserter {
     return Promise.resolve()
   }
 
-  assertConvoEnd ({convo, container, msgs, args}) {
-    console.log(`ConvoEnd dummy assertion with those args: ${utils.inspect(args)}, converstation: ${utils.inspect(msgs)} ...`)
+  assertConvoEnd ({convo, container, transcript, args}) {
+    console.log(`ConvoEnd dummy assertion with those args: ${utils.inspect(args)}, transcript: ${utils.inspect(transcript)} ...`)
     return Promise.resolve()
   }
 }

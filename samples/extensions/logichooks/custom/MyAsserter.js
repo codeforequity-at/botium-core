@@ -16,8 +16,8 @@ module.exports = class MyAsserter {
     return Promise.resolve()
   }
 
-  assertConvoEnd ({convo, container, msgs, args}) {
-    console.log(`MyAsserter assertConvoEnd ${convo.header.name}, converstation: ${utils.inspect(msgs)} ...`)
+  assertConvoEnd ({convo, container, transcript, args}) {
+    console.log(`MyAsserter assertConvoEnd ${convo.header.name}, transcript: ${utils.inspect(transcript)} ...`)
     return Promise.resolve()
   }
 }

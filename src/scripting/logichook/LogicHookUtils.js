@@ -1,4 +1,3 @@
-const util = require('util')
 const { NodeVM } = require('vm2')
 const path = require('path')
 const fs = require('fs')
@@ -45,22 +44,18 @@ module.exports = class LogicHookUtils {
     DEFAULT_ASSERTERS.forEach((asserter) => {
       this.asserters[asserter.name] = new (asserter.Class)(this.buildScriptContext, this.caps)
     })
-
-    debug(`Loaded Default asserter - ${util.inspect(Object.keys(this.asserters))}`)
   }
 
   _setDefaultLogicHooks () {
     DEFAULT_LOGIC_HOOKS.forEach((lh) => {
       this.logicHooks[lh.name] = new (lh.Class)(this.buildScriptContext, this.caps)
     })
-    debug(`Loaded Default logic hook - ${util.inspect(Object.keys(this.logicHooks))}`)
   }
 
   _setDefaultUserInputs () {
     DEFAULT_USER_INPUTS.forEach((ui) => {
       this.userInputs[ui.name] = new (ui.Class)(this.buildScriptContext, this.caps)
     })
-    debug(`Loaded Default user input - ${util.inspect(Object.keys(this.userInputs))}`)
   }
 
   _fetchAsserters () {
@@ -72,7 +67,6 @@ module.exports = class LogicHookUtils {
         this.asserters[asserter.ref] = this._loadClass(asserter, 'asserter')
         if (asserter.global) {
           this.globalAsserters.push(asserter.ref)
-          debug(`global asserter: ${asserter.ref} was set and will be executed in every convo`)
         }
       })
   }
@@ -84,10 +78,8 @@ module.exports = class LogicHookUtils {
           debug(`${logicHook.ref} logic hook already exists, overwriting.`)
         }
         this.logicHooks[logicHook.ref] = this._loadClass(logicHook, 'logichook')
-        debug(`Loaded ${logicHook.ref} SUCCESSFULLY`)
         if (logicHook.global) {
           this.globalLogicHooks.push(logicHook.ref)
-          debug(`global logic hook: ${logicHook.ref} was set and will be executed in every convo`)
         }
       })
   }
@@ -99,7 +91,6 @@ module.exports = class LogicHookUtils {
           debug(`${userInput.ref} userinput already exists, overwriting.`)
         }
         this.userInputs[userInput.ref] = this._loadClass(userInput, 'userinput')
-        debug(`Loaded ${userInput.ref} SUCCESSFULLY`)
       })
   }
 
@@ -122,21 +113,18 @@ module.exports = class LogicHookUtils {
     if (hookType === 'asserter') {
       const asserter = DEFAULT_ASSERTERS.find(asserter => src === asserter.className)
       if (asserter) {
-        debug(`Loading ${ref} ${hookType}. Using default asserter ${asserter.className} as global asserter`)
         return new (asserter.Class)({ ref, ...this.buildScriptContext }, this.caps, args)
       }
     }
     if (hookType === 'logichook') {
       const lh = DEFAULT_LOGIC_HOOKS.find(lh => src === lh.className)
       if (lh) {
-        debug(`Loading ${ref} ${hookType}. Using default logichook ${lh.className} as global logichook`)
         return new (lh.Class)({ ref, ...this.buildScriptContext }, this.caps, args)
       }
     }
     if (hookType === 'userinput') {
       const ui = DEFAULT_USER_INPUTS.find(ui => src === ui.className)
       if (ui) {
-        debug(`Loading ${ref} ${hookType}. Using default userinput ${ui.className} as global userinput`)
         return new (ui.Class)({ ref, ...this.buildScriptContext }, this.caps, args)
       }
     }
@@ -160,39 +148,32 @@ module.exports = class LogicHookUtils {
       try {
         const CheckClass = require(packageName)
         if (isClass(CheckClass)) {
-          debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as class. Guessed package name.`)
           return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else if (_.isFunction(CheckClass)) {
-          debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as function. Guessed package name.`)
           return CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else if (isClass(CheckClass.PluginClass)) {
-          debug(`Loading ${ref} ${hookType}. Loading from ${packageName} as class using PluginClass. Guessed package name.`)
           return new CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else {
           throw new Error(`${packageName} class or function or PluginClass field expected`)
         }
       } catch (err) {
-        throw new Error(`Failed to fetch package ${packageName} - ${util.inspect(err)}`)
+        throw new Error(`Failed to fetch hook ${ref} ${hookType} from guessed package ${packageName} - ${err.message}`)
       }
     }
 
     if (isClass(src)) {
-      _checkUnsafe()
       try {
         const CheckClass = src
-        debug(`Loading ${ref} ${hookType}. Using src as class.`)
         return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
       } catch (err) {
-        throw new Error(`Failed to load package ${ref} from provided class - ${util.inspect(err)}`)
+        throw new Error(`Failed to load package ${ref} from provided class - ${err.message}`)
       }
     }
     if (_.isFunction(src)) {
-      _checkUnsafe()
       try {
-        debug(`Loading ${ref} ${hookType}. Using src as function.`)
         return src({ ref, ...this.buildScriptContext }, this.caps, args)
       } catch (err) {
-        throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
+        throw new Error(`Failed to load package ${ref} from provided function - ${err.message}`)
       }
     }
     if (_.isObject(src) && !_.isString(src)) {
@@ -201,7 +182,6 @@ module.exports = class LogicHookUtils {
           result[key] = (args) => {
             const script = src[key]
             if (_.isFunction(script)) {
-              _checkUnsafe()
               return script(args)
             } else if (_.isString(script)) {
               try {
@@ -212,7 +192,7 @@ module.exports = class LogicHookUtils {
                 })
                 return vm.run(script)
               } catch (err) {
-                throw new Error(`Script "${key}" is not valid - ${util.inspect(err)}`)
+                throw new Error(`${err.message || err}`)
               }
             } else {
               throw new Error(`Script "${key}" is not valid - only functions and javascript code accepted`)
@@ -220,62 +200,82 @@ module.exports = class LogicHookUtils {
           }
           return result
         }, {})
-        debug(`Loading ${ref} ${hookType}. Using src as function code.`)
         return hookObject
       } catch (err) {
-        throw new Error(`Failed to load package ${ref} from provided function - ${util.inspect(err)}`)
+        throw new Error(`Failed to load package ${ref} ${hookType} from provided src function - ${err.message}`)
       }
     }
 
-    const loadErr = []
+    if (_.isString(src)) {
+      const loadErr = []
 
-    const tryLoadPackage = src
-    try {
-      let CheckClass = require(tryLoadPackage)
-      if (CheckClass.default) {
-        CheckClass = CheckClass.default
+      let tryLoadPackageName = src
+      let tryLoadAsserterByName = null
+      if (src.indexOf('/') >= 0) {
+        tryLoadPackageName = src.substr(0, src.lastIndexOf('/'))
+        tryLoadAsserterByName = src.substr(src.lastIndexOf('/') + 1)
       }
-      if (isClass(CheckClass)) {
-        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class`)
-        return new CheckClass(this.buildScriptContext, this.caps, args)
-      } else if (_.isFunction(CheckClass)) {
-        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class`)
-        return CheckClass(this.buildScriptContext, this.caps, args)
-      } else if (isClass(CheckClass.PluginClass)) {
-        debug(`Loading ${ref} ${hookType}. Using src for require. Loading from ${tryLoadPackage} as class using PluginClass.`)
-        return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
-      } else {
-        throw new Error(`${tryLoadPackage} class or function expected`)
-      }
-    } catch (err) {
-      loadErr.push(`Failed to fetch ${ref} ${hookType} from ${tryLoadPackage} - ${util.inspect(err)}`)
-    }
 
-    const tryLoadFile = path.resolve(process.cwd(), src)
-    if (fs.existsSync(tryLoadFile)) {
-      _checkUnsafe()
+      const tryLoadFile = path.resolve(process.cwd(), tryLoadPackageName)
+      if (fs.existsSync(tryLoadFile)) {
+        _checkUnsafe()
+        try {
+          let CheckClass = require(tryLoadFile)
+          if (CheckClass.default) {
+            CheckClass = CheckClass.default
+          }
+          if (tryLoadAsserterByName) {
+            if (hookType === 'asserter' && CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
+              CheckClass = CheckClass.PluginAsserters[tryLoadAsserterByName]
+            } else if (hookType === 'logichook' && CheckClass.PluginLogicHooks && CheckClass.PluginLogicHooks[tryLoadAsserterByName]) {
+              CheckClass = CheckClass.PluginLogicHooks[tryLoadAsserterByName]
+            } else {
+              throw new Error(`Loaded ${tryLoadPackageName}, but ${tryLoadAsserterByName} ${hookType} not found.`)
+            }
+          }
+          if (isClass(CheckClass)) {
+            return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          } else if (_.isFunction(CheckClass)) {
+            return CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          } else if (isClass(CheckClass.PluginClass)) {
+            return new CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          } else {
+            throw new Error(`${src} class or function expected`)
+          }
+        } catch (err) {
+          loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
+        }
+      }
+
       try {
-        let CheckClass = require(tryLoadFile)
+        let CheckClass = require(tryLoadPackageName)
         if (CheckClass.default) {
           CheckClass = CheckClass.default
         }
+        if (tryLoadAsserterByName) {
+          if (hookType === 'asserter' && CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
+            CheckClass = CheckClass.PluginAsserters[tryLoadAsserterByName]
+          } else if (hookType === 'logichook' && CheckClass.PluginLogicHooks && CheckClass.PluginLogicHooks[tryLoadAsserterByName]) {
+            CheckClass = CheckClass.PluginLogicHooks[tryLoadAsserterByName]
+          } else {
+            throw new Error(`Loaded ${tryLoadPackageName}, but ${tryLoadAsserterByName} ${hookType} not found.`)
+          }
+        }
         if (isClass(CheckClass)) {
-          debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class`)
-          return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          return new CheckClass(this.buildScriptContext, this.caps, args)
         } else if (_.isFunction(CheckClass)) {
-          debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a function. Loading from ${tryLoadFile} as class`)
-          return CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          return CheckClass(this.buildScriptContext, this.caps, args)
         } else if (isClass(CheckClass.PluginClass)) {
-          debug(`Loading ${ref} ${hookType}. Using src as relative path to module with a class. Loading from ${tryLoadFile} as class using PluginClass`)
-          return new CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
+          return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
         } else {
-          throw new Error(`${tryLoadFile} class or function expected`)
+          throw new Error(`${src} class or function expected`)
         }
       } catch (err) {
-        loadErr.push(`Failed to fetch ${ref} ${hookType} from ${tryLoadFile} - ${util.inspect(err)} `)
+        loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message}`)
       }
+
+      loadErr.forEach(debug)
     }
-    loadErr.forEach(debug)
     throw new Error(`Failed to fetch ${ref} ${hookType}, no idea how to load ...`)
   }
 }

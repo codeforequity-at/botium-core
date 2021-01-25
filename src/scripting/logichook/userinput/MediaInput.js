@@ -26,6 +26,8 @@ module.exports = class MediaInput {
         throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
       }
       return new url.URL(uri, `file://${basePath}/`)
+    } else if (uri.startsWith('http://') || uri.startsWith('https://')) {
+      return new url.URL(uri)
     }
     if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
       throw new BotiumError(
@@ -114,7 +116,7 @@ module.exports = class MediaInput {
     const hasWildcard = args.findIndex(a => this._isWildcard(a)) >= 0
 
     if (args && (args.length > 1 || hasWildcard)) {
-      const baseDir = this._getBaseDir(convo.sourceTag.convoDir)
+      const baseDir = this._getBaseDir(convo.sourceTag ? convo.sourceTag.convoDir : null)
       return args.reduce((e, arg) => {
         if (this._isWildcard(arg)) {
           const mediaFiles = globby.sync(arg, { cwd: baseDir, gitignore: true })

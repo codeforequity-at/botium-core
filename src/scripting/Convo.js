@@ -268,7 +268,8 @@ class Convo {
       try {
         await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
-        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
+        transcript.err = botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err)
+        throw new TranscriptError(transcript.err, transcript)
       }
       return transcript
     } finally {
@@ -280,7 +281,7 @@ class Convo {
     const transcriptSteps = []
     try {
       let lastMeConvoStep = null
-      let saysmsg = null
+      let botMsg = null
       let waitForBotSays = true
       let skipTranscriptStep = false
       for (let i = 0; i < this.conversation.length; i++) {
@@ -304,13 +305,14 @@ class Convo {
             continue
           } else if (convoStep.sender === 'me') {
             const meMsg = new BotiumMockMessage(convoStep)
-            meMsg.messageText = ScriptingMemory.apply(container, scriptingMemory, meMsg.messageText)
+            meMsg.messageText = ScriptingMemory.apply(container, scriptingMemory, meMsg.messageText, meMsg)
             convoStep.messageText = meMsg.messageText
             transcriptStep.actual = meMsg
 
             try {
-              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
-              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
+              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
+              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
+              await this.scriptingEvents.onMePrepare({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
 
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
               debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
@@ -324,8 +326,6 @@ class Convo {
               lastMeConvoStep = convoStep
               transcriptStep.botBegin = new Date()
               if (!_.isNull(meMsg.messageText) || meMsg.sourceData || (meMsg.userInputs && meMsg.userInputs.length)) {
-                transcriptStep.botBegin = new Date()
-
                 try {
                   Object.assign(meMsg, { header: this.header, conversation: this.conversation, currentStepIndex, scriptingMemory })
                   await container.UserSays(meMsg)
@@ -336,12 +336,12 @@ class Convo {
                 }
 
                 transcriptStep.botEnd = new Date()
-                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
                 continue
               } else {
                 debug(`${this.header.name}/${convoStep.stepTag}: message not found in #me section, message not sent to container ${util.inspect(convoStep)}`)
                 transcriptStep.botEnd = new Date()
-                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript: [...transcriptSteps] })
+                await this.scriptingEvents.onMeEnd({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
                 continue
               }
             } catch (err) {
@@ -357,22 +357,22 @@ class Convo {
             }
           } else if (convoStep.sender === 'bot') {
             if (waitForBotSays) {
-              saysmsg = null
+              botMsg = null
             } else {
               waitForBotSays = true
             }
 
             try {
               debug(`${this.header.name} wait for bot ${convoStep.channel || ''}`)
-              await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript: [...transcriptSteps] })
+              await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript, transcriptStep })
               transcriptStep.botBegin = new Date()
-              if (!saysmsg) {
-                saysmsg = await container.WaitBotSays(convoStep.channel)
+              if (!botMsg) {
+                botMsg = await container.WaitBotSays(convoStep.channel)
               }
               transcriptStep.botEnd = new Date()
-              transcriptStep.actual = new BotiumMockMessage(saysmsg)
+              transcriptStep.actual = new BotiumMockMessage(botMsg)
 
-              const coreMsg = _.omit(removeBuffers(saysmsg), ['sourceData'])
+              const coreMsg = _.omit(removeBuffers(botMsg), ['sourceData'])
               debug(`${this.header.name}: bot says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
             } catch (err) {
               transcriptStep.botEnd = new Date()
@@ -386,7 +386,25 @@ class Convo {
               throw failErr
             }
 
-            if (!saysmsg || (!saysmsg.messageText && !saysmsg.media && !saysmsg.buttons && !saysmsg.cards && !saysmsg.sourceData && !saysmsg.nlp)) {
+            try {
+              const prepared = await this.scriptingEvents.onBotPrepare({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
+              if (prepared) {
+                transcriptStep.actual = new BotiumMockMessage(botMsg)
+
+                const coreMsg = _.omit(removeBuffers(botMsg), ['sourceData'])
+                debug(`${this.header.name}: onBotPrepare (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
+              }
+            } catch (err) {
+              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBotPrepare error - ${err.message || err}`, err)
+              debug(failErr)
+              try {
+                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
+              } catch (failErr) {
+              }
+              throw failErr
+            }
+
+            if (!botMsg || (!botMsg.messageText && !botMsg.media && !botMsg.buttons && !botMsg.cards && !botMsg.sourceData && !botMsg.nlp)) {
               const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
               debug(failErr)
               try {
@@ -412,10 +430,10 @@ class Convo {
             const assertErrors = []
             const scriptingMemoryUpdate = {}
             if (convoStep.messageText) {
-              const response = this._checkNormalizeText(container, saysmsg.messageText)
+              const response = this._checkNormalizeText(container, botMsg.messageText)
               const messageText = this._checkNormalizeText(container, convoStep.messageText)
               ScriptingMemory.fill(container, scriptingMemoryUpdate, response, messageText, this.scriptingEvents)
-              const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText)
+              const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText, botMsg)
               if (convoStep.not) {
                 try {
                   this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
@@ -435,7 +453,7 @@ class Convo {
               }
             } else if (convoStep.sourceData) {
               try {
-                this._compareObject(container, scriptingMemory, convoStep, saysmsg.sourceData, convoStep.sourceData)
+                this._compareObject(container, scriptingMemory, convoStep, botMsg.sourceData, convoStep.sourceData, botMsg)
               } catch (err) {
                 if (isErrorHandledWithOptionConvoStep(err)) {
                   continue
@@ -444,8 +462,8 @@ class Convo {
             }
             Object.assign(scriptingMemory, scriptingMemoryUpdate)
             try {
-              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps] })
-              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg: saysmsg, transcript: [...transcriptSteps] })
+              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
+              await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
             } catch (err) {
               const nextConvoStep = this.conversation[i + 1]
               if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
@@ -512,7 +530,7 @@ class Convo {
     }
   }
 
-  _compareObject (container, scriptingMemory, convoStep, result, expected) {
+  _compareObject (container, scriptingMemory, convoStep, result, expected, botMsg) {
     if (expected === null || expected === undefined) return
 
     if (_.isArray(expected)) {
@@ -536,7 +554,7 @@ class Convo {
     } else {
       ScriptingMemory.fill(container, scriptingMemory, result, expected, this.scriptingEvents)
       const response = this._checkNormalizeText(container, result)
-      const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, expected)
+      const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, expected, botMsg)
       this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
     }
   }
@@ -562,10 +580,10 @@ class Convo {
     }, [])
   }
 
-  _resolveUtterancesToMatch (container, scriptingMemory, utterance) {
+  _resolveUtterancesToMatch (container, scriptingMemory, utterance, botMsg) {
     const utterances = this.scriptingEvents.resolveUtterance({ utterance })
     const normalizedUtterances = utterances.map(str => this._checkNormalizeText(container, str))
-    const tomatch = normalizedUtterances.map(str => ScriptingMemory.apply(container, scriptingMemory, str))
+    const tomatch = normalizedUtterances.map(str => ScriptingMemory.apply(container, scriptingMemory, str, botMsg))
     return tomatch
   }
 

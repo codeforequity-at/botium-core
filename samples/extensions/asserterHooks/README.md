@@ -24,7 +24,7 @@ module.exports = class CustomAsserter {
     return Promise.resolve()
   }
 
-  assertConvoEnd ({convo, container, msgs, args}) {
+  assertConvoEnd ({convo, container, transcript, args}) {
     return Promise.resolve()
   }
 }

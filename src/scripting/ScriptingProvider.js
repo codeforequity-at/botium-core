@@ -97,11 +97,17 @@ module.exports = class ScriptingProvider {
       onMeStart: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createLogicHookPromises({ hookType: 'onMeStart', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
+      onMePrepare: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onMePrepare', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
+      },
       onMeEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createLogicHookPromises({ hookType: 'onMeEnd', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
       onBotStart: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createLogicHookPromises({ hookType: 'onBotStart', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
+      },
+      onBotPrepare: ({ convo, convoStep, scriptingMemory, ...rest }) => {
+        return this._createLogicHookPromises({ hookType: 'onBotPrepare', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
       onBotEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createLogicHookPromises({ hookType: 'onBotEnd', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
@@ -243,7 +249,7 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, this.caps),
+        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, this.caps, rest.botMsg),
         isGlobal: false,
         ...rest
       }))
@@ -261,11 +267,12 @@ module.exports = class ScriptingProvider {
         return results.filter(result => result.status === 'fulfilled').map(result => result.value)
       })
     }
-    return Promise.all(allPromises)
+    if (allPromises.length > 0) return Promise.all(allPromises).then(() => true)
+    return Promise.resolve(false)
   }
 
   _createLogicHookPromises ({ hookType, logicHooks, convo, convoStep, scriptingMemory, ...rest }) {
-    if (hookType !== 'onMeStart' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' && hookType !== 'onBotEnd' &&
+    if (hookType !== 'onMeStart' && hookType !== 'onMePrepare' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' && hookType !== 'onBotPrepare' && hookType !== 'onBotEnd' &&
       hookType !== 'onConvoBegin' && hookType !== 'onConvoEnd'
     ) {
       throw Error(`Unknown hookType ${hookType}`)
@@ -277,7 +284,7 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory, this.caps),
+        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory, this.caps, rest.botMsg),
         isGlobal: false,
         ...rest
       })))
@@ -287,7 +294,8 @@ module.exports = class ScriptingProvider {
       .map(l => p(this.retryHelperLogicHook, () => l[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
-    return Promise.all(allPromises)
+    if (allPromises.length > 0) return Promise.all(allPromises).then(() => true)
+    return Promise.resolve(false)
   }
 
   _createUserInputPromises ({ convo, convoStep, scriptingMemory, ...rest }) {
@@ -297,11 +305,12 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory, this.caps),
+        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory, this.caps, rest.meMsg),
         ...rest
       })))
 
-    return Promise.all(convoStepPromises)
+    if (convoStepPromises.length > 0) return Promise.all(convoStepPromises).then(() => true)
+    return Promise.resolve(false)
   }
 
   _isValidAsserterType (asserterType) {
@@ -329,8 +338,10 @@ module.exports = class ScriptingProvider {
         onConvoBegin: this.scriptingEvents.onConvoBegin.bind(this),
         onConvoEnd: this.scriptingEvents.onConvoEnd.bind(this),
         onMeStart: this.scriptingEvents.onMeStart.bind(this),
+        onMePrepare: this.scriptingEvents.onMePrepare.bind(this),
         onMeEnd: this.scriptingEvents.onMeEnd.bind(this),
         onBotStart: this.scriptingEvents.onBotStart.bind(this),
+        onBotPrepare: this.scriptingEvents.onBotPrepare.bind(this),
         onBotEnd: this.scriptingEvents.onBotEnd.bind(this),
         setUserInput: this.scriptingEvents.setUserInput.bind(this),
         fail: this.scriptingEvents.fail && this.scriptingEvents.fail.bind(this)
@@ -358,7 +369,6 @@ module.exports = class ScriptingProvider {
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN] = new CompilerMarkdown(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN].Validate()
 
-    debug('Using matching mode: ' + this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
     if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
       this.matchFn = MatchFunctions.regexp(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
     } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase') {

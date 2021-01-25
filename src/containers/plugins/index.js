@@ -79,7 +79,6 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
     return pluginInstance
   }
   if (_.isFunction(pluginLoaderSpec)) {
-    _checkUnsafe(args.caps, 'Function call', { modulepath, containermode })
     const pluginInstance = pluginLoaderSpec(args)
     debug('Botium plugin loaded from function call')
     return pluginInstance

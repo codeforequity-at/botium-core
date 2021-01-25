@@ -26,7 +26,7 @@ const buildDriver = async (mergeCaps) => {
 }
 
 describe('logichooks.textfromhook', function () {
-  it('should use text from logic hook', async function () {
+  it('should use text from onMeStart logic hook', async function () {
     const { compiler, container } = await buildDriver({
       [Capabilities.LOGIC_HOOKS]: [{
         ref: 'SET_TEXT_FROM_HOOK',
@@ -42,5 +42,20 @@ describe('logichooks.textfromhook', function () {
     const transcript = await compiler.convos[0].Run(container)
     assert.lengthOf(transcript.steps, 2)
     assert.equal(transcript.steps[0].actual.testAttribute, 'val1')
+  })
+  it('should use text from onBotPrepare logic hook', async function () {
+    const { compiler, container } = await buildDriver({
+      [Capabilities.LOGIC_HOOKS]: [{
+        ref: 'SET_TEXT_FROM_HOOK',
+        src: {
+          onBotPrepare: ({ botMsg, args }) => {
+            botMsg.messageText = args[0]
+          }
+        }
+      }]
+    })
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'TEXTFROMBOTHOOK.convo.txt')
+    const transcript = await compiler.convos[0].Run(container)
+    assert.lengthOf(transcript.steps, 2)
   })
 })

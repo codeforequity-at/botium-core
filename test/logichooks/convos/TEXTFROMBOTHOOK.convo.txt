@@ -1,0 +1,8 @@
+TEXTFROMBOTHOOK
+
+#me
+this is text from convo
+
+#bot
+SET_TEXT_FROM_HOOK this is text from hook
+this is text from hook

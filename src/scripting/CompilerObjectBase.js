@@ -95,7 +95,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
     const result = []
     const names = Object.keys(utterancesRaw || {})
     for (const name of names) {
-      result.push(new Utterance({ name, utterances: utterancesRaw[name] }))
+      result.push(new Utterance({ name, utterances: (utterancesRaw[name] || []).map(u => `${u}`) }))
     }
     this.context.AddUtterances(result)
     return result
