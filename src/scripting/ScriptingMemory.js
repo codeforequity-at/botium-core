@@ -241,7 +241,7 @@ const _apply = (scriptingMemory, str, caps, mockMsg) => {
         const keyRegexp = new RegExp(`\\${key}`, 'g')
         str = str.replace(keyRegexp, scriptingMemory[key])
       } else {
-        const regex = `\\${key}(\\(.+(?<!\\\\)\\))?`
+        const regex = `\\${key}(\\(.+?(?<!\\\\)\\))?`
         const matches = str.match(new RegExp(regex, 'g')) || []
         for (const match of matches) {
           if (match.indexOf('(') > 0) {
