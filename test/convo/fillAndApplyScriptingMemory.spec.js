@@ -845,7 +845,7 @@ describe('convo.scriptingMemory.api', function () {
         { messageText: 'botium' }
       )
       assert.equal(result, 'botium botium')
-    })    
+    })
     it('msg with sourceData', async function () {
       const result = ScriptingMemory.apply(
         { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
