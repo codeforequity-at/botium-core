@@ -837,6 +837,15 @@ describe('convo.scriptingMemory.api', function () {
       )
       assert.equal(result, 'botium')
     })
+    it('msg with messageText twice', async function () {
+      const result = ScriptingMemory.apply(
+        { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+        { },
+        '$msg($.messageText) $msg($.messageText)',
+        { messageText: 'botium' }
+      )
+      assert.equal(result, 'botium botium')
+    })
     it('msg with sourceData', async function () {
       const result = ScriptingMemory.apply(
         { caps: CAPS_ENABLE_SCRIPTING_MEMORY },

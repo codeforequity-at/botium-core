@@ -11,7 +11,7 @@ class BotiumMockMedia {
 
   prettify (indent = 0) {
     const sections = []
-    if (this.mediaUri) sections.push(this.mediaUri)
+    if (this.mediaUri) sections.push(_.truncate(this.mediaUri, { length: 200 }))
     if (this.mimeType) sections.push(this.mimeType)
     if (this.altText) sections.push(this.altText)
     return `${' '.repeat(indent)}MEDIA(${sections.join(' | ')})`
@@ -29,7 +29,7 @@ class BotiumMockButton {
     const sections = []
     if (this.text) sections.push(this.text)
     if (this.payload) sections.push(_.isObject(this.payload) ? JSON.stringify(this.payload) : this.payload)
-    if (this.imageUri) sections.push(this.imageUri)
+    if (this.imageUri) sections.push(_.truncate(this.imageUri, { length: 200 }))
     return `${' '.repeat(indent)}BUTTON(${sections.join(' | ')})`
   }
 }
