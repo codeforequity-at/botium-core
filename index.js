@@ -9,7 +9,8 @@ module.exports = {
   ScriptingMemory: require('./src/scripting/ScriptingMemory'),
   HookUtils: require('./src/helpers/HookUtils'),
   Lib: {
-    tryLoadPlugin: require('./src/containers/plugins/index').tryLoadPlugin
+    tryLoadPlugin: require('./src/containers/plugins/index').tryLoadPlugin,
+    SimpleRestContainer: require('./src/containers/plugins/SimpleRestContainer')
   },
   BotiumMockRichMessageTypes: require('./src/mocks/BotiumMockRichMessageTypes')
 }

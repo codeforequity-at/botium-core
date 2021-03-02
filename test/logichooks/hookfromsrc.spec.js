@@ -98,4 +98,14 @@ describe('logichooks.hookfromconnector', function () {
     compiler.ReadScript(path.resolve(__dirname, 'convos'), 'HOOKFROMSRC.convo.txt')
     await compiler.convos[0].Run(container)
   })
+  it('should succeed with asserter from asserter module file', async function () {
+    const { compiler, container } = await buildDriverFromFile({
+      [Capabilities.ASSERTERS]: [{
+        ref: 'CUSTOMASSERTER',
+        src: path.join(__dirname, 'botium-asserter-fromfile.js')
+      }]
+    })
+    compiler.ReadScript(path.resolve(__dirname, 'convos'), 'HOOKFROMSRC.convo.txt')
+    await compiler.convos[0].Run(container)
+  })
 })
