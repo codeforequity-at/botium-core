@@ -25,6 +25,40 @@ describe('scripting.asserters.jsonPathAsserter', function () {
       }
     })
   })
+  it('should succeed on any existing jsonpath', async function () {
+    await this.jsonPathAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['$.messages[*].label', 'message3'],
+      botMsg: {
+        sourceData: {
+          messages: [
+            { label: 'message1' },
+            { label: 'message2' },
+            { label: 'message3' }
+          ]
+        }
+      }
+    })
+  })
+  it('should fail on not any existing jsonpath', async function () {
+    try {
+      await this.jsonPathAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['$.messages[*].label', 'message4'],
+        botMsg: {
+          sourceData: {
+            messages: [
+              { label: 'message1' },
+              { label: 'message2' },
+              { label: 'message3' }
+            ]
+          }
+        }
+      })
+    } catch (err) {
+      assert.isTrue(err.message.includes('Expected: message4 in jsonPath $.messages[*].label: Actual: message1,message2,message3'))
+    }
+  })
   it('should fail on not existing jsonpath', async function () {
     try {
       await this.jsonPathAsserter.assertConvoStep({
