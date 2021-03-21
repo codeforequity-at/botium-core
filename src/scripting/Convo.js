@@ -222,16 +222,6 @@ class Convo {
     container.caps[Capabilities.TESTCASENAME] = this.header.name
     try {
       try {
-        const effectiveConversation = this._getEffectiveConversation()
-        this.originConversation = this.conversation
-        this.conversation = effectiveConversation
-      } catch (err) {
-        transcript.err = err
-        transcript.scriptingMemory = scriptingMemory
-        transcript.convoEnd = new Date()
-        throw new TranscriptError(err, transcript)
-      }
-      try {
         // onConvoBegin first or assertConvoBegin? If onConvoBegin, then it is possible to assert it too
         await this.scriptingEvents.onConvoBegin({ convo: this, container, transcript, scriptingMemory })
       } catch (err) {
@@ -591,11 +581,7 @@ class Convo {
     return normalizeText(str, !!container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT])
   }
 
-  _getEffectiveConversation () {
-    if (this.effectiveConversation) {
-      return this.effectiveConversation
-    }
-
+  expandPartialConvos () {
     const _getIncludeLogicHookNames = (convoStep) => {
       if (!convoStep.logicHooks) {
         return []
@@ -614,14 +600,18 @@ class Convo {
       return result.map((hook) => hook.args[0])
     }
 
-    const _getEffectiveConversationRecursive = (conversation, parentPConvos = [], result = []) => {
+    const partialConvos = this.context.GetPartialConvos()
+
+    const _getEffectiveConversationRecursive = (conversation, parentPConvos = [], result = [], ignoreBeginEnd = true) => {
       conversation.forEach((convoStep) => {
         const includeLogicHooks = _getIncludeLogicHookNames(convoStep)
 
         if (includeLogicHooks.length === 0 || convoStep.hasInteraction()) {
-          // dont put convo name for ConvoSteps on the root.
-          const steptagPath = parentPConvos.length === 0 ? '' : parentPConvos.join('/') + '/'
-          result.push(Object.assign(new ConvoStep(), convoStep, { stepTag: `${steptagPath}${convoStep.stepTag}` }))
+          if (!ignoreBeginEnd || (convoStep.sender !== 'begin' && convoStep.sender !== 'end')) {
+            // dont put convo name for ConvoSteps on the root.
+            const steptagPath = parentPConvos.length === 0 ? '' : parentPConvos.join('/') + '/'
+            result.push(Object.assign(new ConvoStep(), convoStep, { stepTag: `${steptagPath}${convoStep.stepTag}` }))
+          }
         }
 
         includeLogicHooks.forEach((includeLogicHook) => {
@@ -629,7 +619,6 @@ class Convo {
           if (alreadyThereAt >= 0) {
             throw new BotiumError(`Partial convos are included circular. "${includeLogicHook}" is referenced by "/${parentPConvos.slice(0, alreadyThereAt).join('/')}" and by "/${parentPConvos.join('/')}" `)
           }
-          const partialConvos = this.context.GetPartialConvos()
           if (!partialConvos || Object.keys(partialConvos).length === 0) {
             throw new BotiumError(`Cant find partial convo with name ${includeLogicHook} (There are no partial convos)`)
           }
@@ -637,8 +626,7 @@ class Convo {
           if (!partialConvo) {
             throw new BotiumError(`Cant find partial convo with name ${includeLogicHook} (available partial convos: ${Object.keys(partialConvos).join(',')})`)
           }
-
-          _getEffectiveConversationRecursive(partialConvo.conversation, [...parentPConvos, includeLogicHook], result)
+          _getEffectiveConversationRecursive(partialConvo.conversation, [...parentPConvos, includeLogicHook], result, true)
           debug(`Partial convo ${includeLogicHook} included`)
         })
       })
@@ -646,9 +634,7 @@ class Convo {
       return result
     }
 
-    this.effectiveConversation = _getEffectiveConversationRecursive(this.conversation)
-
-    return this.effectiveConversation
+    this.conversation = _getEffectiveConversationRecursive(this.conversation, [], [], false)
   }
 }
 

@@ -723,6 +723,7 @@ module.exports = class ScriptingProvider {
     const expandedConvos = []
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     this.convos.forEach((convo) => {
+      convo.expandPartialConvos()
       this._expandConvo(expandedConvos, convo)
     })
     this.convos = expandedConvos

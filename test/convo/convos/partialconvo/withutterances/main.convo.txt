@@ -1,0 +1,21 @@
+Main
+
+#begin
+
+#me
+Login please
+
+INCLUDE Login
+
+#bot
+You are logged in!
+
+#me
+Logout please!
+
+INCLUDE Logout
+
+#bot
+You are logged out!
+
+#end
