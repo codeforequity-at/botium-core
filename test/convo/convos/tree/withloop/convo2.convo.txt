@@ -1,0 +1,15 @@
+convo2
+
+#bot
+Welcome
+BUTTONS path1|path2
+
+#me
+BUTTON path2
+
+#bot
+This is path 2
+
+#bot
+Welcome
+BUTTONS path1|path2

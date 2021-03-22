@@ -20,11 +20,13 @@ const _initIt = async (script, dir, _this) => {
     [Capabilities.PROJECTNAME]: 'convo.partialconvo',
     [Capabilities.CONTAINERMODE]: scriptedConnector(script),
     [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
-    [Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS]: 'PConvos'
+    [Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS]: 'PConvos',
+    [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
   }
   const driver = new BotDriver(myCaps)
   _this.compiler = driver.BuildCompiler()
   _this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, dir))
+  _this.compiler.ExpandConvos()
   _this.container = await driver.Build()
 }
 
@@ -240,6 +242,30 @@ describe('convo.partialconvo.usecases', function () {
     assert.lengthOf(transcript.steps, 4)
   })
 
+  it('expands utterances in partial convos', async function () {
+    await _initIt([], 'convos/partialconvo/withutterances', this)
+
+    assert.equal(this.compiler.convos.length, 3)
+    assert.equal(Object.keys(this.compiler.utterances).length, 1)
+    assert.equal(Object.keys(this.compiler.partialConvos).length, 2)
+    assert.equal(this.compiler.convos[0].conversation[7].messageText, 'yes')
+    assert.equal(this.compiler.convos[1].conversation[7].messageText, 'sure')
+    assert.equal(this.compiler.convos[2].conversation[7].messageText, 'do it')
+  })
+
+  it('uses scripting memory in partial convos', async function () {
+    await _initIt([
+      'Password please!',
+      'You are logged in!',
+      'Are you sure?',
+      'You are logged out!'
+    ], 'convos/partialconvo/withscriptingmemory', this)
+
+    assert.equal(this.compiler.convos.length, 1)
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps[2].actual.messageText, '123456')
+  })
+
   afterEach(async function () {
     this.container && await this.container.Clean()
   })
@@ -247,8 +273,7 @@ describe('convo.partialconvo.usecases', function () {
 
 describe('convo.partialconvo.wrongconvos', function () {
   it('Circular', async function () {
-    await _initIt([], 'convos/partialconvo/circular', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Partial convos are included circular. "first" is referenced by "/" and by "/first/second"')
+    return assert.isRejected(_initIt([], 'convos/partialconvo/circular', this), 'Partial convos are included circular. "first" is referenced by "/" and by "/first/second"')
   })
 
   it('Partial convo without name', async function () {
@@ -256,13 +281,11 @@ describe('convo.partialconvo.wrongconvos', function () {
   })
 
   it('Partial convo not found', async function () {
-    await _initIt([], 'convos/partialconvo/notfound', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Cant find partial convo with name notexists (There are no partial convos)')
+    return assert.isRejected(_initIt([], 'convos/partialconvo/notfound', this), 'Cant find partial convo with name notexists (There are no partial convos)')
   })
 
   it('Partial convo wrong ref', async function () {
-    await _initIt([], 'convos/partialconvo/wrongref', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Cant find partial convo with name wrongref (available partial convos: exists)')
+    return assert.isRejected(_initIt([], 'convos/partialconvo/wrongref', this), 'Cant find partial convo with name wrongref (available partial convos: exists)')
   })
 
   it('Partial convo name duplicated', async function () {
@@ -270,8 +293,7 @@ describe('convo.partialconvo.wrongconvos', function () {
   })
 
   it('Wrong arguments', async function () {
-    await _initIt([], 'convos/partialconvo/wrongarg', this)
-    return assert.isRejected(this.compiler.convos[0].Run(this.container), 'Wrong argument for include logic hook!')
+    return assert.isRejected(_initIt([], 'convos/partialconvo/wrongarg', this), 'Wrong argument for include logic hook!')
   })
 
   it('Illegal partial convo name', async function () {
@@ -305,11 +327,23 @@ Login please
 INCLUDE Login
 
 #bot
+Password please!
+
+#me
+123456
+
+#bot
 You are logged in!
 
 #me
 Logout please!
 INCLUDE Logout
+
+#bot
+Are you sure?
+
+#me
+Yes
 
 #bot
 You are logged out!
