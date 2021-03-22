@@ -1,5 +1,6 @@
 module.exports = {
   BotDriver: require('./src/BotDriver'),
+  ScriptingProvider: require('./src/scripting/ScriptingProvider'),
   Capabilities: require('./src/Capabilities'),
   Defaults: require('./src/Defaults'),
   Source: require('./src/Source'),
