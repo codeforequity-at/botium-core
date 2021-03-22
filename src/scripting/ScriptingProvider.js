@@ -1,5 +1,6 @@
 const LogicHookUtils = require('./logichook/LogicHookUtils')
 const util = require('util')
+const crypto = require('crypto')
 const fs = require('fs')
 const path = require('path')
 const globby = require('globby')
@@ -11,7 +12,7 @@ const debug = require('debug')('botium-core-ScriptingProvider')
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const Defaults = require('../Defaults')
-const { Convo } = require('./Convo')
+const { Convo, ConvoStep } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList, botiumErrorFromErr } = require('./BotiumError')
 const RetryHelper = require('../helpers/RetryHelper')
@@ -945,5 +946,110 @@ module.exports = class ScriptingProvider {
     } else if (scriptingMemories) {
       this.scriptingMemories.push(scriptingMemories)
     }
+  }
+
+  GetConversationFlowView ({ getConvoNodeHash = null, detectLoops = false, summarizeMultiSteps = true } = {}) {
+    const root = []
+    const botNodesByHash = {}
+
+    this.convos.forEach((convo) => {
+      const convoNodes = []
+      for (const [convoStepIndex, convoStep] of convo.conversation.entries()) {
+        if (convoStep.sender === 'begin' || convoStep.sender === 'end') continue
+
+        const lastConvoNode = convoNodes.length === 0 ? null : convoNodes[convoNodes.length - 1]
+        if (!lastConvoNode || !summarizeMultiSteps || convoNodes[convoNodes.length - 1].sender !== convoStep.sender) {
+          convoNodes.push({
+            sender: convoStep.sender,
+            convoSteps: [convoStep],
+            convoStepIndices: [convoStepIndex],
+            hash: null
+          })
+        } else {
+          lastConvoNode.convoSteps.push(convoStep)
+          lastConvoNode.convoStepIndices.push(convoStepIndex)
+        }
+      }
+
+      let currentChildren = root
+      for (const convoNode of convoNodes) {
+        const convoNodeValues = convoNode.sender === 'me'
+          ? convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'logicHooks', 'userInputs']))
+          : convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'optional', 'not', 'logicHooks', 'asserters']))
+        const convoNodeHeader = {
+          header: _.pick(convo.header, ['name', 'description']),
+          sourceTag: convo.sourceTag,
+          convoStepIndices: convoNode.convoStepIndices
+        }
+
+        const hash = getConvoNodeHash ? getConvoNodeHash({ convo, convoNode }) : crypto.createHash('md5').update(JSON.stringify(convoNodeValues)).digest('hex')
+
+        const existingChildNode = currentChildren.find(c => c.hash === hash)
+        if (existingChildNode) {
+          existingChildNode.convos.push(convoNodeHeader)
+          currentChildren = existingChildNode.childNodes
+          continue
+        }
+
+        const existingBotNode = (detectLoops && convoNode.sender === 'bot' && botNodesByHash[hash])
+        if (existingBotNode) {
+          currentChildren.push({
+            ref: hash
+          })
+          const existingConvo = existingBotNode.convos.find(c => c.header.name === convoNodeHeader.header.name)
+          if (existingConvo) {
+            existingConvo.convoStepIndices = [...existingConvo.convoStepIndices, ...convoNodeHeader.convoStepIndices]
+          } else {
+            existingBotNode.convos.push(convoNodeHeader)
+          }
+          currentChildren = existingBotNode.childNodes
+          continue
+        }
+        const node = {
+          sender: convoNode.sender,
+          hash: hash,
+          convoNodes: convoNodeValues,
+          convos: [convoNodeHeader],
+          childNodes: []
+        }
+        if (node.sender === 'bot') {
+          botNodesByHash[hash] = node
+        }
+        currentChildren.push(node)
+        currentChildren = node.childNodes
+      }
+    })
+
+    return root
+  }
+
+  GetConversationFlowDot (args) {
+    const root = this.GetConversationFlowView(args)
+
+    const nodes = []
+    const lines = []
+
+    const walkTreeForNodes = (node) => {
+      nodes.push(`N_${node.hash} [label="${node.convoNodes.map(convoNode => (new ConvoStep(convoNode)).toString()).join('\r\n')}"];`)
+      if (node.childNodes && node.childNodes.length > 0) {
+        node.childNodes.filter(c => !c.ref).forEach(c => walkTreeForNodes(c))
+      }
+    }
+    const walkTreeForLines = (node, path = []) => {
+      if (node.childNodes && node.childNodes.length > 0) {
+        node.childNodes.filter(c => !c.ref).forEach(c => walkTreeForLines(c, [...path, `N_${node.hash}`]))
+        node.childNodes.filter(c => c.ref).forEach(c => lines.push(`${[...path, `N_${node.hash}`, `N_${c.ref}`].join(' -> ')};`))
+      } else {
+        lines.push(`${[...path, `N_${node.hash}`].join(' -> ')};`)
+      }
+    }
+    root.forEach(r => walkTreeForNodes(r))
+    root.forEach(r => walkTreeForLines(r))
+
+    return [
+      'digraph {',
+      ...nodes,
+      ...lines,
+      '}'].join('\r\n')
   }
 }
