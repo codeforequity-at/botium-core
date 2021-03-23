@@ -126,18 +126,7 @@ module.exports = class ScriptingProvider {
         return this._createUserInputPromises({ convo, convoStep, scriptingMemory, ...rest })
       },
       resolveUtterance: ({ utterance }) => {
-        if (_.isString(utterance)) {
-          if (this.utterances[utterance]) {
-            return this.utterances[utterance].utterances
-          } else {
-            const parts = utterance.split(' ')
-            if (this.utterances[parts[0]]) {
-              const uttArgs = parts.slice(1)
-              return this.utterances[parts[0]].utterances.map(utt => util.format(utt, ...uttArgs))
-            }
-          }
-        }
-        return [utterance]
+        return this._resolveUtterance({ utterance })
       },
       assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
         if (!_.isArray(tomatch)) {
@@ -316,6 +305,21 @@ module.exports = class ScriptingProvider {
 
   _isValidAsserterType (asserterType) {
     return ['assertConvoBegin', 'assertConvoStep', 'assertConvoEnd'].some(t => asserterType === t)
+  }
+
+  _resolveUtterance ({ utterance }) {
+    if (_.isString(utterance)) {
+      if (this.utterances[utterance]) {
+        return this.utterances[utterance].utterances
+      } else {
+        const parts = utterance.split(' ')
+        if (this.utterances[parts[0]]) {
+          const uttArgs = parts.slice(1)
+          return this.utterances[parts[0]].utterances.map(utt => util.format(utt, ...uttArgs))
+        }
+      }
+    }
+    return [utterance]
   }
 
   _buildScriptContext () {
@@ -956,6 +960,12 @@ module.exports = class ScriptingProvider {
       const convoNodes = []
       for (const [convoStepIndex, convoStep] of convo.conversation.entries()) {
         if (convoStep.sender === 'begin' || convoStep.sender === 'end') continue
+        convoStep.index = convoStepIndex
+        if (convoStep.messageText) {
+          const utterances = this._resolveUtterance({ utterance: convoStep.messageText })
+          convoStep.utteranceSamples = utterances.slice(0, 3)
+          convoStep.utteranceCount = utterances.length
+        }
 
         const lastConvoNode = convoNodes.length === 0 ? null : convoNodes[convoNodes.length - 1]
         if (!lastConvoNode || !summarizeMultiSteps || convoNodes[convoNodes.length - 1].sender !== convoStep.sender) {
@@ -974,15 +984,19 @@ module.exports = class ScriptingProvider {
       let currentChildren = root
       for (const convoNode of convoNodes) {
         const convoNodeValues = convoNode.sender === 'me'
-          ? convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'logicHooks', 'userInputs']))
-          : convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'optional', 'not', 'logicHooks', 'asserters']))
+          ? convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'utteranceSamples', 'utteranceCount', 'sender', 'messageText', 'logicHooks', 'userInputs']))
+          : convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'utteranceSamples', 'utteranceCount', 'sender', 'messageText', 'optional', 'not', 'logicHooks', 'asserters']))
         const convoNodeHeader = {
           header: _.pick(convo.header, ['name', 'description']),
           sourceTag: convo.sourceTag,
           convoStepIndices: convoNode.convoStepIndices
         }
 
-        const hash = getConvoNodeHash ? getConvoNodeHash({ convo, convoNode }) : crypto.createHash('md5').update(JSON.stringify(convoNodeValues)).digest('hex')
+        let hash = getConvoNodeHash && getConvoNodeHash({ convo, convoNode })
+        if (!hash) {
+          const valueToHash = (convoNode.sender === 'me' || !detectLoops) ? convoNodeValues : convoNodeValues.map(v => _.omit(v, ['index']))
+          hash = crypto.createHash('md5').update(JSON.stringify(valueToHash)).digest('hex')
+        }
 
         const existingChildNode = currentChildren.find(c => c.hash === hash)
         if (existingChildNode) {
