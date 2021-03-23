@@ -10,7 +10,6 @@ describe('tree.buildconversationtreeview', function () {
     await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'tree', 'simpletree'))
 
     const tree = scriptingProvider.GetConversationFlowView()
-    console.log(JSON.stringify(tree, null, 2))
     assert.equal(tree.length, 1)
     assert.equal(tree[0].convoNodes.length, 1)
     assert.isUndefined(tree[0].convoNodes[0].utteranceCount)
