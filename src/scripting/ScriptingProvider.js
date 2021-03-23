@@ -5,6 +5,7 @@ const fs = require('fs')
 const path = require('path')
 const globby = require('globby')
 const _ = require('lodash')
+const randomize = require('randomatic')
 const promiseRetry = require('promise-retry')
 require('promise.allsettled').shim()
 const debug = require('debug')('botium-core-ScriptingProvider')
@@ -307,7 +308,7 @@ module.exports = class ScriptingProvider {
     return ['assertConvoBegin', 'assertConvoStep', 'assertConvoEnd'].some(t => asserterType === t)
   }
 
-  _resolveUtterance ({ utterance }) {
+  _resolveUtterance ({ utterance, resolveEmptyIfUnknown = false }) {
     if (_.isString(utterance)) {
       if (this.utterances[utterance]) {
         return this.utterances[utterance].utterances
@@ -319,7 +320,8 @@ module.exports = class ScriptingProvider {
         }
       }
     }
-    return [utterance]
+    if (resolveEmptyIfUnknown) return null
+    else return [utterance]
   }
 
   _buildScriptContext () {
@@ -962,9 +964,11 @@ module.exports = class ScriptingProvider {
         if (convoStep.sender === 'begin' || convoStep.sender === 'end') continue
         convoStep.index = convoStepIndex
         if (convoStep.messageText) {
-          const utterances = this._resolveUtterance({ utterance: convoStep.messageText })
-          convoStep.utteranceSamples = utterances.slice(0, 3)
-          convoStep.utteranceCount = utterances.length
+          const utterances = this._resolveUtterance({ utterance: convoStep.messageText, resolveEmptyIfUnknown: true })
+          if (utterances) {
+            convoStep.utteranceSamples = utterances.slice(0, 3)
+            convoStep.utteranceCount = utterances.length
+          }
         }
 
         const lastConvoNode = convoNodes.length === 0 ? null : convoNodes[convoNodes.length - 1]
@@ -984,8 +988,8 @@ module.exports = class ScriptingProvider {
       let currentChildren = root
       for (const convoNode of convoNodes) {
         const convoNodeValues = convoNode.sender === 'me'
-          ? convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'utteranceSamples', 'utteranceCount', 'sender', 'messageText', 'logicHooks', 'userInputs']))
-          : convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'utteranceSamples', 'utteranceCount', 'sender', 'messageText', 'optional', 'not', 'logicHooks', 'asserters']))
+          ? convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'sender', 'messageText', 'utteranceSamples', 'utteranceCount', 'logicHooks', 'userInputs']))
+          : convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'sender', 'messageText', 'optional', 'not', 'utteranceSamples', 'utteranceCount', 'logicHooks', 'asserters']))
         const convoNodeHeader = {
           header: _.pick(convo.header, ['name', 'description']),
           sourceTag: convo.sourceTag,
@@ -994,8 +998,11 @@ module.exports = class ScriptingProvider {
 
         let hash = getConvoNodeHash && getConvoNodeHash({ convo, convoNode })
         if (!hash) {
-          const valueToHash = (convoNode.sender === 'me' || !detectLoops) ? convoNodeValues : convoNodeValues.map(v => _.omit(v, ['index']))
-          hash = crypto.createHash('md5').update(JSON.stringify(valueToHash)).digest('hex')
+          if (convoNode.sender === 'bot') {
+            hash = crypto.createHash('md5').update(JSON.stringify(convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'optional', 'not', 'logicHooks', 'asserters'])))).digest('hex')
+          } else {
+            hash = crypto.createHash('md5').update(JSON.stringify(convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'logicHooks', 'userInputs'])))).digest('hex')
+          }
         }
 
         const existingChildNode = currentChildren.find(c => c.hash === hash)
@@ -1007,9 +1014,11 @@ module.exports = class ScriptingProvider {
 
         const existingBotNode = (detectLoops && convoNode.sender === 'bot' && botNodesByHash[hash])
         if (existingBotNode) {
-          currentChildren.push({
-            ref: hash
-          })
+          if (currentChildren.findIndex(c => c.ref === existingBotNode.key) < 0) {
+            currentChildren.push({
+              ref: existingBotNode.key
+            })
+          }
           const existingConvo = existingBotNode.convos.find(c => c.header.name === convoNodeHeader.header.name)
           if (existingConvo) {
             existingConvo.convoStepIndices = [...existingConvo.convoStepIndices, ...convoNodeHeader.convoStepIndices]
@@ -1021,6 +1030,7 @@ module.exports = class ScriptingProvider {
         }
         const node = {
           sender: convoNode.sender,
+          key: randomize('0', 20),
           hash: hash,
           convoNodes: convoNodeValues,
           convos: [convoNodeHeader],
