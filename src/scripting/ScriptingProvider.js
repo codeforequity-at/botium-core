@@ -126,8 +126,8 @@ module.exports = class ScriptingProvider {
       setUserInput: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createUserInputPromises({ convo, convoStep, scriptingMemory, ...rest })
       },
-      resolveUtterance: ({ utterance }) => {
-        return this._resolveUtterance({ utterance })
+      resolveUtterance: ({ utterance, resolveEmptyIfUnknown }) => {
+        return this._resolveUtterance({ utterance, resolveEmptyIfUnknown })
       },
       assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
         if (!_.isArray(tomatch)) {

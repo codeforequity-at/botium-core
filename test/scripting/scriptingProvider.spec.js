@@ -66,6 +66,18 @@ describe('scriptingProvider._resolveUtterances', function () {
     assert.equal(tomatch[1], 'TEXT2')
     scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1')
   })
+  it('should resolve null on invalid utterance', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+
+    const tomatch = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt2', resolveEmptyIfUnknown: true })
+    assert.isNull(tomatch)
+  })
   it('should fail on invalid utterance', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
