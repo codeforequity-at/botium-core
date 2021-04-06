@@ -359,7 +359,7 @@ const convoStepToObject = (step) => {
 }
 
 const validateSender = (sender) => {
-  if (['begin', 'me', 'bot', 'end'].indexOf(sender) >= 0) return true
+  if (['begin', 'include', 'me', 'bot', 'end'].indexOf(sender) >= 0) return true
   else return false
 }
 

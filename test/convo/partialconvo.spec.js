@@ -175,6 +175,23 @@ describe('convo.partialconvo.usecases', function () {
     return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
   })
 
+  it('It is possible to use #include in convo', async function () {
+    await _initIt([
+      'in depth2',
+      'in depth1',
+      'main end'
+    ], 'convos/partialconvo/usesender', this)
+    return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
+  })
+
+  it('It is possible to use multiple #include in convo', async function () {
+    await _initIt([
+      'in sub!',
+      'in sub!'
+    ], 'convos/partialconvo/usesendermultiinclude', this)
+    return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
+  })
+
   it('It is possible to include more partial convos in one convostep', async function () {
     await _initIt([
       'in sub!',

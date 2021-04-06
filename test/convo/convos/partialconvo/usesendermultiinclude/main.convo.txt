@@ -4,7 +4,8 @@ Main
 
 #me
 Start sub
-INCLUDE sub
-INCLUDE sub
+
+#include sub
+#include sub
 
 #end

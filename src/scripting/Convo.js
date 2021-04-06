@@ -604,13 +604,19 @@ class Convo {
 
     const _getEffectiveConversationRecursive = (conversation, parentPConvos = [], result = [], ignoreBeginEnd = true) => {
       conversation.forEach((convoStep) => {
-        const includeLogicHooks = _getIncludeLogicHookNames(convoStep)
-
-        if (includeLogicHooks.length === 0 || convoStep.hasInteraction()) {
-          if (!ignoreBeginEnd || (convoStep.sender !== 'begin' && convoStep.sender !== 'end')) {
-            // dont put convo name for ConvoSteps on the root.
-            const steptagPath = parentPConvos.length === 0 ? '' : parentPConvos.join('/') + '/'
-            result.push(Object.assign(new ConvoStep(), convoStep, { stepTag: `${steptagPath}${convoStep.stepTag}` }))
+        let includeLogicHooks
+        if (convoStep.sender === 'include') {
+          if (convoStep.channel) {
+            includeLogicHooks = [convoStep.channel]
+          }
+        } else {
+          includeLogicHooks = _getIncludeLogicHookNames(convoStep)
+          if (includeLogicHooks.length === 0 || convoStep.hasInteraction()) {
+            if (!ignoreBeginEnd || (convoStep.sender !== 'begin' && convoStep.sender !== 'end')) {
+              // dont put convo name for ConvoSteps on the root.
+              const steptagPath = parentPConvos.length === 0 ? '' : parentPConvos.join('/') + '/'
+              result.push(Object.assign(new ConvoStep(), convoStep, { stepTag: `${steptagPath}${convoStep.stepTag}` }))
+            }
           }
         }
 
