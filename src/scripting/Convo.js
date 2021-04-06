@@ -315,7 +315,7 @@ class Convo {
               })
               lastMeConvoStep = convoStep
               transcriptStep.botBegin = new Date()
-              if (!_.isNull(meMsg.messageText) || meMsg.sourceData || (meMsg.userInputs && meMsg.userInputs.length)) {
+              if (!_.isNull(meMsg.messageText) || meMsg.sourceData || (meMsg.userInputs && meMsg.userInputs.length) || (meMsg.logicHooks && meMsg.logicHooks.length)) {
                 try {
                   Object.assign(meMsg, { header: this.header, conversation: this.conversation, currentStepIndex, scriptingMemory })
                   await container.UserSays(meMsg)

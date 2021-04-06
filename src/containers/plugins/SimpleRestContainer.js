@@ -525,7 +525,7 @@ module.exports = class SimpleRestContainer {
         if (hasResult && hasResult.length > 0) {
           const check = jsonPathValue && this._getMustachedVal(jsonPathValue, false)
           if (check) {
-            if (hasResult[0] === check) {
+            if (`${hasResult[0]}` === `${check}`) {
               isSelected = true
               break
             }
