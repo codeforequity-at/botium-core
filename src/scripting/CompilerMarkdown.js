@@ -8,7 +8,7 @@ const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const { Convo } = require('./Convo')
 const Utterance = require('./Utterance')
-const { linesToConvoStep } = require('./helper')
+const { linesToConvoStep, validSenders, validateSender } = require('./helper')
 
 module.exports = class CompilerMarkdown extends CompilerBase {
   constructor (context, caps = {}) {
@@ -69,13 +69,14 @@ module.exports = class CompilerMarkdown extends CompilerBase {
 
     const structured = _toStructuredMarkdown(parsed)
     for (const convosOrUtterances of structured.children) {
-      if (convosOrUtterances.content === 'Convos' && scriptType === Constants.SCRIPTING_TYPE_CONVO) {
+      if ((convosOrUtterances.content === 'Convos' && scriptType === Constants.SCRIPTING_TYPE_CONVO) ||
+        (convosOrUtterances.content === 'PartialConvos' && scriptType === Constants.SCRIPTING_TYPE_PCONVO)) {
         const convosBotium = []
         for (const convo of convosOrUtterances.children) {
           const conversation = []
           for (const step of convo.children) {
             const sender = step.content.toLowerCase()
-            if (['me', 'bot'].includes(sender)) {
+            if (validateSender(sender)) {
               // handle both:
               //   - BUTTONS checkbutton|checkbutton2
               // and
@@ -91,7 +92,7 @@ module.exports = class CompilerMarkdown extends CompilerBase {
                   (child.children ? ' ' + child.children.map(child => child.content).join('|') : '')), sender, this.context, this.eol)
               ))
             } else {
-              debug(`Expected "me" or "bot" but found ${sender}`)
+              debug(`Expected sender ${validSenders.map(s => `'${s}'`).join(' or ')} but found ${sender}`)
             }
           }
           convosBotium.push(new Convo(this.context, {
@@ -101,7 +102,11 @@ module.exports = class CompilerMarkdown extends CompilerBase {
             conversation
           }))
         }
-        this.context.AddConvos(convosBotium)
+        if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
+          this.context.AddConvos(convosBotium)
+        } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
+          this.context.AddPartialConvos(convosBotium)
+        }
       } else if (convosOrUtterances.content === 'Utterances' && scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
         const utterancesBotium = []
         for (const utteranceStruct of convosOrUtterances.children) {

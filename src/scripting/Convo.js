@@ -7,7 +7,7 @@ const Capabilities = require('../Capabilities')
 const Events = require('../Events')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromErr, botiumErrorFromList } = require('./BotiumError')
-const { normalizeText, toString, removeBuffers } = require('./helper')
+const { normalizeText, toString, removeBuffers, splitStringInNonEmptyLines } = require('./helper')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -604,10 +604,13 @@ class Convo {
 
     const _getEffectiveConversationRecursive = (conversation, parentPConvos = [], result = [], ignoreBeginEnd = true) => {
       conversation.forEach((convoStep) => {
-        let includeLogicHooks
+        let includeLogicHooks = []
         if (convoStep.sender === 'include') {
           if (convoStep.channel) {
-            includeLogicHooks = [convoStep.channel]
+            includeLogicHooks.push(convoStep.channel)
+          }
+          if (convoStep.messageText) {
+            includeLogicHooks = includeLogicHooks.concat(splitStringInNonEmptyLines(convoStep.messageText))
           }
         } else {
           includeLogicHooks = _getIncludeLogicHookNames(convoStep)

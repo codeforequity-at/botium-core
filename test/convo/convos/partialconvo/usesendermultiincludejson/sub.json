@@ -1,0 +1,19 @@
+{
+  "partialConvos": [
+    {
+      "name": "sub",
+      "steps": [
+        {
+          "bot": [
+            "in sub!"
+          ]
+        },
+        {
+          "me": [
+            "ok"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "convos": [
+    {
+      "name": "Main",
+      "steps": [
+        {
+          "me": [
+            "Start sub"
+          ]
+        },
+        {
+          "include": [
+            "sub",
+            "sub"
+          ]
+        }
+      ]
+    }
+  ]
+}

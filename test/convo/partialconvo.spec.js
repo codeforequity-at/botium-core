@@ -187,8 +187,34 @@ describe('convo.partialconvo.usecases', function () {
   it('It is possible to use multiple #include in convo', async function () {
     await _initIt([
       'in sub!',
+      'in sub!',
+      'in sub!',
       'in sub!'
     ], 'convos/partialconvo/usesendermultiinclude', this)
+    return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
+  })
+
+  it('It is possible to use multiple #include in JSON convo', async function () {
+    await _initIt([
+      'in sub!',
+      'in sub!'
+    ], 'convos/partialconvo/usesendermultiincludejson', this)
+    return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
+  })
+
+  it('It is possible to use multiple #include in YAML convo', async function () {
+    await _initIt([
+      'in sub!',
+      'in sub!'
+    ], 'convos/partialconvo/usesendermultiincludeyaml', this)
+    return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
+  })
+
+  it('It is possible to use multiple #include in MD convo', async function () {
+    await _initIt([
+      'in sub!',
+      'in sub!'
+    ], 'convos/partialconvo/usesendermultiincludemd', this)
     return assert.isFulfilled(this.compiler.convos[0].Run(this.container))
   })
 

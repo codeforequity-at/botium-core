@@ -521,6 +521,7 @@ module.exports = class ScriptingProvider {
       } else if (filename.endsWith('.markdown') || filename.endsWith('.md')) {
         fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
         fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_PCONVO)
       } else {
         debug(`ReadScript - dropped file: ${filename}, filename not supported`)
       }

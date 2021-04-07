@@ -7,5 +7,7 @@ Start sub
 
 #include sub
 #include sub
+sub
+sub
 
 #end
