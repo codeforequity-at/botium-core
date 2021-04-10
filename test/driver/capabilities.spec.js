@@ -65,6 +65,15 @@ describe('driver.capabilities', function () {
     assert.isBoolean(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
     assert.isTrue(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
   })
+  it('should merge string caps', function () {
+    const myCaps = {
+      CAP_STRING_1: 'Test',
+      CAP_STRING_2: '12345'
+    }
+    const driver = new BotDriver(myCaps)
+    assert.isString(driver.caps.CAP_STRING_1)
+    assert.isString(driver.caps.CAP_STRING_2)
+  })
   it('should merge boolean envs', function () {
     process.env.BOTIUM_SIMULATE_WRITING_SPEED = 'NO'
     const driver = new BotDriver()

@@ -125,9 +125,9 @@ module.exports = class JsonPathAsserter {
       }
     }
     if (assert) {
-      const [actual] = jsonPathValues
+      const actual = jsonPathValues
 
-      const match = this.context.Match(actual, assert)
+      const match = jsonPathValues.find(a => this.context.Match(a, assert))
 
       if (not && match) {
         return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: ${actual} in jsonPath ${path}"`,

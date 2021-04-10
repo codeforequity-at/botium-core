@@ -6,7 +6,7 @@ const Capabilities = require('../../../index').Capabilities
 const echoConnector = ({ queueBotSays }) => {
   return {
     UserSays (msg) {
-      const response = msg.messageText.replace('INPUT1', 'OUTPUT1').replace('INPUT2', 'OUTPUT2')
+      const response = msg.messageText && msg.messageText.replace('INPUT1', 'OUTPUT1').replace('INPUT2', 'OUTPUT2')
       const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: response, cards: [{ text: 'card text', content: 'card content' }] }
       queueBotSays(botMsg)
     }

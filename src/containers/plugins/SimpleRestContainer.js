@@ -326,7 +326,7 @@ module.exports = class SimpleRestContainer {
           const beforeHookKeys = Object.keys(botMsg)
           await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
           const afterHookKeys = Object.keys(botMsg)
-          if (beforeHookKeys.length !== afterHookKeys.length || !!(botMsg.messageText && botMsg.messageText.length > 0) || media.length > 0 || buttons.length > 0 || !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
+          if (beforeHookKeys.length !== afterHookKeys.length || !!(botMsg.messageText && botMsg.messageText.length > 0) || botMsg.media.length > 0 || botMsg.buttons.length > 0 || !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
             result.push(botMsg)
           }
         }
@@ -525,7 +525,7 @@ module.exports = class SimpleRestContainer {
         if (hasResult && hasResult.length > 0) {
           const check = jsonPathValue && this._getMustachedVal(jsonPathValue, false)
           if (check) {
-            if (hasResult[0] === check) {
+            if (`${hasResult[0]}` === `${check}`) {
               isSelected = true
               break
             }

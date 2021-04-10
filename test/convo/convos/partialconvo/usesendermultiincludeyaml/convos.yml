@@ -1,0 +1,15 @@
+convos:
+  - name: Main
+    steps:
+      - me:
+          - Start sub
+      - include:
+          - sub
+          - sub
+partialConvos:
+  - name: sub
+    steps:
+      - bot:
+          - in sub!
+      - me:
+          - ok

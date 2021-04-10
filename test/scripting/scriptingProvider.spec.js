@@ -1,6 +1,7 @@
 const path = require('path')
 const assert = require('chai').assert
 const expect = require('chai').expect
+const { Convo } = require('../../src/scripting/Convo')
 const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 const Capabilities = require('../../src/Capabilities')
@@ -64,6 +65,18 @@ describe('scriptingProvider._resolveUtterances', function () {
     assert.equal(tomatch[0], 'TEXT1')
     assert.equal(tomatch[1], 'TEXT2')
     scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1')
+  })
+  it('should resolve null on invalid utterance', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    const scriptingContext = scriptingProvider._buildScriptContext()
+    scriptingProvider.AddUtterances({
+      name: 'utt1',
+      utterances: ['TEXT1', 'TEXT2']
+    })
+
+    const tomatch = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt2', resolveEmptyIfUnknown: true })
+    assert.isNull(tomatch)
   })
   it('should fail on invalid utterance', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
@@ -227,7 +240,7 @@ describe('scriptingProvider.ExpandConvos', function () {
       name: 'utt1',
       utterances: ['TEXT1', 'TEXT2']
     })
-    scriptingProvider.AddConvos({
+    scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
       header: {
         name: 'test convo'
       },
@@ -237,7 +250,7 @@ describe('scriptingProvider.ExpandConvos', function () {
           messageText: 'utt1'
         }
       ]
-    })
+    }))
 
     scriptingProvider.ExpandConvos()
     assert.equal(scriptingProvider.convos.length, 2)
@@ -255,7 +268,7 @@ describe('scriptingProvider.ExpandConvos', function () {
       name: 'utt1',
       utterances: ['TEXT1 %s-%d', 'TEXT2']
     })
-    scriptingProvider.AddConvos({
+    scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
       header: {
         name: 'test convo'
       },
@@ -265,7 +278,7 @@ describe('scriptingProvider.ExpandConvos', function () {
           messageText: 'utt1 arg0 1'
         }
       ]
-    })
+    }))
 
     scriptingProvider.ExpandConvos()
     assert.equal(scriptingProvider.convos.length, 2)
@@ -283,7 +296,7 @@ describe('scriptingProvider.ExpandConvos', function () {
       name: 'utt with some whitespace',
       utterances: ['TEXT1', 'TEXT2']
     })
-    scriptingProvider.AddConvos({
+    scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
       header: {
         name: 'test convo'
       },
@@ -293,7 +306,7 @@ describe('scriptingProvider.ExpandConvos', function () {
           messageText: 'utt with some whitespace'
         }
       ]
-    })
+    }))
 
     scriptingProvider.ExpandConvos()
     assert.equal(scriptingProvider.convos.length, 2)
@@ -325,7 +338,7 @@ describe('scriptingProvider.ExpandConvos', function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
       scriptingProvider.AddUtterances(utterances)
-      scriptingProvider.AddConvos(convoUtterances)
+      scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), convoUtterances))
 
       scriptingProvider.ExpandConvos()
       assert.equal(scriptingProvider.convos.length, 2)
@@ -344,7 +357,7 @@ describe('scriptingProvider.ExpandConvos', function () {
       ))
       await scriptingProvider.Build()
       scriptingProvider.AddUtterances(utterances)
-      scriptingProvider.AddConvos(convoUtterances)
+      scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), convoUtterances))
 
       scriptingProvider.ExpandConvos()
       assert.equal(scriptingProvider.convos.length, 2)
@@ -364,7 +377,7 @@ describe('scriptingProvider.ExpandConvos', function () {
       ))
       await scriptingProvider.Build()
       scriptingProvider.AddUtterances(utterances)
-      scriptingProvider.AddConvos(convoUtterances)
+      scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), convoUtterances))
 
       scriptingProvider.ExpandConvos()
       assert.equal(scriptingProvider.convos.length, 2)
@@ -384,7 +397,7 @@ describe('scriptingProvider.ExpandConvos', function () {
       ))
       await scriptingProvider.Build()
       scriptingProvider.AddUtterances(utterances)
-      scriptingProvider.AddConvos(convoUtterances)
+      scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), convoUtterances))
 
       scriptingProvider.ExpandConvos()
       assert.equal(scriptingProvider.convos.length, 2)
@@ -401,7 +414,7 @@ describe('scriptingProvider.ExpandConvos', function () {
         }
       ))
       await scriptingProvider.Build()
-      scriptingProvider.AddConvos({
+      scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
         header: {
           name: 'test convo'
         },
@@ -421,7 +434,7 @@ describe('scriptingProvider.ExpandConvos', function () {
             ]
           }
         ]
-      })
+      }))
 
       scriptingProvider.ExpandConvos()
       assert.equal(scriptingProvider.convos.length, 3)
@@ -440,7 +453,7 @@ describe('scriptingProvider.ExpandConvos', function () {
       ))
       await scriptingProvider.Build()
       scriptingProvider.AddUtterances(utterances)
-      scriptingProvider.AddConvos({
+      scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
         header: {
           name: 'test convo'
         },
@@ -461,7 +474,7 @@ describe('scriptingProvider.ExpandConvos', function () {
             ]
           }
         ]
-      })
+      }))
 
       scriptingProvider.ExpandConvos()
       assert.equal(scriptingProvider.convos.length, 5)

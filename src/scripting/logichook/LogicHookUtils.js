@@ -209,69 +209,57 @@ module.exports = class LogicHookUtils {
     if (_.isString(src)) {
       const loadErr = []
 
-      let tryLoadPackageName = src
-      let tryLoadAsserterByName = null
+      const tryLoads = [{
+        tryLoadPackageName: src,
+        tryLoadAsserterByName: null
+      }]
       if (src.indexOf('/') >= 0) {
-        tryLoadPackageName = src.substr(0, src.lastIndexOf('/'))
-        tryLoadAsserterByName = src.substr(src.lastIndexOf('/') + 1)
+        tryLoads.push({
+          tryLoadPackageName: src.substr(0, src.lastIndexOf('/')),
+          tryLoadAsserterByName: src.substr(src.lastIndexOf('/') + 1)
+        })
       }
 
-      const tryLoadFile = path.resolve(process.cwd(), tryLoadPackageName)
-      if (fs.existsSync(tryLoadFile)) {
-        _checkUnsafe()
-        try {
-          let CheckClass = require(tryLoadFile)
-          if (CheckClass.default) {
-            CheckClass = CheckClass.default
-          }
-          if (tryLoadAsserterByName) {
-            if (hookType === 'asserter' && CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
-              CheckClass = CheckClass.PluginAsserters[tryLoadAsserterByName]
-            } else if (hookType === 'logichook' && CheckClass.PluginLogicHooks && CheckClass.PluginLogicHooks[tryLoadAsserterByName]) {
-              CheckClass = CheckClass.PluginLogicHooks[tryLoadAsserterByName]
-            } else {
-              throw new Error(`Loaded ${tryLoadPackageName}, but ${tryLoadAsserterByName} ${hookType} not found.`)
-            }
-          }
-          if (isClass(CheckClass)) {
-            return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
-          } else if (_.isFunction(CheckClass)) {
-            return CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
-          } else if (isClass(CheckClass.PluginClass)) {
-            return new CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
-          } else {
-            throw new Error(`${src} class or function expected`)
-          }
-        } catch (err) {
-          loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
-        }
-      }
-
-      try {
-        let CheckClass = require(tryLoadPackageName)
+      const tryLoadFromSource = (tryRequire, tryAsserterName) => {
+        let CheckClass = require(tryRequire)
         if (CheckClass.default) {
           CheckClass = CheckClass.default
         }
-        if (tryLoadAsserterByName) {
-          if (hookType === 'asserter' && CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryLoadAsserterByName]) {
-            CheckClass = CheckClass.PluginAsserters[tryLoadAsserterByName]
-          } else if (hookType === 'logichook' && CheckClass.PluginLogicHooks && CheckClass.PluginLogicHooks[tryLoadAsserterByName]) {
-            CheckClass = CheckClass.PluginLogicHooks[tryLoadAsserterByName]
+        if (tryAsserterName) {
+          if (hookType === 'asserter' && CheckClass.PluginAsserters && CheckClass.PluginAsserters[tryAsserterName]) {
+            CheckClass = CheckClass.PluginAsserters[tryAsserterName]
+          } else if (hookType === 'logichook' && CheckClass.PluginLogicHooks && CheckClass.PluginLogicHooks[tryAsserterName]) {
+            CheckClass = CheckClass.PluginLogicHooks[tryAsserterName]
           } else {
-            throw new Error(`Loaded ${tryLoadPackageName}, but ${tryLoadAsserterByName} ${hookType} not found.`)
+            throw new Error(`Loaded ${tryRequire}, but ${tryAsserterName} ${hookType} not found.`)
           }
         }
         if (isClass(CheckClass)) {
-          return new CheckClass(this.buildScriptContext, this.caps, args)
+          return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else if (_.isFunction(CheckClass)) {
-          return CheckClass(this.buildScriptContext, this.caps, args)
+          return CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else if (isClass(CheckClass.PluginClass)) {
-          return new CheckClass.PluginClass(this.buildScriptContext, this.caps, args)
+          return new CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else {
           throw new Error(`${src} class or function expected`)
         }
-      } catch (err) {
-        loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message}`)
+      }
+
+      for (const tryLoad of tryLoads) {
+        const tryLoadFile = path.resolve(process.cwd(), tryLoad.tryLoadPackageName)
+        if (fs.existsSync(tryLoadFile)) {
+          _checkUnsafe()
+          try {
+            return tryLoadFromSource(tryLoadFile, tryLoad.tryLoadAsserterByName)
+          } catch (err) {
+            loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
+          }
+        }
+        try {
+          return tryLoadFromSource(tryLoad.tryLoadPackageName, tryLoad.tryLoadAsserterByName)
+        } catch (err) {
+          loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
+        }
       }
 
       loadErr.forEach(debug)

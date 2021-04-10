@@ -36,6 +36,8 @@ const normalizeText = (str, doCleanup) => {
   return str
 }
 
+const splitStringInNonEmptyLines = (str) => str ? str.split('\n').map(s => s.trim()).filter(s => s.length > 0) : []
+
 const quoteRegexpString = (str) => {
   return str.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')
 }
@@ -358,8 +360,10 @@ const convoStepToObject = (step) => {
   return result
 }
 
+const validSenders = ['begin', 'include', 'me', 'bot', 'end']
+
 const validateSender = (sender) => {
-  if (['begin', 'me', 'bot', 'end'].indexOf(sender) >= 0) return true
+  if (validSenders.indexOf(sender) >= 0) return true
   else return false
 }
 
@@ -460,6 +464,7 @@ const convoStepToLines = (step) => {
 
 module.exports = {
   normalizeText,
+  splitStringInNonEmptyLines,
   quoteRegexpString,
   toString,
   flatString,
@@ -467,5 +472,7 @@ module.exports = {
   linesToConvoStep,
   convoStepToLines,
   convoStepToObject,
+  validSenders,
+  validateSender,
   validateConvo
 }

@@ -1,0 +1,13 @@
+convo1
+
+#me
+BUTTON hello
+
+#bot
+hello
+
+#me
+BUTTON nice weather today
+
+#bot
+sure

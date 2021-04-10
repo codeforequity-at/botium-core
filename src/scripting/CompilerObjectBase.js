@@ -5,7 +5,7 @@ const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const Utterance = require('./Utterance')
 const { Convo } = require('./Convo')
-const { linesToConvoStep } = require('./helper')
+const { linesToConvoStep, validSenders } = require('./helper')
 
 module.exports = class CompilerObjectBase extends CompilerBase {
   constructor (context, caps = {}) {
@@ -54,10 +54,10 @@ module.exports = class CompilerObjectBase extends CompilerBase {
         const lineTag = `${convoStepLineIndex + 1}`.padStart(`${convoRaw.steps.length}`.length, '0')
 
         if (Object.keys(convoStepRaw).length > 1) {
-          throw new Error(`Use just one from 'begin', 'me','bot' and 'end' fields in step ${JSON.stringify(convoStepRaw)}`)
+          throw new Error(`Use just one from ${validSenders.join(',')} fields in step ${JSON.stringify(convoStepRaw)}`)
         }
-        if (!convoStepRaw.begin && !convoStepRaw.me && !convoStepRaw.bot && !convoStepRaw.end) {
-          throw new Error(`Use 'begin' or 'me' or 'bot' or 'end' field in step ${JSON.stringify(convoStepRaw)}`)
+        if (validSenders.findIndex(sender => convoStepRaw[sender]) < 0) {
+          throw new Error(`Use ${validSenders.map(s => `'${s}'`).join(' or ')} field in step ${JSON.stringify(convoStepRaw)}`)
         }
 
         const convoStepSender = Object.keys(convoStepRaw)[0]

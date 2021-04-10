@@ -1,0 +1,16 @@
+convo2
+
+#me
+hello
+
+#bot
+hello
+
+#me
+bad weather today
+
+#bot
+no
+
+#bot
+it's okay

@@ -1,9 +1,11 @@
 const LogicHookUtils = require('./logichook/LogicHookUtils')
 const util = require('util')
+const crypto = require('crypto')
 const fs = require('fs')
 const path = require('path')
 const globby = require('globby')
 const _ = require('lodash')
+const randomize = require('randomatic')
 const promiseRetry = require('promise-retry')
 require('promise.allsettled').shim()
 const debug = require('debug')('botium-core-ScriptingProvider')
@@ -11,7 +13,7 @@ const debug = require('debug')('botium-core-ScriptingProvider')
 const Constants = require('./Constants')
 const Capabilities = require('../Capabilities')
 const Defaults = require('../Defaults')
-const { Convo } = require('./Convo')
+const { Convo, ConvoStep } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList, botiumErrorFromErr } = require('./BotiumError')
 const RetryHelper = require('../helpers/RetryHelper')
@@ -73,7 +75,7 @@ const pnot = (retryHelper, fn, errTemplate) => {
 }
 
 module.exports = class ScriptingProvider {
-  constructor (caps = {}) {
+  constructor (caps = Defaults.Capabilities) {
     this.caps = caps
     this.compilers = {}
     this.convos = []
@@ -124,19 +126,8 @@ module.exports = class ScriptingProvider {
       setUserInput: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createUserInputPromises({ convo, convoStep, scriptingMemory, ...rest })
       },
-      resolveUtterance: ({ utterance }) => {
-        if (_.isString(utterance)) {
-          if (this.utterances[utterance]) {
-            return this.utterances[utterance].utterances
-          } else {
-            const parts = utterance.split(' ')
-            if (this.utterances[parts[0]]) {
-              const uttArgs = parts.slice(1)
-              return this.utterances[parts[0]].utterances.map(utt => util.format(utt, ...uttArgs))
-            }
-          }
-        }
-        return [utterance]
+      resolveUtterance: ({ utterance, resolveEmptyIfUnknown }) => {
+        return this._resolveUtterance({ utterance, resolveEmptyIfUnknown })
       },
       assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
         if (!_.isArray(tomatch)) {
@@ -315,6 +306,22 @@ module.exports = class ScriptingProvider {
 
   _isValidAsserterType (asserterType) {
     return ['assertConvoBegin', 'assertConvoStep', 'assertConvoEnd'].some(t => asserterType === t)
+  }
+
+  _resolveUtterance ({ utterance, resolveEmptyIfUnknown = false }) {
+    if (_.isString(utterance)) {
+      if (this.utterances[utterance]) {
+        return this.utterances[utterance].utterances
+      } else {
+        const parts = utterance.split(' ')
+        if (this.utterances[parts[0]]) {
+          const uttArgs = parts.slice(1)
+          return this.utterances[parts[0]].utterances.map(utt => util.format(utt, ...uttArgs))
+        }
+      }
+    }
+    if (resolveEmptyIfUnknown) return null
+    else return [utterance]
   }
 
   _buildScriptContext () {
@@ -514,6 +521,7 @@ module.exports = class ScriptingProvider {
       } else if (filename.endsWith('.markdown') || filename.endsWith('.md')) {
         fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
         fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
+        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_PCONVO)
       } else {
         debug(`ReadScript - dropped file: ${filename}, filename not supported`)
       }
@@ -723,6 +731,7 @@ module.exports = class ScriptingProvider {
     const expandedConvos = []
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     this.convos.forEach((convo) => {
+      convo.expandPartialConvos()
       this._expandConvo(expandedConvos, convo)
     })
     this.convos = expandedConvos
@@ -944,5 +953,128 @@ module.exports = class ScriptingProvider {
     } else if (scriptingMemories) {
       this.scriptingMemories.push(scriptingMemories)
     }
+  }
+
+  GetConversationFlowView ({ getConvoNodeHash = null, detectLoops = false, summarizeMultiSteps = true } = {}) {
+    const root = []
+    const botNodesByHash = {}
+
+    this.convos.forEach((convo) => {
+      const convoNodes = []
+      for (const [convoStepIndex, convoStep] of convo.conversation.entries()) {
+        if (convoStep.sender === 'begin' || convoStep.sender === 'end') continue
+        convoStep.index = convoStepIndex
+        if (convoStep.messageText) {
+          const utterances = this._resolveUtterance({ utterance: convoStep.messageText, resolveEmptyIfUnknown: true })
+          if (utterances) {
+            convoStep.utteranceSamples = utterances.slice(0, 3)
+            convoStep.utteranceCount = utterances.length
+          }
+        }
+
+        const lastConvoNode = convoNodes.length === 0 ? null : convoNodes[convoNodes.length - 1]
+        if (!lastConvoNode || !summarizeMultiSteps || convoNodes[convoNodes.length - 1].sender !== convoStep.sender) {
+          convoNodes.push({
+            sender: convoStep.sender,
+            convoSteps: [convoStep],
+            convoStepIndices: [convoStepIndex],
+            hash: null
+          })
+        } else {
+          lastConvoNode.convoSteps.push(convoStep)
+          lastConvoNode.convoStepIndices.push(convoStepIndex)
+        }
+      }
+
+      let currentChildren = root
+      for (const convoNode of convoNodes) {
+        const convoNodeValues = convoNode.sender === 'me'
+          ? convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'sender', 'messageText', 'utteranceSamples', 'utteranceCount', 'logicHooks', 'userInputs']))
+          : convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'sender', 'messageText', 'optional', 'not', 'utteranceSamples', 'utteranceCount', 'logicHooks', 'asserters']))
+        const convoNodeHeader = {
+          header: _.pick(convo.header, ['name', 'description']),
+          sourceTag: convo.sourceTag,
+          convoStepIndices: convoNode.convoStepIndices
+        }
+
+        let hash = getConvoNodeHash && getConvoNodeHash({ convo, convoNode })
+        if (!hash) {
+          if (convoNode.sender === 'bot') {
+            hash = crypto.createHash('md5').update(JSON.stringify(convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'optional', 'not', 'logicHooks', 'asserters'])))).digest('hex')
+          } else {
+            hash = crypto.createHash('md5').update(JSON.stringify(convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'logicHooks', 'userInputs'])))).digest('hex')
+          }
+        }
+
+        const existingChildNode = currentChildren.find(c => c.hash === hash)
+        if (existingChildNode) {
+          existingChildNode.convos.push(convoNodeHeader)
+          currentChildren = existingChildNode.childNodes
+          continue
+        }
+
+        const existingBotNode = (detectLoops && convoNode.sender === 'bot' && botNodesByHash[hash])
+        if (existingBotNode) {
+          if (currentChildren.findIndex(c => c.ref === existingBotNode.key) < 0) {
+            currentChildren.push({
+              ref: existingBotNode.key
+            })
+          }
+          const existingConvo = existingBotNode.convos.find(c => c.header.name === convoNodeHeader.header.name)
+          if (existingConvo) {
+            existingConvo.convoStepIndices = [...existingConvo.convoStepIndices, ...convoNodeHeader.convoStepIndices]
+          } else {
+            existingBotNode.convos.push(convoNodeHeader)
+          }
+          currentChildren = existingBotNode.childNodes
+          continue
+        }
+        const node = {
+          sender: convoNode.sender,
+          key: randomize('0', 20),
+          hash: hash,
+          convoNodes: convoNodeValues,
+          convos: [convoNodeHeader],
+          childNodes: []
+        }
+        if (node.sender === 'bot') {
+          botNodesByHash[hash] = node
+        }
+        currentChildren.push(node)
+        currentChildren = node.childNodes
+      }
+    })
+
+    return root
+  }
+
+  GetConversationFlowDot (args) {
+    const root = this.GetConversationFlowView(args)
+
+    const nodes = []
+    const lines = []
+
+    const walkTreeForNodes = (node) => {
+      nodes.push(`N_${node.hash} [label="${node.convoNodes.map(convoNode => (new ConvoStep(convoNode)).toString()).join('\r\n')}"];`)
+      if (node.childNodes && node.childNodes.length > 0) {
+        node.childNodes.filter(c => !c.ref).forEach(c => walkTreeForNodes(c))
+      }
+    }
+    const walkTreeForLines = (node, path = []) => {
+      if (node.childNodes && node.childNodes.length > 0) {
+        node.childNodes.filter(c => !c.ref).forEach(c => walkTreeForLines(c, [...path, `N_${node.hash}`]))
+        node.childNodes.filter(c => c.ref).forEach(c => lines.push(`${[...path, `N_${node.hash}`, `N_${c.ref}`].join(' -> ')};`))
+      } else {
+        lines.push(`${[...path, `N_${node.hash}`].join(' -> ')};`)
+      }
+    }
+    root.forEach(r => walkTreeForNodes(r))
+    root.forEach(r => walkTreeForLines(r))
+
+    return [
+      'digraph {',
+      ...nodes,
+      ...lines,
+      '}'].join('\r\n')
   }
 }
