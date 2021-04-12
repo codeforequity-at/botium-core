@@ -81,18 +81,6 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     assert.notExists(transcript.scriptingMemory.$customerName)
   })
 
-  // Box can work without files, this eexception had no sense -> removed
-  it('Same variable in more files -> error (update: no error!)', async function () {
-    try {
-      // assert.throws did not worked to me
-      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMerging'))
-      throw (new Error('ReadScriptsFromDirectory had to throw error'))
-    } catch (ex) {
-      assert.equal(ex.toString(), 'Error: ReadScriptsFromDirectory had to throw error')
-      // assert.equal(ex.toString(), 'Error: Variable name defined in multiple scripting memory files: productGroup1.xlsx and productGroup2.xlsx')
-    }
-  })
-
   it('Using text file', async function () {
     this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosSimpleText'))
     this.compiler.ExpandScriptingMemoryToConvos()
@@ -104,6 +92,133 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     assert.equal(transcript.scriptingMemory.$productName, 'Wiener Schnitzel')
     assert.isDefined(transcript.scriptingMemory.$customer)
     assert.equal(transcript.scriptingMemory.$customer, 'Joe')
+  })
+
+  describe('Using multiple scripting memory file', function () {
+    it('should work with different variable names', async function () {
+      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryDifferent'))
+      this.compiler.ExpandScriptingMemoryToConvos()
+      assert.equal(this.compiler.convos.length, 6)
+
+      try {
+        await this.compiler.convos[0].Run(this.container)
+      } catch (err) {
+        if (err.transcript) {
+          assert.isObject(err.transcript.scriptingMemory)
+          assert.isDefined(err.transcript.scriptingMemory.$productName)
+          assert.equal(err.transcript.scriptingMemory.$productName, 'Bread')
+          assert.isDefined(err.transcript.scriptingMemory.$available_products)
+          assert.equal(err.transcript.scriptingMemory.$available_products, 'Bread, Beer, Eggs')
+          return
+        } else {
+          throw err
+        }
+      }
+      throw (new Error('Exception not thrown'))
+    })
+
+    it('should work with same variable names', async function () {
+      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemorySame'))
+      this.compiler.ExpandScriptingMemoryToConvos()
+      assert.equal(this.compiler.convos.length, 4)
+
+      const transcript = await this.compiler.convos[3].Run(this.container)
+      assert.isObject(transcript.scriptingMemory)
+      assert.isDefined(transcript.scriptingMemory.$productName)
+      assert.equal(transcript.scriptingMemory.$productName, 'Hamburger')
+    })
+
+    it('should throw exception if there is intersection in convosMultiMemoryCaseNameCollisionvariable names', async function () {
+      try {
+        this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryIntersection'))
+      } catch (err) {
+        assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products_and_available.scriptingmemory.txt\' file: Cant add sripting memory "{"header":{"name":"product1"},"values":{"$productName":"Bread","$available_products":"Bread, Cheese"}}" because its variable names collides with scripting memory definition "{"header":{"name":"available1"},"values":{"$available_products":"Bread, Beer, Eggs"},"sourceTag":{"filename":"available.scriptingmemory.txt"}}"')
+        assert.isNotNull(err.context)
+        assert.equal(err.context.type, 'compiler')
+        assert.equal(err.context.subtype, 'scripting memory variable name collision')
+        assert.equal(err.context.source, 'ScriptingProvider')
+
+        assert.isObject(err.context.cause.toAdd)
+        assert.deepEqual(err.context.cause.toAdd, {
+          header: {
+            name: 'product1'
+          },
+          values: {
+            $productName: 'Bread',
+            $available_products: 'Bread, Cheese'
+          }
+        })
+
+        assert.isArray(err.context.cause.existing)
+        assert.deepEqual(err.context.cause.existing, [
+          {
+            header: {
+              name: 'available1'
+            },
+            values: {
+              $available_products: 'Bread, Beer, Eggs'
+            },
+            sourceTag: {
+              filename: 'available.scriptingmemory.txt'
+            }
+          },
+          {
+            header: {
+              name: 'available2'
+            },
+            values: {
+              $available_products: 'Foo, Bar'
+            },
+            sourceTag: {
+              filename: 'available.scriptingmemory.txt'
+            }
+          }
+        ])
+
+        return
+      }
+      throw (new Error('Exception not thrown'))
+    })
+
+    it('should throw exception if case name is not unique', async function () {
+      try {
+        this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryCaseNameCollision'))
+      } catch (err) {
+        assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products2.scriptingmemory.txt\' file: Cant add sripting memory "{"header":{"name":"product1"},"values":{"$productName":"Hamburger"}}" because its name collides with scripting memory definition "{"header":{"name":"product1"},"values":{"$productName":"Bread"},"sourceTag":{"filename":"products1.scriptingmemory.txt"}}"')
+        assert.isNotNull(err.context)
+        assert.equal(err.context.type, 'compiler')
+        assert.equal(err.context.subtype, 'scripting memory name collision')
+        assert.equal(err.context.source, 'ScriptingProvider')
+
+        assert.isObject(err.context.cause.toAdd)
+        assert.deepEqual(err.context.cause.toAdd, {
+          header: {
+            name: 'product1'
+          },
+          values: {
+            $productName: 'Hamburger'
+          }
+        })
+
+        assert.isArray(err.context.cause.existing)
+        assert.deepEqual(err.context.cause.existing, [
+          {
+            header: {
+              name: 'product1'
+            },
+            values: {
+              $productName: 'Bread'
+            },
+            sourceTag: {
+              filename: 'products1.scriptingmemory.txt'
+            }
+          }
+        ])
+
+        return
+      }
+      throw (new Error('Exception not thrown'))
+    })
   })
 
   // nothing to test here, this case is just a debug log.
