@@ -1,0 +1,2 @@
+        | $productName     | $available_products
+product1| Bread            | Bread, Cheese

@@ -1,0 +1,13 @@
+buy
+
+#me
+What can I order from you?
+
+#bot
+You can order $available_products
+
+#me
+Ok, then send me some $productName
+
+#bot
+Added $productName to the shopping cart

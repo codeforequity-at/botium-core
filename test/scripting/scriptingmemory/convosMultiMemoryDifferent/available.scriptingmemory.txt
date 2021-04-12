@@ -1,0 +1,3 @@
+          | $available_products
+available1| Bread, Beer, Eggs
+available2| Foo, Bar

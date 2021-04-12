@@ -951,6 +951,42 @@ module.exports = class ScriptingProvider {
         this.AddScriptingMemories(scriptingMemory)
       }
     } else if (scriptingMemories) {
+      const intersection = this.scriptingMemories.filter((entry) => {
+        const k1 = Object.keys(entry.values)
+        const k2 = Object.keys(scriptingMemories.values)
+        const kInt = _.intersection(k1, k2)
+        return kInt.length && (kInt.length !== k1.length || kInt.length !== k2.length)
+      })
+      if (intersection.length) {
+        throw new BotiumError(
+          `Cant add sripting memory "${JSON.stringify(scriptingMemories)}" because its variable names collides with scripting memory definition "${JSON.stringify(intersection[0])}"`,
+          {
+            type: 'compiler',
+            subtype: 'scripting memory variable name collision',
+            source: 'ScriptingProvider',
+            cause: {
+              toAdd: scriptingMemories,
+              existing: intersection
+            }
+          }
+        )
+      }
+      const duplicate = this.scriptingMemories.filter((entry) => (entry.header.name === scriptingMemories.header.name) && (JSON.stringify(Object.keys(entry.values)) === JSON.stringify(Object.keys(scriptingMemories.values))))
+      if (duplicate.length) {
+        throw new BotiumError(
+          `Cant add sripting memory "${JSON.stringify(scriptingMemories)}" because its name collides with scripting memory definition "${JSON.stringify(duplicate[0])}"`,
+          {
+            type: 'compiler',
+            subtype: 'scripting memory name collision',
+            source: 'ScriptingProvider',
+            cause: {
+              toAdd: scriptingMemories,
+              existing: duplicate
+            }
+          }
+        )
+      }
+
       this.scriptingMemories.push(scriptingMemories)
     }
   }
