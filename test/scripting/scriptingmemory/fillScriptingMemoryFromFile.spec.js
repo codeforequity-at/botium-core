@@ -132,7 +132,7 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
       try {
         this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryIntersection'))
       } catch (err) {
-        assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products_and_available.scriptingmemory.txt\' file: Cant add sripting memory "{"header":{"name":"product1"},"values":{"$productName":"Bread","$available_products":"Bread, Cheese"}}" because its variable names collides with scripting memory definition "{"header":{"name":"available1"},"values":{"$available_products":"Bread, Beer, Eggs"},"sourceTag":{"filename":"available.scriptingmemory.txt"}}"')
+        assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products_and_available.scriptingmemory.txt\' file: Can\'t add scripting memory "{"header":{"name":"product1"},"values":{"$productName":"Bread","$available_products":"Bread, Cheese"}}" because its variable names collide with scripting memory definition "{"header":{"name":"available1"},"values":{"$available_products":"Bread, Beer, Eggs"},"sourceTag":{"filename":"available.scriptingmemory.txt"}}"')
         assert.isNotNull(err.context)
         assert.equal(err.context.type, 'compiler')
         assert.equal(err.context.subtype, 'scripting memory variable name collision')
@@ -184,7 +184,7 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
       try {
         this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryCaseNameCollision'))
       } catch (err) {
-        assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products2.scriptingmemory.txt\' file: Cant add sripting memory "{"header":{"name":"product1"},"values":{"$productName":"Hamburger"}}" because its name collides with scripting memory definition "{"header":{"name":"product1"},"values":{"$productName":"Bread"},"sourceTag":{"filename":"products1.scriptingmemory.txt"}}"')
+        assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products2.scriptingmemory.txt\' file: Can\'t add scripting memory "{"header":{"name":"product1"},"values":{"$productName":"Hamburger"}}" because its name collides with scripting memory definition "{"header":{"name":"product1"},"values":{"$productName":"Bread"},"sourceTag":{"filename":"products1.scriptingmemory.txt"}}"')
         assert.isNotNull(err.context)
         assert.equal(err.context.type, 'compiler')
         assert.equal(err.context.subtype, 'scripting memory name collision')
