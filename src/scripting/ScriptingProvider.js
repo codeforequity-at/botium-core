@@ -959,7 +959,7 @@ module.exports = class ScriptingProvider {
       })
       if (intersection.length) {
         throw new BotiumError(
-          `Can't add scripting memory "${JSON.stringify(scriptingMemories)}" because its variable names collide with scripting memory definition "${JSON.stringify(intersection[0])}"`,
+          `Some of the variables "${Object.keys(scriptingMemories.values).join(', ')}" are already used`,
           {
             type: 'compiler',
             subtype: 'scripting memory variable name collision',
@@ -974,7 +974,7 @@ module.exports = class ScriptingProvider {
       const duplicate = this.scriptingMemories.filter((entry) => (entry.header.name === scriptingMemories.header.name) && (JSON.stringify(Object.keys(entry.values)) === JSON.stringify(Object.keys(scriptingMemories.values))))
       if (duplicate.length) {
         throw new BotiumError(
-          `Can't add scripting memory "${JSON.stringify(scriptingMemories)}" because its name collides with scripting memory definition "${JSON.stringify(duplicate[0])}"`,
+          `Scripting memory "${scriptingMemories.header.name}" is already defined`,
           {
             type: 'compiler',
             subtype: 'scripting memory name collision',
