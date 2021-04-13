@@ -132,7 +132,7 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
       try {
         this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryIntersection'))
       } catch (err) {
-        assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products_and_available.scriptingmemory.txt\' file: Some of the variables "$productName, $available_products are already used')
+        assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products_and_available.scriptingmemory.txt\' file: Some of the variables "$productName, $available_products" are already used')
         assert.isNotNull(err.context)
         assert.equal(err.context.type, 'compiler')
         assert.equal(err.context.subtype, 'scripting memory variable name collision')
