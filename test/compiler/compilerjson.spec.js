@@ -107,7 +107,7 @@ describe('compiler.compilerjson', function () {
     compiler.Compile(scriptBuffer, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
     assert.equal(context.scriptingMemories.length, 2)
     assert.equal(context.scriptingMemories[0].header.name, 'scenario1')
-    assert.equal(context.scriptingMemories[0].values.var1, 'var1_1')
+    assert.equal(context.scriptingMemories[0].values.$var1, 'var1_1')
   })
 })
 

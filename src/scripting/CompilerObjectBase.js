@@ -103,23 +103,25 @@ module.exports = class CompilerObjectBase extends CompilerBase {
   }
 
   _compileScriptingMemory (lines) {
-    if (lines && lines.length > 1) {
+    if (lines && lines.length > 0) {
       if (_.isString(lines[0])) {
-        const names = lines[0].split('|').map((name) => name.trim()).slice(1)
-        const scriptingMemories = []
-        for (let row = 1; row < lines.length; row++) {
-          const rawRow = lines[row].split('|').map((name) => name.trim())
-          const caseName = rawRow[0]
-          const values = rawRow.slice(1)
-          const json = {}
-          for (let col = 0; col < names.length; col++) {
-            json[names[col]] = values[col]
+        if (lines.length > 1) {
+          const names = lines[0].split('|').map((name) => name.trim()).slice(1)
+          const scriptingMemories = []
+          for (let row = 1; row < lines.length; row++) {
+            const rawRow = lines[row].split('|').map((name) => name.trim())
+            const caseName = rawRow[0]
+            const values = rawRow.slice(1)
+            const json = {}
+            for (let col = 0; col < names.length; col++) {
+              json[names[col]] = values[col]
+            }
+            const scriptingMemory = { header: { name: caseName }, values: json }
+            scriptingMemories.push(scriptingMemory)
           }
-          const scriptingMemory = { header: { name: caseName }, values: json }
-          scriptingMemories.push(scriptingMemory)
+          this.context.AddScriptingMemories(scriptingMemories)
+          return scriptingMemories
         }
-        this.context.AddScriptingMemories(scriptingMemories)
-        return scriptingMemories
       } else {
         this.context.AddScriptingMemories(lines)
         return lines
