@@ -29,8 +29,10 @@ const buildContext = () => {
     },
     AddConvos: (c) => { result.convos = result.convos.concat(c) },
     AddUtterances: (u) => { result.utterances = result.utterances.concat(u) },
+    AddScriptingMemories: (s) => { result.scriptingMemories = result.scriptingMemories.concat(s) },
     convos: [],
-    utterances: []
+    utterances: [],
+    scriptingMemories: []
   }
   return result
 }
@@ -93,6 +95,19 @@ describe('compiler.compilerjson', function () {
     assert.equal(context.utterances[0].utterances[1], 'hello!')
 
     assert.equal(context.convos.length, 0)
+  })
+
+  it('should read scripting memory', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'scripting_memory.json'))
+    const context = buildContext()
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+    assert.equal(context.scriptingMemories.length, 2)
+    assert.equal(context.scriptingMemories[0].header.name, 'scenario1')
+    assert.equal(context.scriptingMemories[0].values.var1, 'var1_1')
   })
 })
 
