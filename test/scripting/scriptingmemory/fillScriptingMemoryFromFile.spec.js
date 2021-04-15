@@ -99,14 +99,11 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
       this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryNoName'))
       this.compiler.ExpandScriptingMemoryToConvos()
     } catch (err) {
-      assert.equal(err.toString(), 'BotiumError: Scripting Memory Definition(s) without name')
+      assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products.scriptingmemory.txt\' file: Scripting Memory Definition has no name')
       assert.isNotNull(err.context)
-      assert.equal(err.context.type, 'Scripting Memory')
+      assert.equal(err.context.type, 'Compiler')
+      assert.equal(err.context.subtype, 'Scripting memory without name')
       assert.equal(err.context.source, 'ScriptingProvider')
-
-      assert.isObject(err.context.cause)
-      assert.isArray(err.context.cause.aggregatedNoNames)
-      assert.equal(err.context.cause.aggregatedNoNames.length, 1)
 
       return
     }
@@ -118,14 +115,11 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
       this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryNoVariableName'))
       this.compiler.ExpandScriptingMemoryToConvos()
     } catch (err) {
-      assert.equal(err.toString(), 'BotiumError: Scripting Memory Definition(s) product1, product2, product3 without variable name')
+      assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products.scriptingmemory.txt\' file: Scripting Memory Definition variable has no name')
       assert.isNotNull(err.context)
-      assert.equal(err.context.type, 'Scripting Memory')
+      assert.equal(err.context.type, 'Compiler')
+      assert.equal(err.context.subtype, 'Scripting memory without variable name')
       assert.equal(err.context.source, 'ScriptingProvider')
-
-      assert.isObject(err.context.cause)
-      assert.isArray(err.context.cause.aggregatedNoVariableNames)
-      assert.equal(err.context.cause.aggregatedNoVariableNames.length, 3)
 
       return
     }
@@ -137,14 +131,11 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
       this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryNoVariable'))
       this.compiler.ExpandScriptingMemoryToConvos()
     } catch (err) {
-      assert.equal(err.toString(), 'BotiumError: Scripting Memory Definition(s) product1, product2, product3 without variable')
+      assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products.scriptingmemory.txt\' file: Scripting Memory Definition has no variables')
       assert.isNotNull(err.context)
-      assert.equal(err.context.type, 'Scripting Memory')
+      assert.equal(err.context.type, 'Compiler')
+      assert.equal(err.context.subtype, 'Scripting memory without variable')
       assert.equal(err.context.source, 'ScriptingProvider')
-
-      assert.isObject(err.context.cause)
-      assert.isArray(err.context.cause.aggregatedNoVariables)
-      assert.equal(err.context.cause.aggregatedNoVariables.length, 3)
 
       return
     }

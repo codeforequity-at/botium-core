@@ -1064,6 +1064,48 @@ module.exports = class ScriptingProvider {
         this.AddScriptingMemories(scriptingMemory)
       }
     } else if (scriptingMemories) {
+      if (!scriptingMemories.header || !scriptingMemories.header.name) {
+        throw new BotiumError(
+          'Scripting Memory Definition has no name',
+          {
+            type: 'Compiler',
+            subtype: 'Scripting memory without name',
+            source: 'ScriptingProvider',
+            cause: {
+              scriptingMemory: scriptingMemories
+            }
+          }
+        )
+      }
+
+      if (!scriptingMemories.values || !Object.keys(scriptingMemories.values).length) {
+        throw new BotiumError(
+          'Scripting Memory Definition has no variables',
+          {
+            type: 'Compiler',
+            subtype: 'Scripting memory without variable',
+            source: 'ScriptingProvider',
+            cause: {
+              scriptingMemory: scriptingMemories
+            }
+          }
+        )
+      }
+
+      if (scriptingMemories.values && !_.isUndefined(scriptingMemories.values[''])) {
+        throw new BotiumError(
+          'Scripting Memory Definition variable has no name',
+          {
+            type: 'Compiler',
+            subtype: 'Scripting memory without variable name',
+            source: 'ScriptingProvider',
+            cause: {
+              scriptingMemory: scriptingMemories
+            }
+          }
+        )
+      }
+
       this.scriptingMemories.push(scriptingMemories)
     }
   }
