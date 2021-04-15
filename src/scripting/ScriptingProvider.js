@@ -615,13 +615,7 @@ module.exports = class ScriptingProvider {
 
     // validating scripting memory without variable name
     const aggregatedNoVariableNames = this.scriptingMemories.filter((entry) => {
-      const values = Object.keys(entry.values || {})
-      for (const entry of values) {
-        if (!entry) {
-          return true
-        }
-      }
-      return false
+      return !_.isUndefined(entry.values[''])
     })
     if (aggregatedNoVariableNames.length) {
       throw new BotiumError(
