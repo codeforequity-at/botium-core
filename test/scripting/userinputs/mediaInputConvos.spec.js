@@ -151,6 +151,101 @@ describe('scripting.userinputs.mediaInputConvos.baseUri', function () {
   })
 })
 
+describe('scripting.userinputs.mediaInputConvos.baseUris', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.userinputs.mediaInputConvos',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.USER_INPUTS]: [
+        {
+          ref: 'MEDIA',
+          src: 'MediaInput',
+          args: {
+            baseUri: 'https://www.default.at',
+            baseUris: {
+              testset1: 'https://www.botium.at',
+              testset2: 'https://www.google.at'
+            }
+          }
+        }
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should add media from test set baseUri in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'media.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    this.compiler.convos[0].sourceTag.testSetId = 'testset2'
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 1)
+    assert.equal(transcript.steps[0].actual.media[0].downloadUri, 'https://www.google.at/botium.png')
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
+  })
+  it('should add media with default baseUri in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'media.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    this.compiler.convos[0].sourceTag.testSetId = 'testset3'
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 1)
+    assert.isTrue(transcript.steps[0].actual.media[0].downloadUri.endsWith('https://www.default.at/botium.png'))
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
+  })
+})
+
+describe('scripting.userinputs.mediaInputConvos.baseUrisCustomSelector', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.userinputs.mediaInputConvos',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.USER_INPUTS]: [
+        {
+          ref: 'MEDIA',
+          src: 'MediaInput',
+          args: {
+            baseUris: {
+              customval1: 'https://www.botium.at'
+            },
+            baseSelector: 'sourceTag.customField'
+          }
+        }
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should add media from custom test set baseUri in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'media.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    this.compiler.convos[0].sourceTag.customField = 'customval1'
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 1)
+    assert.equal(transcript.steps[0].actual.media[0].downloadUri, 'https://www.botium.at/botium.png')
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
+  })
+})
+
 describe('scripting.userinputs.mediaInputConvos.baseDir', function () {
   beforeEach(async function () {
     const myCaps = {
