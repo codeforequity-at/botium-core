@@ -89,7 +89,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     lines.forEach((line) => {
       currentLineIndex++
       line = line.trim()
-      if (line && line.startsWith('#')) {
+      if (line && (line.startsWith('#begin') || line.startsWith('#end') || line.startsWith('#me') || line.startsWith('#bot') || line.startsWith('#include'))) {
         pushPrev()
 
         convoStepSender = line.substr(1).trim()
