@@ -158,13 +158,9 @@ describe('convo.transcript', function () {
       assert.isDefined(err.transcript.steps[3].err)
     }
   })
-  it('should fail on invalid sender', async function () {
-    try {
-      this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'invalidsender.convo.txt')
-      assert.fail('expected error')
-    } catch (err) {
-      assert.isTrue(err.message.indexOf('Section "billy" unknown') >= 0)
-    }
+  it('should not fail on invalid sender', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'invalidsender.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
   })
   it('should emit transcript event on success', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2steps.convo.txt')
