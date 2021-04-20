@@ -577,6 +577,119 @@ module.exports = class ScriptingProvider {
       return
     }
 
+    // validating scripting memory without name
+    const aggregatedNoNames = this.scriptingMemories.filter((entry) => {
+      return !entry.header.name
+    })
+    if (aggregatedNoNames.length) {
+      throw new BotiumError(
+        'Scripting Memory Definition(s) without name',
+        {
+          type: 'Scripting Memory',
+          subtype: 'Scripting Memory without name',
+          source: 'ScriptingProvider',
+          cause: {
+            aggregatedNoNames
+          }
+        }
+      )
+    }
+
+    // validating scripting memory without variable
+    const aggregatedNoVariables = this.scriptingMemories.filter((entry) => {
+      return !entry.values || !Object.keys(entry.values).length
+    })
+    if (aggregatedNoVariables.length) {
+      throw new BotiumError(
+        `Scripting Memory Definition(s) ${aggregatedNoVariables.map(e => e.header.name).join(', ')} without variable`,
+        {
+          type: 'Scripting Memory',
+          subtype: 'Scripting Memory without variable',
+          source: 'ScriptingProvider',
+          cause: {
+            aggregatedNoVariables
+          }
+        }
+      )
+    }
+
+    // validating scripting memory without variable name
+    const aggregatedNoVariableNames = this.scriptingMemories.filter((entry) => {
+      return !_.isUndefined(entry.values[''])
+    })
+    if (aggregatedNoVariableNames.length) {
+      throw new BotiumError(
+        `Scripting Memory Definition(s) ${aggregatedNoVariableNames.map(e => e.header.name).join(', ')} without variable name`,
+        {
+          type: 'Scripting Memory',
+          subtype: 'Scripting Memory without variable name',
+          source: 'ScriptingProvider',
+          cause: {
+            aggregatedNoVariableNames
+          }
+        }
+      )
+    }
+
+    // validating scripting memory name collision
+    const aggregatedDuplicates = []
+    for (let i = 0; i < (this.scriptingMemories || []).length; i++) {
+      const scriptingMemory = this.scriptingMemories[i]
+      const duplicate = this.scriptingMemories.filter((entry, j) => {
+        if (j === i || !(entry.values && scriptingMemory.values && entry.header && scriptingMemory.header)) {
+          return false
+        }
+        return (entry.header.name === scriptingMemory.header.name) && (JSON.stringify(Object.keys(entry.values)) === JSON.stringify(Object.keys(scriptingMemory.values)))
+      })
+      if (duplicate.length) {
+        aggregatedDuplicates.push({ scriptingMemory, duplicate })
+      }
+    }
+    if (aggregatedDuplicates.length) {
+      throw new BotiumError(
+        `Scripting Memory Definition name(s) "${_.uniq(aggregatedDuplicates.map(d => d.scriptingMemory.header.name)).join(', ')}" are not unique`,
+        {
+          type: 'Scripting Memory',
+          subtype: 'Scripting Memory name collision',
+          source: 'ScriptingProvider',
+          cause: {
+            aggregatedDuplicates
+          }
+        }
+      )
+    }
+
+    // validating scripting memory variable name collision
+    const aggregatedIntersections = []
+    for (let i = 0; i < (this.scriptingMemories || []).length; i++) {
+      const scriptingMemory = this.scriptingMemories[i]
+      const intersection = this.scriptingMemories.filter((entry, j) => {
+        if (j === i || !(entry.values && scriptingMemory.values && entry.header && scriptingMemory.header)) {
+          return false
+        }
+        const k1 = Object.keys(entry.values)
+        const k2 = Object.keys(scriptingMemory.values)
+        const kInt = _.intersection(k1, k2)
+        return kInt.length && (kInt.length !== k1.length || kInt.length !== k2.length)
+      })
+      if (intersection.length) {
+        aggregatedIntersections.push({ scriptingMemory, intersection })
+      }
+    }
+    if (aggregatedIntersections.length) {
+      throw new BotiumError(
+        `Scripting Memory Definitions "${aggregatedIntersections.map(i => i.scriptingMemory.header.name).join(', ')}" are invalid because variable name collision"`,
+        {
+          type: 'Scripting Memory',
+          subtype: 'Scripting Memory variable name collision',
+          source: 'ScriptingProvider',
+          cause: {
+            aggregatedIntersections
+          }
+        }
+      )
+    }
+
     const variablesToScriptingMemory = new Map()
     this.scriptingMemories.forEach((scriptingMemory) => {
       const key = JSON.stringify(Object.keys(scriptingMemory.values).sort())
@@ -951,37 +1064,43 @@ module.exports = class ScriptingProvider {
         this.AddScriptingMemories(scriptingMemory)
       }
     } else if (scriptingMemories) {
-      const intersection = this.scriptingMemories.filter((entry) => {
-        const k1 = Object.keys(entry.values)
-        const k2 = Object.keys(scriptingMemories.values)
-        const kInt = _.intersection(k1, k2)
-        return kInt.length && (kInt.length !== k1.length || kInt.length !== k2.length)
-      })
-      if (intersection.length) {
+      if (!scriptingMemories.header || !scriptingMemories.header.name) {
         throw new BotiumError(
-          `Can't add scripting memory "${JSON.stringify(scriptingMemories)}" because its variable names collide with scripting memory definition "${JSON.stringify(intersection[0])}"`,
+          'Scripting Memory Definition has no name',
           {
-            type: 'compiler',
-            subtype: 'scripting memory variable name collision',
+            type: 'Compiler',
+            subtype: 'Scripting memory without name',
             source: 'ScriptingProvider',
             cause: {
-              toAdd: scriptingMemories,
-              existing: intersection
+              scriptingMemory: scriptingMemories
             }
           }
         )
       }
-      const duplicate = this.scriptingMemories.filter((entry) => (entry.header.name === scriptingMemories.header.name) && (JSON.stringify(Object.keys(entry.values)) === JSON.stringify(Object.keys(scriptingMemories.values))))
-      if (duplicate.length) {
+
+      if (!scriptingMemories.values || !Object.keys(scriptingMemories.values).length) {
         throw new BotiumError(
-          `Can't add scripting memory "${JSON.stringify(scriptingMemories)}" because its name collides with scripting memory definition "${JSON.stringify(duplicate[0])}"`,
+          'Scripting Memory Definition has no variables',
           {
-            type: 'compiler',
-            subtype: 'scripting memory name collision',
+            type: 'Compiler',
+            subtype: 'Scripting memory without variable',
             source: 'ScriptingProvider',
             cause: {
-              toAdd: scriptingMemories,
-              existing: duplicate
+              scriptingMemory: scriptingMemories
+            }
+          }
+        )
+      }
+
+      if (scriptingMemories.values && !_.isUndefined(scriptingMemories.values[''])) {
+        throw new BotiumError(
+          'Scripting Memory Definition variable has no name',
+          {
+            type: 'Compiler',
+            subtype: 'Scripting memory without variable name',
+            source: 'ScriptingProvider',
+            cause: {
+              scriptingMemory: scriptingMemories
             }
           }
         )
