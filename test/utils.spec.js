@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const { escapeJSONString } = require('../src/helpers/Utils')
+const { escapeJSONString, formatTimeout } = require('../src/helpers/Utils')
 
 describe('utils.escapeJSON', function () {
   it('should not modify JSON string which is not containing double quotes', () => {
@@ -32,5 +32,17 @@ describe('utils.escapeJSON', function () {
       'test \\n123',
       'nested newlines should be escaped within JSON string'
     )
+  })
+})
+
+describe('utils.formatTimeout', function () {
+  it('should format seconds', () => {
+    assert.equal(formatTimeout(2000), '2s')
+  })
+  it('should format milliseconds', () => {
+    assert.equal(formatTimeout(800), '800ms')
+  })
+  it('should format seconds and milliseconds', () => {
+    assert.equal(formatTimeout(2400), '2s 400ms')
   })
 })
