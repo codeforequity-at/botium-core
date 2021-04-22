@@ -1,5 +1,7 @@
 const assert = require('chai').assert
 const MediaAsserter = require('../../../src/scripting/logichook/asserter/MediaAsserter')
+const MediaCountAsserter = require('../../../src/scripting/logichook/asserter/MediaCountAsserter')
+const MediaCountRecAsserter = require('../../../src/scripting/logichook/asserter/MediaCountRecAsserter')
 
 describe('scripting.asserters.mediaAsserter', function () {
   beforeEach(async function () {
@@ -165,5 +167,145 @@ describe('scripting.asserters.mediaAsserter', function () {
       assert.deepEqual(err.context.cause.expected, [])
       assert.deepEqual(err.context.cause.actual, ['test'])
     }
+  })
+})
+
+describe('scripting.asserters.mediaCountAsserter', function () {
+  beforeEach(async function () {
+    this.mediaCountAsserter = new MediaCountAsserter({}, {})
+    this.mediaCountRecAsserter = new MediaCountRecAsserter({}, {})
+  })
+
+  it('should succeed on no args with one media', async function () {
+    await this.mediaCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: [],
+      botMsg: {
+        media: [{ mediaUri: 'test.jpg' }]
+      }
+    })
+  })
+  it('should fail on no args with no media', async function () {
+    try {
+      await this.mediaCountAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: [],
+        botMsg: {
+          media: []
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected Media count 0>0') >= 0)
+    }
+  })
+  it('should succeed on >=0 with one media', async function () {
+    await this.mediaCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['>=0'],
+      botMsg: {
+        media: [{ mediaUri: 'test.jpg' }]
+      }
+    })
+  })
+  it('should succeed on >0 with one media', async function () {
+    await this.mediaCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['>0'],
+      botMsg: {
+        media: [{ mediaUri: 'test.jpg' }]
+      }
+    })
+  })
+  it('should fail on >1 with one media', async function () {
+    try {
+      await this.mediaCountAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['>1'],
+        botMsg: {
+          media: [{ mediaUri: 'test.jpg' }]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected Media count 1>1') >= 0)
+    }
+  })
+  it('should succeed on <=1 with one media', async function () {
+    await this.mediaCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['<=1'],
+      botMsg: {
+        media: [{ mediaUri: 'test.jpg' }]
+      }
+    })
+  })
+  it('should succeed on <2 with one media', async function () {
+    await this.mediaCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['<2'],
+      botMsg: {
+        media: [{ mediaUri: 'test.jpg' }]
+      }
+    })
+  })
+  it('should succeed on no args with ! no media', async function () {
+    await this.mediaCountAsserter.assertNotConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: [],
+      botMsg: {
+        media: []
+      }
+    })
+  })
+  it('should fail on one args with ! one media', async function () {
+    try {
+      await this.mediaCountAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: [],
+        botMsg: {
+          media: [{ mediaUri: 'test.jpg' }]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Not expected Media count 1>0') >= 0)
+    }
+  })
+  it('should succeed on >1 with ! no media', async function () {
+    await this.mediaCountAsserter.assertNotConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['>1'],
+      botMsg: {
+        media: []
+      }
+    })
+  })
+  it('should fail on >1 with ! two media', async function () {
+    try {
+      await this.mediaCountAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['>1'],
+        botMsg: {
+          media: [{ mediaUri: 'test.jpg' }, { mediaUri: 'test.jpg' }]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Not expected Media count 2>1') >= 0)
+    }
+  })
+  it('should succeed on >3 with rec media', async function () {
+    await this.mediaCountRecAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['>3'],
+      botMsg: {
+        media: [{ mediaUri: 'test.jpg' }],
+        cards: [
+          { image: { mediaUri: 'test.jpg ' } },
+          { media: [{ mediaUri: 'test.jpg' }, { mediaUri: 'test.jpg' }] }
+        ]
+      }
+    })
   })
 })

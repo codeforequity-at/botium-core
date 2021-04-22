@@ -43,7 +43,7 @@ module.exports = class BaseTextAsserter {
                 args
               },
               cause: {
-                not: false,
+                not: true,
                 expected: allUtterances,
                 actual: botMsg
               }
@@ -59,7 +59,7 @@ module.exports = class BaseTextAsserter {
               args
             },
             cause: {
-              not: false,
+              not: true,
               expected: allUtterances,
               actual: botMsg
             }

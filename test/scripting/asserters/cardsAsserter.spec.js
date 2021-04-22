@@ -1,5 +1,7 @@
 const assert = require('chai').assert
 const CardsAsserter = require('../../../src/scripting/logichook/asserter/CardsAsserter')
+const CardsCountAsserter = require('../../../src/scripting/logichook/asserter/CardsCountAsserter')
+const CardsCountRecAsserter = require('../../../src/scripting/logichook/asserter/CardsCountRecAsserter')
 
 describe('scripting.asserters.cardsAsserter', function () {
   beforeEach(async function () {
@@ -203,5 +205,41 @@ describe('scripting.asserters.cardsAsserter', function () {
       assert.deepEqual(err.context.cause.expected, [])
       assert.deepEqual(err.context.cause.actual, ['test'])
     }
+  })
+})
+describe('scripting.asserters.cardsCountAsserter', function () {
+  beforeEach(async function () {
+    this.cardsCountAsserter = new CardsCountAsserter({}, {})
+    this.cardsCountRecAsserter = new CardsCountRecAsserter({}, {})
+  })
+
+  it('should succeed on no args with one card', async function () {
+    await this.cardsCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: [],
+      botMsg: {
+        cards: [{ text: 'test.jpg' }]
+      }
+    })
+  })
+
+  it('should succeed on >=3 with rec cards', async function () {
+    await this.cardsCountRecAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['>=3'],
+      botMsg: {
+        cards: [
+          {
+            text: 'card1',
+            cards: [
+              {
+                text: 'card2',
+                cards: [{ text: 'card3' }]
+              }
+            ]
+          }
+        ]
+      }
+    })
   })
 })

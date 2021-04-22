@@ -1,5 +1,7 @@
 const assert = require('chai').assert
 const ButtonsAsserter = require('../../../src/scripting/logichook/asserter/ButtonsAsserter')
+const ButtonsCountAsserter = require('../../../src/scripting/logichook/asserter/ButtonsCountAsserter')
+const ButtonsCountRecAsserter = require('../../../src/scripting/logichook/asserter/ButtonsCountRecAsserter')
 
 describe('scripting.asserters.buttonsAsserter', function () {
   beforeEach(async function () {
@@ -173,5 +175,33 @@ describe('scripting.asserters.buttonsAsserter', function () {
       assert.deepEqual(err.context.cause.expected, [])
       assert.deepEqual(err.context.cause.actual, ['test'])
     }
+  })
+})
+describe('scripting.asserters.buttonsCountAsserter', function () {
+  beforeEach(async function () {
+    this.buttonsCountAsserter = new ButtonsCountAsserter({}, {})
+    this.buttonsCountRecAsserter = new ButtonsCountRecAsserter({}, {})
+  })
+
+  it('should succeed on no args with one button', async function () {
+    await this.buttonsCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: [],
+      botMsg: {
+        buttons: [{ text: 'test.jpg' }]
+      }
+    })
+  })
+  it('should succeed on >=3 with rec buttons', async function () {
+    await this.buttonsCountRecAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['>=3'],
+      botMsg: {
+        buttons: [{ text: 'test.jpg' }],
+        cards: [
+          { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
+        ]
+      }
+    })
   })
 })
