@@ -3,10 +3,17 @@ module.exports = {
   LOGIC_HOOK_INCLUDE,
   DEFAULT_ASSERTERS: [
     { name: 'BUTTONS', className: 'ButtonsAsserter' },
+    { name: 'BUTTONS_COUNT', className: 'ButtonsCountAsserter' },
+    { name: 'BUTTONS_COUNT_REC', className: 'ButtonsCountRecAsserter' },
     { name: 'MEDIA', className: 'MediaAsserter' },
+    { name: 'MEDIA_COUNT', className: 'MediaCountAsserter' },
+    { name: 'MEDIA_COUNT_REC', className: 'MediaCountRecAsserter' },
     { name: 'CARDS', className: 'CardsAsserter' },
+    { name: 'CARDS_COUNT', className: 'CardsCountAsserter' },
+    { name: 'CARDS_COUNT_REC', className: 'CardsCountRecAsserter' },
     { name: 'PAUSE_ASSERTER', className: 'PauseAsserter' },
     { name: 'JSON_PATH', className: 'JsonPathAsserter' },
+    { name: 'JSON_PATH_COUNT', className: 'JsonPathCountAsserter' },
     { name: 'RESPONSE_LENGTH', className: 'ResponseLengthAsserter' },
     { name: 'FORMS', className: 'FormsAsserter' },
 

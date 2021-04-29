@@ -1,5 +1,6 @@
 const assert = require('chai').assert
 const JsonPathAsserter = require('../../../src/scripting/logichook/asserter/JsonPathAsserter')
+const JsonPathCountAsserter = require('../../../src/scripting/logichook/asserter/JsonPathCountAsserter')
 
 describe('scripting.asserters.jsonPathAsserter', function () {
   beforeEach(async function () {
@@ -289,6 +290,51 @@ describe('scripting.asserters.jsonPathAsserter', function () {
       assert.fail('should have failed')
     } catch (err) {
       assert.isTrue(err.message.indexOf('Expected: value in jsonPath $.test') > 0)
+    }
+  })
+})
+
+describe('scripting.asserters.jsonPathCountAsserter', function () {
+  beforeEach(async function () {
+    this.jsonPathCountAsserter = new JsonPathCountAsserter({}, {})
+  })
+
+  it('should succeed on no args with one jsonpath', async function () {
+    await this.jsonPathCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['$.test'],
+      botMsg: {
+        sourceData: {
+          test: [{ e1: 'e1' }, { e2: 'e2' }]
+        }
+      }
+    })
+  })
+  it('should succeed on <=2 with two jsonpath', async function () {
+    await this.jsonPathCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['$.test', '<=2'],
+      botMsg: {
+        sourceData: {
+          test: [{ e1: 'e1' }, { e2: 'e2' }]
+        }
+      }
+    })
+  })
+  it('should fail on >2 with two jsonpath', async function () {
+    try {
+      await this.jsonPathCountAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['$.test', '>2'],
+        botMsg: {
+          sourceData: {
+            test: [{ e1: 'e1' }, { e2: 'e2' }]
+          }
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected JsonPath count 2>2') >= 0)
     }
   })
 })

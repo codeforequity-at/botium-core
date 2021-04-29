@@ -1,4 +1,5 @@
 const { BotiumError } = require('../../BotiumError')
+const { buttonsFromMsg } = require('../helpers')
 
 module.exports = class ButtonsAsserter {
   constructor (context, caps = {}) {
@@ -7,21 +8,8 @@ module.exports = class ButtonsAsserter {
     this.name = 'ButtonsAsserter'
   }
 
-  _buttonTextsFromCardsRecursive (cards) {
-    if (!cards) {
-      return []
-    }
-    let result = []
-    for (const card of cards) {
-      result = result.concat(card.buttons ? card.buttons.map(b => b.text) : [])
-      result = result.concat(this._buttonTextsFromCardsRecursive(card.cards))
-    }
-
-    return result
-  }
-
   _evalButtons (args, botMsg) {
-    const allButtons = (botMsg.buttons ? botMsg.buttons.map(b => b.text) : []).concat(this._buttonTextsFromCardsRecursive(botMsg.cards))
+    const allButtons = buttonsFromMsg(botMsg, true).map(b => b.text)
     if (!args || args.length === 0) {
       return { allButtons, buttonsNotFound: [], buttonsFound: allButtons }
     }
