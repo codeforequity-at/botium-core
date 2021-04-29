@@ -115,13 +115,13 @@ module.exports = class SimpleRestContainer {
           if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
             this._makeCall('SIMPLEREST_PING')
               .then(response => {
-                if (this.caps[Capabilities.SIMPLEREST_PING_UPDATE_CONTEXT]) {
+                if (this.caps[Capabilities.SIMPLEREST_PING_UPDATE_CONTEXT] || this.caps[Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]) {
                   if (_.isObject(response) || botiumUtils.isStringJson(response)) {
-                    debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} returned JSON response, using it as session context: ${botiumUtils.shortenJsonString(response)}`)
+                    debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} returned JSON response: ${botiumUtils.shortenJsonString(response)}`)
                     const body = _.isObject(response) ? response : JSON.parse(response)
-                    return this._processBodyAsync(body, false, true)
+                    return this._processBodyAsync(body, !!this.caps[Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE], !!this.caps[Capabilities.SIMPLEREST_PING_UPDATE_CONTEXT])
                   } else {
-                    debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} didn't return JSON response, not using it as session context.`)
+                    debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} didn't return JSON response, ignoring it.`)
                   }
                 }
               }).then(() => {
@@ -158,8 +158,21 @@ module.exports = class SimpleRestContainer {
           this.processInbound = true
           if (this.caps[Capabilities.SIMPLEREST_START_URL]) {
             this._makeCall('SIMPLEREST_START')
-              .then(() => startCallComplete())
-              .catch(err => startCallComplete(new Error(`Failed to call url ${this.caps[Capabilities.SIMPLEREST_START_URL]} to start session: ${err.message}`)))
+              .then(response => {
+                if (this.caps[Capabilities.SIMPLEREST_START_UPDATE_CONTEXT] || this.caps[Capabilities.SIMPLEREST_START_PROCESS_RESPONSE]) {
+                  if (_.isObject(response) || botiumUtils.isStringJson(response)) {
+                    debug(`Start Uri ${this.caps[Capabilities.SIMPLEREST_START_URL]} returned JSON response: ${botiumUtils.shortenJsonString(response)}`)
+                    const body = _.isObject(response) ? response : JSON.parse(response)
+                    return this._processBodyAsync(body, !!this.caps[Capabilities.SIMPLEREST_START_PROCESS_RESPONSE], !!this.caps[Capabilities.SIMPLEREST_START_UPDATE_CONTEXT])
+                  } else {
+                    debug(`Start Uri ${this.caps[Capabilities.SIMPLEREST_START_URL]} didn't return JSON response, ignoring it.`)
+                  }
+                }
+              }).then(() => {
+                startCallComplete()
+              }).catch(err => {
+                startCallComplete(new Error(`Failed to call url ${this.caps[Capabilities.SIMPLEREST_START_URL]} to start session: ${err.message}`))
+              })
           } else {
             startCallComplete()
           }
