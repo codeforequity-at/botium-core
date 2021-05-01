@@ -280,23 +280,29 @@ describe('scripting.userinputs.mediaInputConvos.baseDir', function () {
     assert.equal(this.compiler.convos[1].conversation[0].userInputs[0].args[0], 'botium1.png')
     assert.equal(this.compiler.convos[2].conversation[0].userInputs[0].args[0], 'botium2.png')
 
+    await this.container.Start()
     const transcript0 = await this.compiler.convos[0].Run(this.container)
     assert.equal(transcript0.steps.length, 1)
     assert.equal(transcript0.steps[0].actual.media.length, 1)
     assert.isTrue(transcript0.steps[0].actual.media[0].downloadUri.endsWith('files/botium0.png'))
     assert.equal(transcript0.steps[0].actual.media[0].mimeType, 'image/png')
+    await this.container.Stop()
 
+    await this.container.Start()
     const transcript1 = await this.compiler.convos[1].Run(this.container)
     assert.equal(transcript1.steps.length, 1)
     assert.equal(transcript1.steps[0].actual.media.length, 1)
     assert.isTrue(transcript1.steps[0].actual.media[0].downloadUri.endsWith('files/botium1.png'))
     assert.equal(transcript1.steps[0].actual.media[0].mimeType, 'image/png')
+    await this.container.Stop()
 
+    await this.container.Start()
     const transcript2 = await this.compiler.convos[2].Run(this.container)
     assert.equal(transcript2.steps.length, 1)
     assert.equal(transcript2.steps[0].actual.media.length, 1)
     assert.isTrue(transcript2.steps[0].actual.media[0].downloadUri.endsWith('files/botium2.png'))
     assert.equal(transcript2.steps[0].actual.media[0].mimeType, 'image/png')
+    await this.container.Stop()
   })
 
   it('should fail when media is out of baseDir', async function () {

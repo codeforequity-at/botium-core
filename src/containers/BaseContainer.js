@@ -194,6 +194,10 @@ module.exports = class BaseContainer {
     }
   }
 
+  _QueueLength (channel = 'default') {
+    return (this.queues[channel] && this.queues[channel].length()) || 0
+  }
+
   async _QueueBotSays (botMsg) {
     if (_.isError(botMsg)) {
       if (!this.queues.default) {

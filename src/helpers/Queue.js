@@ -10,6 +10,10 @@ module.exports = class Queue {
     this.pushListener = null
   }
 
+  length () {
+    return this.queue.length
+  }
+
   clear () {
     this.queue = []
     this.listeners = []

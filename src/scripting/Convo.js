@@ -233,6 +233,7 @@ class Convo {
         throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err), transcript)
       }
       await this.runConversation(container, scriptingMemory, transcript)
+      await this._checkBotRepliesConsumed(container)
       try {
         await this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
@@ -303,6 +304,8 @@ class Convo {
               await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
               await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
               await this.scriptingEvents.onMePrepare({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
+
+              await this._checkBotRepliesConsumed(container)
 
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
               debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
@@ -568,6 +571,17 @@ class Convo {
       if (_.isUndefined(expected)) return acc
       else return acc.concat(ScriptingMemory.extractVarNames(toString(expected)) || [])
     }, [])
+  }
+
+  _checkBotRepliesConsumed (container) {
+    if (container.caps.SCRIPTING_CHECK_BOT_REPLIES_CONSUMED) {
+      const queueLength = container._QueueLength()
+      if (queueLength === 1) {
+        throw new Error('There is an unread bot reply in queue')
+      } else if (queueLength > 1) {
+        throw new Error(`There are still ${queueLength} unread bot replies in queue`)
+      }
+    }
   }
 
   _resolveUtterancesToMatch (container, scriptingMemory, utterance, botMsg) {

@@ -50,9 +50,11 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     assert.equal(this.compiler.convos.length, 4)
 
     for (const convo of this.compiler.convos) {
+      await this.container.Start()
       const transcript = await convo.Run(this.container)
       assert.isObject(transcript.scriptingMemory)
       assert.isDefined(transcript.scriptingMemory.$productName)
+      await this.container.Stop()
     }
   })
 

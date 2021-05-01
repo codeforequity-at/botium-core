@@ -25,7 +25,8 @@ describe('convo.transcript', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'convo.transcript',
-      [Capabilities.CONTAINERMODE]: echoConnector
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_CHECK_BOT_REPLIES_CONSUMED]: true
     }
     this.driver = new BotDriver(myCaps)
     this.compiler = this.driver.BuildCompiler()
@@ -309,6 +310,26 @@ describe('convo.transcript', function () {
       assert.equal(err.transcript.err.context.errors[2].source, 'ButtonsAsserter')
       assert.equal(err.transcript.err.context.errors[3].type, 'asserter')
       assert.equal(err.transcript.err.context.errors[3].source, 'assertConvoEnd')
+    }
+  })
+  it('should fail on unconsumed bot reply on #me', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_not_consumed_me.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('There is an unread bot reply in queue') >= 0)
+    }
+  })
+  it('should fail on unconsumed bot reply on #end', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_not_consumed_end.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('There is an unread bot reply in queue') >= 0)
     }
   })
 })
