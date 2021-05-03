@@ -78,8 +78,6 @@ module.exports = class BaseCountAsserter {
   async _assert (argv) {
     this._evalArgs(argv)
 
-    console.log('base count _assert', argv.args)
-
     const { args } = argv
     const count = await this._getCount(argv) || 0
     const check = (args && args.length > this.argPos && args[this.argPos]) || '>0'

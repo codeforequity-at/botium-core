@@ -52,6 +52,7 @@ module.exports = {
     { name: 'CLEAR_SCRIPTING_MEMORY', className: 'ClearScriptingMemoryLogicHook' },
     { name: 'ASSIGN_SCRIPTING_MEMORY', className: 'AssignScriptingMemoryLogicHook' },
     { name: 'UPDATE_CUSTOM', className: 'UpdateCustomLogicHook' },
+    { name: 'SKIP_BOT_UNCONSUMED', className: 'ClearQueueLogicHook' },
     { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
   ],
   DEFAULT_USER_INPUTS: [

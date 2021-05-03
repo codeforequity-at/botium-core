@@ -342,4 +342,9 @@ describe('convo.transcript', function () {
     assert.equal(this.compilerMultipleAssertErrors.convos.length, 1)
     await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
   })
+  it('should succeed on clearing unconsumed bot reply', async function () {
+    this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_skip_unconsumed.convo.txt')
+    assert.equal(this.compilerMultipleAssertErrors.convos.length, 1)
+    await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
+  })
 })

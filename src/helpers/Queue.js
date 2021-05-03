@@ -14,6 +14,10 @@ module.exports = class Queue {
     return this.queue.length
   }
 
+  empty () {
+    this.queue = []
+  }
+
   clear () {
     this.queue = []
     this.listeners = []
