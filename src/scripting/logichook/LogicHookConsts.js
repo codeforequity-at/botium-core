@@ -42,7 +42,8 @@ module.exports = {
     { name: 'TEXT', className: 'TextEqualsAnyAsserter' },
     { name: 'TEXT_IC', className: 'TextEqualsAnyICAsserter' },
 
-    { name: 'CHECK_BOT_REPLIES_CONSUMED', className: 'BotRepliesConsumedAsserter' }
+    { name: 'CHECK_BOT_REPLIES_CONSUMED', className: 'BotRepliesConsumedAsserter' },
+    { name: 'CHECK_BOT_REPLIES_UNCONSUMED_COUNT', className: 'BotRepliesUnconsumedCountAsserter' }
   ],
   DEFAULT_LOGIC_HOOKS: [
     { name: 'PAUSE', className: 'PauseLogicHook' },

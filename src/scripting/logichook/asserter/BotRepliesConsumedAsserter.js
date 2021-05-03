@@ -1,30 +1,22 @@
-const { BotiumError } = require('../../BotiumError')
+const BaseCountAsserter = require('./BaseCountAsserter')
 
-module.exports = class BotRepliesConsumedAsserter {
+module.exports = class BotRepliesConsumedAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
-    this.context = context
-    this.caps = caps
+    super(context, caps, 'BotReplies')
     this.name = 'BotRepliesConsumedAsserter'
   }
 
-  assertConvoEnd ({ container }) {
-    const queueLength = container._QueueLength()
-    if (queueLength > 0) {
-      const errMsg = queueLength === 1 ? 'There is an unread bot reply in queue' : `There are still ${queueLength} unread bot replies in queue`
+  async _getCount (argv) { return argv.container._QueueLength() }
+  _evalArgs (argv) {
+    argv.args = ['=0']
+  }
 
-      throw new BotiumError(
-        errMsg,
-        {
-          type: 'asserter',
-          source: this.name,
-          cause: {
-            not: false,
-            expected: 0,
-            actual: queueLength,
-            diff: queueLength
-          }
-        }
-      )
+  _getBotiumErrMsg (argv, not, count, check) {
+    const { convoStep } = argv
+    if (not) {
+      return `${convoStep.stepTag}: There is no unread bot reply in queue`
+    } else {
+      return count === 1 ? `${convoStep.stepTag}: There is an unread bot reply in queue` : `${convoStep.stepTag}: There are still ${count} unread bot replies in queue`
     }
   }
 }
