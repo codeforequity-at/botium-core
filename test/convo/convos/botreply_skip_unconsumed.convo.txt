@@ -1,0 +1,18 @@
+botreply_skip_unconsumed
+
+#me
+Hello
+
+#me
+Hello
+
+#me
+Hello
+
+#bot
+BOT_UNCONSUMED_COUNT =2
+SKIP_BOT_UNCONSUMED
+
+#end
+BOT_CONSUMED
+BOT_UNCONSUMED_COUNT =0

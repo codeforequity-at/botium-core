@@ -10,9 +10,11 @@ const _jsonPathCount = ({ botMsg, args }) => {
 
 module.exports = class JsonPathCountAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
-    super(context, caps, _jsonPathCount, 'JsonPath', 1)
+    super(context, caps, 'JsonPath', 1)
     this.name = 'JsonPathCountAsserter'
   }
+
+  async _getCount (argv) { return _jsonPathCount(argv) }
 
   _evalArgs (argv) {
     const { args, convoStep } = argv
@@ -29,15 +31,5 @@ module.exports = class JsonPathCountAsserter extends BaseCountAsserter {
         }
       )
     }
-  }
-
-  assertNotConvoStep (argv) {
-    this._evalArgs(argv)
-    return super.assertNotConvoStep(argv)
-  }
-
-  assertConvoStep (argv) {
-    this._evalArgs(argv)
-    return super.assertConvoStep(argv)
   }
 }

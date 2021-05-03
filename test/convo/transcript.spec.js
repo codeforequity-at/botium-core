@@ -25,7 +25,8 @@ describe('convo.transcript', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'convo.transcript',
-      [Capabilities.CONTAINERMODE]: echoConnector
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_FORCE_BOT_CONSUMED]: true
     }
     this.driver = new BotDriver(myCaps)
     this.compiler = this.driver.BuildCompiler()
@@ -298,7 +299,7 @@ describe('convo.transcript', function () {
         'asserters/Line 6: Bot response (on Line 3: #me - Hello) "Hello" expected to match "Goodbye!",\n' +
         'Line 6: Expected button(s) with text "btn1",\n' +
         'Line 6: Expected button(s) with text "btn2",\n' +
-        'asserters: error end handler - assertConvoEnd failed')
+        'asserters: assertConvoEnd failed')
 
       assert.equal(err.transcript.err.context.input.messageText, 'Hello')
       assert.equal(err.transcript.err.context.errors[0].type, 'asserter')
@@ -310,5 +311,40 @@ describe('convo.transcript', function () {
       assert.equal(err.transcript.err.context.errors[3].type, 'asserter')
       assert.equal(err.transcript.err.context.errors[3].source, 'assertConvoEnd')
     }
+  })
+  it('should fail on unconsumed bot reply on #me', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_not_consumed_me.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('There is an unread bot reply in queue') >= 0)
+    }
+  })
+  it('should fail on unconsumed bot reply on #end', async function () {
+    this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_not_consumed_end.convo.txt')
+    assert.equal(this.compilerMultipleAssertErrors.convos.length, 1)
+    try {
+      await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('There is an unread bot reply in queue') >= 0)
+    }
+  })
+  it('should succeed on not unconsumed bot reply on #end', async function () {
+    this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_not_consumed_end_not.convo.txt')
+    assert.equal(this.compilerMultipleAssertErrors.convos.length, 1)
+    await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
+  })
+  it('should succeed on unconsumed bot reply count', async function () {
+    this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_unconsumed_count.convo.txt')
+    assert.equal(this.compilerMultipleAssertErrors.convos.length, 1)
+    await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
+  })
+  it('should succeed on clearing unconsumed bot reply', async function () {
+    this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_skip_unconsumed.convo.txt')
+    assert.equal(this.compilerMultipleAssertErrors.convos.length, 1)
+    await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
   })
 })

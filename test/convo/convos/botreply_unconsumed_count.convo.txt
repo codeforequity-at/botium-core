@@ -1,0 +1,10 @@
+botreply_unconsumed_count
+
+#me
+Hello
+
+#me
+Hello
+
+#end
+BOT_UNCONSUMED_COUNT >=2

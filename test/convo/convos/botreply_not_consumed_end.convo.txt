@@ -1,0 +1,7 @@
+botreply_not_consumed_end
+
+#me
+Hello
+
+#end
+BOT_CONSUMED

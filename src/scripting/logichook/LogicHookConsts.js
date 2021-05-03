@@ -40,7 +40,10 @@ module.exports = {
     { name: 'TEXT_EQUALS', className: 'TextEqualsAnyAsserter' },
     { name: 'TEXT_EQUALS_IC', className: 'TextEqualsAnyICAsserter' },
     { name: 'TEXT', className: 'TextEqualsAnyAsserter' },
-    { name: 'TEXT_IC', className: 'TextEqualsAnyICAsserter' }
+    { name: 'TEXT_IC', className: 'TextEqualsAnyICAsserter' },
+
+    { name: 'BOT_CONSUMED', className: 'BotRepliesConsumedAsserter' },
+    { name: 'BOT_UNCONSUMED_COUNT', className: 'BotRepliesUnconsumedCountAsserter' }
   ],
   DEFAULT_LOGIC_HOOKS: [
     { name: 'PAUSE', className: 'PauseLogicHook' },
@@ -49,6 +52,7 @@ module.exports = {
     { name: 'CLEAR_SCRIPTING_MEMORY', className: 'ClearScriptingMemoryLogicHook' },
     { name: 'ASSIGN_SCRIPTING_MEMORY', className: 'AssignScriptingMemoryLogicHook' },
     { name: 'UPDATE_CUSTOM', className: 'UpdateCustomLogicHook' },
+    { name: 'SKIP_BOT_UNCONSUMED', className: 'ClearQueueLogicHook' },
     { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
   ],
   DEFAULT_USER_INPUTS: [

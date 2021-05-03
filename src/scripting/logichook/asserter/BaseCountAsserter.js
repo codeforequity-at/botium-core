@@ -1,12 +1,41 @@
 const { BotiumError } = require('../../BotiumError')
 
 module.exports = class BaseCountAsserter {
-  constructor (context, caps = {}, getCountFn, elementName, argPos = 0) {
+  constructor (context, caps = {}, elementName, argPos = 0) {
     this.context = context
     this.caps = caps
-    this.getCountFn = getCountFn
     this.elementName = elementName
     this.argPos = argPos
+  }
+
+  async _getCount (argv) {
+    throw new Error('_getCount not implemented')
+  }
+
+  _getBotiumErrMsg (argv, not, count, check) {
+    const { convoStep } = argv
+    if (not) return `${convoStep.stepTag} Not expected ${this.elementName} count ${count}${check}`
+    else return `${convoStep.stepTag} Expected ${this.elementName} count ${count}${check}`
+  }
+
+  _getBotiumErrArgs (argv, not, count, check) {
+    const { args } = argv
+
+    return {
+      type: 'asserter',
+      source: this.name,
+      params: {
+        args
+      },
+      cause: {
+        not: not,
+        expected: check,
+        actual: count
+      }
+    }
+  }
+
+  _evalArgs (argv) {
   }
 
   _evalCount (count, arg) {
@@ -22,52 +51,42 @@ module.exports = class BaseCountAsserter {
     return count === arg
   }
 
-  async assertNotConvoStep (argv) {
-    const { convoStep, args } = argv
-    const count = await this.getCountFn(argv) || 0
+  async assertNotConvoBegin (argv) { return this._assertNot(argv) }
+  async assertNotConvoStep (argv) { return this._assertNot(argv) }
+  async assertNotConvoEnd (argv) { return this._assertNot(argv) }
+
+  async assertConvoBegin (argv) { return this._assert(argv) }
+  async assertConvoStep (argv) { return this._assert(argv) }
+  async assertConvoEnd (argv) { return this._assert(argv) }
+
+  async _assertNot (argv) {
+    this._evalArgs(argv)
+
+    const { args } = argv
+    const count = await this._getCount(argv) || 0
     const check = (args && args.length > this.argPos && args[this.argPos]) || '>0'
     const evalResult = this._evalCount(count, check)
 
     if (evalResult) {
       throw new BotiumError(
-        `${convoStep.stepTag}: Not expected ${this.elementName} count ${count}${check}`,
-        {
-          type: 'asserter',
-          source: this.name,
-          params: {
-            args
-          },
-          cause: {
-            not: true,
-            expected: check,
-            actual: count
-          }
-        }
+        this._getBotiumErrMsg(argv, true, count, check),
+        this._getBotiumErrArgs(argv, true, count, check)
       )
     }
   }
 
-  async assertConvoStep (argv) {
-    const { convoStep, args } = argv
-    const count = await this.getCountFn(argv) || 0
+  async _assert (argv) {
+    this._evalArgs(argv)
+
+    const { args } = argv
+    const count = await this._getCount(argv) || 0
     const check = (args && args.length > this.argPos && args[this.argPos]) || '>0'
     const evalResult = this._evalCount(count, check)
 
     if (!evalResult) {
       throw new BotiumError(
-        `${convoStep.stepTag}: Expected ${this.elementName} count ${count}${check}`,
-        {
-          type: 'asserter',
-          source: this.name,
-          params: {
-            args
-          },
-          cause: {
-            not: false,
-            expected: check,
-            actual: count
-          }
-        }
+        this._getBotiumErrMsg(argv, false, count, check),
+        this._getBotiumErrArgs(argv, false, count, check)
       )
     }
   }

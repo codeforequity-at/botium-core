@@ -7,7 +7,9 @@ const _cardsCount = ({ botMsg }) => {
 
 module.exports = class CardsCountRecAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
-    super(context, caps, _cardsCount, 'Cards')
+    super(context, caps, 'Cards')
     this.name = 'CardsCountRecAsserter'
   }
+
+  async _getCount (argv) { return _cardsCount(argv) }
 }
