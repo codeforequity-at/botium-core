@@ -574,7 +574,7 @@ class Convo {
   }
 
   _checkBotRepliesConsumed (container) {
-    if (container.caps.SCRIPTING_CHECK_BOT_REPLIES_CONSUMED) {
+    if (container.caps.SCRIPTING_FORCE_BOT_CONSUMED) {
       const queueLength = container._QueueLength()
       if (queueLength === 1) {
         throw new Error('There is an unread bot reply in queue')

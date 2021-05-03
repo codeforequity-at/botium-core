@@ -26,7 +26,7 @@ describe('convo.transcript', function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'convo.transcript',
       [Capabilities.CONTAINERMODE]: echoConnector,
-      [Capabilities.SCRIPTING_CHECK_BOT_REPLIES_CONSUMED]: true
+      [Capabilities.SCRIPTING_FORCE_BOT_CONSUMED]: true
     }
     this.driver = new BotDriver(myCaps)
     this.compiler = this.driver.BuildCompiler()

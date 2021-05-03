@@ -4,4 +4,4 @@ botreply_not_consumed_end
 Hello
 
 #end
-CHECK_BOT_REPLIES_CONSUMED
+BOT_CONSUMED

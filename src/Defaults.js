@@ -49,7 +49,7 @@ module.exports = {
     [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]: 'justLineTag',
     [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_UTTERANCE_MAX]: '16',
     [Capabilities.SCRIPTING_MEMORYEXPANSION_KEEP_ORIG]: false,
-    [Capabilities.SCRIPTING_CHECK_BOT_REPLIES_CONSUMED]: false,
+    [Capabilities.SCRIPTING_FORCE_BOT_CONSUMED]: false,
     [Capabilities.ASSERTERS]: [],
     [Capabilities.LOGIC_HOOKS]: [],
     [Capabilities.USER_INPUTS]: [],
