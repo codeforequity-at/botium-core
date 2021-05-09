@@ -151,6 +151,101 @@ describe('scripting.userinputs.mediaInputConvos.baseUri', function () {
   })
 })
 
+describe('scripting.userinputs.mediaInputConvos.baseUris', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.userinputs.mediaInputConvos',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.USER_INPUTS]: [
+        {
+          ref: 'MEDIA',
+          src: 'MediaInput',
+          args: {
+            baseUri: 'https://www.default.at',
+            baseUris: {
+              testset1: 'https://www.botium.at',
+              testset2: 'https://www.google.at'
+            }
+          }
+        }
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should add media from test set baseUri in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'media.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    this.compiler.convos[0].sourceTag.testSetId = 'testset2'
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 1)
+    assert.equal(transcript.steps[0].actual.media[0].downloadUri, 'https://www.google.at/botium.png')
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
+  })
+  it('should add media with default baseUri in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'media.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    this.compiler.convos[0].sourceTag.testSetId = 'testset3'
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 1)
+    assert.isTrue(transcript.steps[0].actual.media[0].downloadUri.endsWith('https://www.default.at/botium.png'))
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
+  })
+})
+
+describe('scripting.userinputs.mediaInputConvos.baseUrisCustomSelector', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.userinputs.mediaInputConvos',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.USER_INPUTS]: [
+        {
+          ref: 'MEDIA',
+          src: 'MediaInput',
+          args: {
+            baseUris: {
+              customval1: 'https://www.botium.at'
+            },
+            baseSelector: 'sourceTag.customField'
+          }
+        }
+      ]
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should add media from custom test set baseUri in user message', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'media.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    this.compiler.convos[0].sourceTag.customField = 'customval1'
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 1)
+    assert.equal(transcript.steps[0].actual.media[0].downloadUri, 'https://www.botium.at/botium.png')
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
+  })
+})
+
 describe('scripting.userinputs.mediaInputConvos.baseDir', function () {
   beforeEach(async function () {
     const myCaps = {
@@ -185,23 +280,29 @@ describe('scripting.userinputs.mediaInputConvos.baseDir', function () {
     assert.equal(this.compiler.convos[1].conversation[0].userInputs[0].args[0], 'botium1.png')
     assert.equal(this.compiler.convos[2].conversation[0].userInputs[0].args[0], 'botium2.png')
 
+    await this.container.Start()
     const transcript0 = await this.compiler.convos[0].Run(this.container)
     assert.equal(transcript0.steps.length, 1)
     assert.equal(transcript0.steps[0].actual.media.length, 1)
     assert.isTrue(transcript0.steps[0].actual.media[0].downloadUri.endsWith('files/botium0.png'))
     assert.equal(transcript0.steps[0].actual.media[0].mimeType, 'image/png')
+    await this.container.Stop()
 
+    await this.container.Start()
     const transcript1 = await this.compiler.convos[1].Run(this.container)
     assert.equal(transcript1.steps.length, 1)
     assert.equal(transcript1.steps[0].actual.media.length, 1)
     assert.isTrue(transcript1.steps[0].actual.media[0].downloadUri.endsWith('files/botium1.png'))
     assert.equal(transcript1.steps[0].actual.media[0].mimeType, 'image/png')
+    await this.container.Stop()
 
+    await this.container.Start()
     const transcript2 = await this.compiler.convos[2].Run(this.container)
     assert.equal(transcript2.steps.length, 1)
     assert.equal(transcript2.steps[0].actual.media.length, 1)
     assert.isTrue(transcript2.steps[0].actual.media[0].downloadUri.endsWith('files/botium2.png'))
     assert.equal(transcript2.steps[0].actual.media[0].mimeType, 'image/png')
+    await this.container.Stop()
   })
 
   it('should fail when media is out of baseDir', async function () {

@@ -5,7 +5,7 @@ const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
 const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
-const { linesToConvoStep, convoStepToLines, validateConvo } = require('./helper')
+const { linesToConvoStep, convoStepToLines, validateConvo, validSenders } = require('./helper')
 
 module.exports = class CompilerTxt extends CompilerBase {
   constructor (context, caps = {}) {
@@ -86,10 +86,16 @@ module.exports = class CompilerTxt extends CompilerBase {
       }
     }
 
+    const isValidTagLine = (line) => {
+      if (!line || !line.startsWith('#')) return false
+      const sender = line.substr(1).split(' ')[0]
+      return validSenders.includes(sender)
+    }
+
     lines.forEach((line) => {
       currentLineIndex++
       line = line.trim()
-      if (line && line.startsWith('#')) {
+      if (isValidTagLine(line)) {
         pushPrev()
 
         convoStepSender = line.substr(1).trim()

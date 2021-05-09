@@ -237,7 +237,7 @@ const _apply = (scriptingMemory, str, caps, mockMsg) => {
     const allKeys = Object.keys(SCRIPTING_FUNCTIONS).concat(Object.keys(scriptingMemory)).sort(_longestFirst)
     for (const key of allKeys) {
       // scripting memory is stronger
-      if (scriptingMemory[key]) {
+      if (_.has(scriptingMemory, key)) {
         const keyRegexp = new RegExp(`\\${key}`, 'g')
         str = str.replace(keyRegexp, scriptingMemory[key])
       } else {

@@ -3,10 +3,17 @@ module.exports = {
   LOGIC_HOOK_INCLUDE,
   DEFAULT_ASSERTERS: [
     { name: 'BUTTONS', className: 'ButtonsAsserter' },
+    { name: 'BUTTONS_COUNT', className: 'ButtonsCountAsserter' },
+    { name: 'BUTTONS_COUNT_REC', className: 'ButtonsCountRecAsserter' },
     { name: 'MEDIA', className: 'MediaAsserter' },
+    { name: 'MEDIA_COUNT', className: 'MediaCountAsserter' },
+    { name: 'MEDIA_COUNT_REC', className: 'MediaCountRecAsserter' },
     { name: 'CARDS', className: 'CardsAsserter' },
+    { name: 'CARDS_COUNT', className: 'CardsCountAsserter' },
+    { name: 'CARDS_COUNT_REC', className: 'CardsCountRecAsserter' },
     { name: 'PAUSE_ASSERTER', className: 'PauseAsserter' },
     { name: 'JSON_PATH', className: 'JsonPathAsserter' },
+    { name: 'JSON_PATH_COUNT', className: 'JsonPathCountAsserter' },
     { name: 'RESPONSE_LENGTH', className: 'ResponseLengthAsserter' },
     { name: 'FORMS', className: 'FormsAsserter' },
 
@@ -33,7 +40,10 @@ module.exports = {
     { name: 'TEXT_EQUALS', className: 'TextEqualsAnyAsserter' },
     { name: 'TEXT_EQUALS_IC', className: 'TextEqualsAnyICAsserter' },
     { name: 'TEXT', className: 'TextEqualsAnyAsserter' },
-    { name: 'TEXT_IC', className: 'TextEqualsAnyICAsserter' }
+    { name: 'TEXT_IC', className: 'TextEqualsAnyICAsserter' },
+
+    { name: 'BOT_CONSUMED', className: 'BotRepliesConsumedAsserter' },
+    { name: 'BOT_UNCONSUMED_COUNT', className: 'BotRepliesUnconsumedCountAsserter' }
   ],
   DEFAULT_LOGIC_HOOKS: [
     { name: 'PAUSE', className: 'PauseLogicHook' },
@@ -42,6 +52,7 @@ module.exports = {
     { name: 'CLEAR_SCRIPTING_MEMORY', className: 'ClearScriptingMemoryLogicHook' },
     { name: 'ASSIGN_SCRIPTING_MEMORY', className: 'AssignScriptingMemoryLogicHook' },
     { name: 'UPDATE_CUSTOM', className: 'UpdateCustomLogicHook' },
+    { name: 'SKIP_BOT_UNCONSUMED', className: 'ClearQueueLogicHook' },
     { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' }
   ],
   DEFAULT_USER_INPUTS: [

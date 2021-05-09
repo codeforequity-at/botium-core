@@ -10,6 +10,8 @@ const { BotiumMockMedia } = require('../../../../src/mocks/BotiumMockRichMessage
 const { BotiumError } = require('../../../../src/scripting/BotiumError')
 const Capabilities = require('../../../../src/Capabilities')
 
+const DEFAULT_BASE_SELECTOR = 'sourceTag.testSetId'
+
 module.exports = class MediaInput {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
@@ -17,16 +19,35 @@ module.exports = class MediaInput {
     this.globalArgs = globalArgs
   }
 
-  _getResolvedUri (uri, convoDir, convoFilename) {
+  _getResolvedUri (uri, convo) {
+    if (this.globalArgs && this.globalArgs.baseUris) {
+      const baseUrisSelector = _.get(convo, this.globalArgs.baseSelector || DEFAULT_BASE_SELECTOR)
+      if (baseUrisSelector && this.globalArgs.baseUris[baseUrisSelector]) {
+        return new url.URL(uri, this.globalArgs.baseUris[baseUrisSelector])
+      }
+    }
     if (this.globalArgs && this.globalArgs.baseUri) {
       return new url.URL(uri, this.globalArgs.baseUri)
-    } else if (this.globalArgs && this.globalArgs.baseDir) {
-      const basePath = path.resolve(this.globalArgs.baseDir)
-      if (!path.resolve(this.globalArgs.baseDir, uri).startsWith(basePath)) {
-        throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
+    }
+    if (this.globalArgs && (this.globalArgs.baseDir || this.globalArgs.baseDirs)) {
+      let basePath = null
+      if (this.globalArgs.baseDirs) {
+        const baseDirSelector = _.get(convo, this.globalArgs.baseSelector || DEFAULT_BASE_SELECTOR)
+        if (baseDirSelector && this.globalArgs.baseDirs[baseDirSelector]) {
+          basePath = path.resolve(this.globalArgs.baseDirs[baseDirSelector])
+        }
       }
-      return new url.URL(uri, `file://${basePath}/`)
-    } else if (uri.startsWith('http://') || uri.startsWith('https://')) {
+      if (!basePath && this.globalArgs.baseDir) {
+        basePath = path.resolve(this.globalArgs.baseDir)
+      }
+      if (basePath) {
+        if (!path.resolve(basePath, uri).startsWith(basePath)) {
+          throw new Error(`The uri '${uri}' is pointing out of the base directory '${basePath}'`)
+        }
+        return new url.URL(uri, `file://${basePath}/`)
+      }
+    }
+    if (uri.startsWith('http://') || uri.startsWith('https://')) {
       return new url.URL(uri)
     }
     if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
@@ -40,6 +61,8 @@ module.exports = class MediaInput {
         }
       )
     }
+    const convoDir = _.get(convo, 'sourceTag.convoDir')
+    const convoFilename = _.get(convo, 'sourceTag.filename')
     if (convoDir && convoFilename) {
       const basePath = path.resolve(convoDir)
       if (!path.resolve(convoDir, uri).startsWith(basePath)) {
@@ -55,7 +78,13 @@ module.exports = class MediaInput {
     }
   }
 
-  _getBaseDir (convoDir) {
+  _getBaseDir (convo) {
+    if (this.globalArgs && this.globalArgs.baseDirs) {
+      const baseDirSelector = _.get(convo, this.globalArgs.baseSelector || DEFAULT_BASE_SELECTOR)
+      if (baseDirSelector && this.globalArgs.baseDirs[baseDirSelector]) {
+        return path.resolve(this.globalArgs.baseDirs[baseDirSelector])
+      }
+    }
     if (this.globalArgs && this.globalArgs.baseDir) {
       return path.resolve(this.globalArgs.baseDir)
     }
@@ -70,6 +99,7 @@ module.exports = class MediaInput {
         }
       )
     }
+    const convoDir = _.get(convo, 'sourceTag.convoDir')
     if (convoDir) {
       return path.resolve(convoDir)
     } else {
@@ -77,7 +107,7 @@ module.exports = class MediaInput {
     }
   }
 
-  async _downloadMedia (uri, fileSpec, sourceTag) {
+  async _downloadMedia (uri) {
     if (this.globalArgs && this.globalArgs.downloadMedia) {
       if (uri.protocol === 'file:') {
         try {
@@ -116,7 +146,7 @@ module.exports = class MediaInput {
     const hasWildcard = args.findIndex(a => this._isWildcard(a)) >= 0
 
     if (args && (args.length > 1 || hasWildcard)) {
-      const baseDir = this._getBaseDir(convo.sourceTag ? convo.sourceTag.convoDir : null)
+      const baseDir = this._getBaseDir(convo)
       return args.reduce((e, arg) => {
         if (this._isWildcard(arg)) {
           const mediaFiles = globby.sync(arg, { cwd: baseDir, gitignore: true })
@@ -151,9 +181,9 @@ module.exports = class MediaInput {
     }
 
     if (args.length === 1) {
-      const uri = this._getResolvedUri(args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
+      const uri = this._getResolvedUri(args[0], convo)
       if (uri) {
-        const buffer = await this._downloadMedia(uri, args[0], convo.sourceTag.convoDir, convo.sourceTag.filename)
+        const buffer = await this._downloadMedia(uri)
         meMsg.media.push(new BotiumMockMedia({
           mediaUri: args[0],
           downloadUri: uri.toString(),

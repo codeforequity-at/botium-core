@@ -1,4 +1,5 @@
 const { BotiumError } = require('../../BotiumError')
+const { mediaFromMsg } = require('../helpers')
 
 module.exports = class MediaAsserter {
   constructor (context, caps = {}) {
@@ -7,28 +8,8 @@ module.exports = class MediaAsserter {
     this.name = 'MediaAsserter'
   }
 
-  _mediaFromCardsRecursive (cards) {
-    if (!cards) {
-      return []
-    }
-    let result = []
-    for (const card of cards) {
-      result = result.concat(card.image ? [card.image.mediaUri] : [])
-      result = result.concat(card.media ? card.media.map(media => media.mediaUri) : [])
-      card.cards && (result = result.concat(this._mediaFromCardsRecursive(card.cards)))
-    }
-
-    return result
-  }
-
   _evalMedia (args, botMsg) {
-    let allMedia = []
-    if (botMsg.media) {
-      allMedia = allMedia.concat(botMsg.media.map(mb => mb.mediaUri))
-    }
-    if (botMsg.cards) {
-      allMedia = allMedia.concat(this._mediaFromCardsRecursive(botMsg.cards))
-    }
+    const allMedia = mediaFromMsg(botMsg, true).map(m => m.mediaUri)
     if (!args || args.length === 0) {
       return { allMedia, mediaNotFound: [], mediaFound: allMedia }
     }

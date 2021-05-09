@@ -50,9 +50,11 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     assert.equal(this.compiler.convos.length, 4)
 
     for (const convo of this.compiler.convos) {
+      await this.container.Start()
       const transcript = await convo.Run(this.container)
       assert.isObject(transcript.scriptingMemory)
       assert.isDefined(transcript.scriptingMemory.$productName)
+      await this.container.Stop()
     }
   })
 
@@ -81,18 +83,6 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     assert.notExists(transcript.scriptingMemory.$customerName)
   })
 
-  // Box can work without files, this eexception had no sense -> removed
-  it('Same variable in more files -> error (update: no error!)', async function () {
-    try {
-      // assert.throws did not worked to me
-      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMerging'))
-      throw (new Error('ReadScriptsFromDirectory had to throw error'))
-    } catch (ex) {
-      assert.equal(ex.toString(), 'Error: ReadScriptsFromDirectory had to throw error')
-      // assert.equal(ex.toString(), 'Error: Variable name defined in multiple scripting memory files: productGroup1.xlsx and productGroup2.xlsx')
-    }
-  })
-
   it('Using text file', async function () {
     this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosSimpleText'))
     this.compiler.ExpandScriptingMemoryToConvos()
@@ -104,6 +94,127 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     assert.equal(transcript.scriptingMemory.$productName, 'Wiener Schnitzel')
     assert.isDefined(transcript.scriptingMemory.$customer)
     assert.equal(transcript.scriptingMemory.$customer, 'Joe')
+  })
+
+  it('should throw exception if name is not set', async function () {
+    try {
+      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryNoName'))
+      this.compiler.ExpandScriptingMemoryToConvos()
+    } catch (err) {
+      assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products.scriptingmemory.txt\' file: Scripting Memory Definition has no name')
+      assert.isNotNull(err.context)
+      assert.equal(err.context.type, 'Compiler')
+      assert.equal(err.context.subtype, 'Scripting memory without name')
+      assert.equal(err.context.source, 'ScriptingProvider')
+
+      return
+    }
+    throw (new Error('Exception not thrown'))
+  })
+
+  it('should throw exception if variable name is not set', async function () {
+    try {
+      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryNoVariableName'))
+      this.compiler.ExpandScriptingMemoryToConvos()
+    } catch (err) {
+      assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products.scriptingmemory.txt\' file: Scripting Memory Definition variable has no name')
+      assert.isNotNull(err.context)
+      assert.equal(err.context.type, 'Compiler')
+      assert.equal(err.context.subtype, 'Scripting memory without variable name')
+      assert.equal(err.context.source, 'ScriptingProvider')
+
+      return
+    }
+    throw (new Error('Exception not thrown'))
+  })
+
+  it('should throw exception variable is not set', async function () {
+    try {
+      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryNoVariable'))
+      this.compiler.ExpandScriptingMemoryToConvos()
+    } catch (err) {
+      assert.equal(err.toString(), 'BotiumError: ReadScript - an error occurred at \'products.scriptingmemory.txt\' file: Scripting Memory Definition has no variables')
+      assert.isNotNull(err.context)
+      assert.equal(err.context.type, 'Compiler')
+      assert.equal(err.context.subtype, 'Scripting memory without variable')
+      assert.equal(err.context.source, 'ScriptingProvider')
+
+      return
+    }
+    throw (new Error('Exception not thrown'))
+  })
+
+  describe('Using multiple scripting memory file', function () {
+    it('should work with different variable names', async function () {
+      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryDifferent'))
+      this.compiler.ExpandScriptingMemoryToConvos()
+      assert.equal(this.compiler.convos.length, 6)
+
+      try {
+        await this.compiler.convos[0].Run(this.container)
+      } catch (err) {
+        if (err.transcript) {
+          assert.isObject(err.transcript.scriptingMemory)
+          assert.isDefined(err.transcript.scriptingMemory.$productName)
+          assert.equal(err.transcript.scriptingMemory.$productName, 'Bread')
+          assert.isDefined(err.transcript.scriptingMemory.$available_products)
+          assert.equal(err.transcript.scriptingMemory.$available_products, 'Bread, Beer, Eggs')
+          return
+        } else {
+          throw err
+        }
+      }
+      throw (new Error('Exception not thrown'))
+    })
+
+    it('should work with same variable names', async function () {
+      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemorySame'))
+      this.compiler.ExpandScriptingMemoryToConvos()
+      assert.equal(this.compiler.convos.length, 4)
+
+      const transcript = await this.compiler.convos[3].Run(this.container)
+      assert.isObject(transcript.scriptingMemory)
+      assert.isDefined(transcript.scriptingMemory.$productName)
+      assert.equal(transcript.scriptingMemory.$productName, 'Hamburger')
+    })
+
+    it('should throw exception if there is intersection in convosMultiMemoryCaseNameCollisionvariable names', async function () {
+      try {
+        this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryIntersection'))
+        this.compiler.ExpandScriptingMemoryToConvos()
+      } catch (err) {
+        assert.equal(err.toString(), 'BotiumError: Scripting Memory Definitions "available1, available2, product1" are invalid because variable name collision"')
+        assert.isNotNull(err.context)
+        assert.equal(err.context.type, 'Scripting Memory')
+        assert.equal(err.context.source, 'ScriptingProvider')
+
+        assert.isObject(err.context.cause)
+        assert.isArray(err.context.cause.aggregatedIntersections)
+        assert.equal(err.context.cause.aggregatedIntersections.length, 3)
+
+        return
+      }
+      throw (new Error('Exception not thrown'))
+    })
+
+    it('should throw exception if case name is not unique', async function () {
+      try {
+        this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemoryCaseNameCollision'))
+        this.compiler.ExpandScriptingMemoryToConvos()
+      } catch (err) {
+        assert.equal(err.toString(), 'BotiumError: Scripting Memory Definition name(s) "product1" are not unique')
+        assert.isNotNull(err.context)
+        assert.equal(err.context.type, 'Scripting Memory')
+        assert.equal(err.context.source, 'ScriptingProvider')
+
+        assert.isObject(err.context.cause)
+        assert.isArray(err.context.cause.aggregatedDuplicates)
+        assert.equal(err.context.cause.aggregatedDuplicates.length, 2)
+
+        return
+      }
+      throw (new Error('Exception not thrown'))
+    })
   })
 
   // nothing to test here, this case is just a debug log.

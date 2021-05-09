@@ -99,7 +99,7 @@ describe('scripting.useScriptingMemoryForAssertion.multiplefiles', function () {
   })
 })
 
-describe('scripting.useScriptingMemoryForAssertion.mulipleVariableEntries', function () {
+describe('scripting.useScriptingMemoryForAssertion.multipleVariableEntries', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',

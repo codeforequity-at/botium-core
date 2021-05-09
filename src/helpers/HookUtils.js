@@ -33,7 +33,12 @@ const executeHookSync = (caps, hook, args) => {
         require: false,
         sandbox: args
       })
-      return vm.run(hook)
+      const r = vm.run(hook)
+      if (_.isFunction(r)) {
+        return r(args)
+      } else {
+        return r
+      }
     } catch (err) {
       throw new Error(`Calling Hook Javascript code failed: ${err.message}`)
     }

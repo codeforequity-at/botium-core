@@ -39,8 +39,7 @@ describe('compiler.compilertxt', function () {
     }
     const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
     compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
-    assert.equal(context.convos[0].conversation[0].sender, 'me')
-    assert.equal(context.convos[0].conversation[1].sender, 'bot')
+    assert.equal(context.convos[0].conversation.length, 0)
   })
   it('should read ! as not', async function () {
     const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!.convo.txt'))
@@ -159,6 +158,18 @@ describe('compiler.compilertxt', function () {
     compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
     assert.equal(context.convos[0].conversation[1].messageText, 'test 2\n?test 2')
     assert.equal(context.convos[0].conversation[1].optional, true)
+  })
+  it('should allow text starting with ##', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_#.convo.txt'))
+    const context = buildContext()
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.equal(context.convos[0].conversation.length, 2)
+    assert.equal(context.convos[0].conversation[0].messageText, '# one hash')
+    assert.equal(context.convos[0].conversation[1].messageText, '## two hashes')
   })
   // this group uses different compiler, because here are asserters
   it('should keep newlines within message', async function () {

@@ -223,27 +223,28 @@ class Convo {
     try {
       try {
         // onConvoBegin first or assertConvoBegin? If onConvoBegin, then it is possible to assert it too
-        await this.scriptingEvents.onConvoBegin({ convo: this, container, transcript, scriptingMemory })
+        await this.scriptingEvents.onConvoBegin({ convo: this, convoStep: { stepTag: '#begin' }, container, transcript, scriptingMemory })
       } catch (err) {
-        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err), transcript)
+        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: ${err.message}`, err), transcript)
       }
       try {
-        await this.scriptingEvents.assertConvoBegin({ convo: this, container, scriptingMemory })
+        await this.scriptingEvents.assertConvoBegin({ convo: this, convoStep: { stepTag: '#begin' }, container, scriptingMemory })
       } catch (err) {
-        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error begin handler - ${err.message}`, err), transcript)
+        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: ${err.message}`, err), transcript)
       }
       await this.runConversation(container, scriptingMemory, transcript)
+      await this._checkBotRepliesConsumed(container)
       try {
-        await this.scriptingEvents.onConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
+        await this.scriptingEvents.onConvoEnd({ convo: this, convoStep: { stepTag: '#end' }, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
-        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err), transcript)
+        throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: ${err.message}`, err), transcript)
       }
       if (transcript.err && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
         let assertConvoEndErr = null
         try {
-          await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
+          await this.scriptingEvents.assertConvoEnd({ convo: this, convoStep: { stepTag: '#end' }, container, transcript, scriptingMemory: scriptingMemory })
         } catch (err) {
-          assertConvoEndErr = botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err)
+          assertConvoEndErr = botiumErrorFromErr(`${this.header.name}: ${err.message}`, err)
         }
         if (assertConvoEndErr) {
           const err = transcript.err
@@ -256,9 +257,9 @@ class Convo {
         throw new TranscriptError(transcript.err, transcript)
       }
       try {
-        await this.scriptingEvents.assertConvoEnd({ convo: this, container, transcript, scriptingMemory: scriptingMemory })
+        await this.scriptingEvents.assertConvoEnd({ convo: this, convoStep: { stepTag: '#end' }, container, transcript, scriptingMemory: scriptingMemory })
       } catch (err) {
-        transcript.err = botiumErrorFromErr(`${this.header.name}: error end handler - ${err.message}`, err)
+        transcript.err = botiumErrorFromErr(`${this.header.name}: ${err.message}`, err)
         throw new TranscriptError(transcript.err, transcript)
       }
       return transcript
@@ -303,6 +304,8 @@ class Convo {
               await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
               await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
               await this.scriptingEvents.onMePrepare({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
+
+              await this._checkBotRepliesConsumed(container)
 
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
               debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
@@ -568,6 +571,17 @@ class Convo {
       if (_.isUndefined(expected)) return acc
       else return acc.concat(ScriptingMemory.extractVarNames(toString(expected)) || [])
     }, [])
+  }
+
+  _checkBotRepliesConsumed (container) {
+    if (container.caps.SCRIPTING_FORCE_BOT_CONSUMED) {
+      const queueLength = container._QueueLength()
+      if (queueLength === 1) {
+        throw new Error('There is an unread bot reply in queue')
+      } else if (queueLength > 1) {
+        throw new Error(`There are still ${queueLength} unread bot replies in queue`)
+      }
+    }
   }
 
   _resolveUtterancesToMatch (container, scriptingMemory, utterance, botMsg) {

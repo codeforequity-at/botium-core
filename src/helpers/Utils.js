@@ -82,4 +82,16 @@ const escapeJSONString = (string) => {
   }
 }
 
-module.exports = { optionalJson, isJson, isJsonObject, isStringJson, shortenJsonString, escapeJSONString, toJsonWeak }
+const formatTimeout = (ms) => {
+  if (ms >= 1000) {
+    if (ms % 1000 !== 0) {
+      return `${Math.floor(ms / 1000)}s ${ms % 1000}ms`
+    } else {
+      return `${Math.floor(ms / 1000)}s`
+    }
+  } else {
+    return `${ms}ms`
+  }
+}
+
+module.exports = { optionalJson, isJson, isJsonObject, isStringJson, shortenJsonString, escapeJSONString, toJsonWeak, formatTimeout }

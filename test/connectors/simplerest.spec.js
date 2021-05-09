@@ -1,3 +1,4 @@
+const path = require('path')
 const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
@@ -772,6 +773,90 @@ describe('connectors.simplerest.parseCapabilities', function () {
     })
     assert.lengthOf(values, 4)
     assert.deepEqual(values, ['$.1', '$.2', '$.3', '$.4'])
+  })
+})
+
+describe('connectors.simplerest.useresponse', function () {
+  beforeEach(async function () {
+    this.init = async (caps) => {
+      this.scope = nock('https://mock.com')
+        .get('/ping').reply(200, { text: 'response from ping' })
+        .get('/pingtrash').reply(200, 'asdfasdfasdfasdf')
+        .get('/start').reply(200, { text: 'response from start' })
+        .get('/starttrash').reply(200, 'asdfasdfasdfasdf')
+        .get('/msg').reply(200, { text: 'response from msg' })
+        .persist()
+
+      const myCaps = Object.assign({
+        [Capabilities.CONTAINERMODE]: 'simplerest',
+        [Capabilities.WAITFORBOTTIMEOUT]: 1000,
+        [Capabilities.SIMPLEREST_URL]: 'http://mock.com/msg',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text'
+      }, caps)
+      this.driver = new BotDriver(myCaps)
+      this.compiler = this.driver.BuildCompiler()
+      this.container = await this.driver.Build()
+      await this.container.Start()
+    }
+  })
+  afterEach(async function () {
+    await this.container.Stop()
+    await this.container.Clean()
+    this.scope.persist(false)
+  })
+
+  it('should use response from ping', async function () {
+    await this.init({
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/ping',
+      [Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]: true
+    })
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromping.convo.txt')
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.messageText, 'response from ping')
+  })
+
+  it('should not use trash response from ping', async function () {
+    await this.init({
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingtrash',
+      [Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]: true
+    })
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromping.convo.txt')
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Bot did not respond within') >= 0)
+    }
+  })
+
+  it('should use response from start', async function () {
+    await this.init({
+      [Capabilities.SIMPLEREST_START_URL]: 'https://mock.com/start',
+      [Capabilities.SIMPLEREST_START_PROCESS_RESPONSE]: true
+    })
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromstart.convo.txt')
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.messageText, 'response from start')
+  })
+
+  it('should not use trash response from start', async function () {
+    await this.init({
+      [Capabilities.SIMPLEREST_START_URL]: 'https://mock.com/starttrash',
+      [Capabilities.SIMPLEREST_START_PROCESS_RESPONSE]: true
+    })
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromstart.convo.txt')
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Bot did not respond within') >= 0)
+    }
   })
 })
 

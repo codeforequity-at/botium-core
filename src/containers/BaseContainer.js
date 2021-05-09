@@ -3,6 +3,7 @@ const async = require('async')
 const rimraf = require('rimraf')
 const Bottleneck = require('bottleneck')
 const _ = require('lodash')
+const request = require('request')
 const debug = require('debug')('botium-connector-BaseContainer')
 
 const Events = require('../Events')
@@ -193,6 +194,16 @@ module.exports = class BaseContainer {
     }
   }
 
+  _QueueLength (channel = 'default') {
+    return (this.queues[channel] && this.queues[channel].length()) || 0
+  }
+
+  _EmptyQueue (channel = 'default') {
+    if (this.queues[channel]) {
+      this.queues[channel].empty()
+    }
+  }
+
   async _QueueBotSays (botMsg) {
     if (_.isError(botMsg)) {
       if (!this.queues.default) {
@@ -216,7 +227,7 @@ module.exports = class BaseContainer {
 
   async _RunCustomHook (name, hook, args) {
     try {
-      await executeHook(this.caps, hook, Object.assign({}, { container: this }, args))
+      await executeHook(this.caps, hook, Object.assign({ container: this, request }, args))
     } catch (err) {
       debug(`_RunCustomHook ${name} finished with error: ${err.message || util.inspect(err)}`)
     }
