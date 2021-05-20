@@ -99,6 +99,23 @@ describe('compiler.compilerxlsx', function () {
       assert.equal(context.utterances[0].name, 'TESTUTT1')
       assert.equal(context.utterances[1].name, 'TESTUTT2')
     })
+    it('should read 2 utterances separated by empty lines', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_2utterances_emptylines.xlsx'))
+      const context = buildContext()
+
+      const caps = {
+        SCRIPTING_XLSX_SHEETNAMES_UTTERANCES: 'Utterances'
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
+      assert.lengthOf(context.convos, 0)
+      assert.lengthOf(context.utterances, 2)
+      assert.equal(context.utterances[0].name, 'TESTUTT1')
+      assert.equal(context.utterances[0].utterances.length, 2)
+      assert.equal(context.utterances[1].name, 'TESTUTT2')
+      assert.equal(context.utterances[1].utterances.length, 3)
+    })
     it('should read 2 convos from given region by letter', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_2convos_middle.xlsx'))
       const context = buildContext()

@@ -41,6 +41,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
     const workbook = XLSX.read(scriptBuffer, { type: 'buffer' })
     if (!workbook) throw new Error('Workbook not readable')
 
+    debug(`Loaded XLSX with Props: ${workbook.Props ? JSON.stringify(workbook.Props) : '<none>'}`)
     const eol = this.caps[Capabilities.SCRIPTING_XLSX_EOL_WRITE]
     const maxEmptyRowCount = 10
 
@@ -278,7 +279,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
           }
           rowindex++
 
-          if (emptylines > 1) break
+          if (emptylines > maxEmptyRowCount) break
         }
       }
 
