@@ -75,8 +75,8 @@ const pnot = (retryHelper, fn, errTemplate) => {
 }
 
 module.exports = class ScriptingProvider {
-  constructor (caps = Defaults.Capabilities) {
-    this.caps = caps
+  constructor (caps) {
+    this.caps = caps || _.cloneDeep(Defaults.Capabilities)
     this.compilers = {}
     this.convos = []
     this.utterances = {}
