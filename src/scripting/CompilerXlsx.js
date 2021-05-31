@@ -22,7 +22,9 @@ module.exports = class CompilerXlsx extends CompilerBase {
   }
 
   _filterSheetnames (sheetnames, selectors) {
-    return sheetnames.filter(sheetname => !!selectors.find(selector => selector === '*' || sheetname === selector))
+    const filteredSheetnames = sheetnames.filter(sheetname => !!selectors.find(selector => selector === '*' || sheetname === selector))
+    debug(`_filterSheetnames(sheetnames: ${JSON.stringify(sheetnames)}, selectors: ${JSON.stringify(selectors)}, filteredSheetnames: ${JSON.stringify(filteredSheetnames)})`)
+    return filteredSheetnames
   }
 
   Validate () {
@@ -50,25 +52,25 @@ module.exports = class CompilerXlsx extends CompilerBase {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]) {
         sheetnames = this._filterSheetnames(workbook.SheetNames, this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES]))
       } else {
-        sheetnames = workbook.SheetNames.filter(s => (/convo/i.test(s) || /dialog/i.test(s)) && !/partial/i.test(s)) || []
+        sheetnames = workbook.SheetNames.filter(s => (s.toLowerCase().indexOf('convo') >= 0 || s.toLowerCase().indexOf('dialog') >= 0) && s.toLowerCase().indexOf('partial') < 0) || []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS]) {
         sheetnames = this._filterSheetnames(workbook.SheetNames, this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_PCONVOS]))
       } else {
-        sheetnames = workbook.SheetNames.filter(s => /partial/i.test(s)) || []
+        sheetnames = workbook.SheetNames.filter(s => s.toLowerCase().indexOf('partial') >= 0) || []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]) {
         sheetnames = this._filterSheetnames(workbook.SheetNames, this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_UTTERANCES]))
       } else {
-        sheetnames = workbook.SheetNames.filter(s => /utter/i.test(s)) || []
+        sheetnames = workbook.SheetNames.filter(s => s.toLowerCase().indexOf('utter') >= 0) || []
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY) {
       if (this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]) {
         sheetnames = this._filterSheetnames(workbook.SheetNames, this._splitSheetnames(this.caps[Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]))
       } else {
-        sheetnames = workbook.SheetNames.filter(s => /memory/i.test(s) || /scripting/i.test(s)) || []
+        sheetnames = workbook.SheetNames.filter(s => s.toLowerCase().indexOf('memory') >= 0 || s.toLowerCase().indexOf('scripting') >= 0) || []
       }
     } else {
       throw Error(`Invalid script type ${scriptType}`)
