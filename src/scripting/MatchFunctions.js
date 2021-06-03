@@ -2,7 +2,7 @@ const _ = require('lodash')
 
 const { toString, quoteRegexpString } = require('./helper')
 
-module.exports.regexp = (ignoreCase) => (botresponse, utterance) => {
+const regexp = (ignoreCase) => (botresponse, utterance) => {
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
 
@@ -10,7 +10,7 @@ module.exports.regexp = (ignoreCase) => (botresponse, utterance) => {
   return regexp.test(toString(botresponse))
 }
 
-module.exports.wildcard = (ignoreCase) => (botresponse, utterance) => {
+const wildcard = (ignoreCase) => (botresponse, utterance) => {
   if (_.isUndefined(botresponse)) {
     if (utterance.trim() === '*') return true
     else return false
@@ -27,7 +27,7 @@ module.exports.wildcard = (ignoreCase) => (botresponse, utterance) => {
   return regexp.test(botresponseStr)
 }
 
-module.exports.include = (ignoreCase) => (botresponse, utterance) => {
+const include = (ignoreCase) => (botresponse, utterance) => {
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
   botresponse = toString(botresponse)
@@ -39,7 +39,7 @@ module.exports.include = (ignoreCase) => (botresponse, utterance) => {
   return botresponse.indexOf(utterance) >= 0
 }
 
-module.exports.equals = (ignoreCase) => (botresponse, utterance) => {
+const equals = (ignoreCase) => (botresponse, utterance) => {
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
   botresponse = botresponse.messageText || ''
@@ -49,4 +49,26 @@ module.exports.equals = (ignoreCase) => (botresponse, utterance) => {
     botresponse = botresponse.toLowerCase()
   }
   return botresponse === utterance
+}
+
+const getMatchFunction = (matchingMode) => {
+  if (matchingMode === 'regexp' || matchingMode === 'regexpIgnoreCase') {
+    return regexp(matchingMode === 'regexpIgnoreCase')
+  } else if (matchingMode === 'wildcard' || matchingMode === 'wildcardIgnoreCase' || matchingMode === 'wildcardLowerCase') {
+    return wildcard(matchingMode === 'wildcardIgnoreCase' || matchingMode === 'wildcardLowerCase')
+  } else if (matchingMode === 'include' || matchingMode === 'includeIgnoreCase' || matchingMode === 'includeLowerCase') {
+    return include(matchingMode === 'includeIgnoreCase' || matchingMode === 'includeLowerCase')
+  } else if (matchingMode === 'equals' || matchingMode === 'equalsIgnoreCase') {
+    return equals(matchingMode === 'equalsIgnoreCase')
+  } else {
+    return equals(false)
+  }
+}
+
+module.exports = {
+  regexp,
+  wildcard,
+  include,
+  equals,
+  getMatchFunction
 }

@@ -1,4 +1,5 @@
 const { BotiumError } = require('../../BotiumError')
+const { getMatchFunction } = require('../../MatchFunctions')
 const _ = require('lodash')
 const jsonPath = require('jsonpath')
 const Mustache = require('mustache')
@@ -127,7 +128,12 @@ module.exports = class JsonPathAsserter {
     if (assert) {
       const actual = jsonPathValues
 
-      const match = jsonPathValues.find(a => this.context.Match(a, assert))
+      let matchFn = this.context.Match
+      if (this.globalArgs && this.globalArgs.matchingMode) {
+        matchFn = getMatchFunction(this.globalArgs.matchingMode)
+      }
+
+      const match = jsonPathValues.find(a => matchFn(a, assert))
 
       if (not && match) {
         return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: ${actual} in jsonPath ${path}"`,

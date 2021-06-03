@@ -292,6 +292,47 @@ describe('scripting.asserters.jsonPathAsserter', function () {
       assert.isTrue(err.message.indexOf('Expected: value in jsonPath $.test') > 0)
     }
   })
+  it('should succeed on setting matching mode in global args', async function () {
+    this.jsonPathAsserter.globalArgs = {
+      argCount: 2,
+      pathTemplate: '$.{{args.0}}',
+      assertTemplate: '{{args.1}}',
+      matchingMode: 'include'
+    }
+
+    await this.jsonPathAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['test', 'value'],
+      botMsg: {
+        sourceData: {
+          test: 'value 123'
+        }
+      }
+    })
+  })
+  it('should fail on setting matching mode in global args', async function () {
+    this.jsonPathAsserter.globalArgs = {
+      argCount: 2,
+      pathTemplate: '$.{{args.0}}',
+      assertTemplate: '{{args.1}}',
+      matchingMode: 'include'
+    }
+
+    try {
+      await this.jsonPathAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['test', 'value1'],
+        botMsg: {
+          sourceData: {
+            test: 'value'
+          }
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected: value1 in jsonPath $.test') > 0)
+    }
+  })
 })
 
 describe('scripting.asserters.jsonPathCountAsserter', function () {
