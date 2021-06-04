@@ -703,18 +703,6 @@ module.exports = class ScriptingProvider {
       if (!convoVariables.length) {
         debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - skipped, no variable found to replace`)
       }
-      // // debug output, & filling fileToVariables
-      // variables.forEach((variable) => {
-      //   const alreadyUsedVariable = convo.beginLogicHook.filter((logicHook) => {
-      //     // .substring(1): cut the $ because logichooks
-      //     return (logicHook.name === 'SET_SCRIPTING_MEMORY' || logicHook.name === 'CLEAR_SCRIPTING_MEMORY') &&
-      //       logicHook.args.indexOf(variable.substring(1)) >= 0
-      //   })
-      //
-      //   if (alreadyUsedVariable.length) {
-      //     debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory variable "${variable}" defined external (scripting memory file?), and in logicHook(s) "${util.inspect(alreadyUsedVariable)}"`)
-      //   }
-      // })
 
       let convosToExpand = [convo]
       let convosExpandedConvo = []
