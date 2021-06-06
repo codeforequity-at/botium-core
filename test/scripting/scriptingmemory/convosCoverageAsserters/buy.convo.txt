@@ -1,0 +1,10 @@
+asserters
+should update asserter arguments
+
+#begin
+
+#me
+hello meatbag!
+
+#bot
+BUTTONS $productName
