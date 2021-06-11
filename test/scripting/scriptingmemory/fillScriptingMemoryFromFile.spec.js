@@ -229,7 +229,7 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
   })
 })
 
-describe('scripting.scriptingmemory.memoryenabled.originalkept', function () {
+describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originalkept', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',
@@ -255,7 +255,7 @@ describe('scripting.scriptingmemory.memoryenabled.originalkept', function () {
   })
 })
 
-describe('scripting.scriptingmemory.memorydisabled', function () {
+describe('scripting.fillingScriptingMemoryFromFile.memorydisabled', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.scriptingmemory',
@@ -281,5 +281,39 @@ describe('scripting.scriptingmemory.memorydisabled', function () {
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isObject(transcript.scriptingMemory)
     assert.notExists(transcript.scriptingMemory.$productName)
+  })
+})
+
+describe('scripting.fillingScriptingMemoryFromFile.coverage', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'scripting.fillingScriptingMemoryFromFile.coverage',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_XLSX_SHEETNAMES_SCRIPTING_MEMORY]: 'ScriptingMemory',
+      [Capabilities.SCRIPTING_XLSX_SHEETNAMES]: 'Convos',
+      [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+      [Capabilities.SCRIPTING_MEMORYEXPANSION_KEEP_ORIG]: false
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should replace scripting memory in asserter arguments', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosCoverageAsserters'))
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 3)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+    } catch (err) {
+      assert.equal(err.toString(), 'TranscriptError: asserters.product1/Line 9: assertion error - Line 9: Expected button(s) with text "Wiener Schnitzel"')
+
+      return
+    }
+    throw (new Error('Exception not thrown'))
   })
 })

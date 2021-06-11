@@ -17,7 +17,7 @@ const { Convo, ConvoStep } = require('./Convo')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromList, botiumErrorFromErr } = require('./BotiumError')
 const RetryHelper = require('../helpers/RetryHelper')
-const MatchFunctions = require('./MatchFunctions')
+const { getMatchFunction } = require('./MatchFunctions')
 const precompilers = require('./precompilers')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
@@ -152,7 +152,8 @@ module.exports = class ScriptingProvider {
               },
               cause: {
                 expected: tomatch,
-                actual: botresponse
+                actual: botresponse,
+                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE]
               }
             }
           )
@@ -182,7 +183,8 @@ module.exports = class ScriptingProvider {
               cause: {
                 not: true,
                 expected: nottomatch,
-                actual: botresponse
+                actual: botresponse,
+                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE]
               }
             }
           )
@@ -376,15 +378,8 @@ module.exports = class ScriptingProvider {
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN] = new CompilerMarkdown(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN].Validate()
 
-    if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexp' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase') {
-      this.matchFn = MatchFunctions.regexp(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'regexpIgnoreCase')
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcard' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase') {
-      this.matchFn = MatchFunctions.wildcard(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wildcardLowerCase')
-    } else if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'include' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase') {
-      this.matchFn = MatchFunctions.include(this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeIgnoreCase' || this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'includeLowerCase')
-    } else {
-      this.matchFn = MatchFunctions.equals(false)
-    }
+    this.matchFn = getMatchFunction(this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
+
     const logicHookUtils = new LogicHookUtils({ buildScriptContext: this._buildScriptContext(), caps: this.caps })
     this.asserters = logicHookUtils.asserters
     this.globalAsserter = logicHookUtils.getGlobalAsserter()
@@ -708,18 +703,6 @@ module.exports = class ScriptingProvider {
       if (!convoVariables.length) {
         debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - skipped, no variable found to replace`)
       }
-      // // debug output, & filling fileToVariables
-      // variables.forEach((variable) => {
-      //   const alreadyUsedVariable = convo.beginLogicHook.filter((logicHook) => {
-      //     // .substring(1): cut the $ because logichooks
-      //     return (logicHook.name === 'SET_SCRIPTING_MEMORY' || logicHook.name === 'CLEAR_SCRIPTING_MEMORY') &&
-      //       logicHook.args.indexOf(variable.substring(1)) >= 0
-      //   })
-      //
-      //   if (alreadyUsedVariable.length) {
-      //     debug(`ExpandScriptingMemoryToConvos - Convo "${convo.header.name}" - Scripting memory variable "${variable}" defined external (scripting memory file?), and in logicHook(s) "${util.inspect(alreadyUsedVariable)}"`)
-      //   }
-      // })
 
       let convosToExpand = [convo]
       let convosExpandedConvo = []

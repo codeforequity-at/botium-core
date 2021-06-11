@@ -553,11 +553,26 @@ class Convo {
   }
 
   GetScriptingMemoryAllVariables (container) {
-    const result = this.conversation.reduce((acc, convoStep) => {
-      return acc.concat(this.GetScriptingMemoryVariables(container, convoStep.messageText))
+    const resultOuter = this.conversation.reduce((acc, convoStep) => {
+      let result = acc
+      result = result.concat(this.GetScriptingMemoryVariables(container, convoStep.messageText))
+      const extractFromArgs = (convoStepItems) => {
+        let resultInner = []
+        for (const item of (convoStepItems || [])) {
+          for (const arg of (item.args || [])) {
+            resultInner = resultInner.concat(this.GetScriptingMemoryVariables(container, arg))
+          }
+        }
+        return resultInner
+      }
+      result = result.concat(extractFromArgs(convoStep.asserters))
+      result = result.concat(extractFromArgs(convoStep.logicHooks))
+      result = result.concat(extractFromArgs(convoStep.userInputs))
+
+      return result
     }, [])
 
-    return [...new Set(result)]
+    return [...new Set(resultOuter)]
   }
 
   GetScriptingMemoryVariables (container, utterance) {
