@@ -18,6 +18,13 @@ describe('tree.buildconversationtreeview', function () {
     assert.equal(tree[0].childNodes.length, 1)
     assert.equal(tree[0].childNodes[0].childNodes.length, 2)
   })
+  it('should build from excel', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+    await scriptingProvider.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'tree', 'excel'))
+    const tree = scriptingProvider.GetConversationFlowView({ detectLoops: true, summarizeMultiSteps: false })
+    assert.equal(tree.length, 3)
+  })
   it('should build shared convo node on userInput buttons', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
