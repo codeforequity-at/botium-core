@@ -60,7 +60,7 @@ describe('scripting.useScriptingMemoryForAssertion.simpleassertion', function ()
       await this.compiler.convos[0].Run(this.container)
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Bot response (on Line 3: #me - forcereplace1 forcereplace2) "OUTPUT1 OUTPUT2" expected to match "forcereplace1 forcereplace2"') >= 0)
+      assert.isTrue(err.message.indexOf('Bot response (on Line 3: #me - $productName $customer) "OUTPUT1 OUTPUT2" expected to match "forcereplace1 forcereplace2"') >= 0)
     }
   })
 })
