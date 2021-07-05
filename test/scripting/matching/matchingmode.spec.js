@@ -86,7 +86,7 @@ describe('matching.matchingmode.include', function () {
   })
 
   it('should match JSON response with string', async function () {
-    assert.isTrue(this.compiler.Match({ myvalue: 123 }, '123'))
+    assert.isTrue(this.compiler.Match({ messageText: 123 }, '123'))
   })
 })
 
@@ -187,6 +187,6 @@ describe('matching.matchingmode.include', function () {
   })
 
   it('should match JSON response with string', async function () {
-    assert.isTrue(this.compiler.Match({ myvalue: 123 }, '123'))
+    assert.isTrue(this.compiler.Match({ messageText: 123 }, '123'))
   })
 })
