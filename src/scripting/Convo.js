@@ -297,7 +297,13 @@ class Convo {
           } else if (convoStep.sender === 'me') {
             const meMsg = new BotiumMockMessage(convoStep)
             meMsg.messageText = ScriptingMemory.apply(container, scriptingMemory, meMsg.messageText, meMsg)
-            convoStep.messageText = meMsg.messageText
+            // buggy command is removed, but because sideeffects are possible, it can be reactivated.
+            // If there are no sideeffects coming up, then row can be deleted permanently.
+            if (process.env.WORKAROUND_OVERWRITE_JSON_MESSAGE_TEXT) {
+              // if this line is active, then Random() in me section does not work in performance test
+              // (first run overwrites the function with the value, and the next run has the value, not the function)
+              convoStep.messageText = meMsg.messageText
+            }
             transcriptStep.actual = meMsg
 
             try {

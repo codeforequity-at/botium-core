@@ -114,7 +114,7 @@ describe('SetClearScriptingMemory', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Bot response (on Line 6: #me - sending input: INPUT1) "sending input: OUTPUT1" expected to match "sending input: INPUT1"') >= 0)
+      assert.isTrue(err.message.indexOf('Bot response (on Line 6: #me - sending input: $input) "sending input: OUTPUT1" expected to match "sending input: INPUT1"') >= 0)
     }
   })
   it('should overwrite scripting memory and use for assertions', async function () {
