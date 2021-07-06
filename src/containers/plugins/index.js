@@ -90,7 +90,10 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
     if (fs.existsSync(tryLoadFile)) {
       _checkUnsafe(args.caps, 'Using work dir', { modulepath, containermode })
       try {
-        const plugin = require(tryLoadFile)
+        let plugin = require(tryLoadFile)
+        if (plugin.default) {
+          plugin = plugin.default
+        }
         if (!plugin.PluginVersion || !plugin.PluginClass) {
           loadErr.push(`Invalid Botium plugin loaded from ${tryLoadFile}, expected PluginVersion, PluginClass fields`)
         } else {
@@ -104,7 +107,10 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
     }
 
     try {
-      const plugin = require(pluginLoaderSpec)
+      let plugin = require(pluginLoaderSpec)
+      if (plugin.default) {
+        plugin = plugin.default
+      }
       if (!plugin.PluginVersion || !plugin.PluginClass) {
         loadErr.push(`Invalid Botium plugin loaded from ${pluginLoaderSpec}, expected PluginVersion, PluginClass fields`)
       } else {
@@ -118,7 +124,10 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
 
     const tryLoadPackage = `botium-connector-${pluginLoaderSpec}`
     try {
-      const plugin = require(tryLoadPackage)
+      let plugin = require(tryLoadPackage)
+      if (plugin.default) {
+        plugin = plugin.default
+      }
       if (!plugin.PluginVersion || !plugin.PluginClass) {
         loadErr.push(`Invalid Botium plugin ${tryLoadPackage}, expected PluginVersion, PluginClass fields`)
       } else {
