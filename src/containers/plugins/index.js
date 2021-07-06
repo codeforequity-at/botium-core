@@ -1,6 +1,5 @@
 const path = require('path')
 const fs = require('fs')
-const isClass = require('is-class')
 const _ = require('lodash')
 const debug = require('debug')('botium-connector-PluginConnectorContainer-helper')
 
@@ -31,12 +30,15 @@ const getModuleVersionSafe = (required) => {
 }
 
 const loadConnectorModule = (PluginClass, args) => {
-  if (isClass(PluginClass)) {
+  try {
     return new PluginClass(args)
-  } else if (_.isFunction(PluginClass)) {
+  } catch (err) {
+  }
+  if (_.isFunction(PluginClass)) {
     const result = PluginClass(args)
-    if (result && result.UserSays) return result
-    else {
+    if (result && result.UserSays) {
+      return result
+    } else {
       return {
         UserSays: (msg) => {
           const response = PluginClass(msg, args)
@@ -50,6 +52,8 @@ const loadConnectorModule = (PluginClass, args) => {
         }
       }
     }
+  } else {
+    throw new Error('Botium Plugin is neither a class nor a function')
   }
 }
 
