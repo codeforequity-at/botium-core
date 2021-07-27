@@ -1093,9 +1093,16 @@ module.exports = class ScriptingProvider {
     }
   }
 
-  GetConversationFlowView ({ getConvoNodeHash = null, detectLoops = false, summarizeMultiSteps = true } = {}) {
+  GetConversationFlowView ({
+    getConvoNodeHash = null, detectLoops = false, summarizeMultiSteps = true, includeConvoSteps = false,
+    extPickMeNodeProps = [], extPickBotNodeProps = [], extPickMeHashProps = [], extPickBotHashProps = []
+  } = {}) {
     const root = []
     const botNodesByHash = {}
+    const pickMeNodeProps = ['index', 'sender', 'messageText', 'utteranceSamples', 'utteranceCount', 'logicHooks', 'userInputs', ...extPickMeNodeProps]
+    const pickBotNodeProps = ['index', 'sender', 'messageText', 'optional', 'not', 'utteranceSamples', 'utteranceCount', 'logicHooks', 'asserters', ...extPickBotNodeProps]
+    const pickMeHashProps = ['sender', 'messageText', 'logicHooks', 'userInputs', ...extPickMeHashProps]
+    const pickBotHashProps = ['sender', 'messageText', 'optional', 'not', 'logicHooks', 'asserters', ...extPickBotHashProps]
 
     this.convos.forEach((convo) => {
       const convoNodes = []
@@ -1127,20 +1134,21 @@ module.exports = class ScriptingProvider {
       let currentChildren = root
       for (const convoNode of convoNodes) {
         const convoNodeValues = convoNode.sender === 'me'
-          ? convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'sender', 'messageText', 'utteranceSamples', 'utteranceCount', 'logicHooks', 'userInputs']))
-          : convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['index', 'sender', 'messageText', 'optional', 'not', 'utteranceSamples', 'utteranceCount', 'logicHooks', 'asserters']))
+          ? convoNode.convoSteps.map(convoStep => _.pick(convoStep, pickMeNodeProps))
+          : convoNode.convoSteps.map(convoStep => _.pick(convoStep, pickBotNodeProps))
         const convoNodeHeader = {
           header: _.pick(convo.header, ['name', 'description']),
           sourceTag: convo.sourceTag,
-          convoStepIndices: convoNode.convoStepIndices
+          convoStepIndices: convoNode.convoStepIndices,
+          conversation: includeConvoSteps ? convo.conversation : undefined
         }
 
         let hash = getConvoNodeHash && getConvoNodeHash({ convo, convoNode })
         if (!hash) {
           if (convoNode.sender === 'bot') {
-            hash = crypto.createHash('md5').update(JSON.stringify(convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'optional', 'not', 'logicHooks', 'asserters'])))).digest('hex')
+            hash = crypto.createHash('md5').update(JSON.stringify(convoNode.convoSteps.map(convoStep => _.pick(convoStep, pickBotHashProps)))).digest('hex')
           } else {
-            hash = crypto.createHash('md5').update(JSON.stringify(convoNode.convoSteps.map(convoStep => _.pick(convoStep, ['sender', 'messageText', 'logicHooks', 'userInputs'])))).digest('hex')
+            hash = crypto.createHash('md5').update(JSON.stringify(convoNode.convoSteps.map(convoStep => _.pick(convoStep, pickMeHashProps)))).digest('hex')
           }
         }
 
