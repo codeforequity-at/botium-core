@@ -62,6 +62,7 @@ const toString = (value) => {
   if (_.isUndefined(value)) return undefined
   if (_.isString(value)) return value
   if (_.isNumber(value)) return value.toString()
+  if (_.isArray(value)) return value.map(v => toString(v)).join(',')
   try {
     return JSON.stringify(value)
   } catch (err) {
