@@ -1,11 +1,15 @@
 const assert = require('chai').assert
 const JsonPathAsserter = require('../../../src/scripting/logichook/asserter/JsonPathAsserter')
 const JsonPathCountAsserter = require('../../../src/scripting/logichook/asserter/JsonPathCountAsserter')
+const { getMatchFunction } = require('../../../src/scripting/MatchFunctions')
 
 describe('scripting.asserters.jsonPathAsserter', function () {
   beforeEach(async function () {
     this.jsonPathAsserter = new JsonPathAsserter({
       Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+    }, {})
+    this.jsonPathAsserterWildcard = new JsonPathAsserter({
+      Match: getMatchFunction('wildcardIgnoreCase')
     }, {})
     this.jsonPathAsserterGlobalArgs = new JsonPathAsserter({
       Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
@@ -57,6 +61,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         }
       })
     } catch (err) {
+      console.log(err.message)
       assert.isTrue(err.message.includes('Expected: message4 in jsonPath $.messages[*].label: Actual: message1,message2,message3'))
     }
   })
@@ -97,6 +102,47 @@ describe('scripting.asserters.jsonPathAsserter', function () {
       }
     })
   })
+  it('should succeed on jsonpath object', async function () {
+    await this.jsonPathAsserterWildcard.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['$.messages[0]', '{"label":"message1"}'],
+      botMsg: {
+        sourceData: {
+          messages: [
+            { label: 'message1' },
+            { label: 'message2' },
+            { label: 'message3' }
+          ]
+        }
+      }
+    })
+  })
+  it('should fail on invalid jsonpath object', async function () {
+    try {
+      await this.jsonPathAsserterWildcard.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['$.messages[0]', '{"label":"message2"}'],
+        botMsg: {
+          sourceData: {
+            messages: [
+              { label: 'message1' },
+              { label: 'message2' },
+              { label: 'message3' }
+            ]
+          }
+        }
+      })
+    } catch (err) {
+      console.log(err)
+      assert.isTrue(err.message.indexOf('Expected: {"label":"message2"} in jsonPath $.messages[0]: Actual: {"label":"message1"}') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isNotTrue(err.context.cause.not)
+      assert.equal(err.context.cause.expected, '{"label":"message2"}')
+      assert.deepEqual(err.context.cause.actual, { label: 'message1' })
+    }
+  })
+
   it('should fail on not matching jsonpath', async function () {
     try {
       await this.jsonPathAsserter.assertConvoStep({
