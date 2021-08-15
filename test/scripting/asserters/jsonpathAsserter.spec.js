@@ -133,7 +133,6 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         }
       })
     } catch (err) {
-      console.log(err)
       assert.isTrue(err.message.indexOf('Expected: {"label":"message2"} in jsonPath $.messages[0]: Actual: {"label":"message1"}') > 0)
       assert.isNotNull(err.context)
       assert.isNotNull(err.context.cause)
