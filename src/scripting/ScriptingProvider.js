@@ -20,7 +20,7 @@ const RetryHelper = require('../helpers/RetryHelper')
 const { getMatchFunction } = require('./MatchFunctions')
 const precompilers = require('./precompilers')
 
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.xlsm|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
 const skipPattern = /^skip[.\-_]/i
 
 const p = (retryHelper, fn) => {
@@ -486,7 +486,7 @@ module.exports = class ScriptingProvider {
         filename = precompResponse.filename || filename
       }
 
-      if (filename.endsWith('.xlsx')) {
+      if (filename.endsWith('.xlsx') || filename.endsWith('.xlsm')) {
         fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
         filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
         fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
