@@ -35,8 +35,8 @@ describe('matching.matchingmode.general', function () {
     assert.isTrue(this.compiler.Match({ messageText: 123 }, '123'))
   })
 
-  it('should not check other fields as messageText', async function () {
-    assert.isFalse(this.compiler.Match({ somethingElse: '123' }, '123'))
+  it('should match JSON response with toString', async function () {
+    assert.isTrue(this.compiler.Match({ somethingElse: '123' }, '"somethingElse":"123"'))
   })
 })
 

@@ -1,5 +1,6 @@
 const { BotiumError } = require('../../BotiumError')
 const { getMatchFunction } = require('../../MatchFunctions')
+const { toString } = require('../../helper')
 const _ = require('lodash')
 const jsonPath = require('jsonpath')
 const Mustache = require('mustache')
@@ -23,7 +24,7 @@ module.exports = class JsonPathAsserter {
   _getConfig (convoStep, args) {
     if (this.globalArgs && this.globalArgs.path) {
       if (args && args.length > 1) {
-        throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter 0 or 1 arguments expected "${args}"`,
+        throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter 0 or 1 arguments expected "${toString(args)}"`,
           {
             type: 'asserter',
             subtype: 'wrong parameters',
@@ -43,7 +44,7 @@ module.exports = class JsonPathAsserter {
       if (_.has(this.globalArgs, 'argCount')) {
         const argCount = this.globalArgs.argCount
         if (argCount === 0 && args && args.length > 0) {
-          throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter ${argCount} arguments expected "${args}"`,
+          throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter ${argCount} arguments expected "${toString(args)}"`,
             {
               type: 'asserter',
               subtype: 'wrong parameters',
@@ -55,7 +56,7 @@ module.exports = class JsonPathAsserter {
             }
           )
         } else if (!args || args.length !== argCount) {
-          throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter ${argCount} arguments expected "${args}"`,
+          throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter ${argCount} arguments expected "${toString(args)}"`,
             {
               type: 'asserter',
               subtype: 'wrong parameters',
@@ -74,7 +75,7 @@ module.exports = class JsonPathAsserter {
       }
     } else {
       if (!args || args.length === 0 || args.length > 2) {
-        throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter 1 or 2 arguments expected "${args}"`,
+        throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter 1 or 2 arguments expected "${toString(args)}"`,
           {
             type: 'asserter',
             subtype: 'wrong parameters',
@@ -126,7 +127,7 @@ module.exports = class JsonPathAsserter {
       }
     }
     if (assert) {
-      const actual = jsonPathValues
+      const actual = (_.isArray(jsonPathValues) && jsonPathValues.length === 1) ? jsonPathValues[0] : jsonPathValues
 
       let matchFn = this.context.Match
       if (this.globalArgs && this.globalArgs.matchingMode) {
@@ -136,7 +137,7 @@ module.exports = class JsonPathAsserter {
       const match = jsonPathValues.find(a => matchFn(a, assert))
 
       if (not && match) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: ${actual} in jsonPath ${path}"`,
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: ${toString(actual)} in jsonPath ${path}"`,
           {
             type: 'asserter',
             source: this.name,
@@ -157,7 +158,7 @@ module.exports = class JsonPathAsserter {
         ))
       }
       if (!not && !match) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected: ${assert} in jsonPath ${path}: Actual: ${actual}`,
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected: ${assert} in jsonPath ${path}: Actual: ${toString(actual)}`,
           {
             type: 'asserter',
             source: this.name,
