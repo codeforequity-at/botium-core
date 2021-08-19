@@ -96,7 +96,10 @@ module.exports = class CompilerObjectBase extends CompilerBase {
     const result = []
     const names = Object.keys(utterancesRaw || {})
     for (const name of names) {
-      result.push(new Utterance({ name, utterances: (utterancesRaw[name] || []).map(u => `${u}`) }))
+      if (!_.isArray(utterancesRaw[name])) {
+        throw new Error(`The '${name}' utterance has to be an array.`)
+      }
+      result.push(new Utterance({ name, utterances: (utterancesRaw[name]).map(u => `${u}`) }))
     }
     this.context.AddUtterances(result)
     return result
