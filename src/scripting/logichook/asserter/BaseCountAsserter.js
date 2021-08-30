@@ -14,8 +14,8 @@ module.exports = class BaseCountAsserter {
 
   _getBotiumErrMsg (argv, not, count, check) {
     const { convoStep } = argv
-    if (not) return `${convoStep.stepTag} Not expected ${this.elementName} count ${count}${check}`
-    else return `${convoStep.stepTag} Expected ${this.elementName} count ${count}${check}`
+    if (not) return `${convoStep.stepTag} Not expected ${this.elementName} count ${count} to be ${check}`
+    else return `${convoStep.stepTag} Expected ${this.elementName} count ${count} to be ${check}`
   }
 
   _getBotiumErrArgs (argv, not, count, check) {
@@ -48,7 +48,7 @@ module.exports = class BaseCountAsserter {
     if (arg.startsWith('>')) return count > parseInt(arg.slice(1))
     if (arg.startsWith('==')) return count === parseInt(arg.slice(2))
     if (arg.startsWith('=')) return count === parseInt(arg.slice(1))
-    return count === arg
+    return count === parseInt(arg)
   }
 
   async assertNotConvoBegin (argv) { return this._assertNot(argv) }

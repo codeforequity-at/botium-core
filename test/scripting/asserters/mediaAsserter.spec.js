@@ -196,7 +196,7 @@ describe('scripting.asserters.mediaCountAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected Media count 0>0') >= 0)
+      assert.isTrue(err.message.indexOf('Expected Media count 0 to be >0') >= 0)
     }
   })
   it('should succeed on >=0 with one media', async function () {
@@ -228,7 +228,7 @@ describe('scripting.asserters.mediaCountAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected Media count 1>1') >= 0)
+      assert.isTrue(err.message.indexOf('Expected Media count 1 to be >1') >= 0)
     }
   })
   it('should succeed on <=1 with one media', async function () {
@@ -269,7 +269,7 @@ describe('scripting.asserters.mediaCountAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Not expected Media count 1>0') >= 0)
+      assert.isTrue(err.message.indexOf('Not expected Media count 1 to be >0') >= 0)
     }
   })
   it('should succeed on >1 with ! no media', async function () {
@@ -292,7 +292,7 @@ describe('scripting.asserters.mediaCountAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Not expected Media count 2>1') >= 0)
+      assert.isTrue(err.message.indexOf('Not expected Media count 2 to be >1') >= 0)
     }
   })
   it('should succeed on >3 with rec media', async function () {

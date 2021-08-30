@@ -51,7 +51,7 @@ module.exports = class BaseTextAsserter {
           ))
         }
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Not expected ${this.mode === 'all' ? 'texts' : 'any text'} in response "${founds}"`,
+          `${convoStep.stepTag}: Not expected ${this.mode === 'all' ? 'text(s)' : 'any text'} in response "${founds}"`,
           {
             type: 'asserter',
             source: this.name,
@@ -92,7 +92,7 @@ module.exports = class BaseTextAsserter {
           ))
         }
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Expected ${this.mode === 'all' ? 'texts' : 'any text'} in response "${notFounds}"`,
+          `${convoStep.stepTag}: Expected ${this.mode === 'all' ? 'text(s)' : 'any text'} in response "${notFounds}"`,
           {
             type: 'asserter',
             source: this.name,
