@@ -480,8 +480,7 @@ class Convo {
               }
             } catch (err) {
               const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error - ${err.message || err}`, err)
-              failSafe(failErr, lastMeConvoStep)
-              throw botiumErrorFromList([...assertErrors, err], {})
+              failSafeAndThrow(failErr, lastMeConvoStep)
             }
 
             if (!botMsg || (!botMsg.messageText && !botMsg.media && !botMsg.buttons && !botMsg.cards && !botMsg.sourceData && !botMsg.nlp)) {
@@ -568,8 +567,7 @@ class Convo {
               }
             } catch (err) {
               const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error - ${err.message || err}`, err)
-              failSafe(failErr, lastMeConvoStep)
-              throw botiumErrorFromList([...assertErrors, err], {})
+              failSafeAndThrow(failErr, lastMeConvoStep)
             }
             try {
               await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
@@ -582,12 +580,7 @@ class Convo {
                 continue
               }
               const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message || err}`, err)
-              failSafe(failErr, lastMeConvoStep)
-              if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                throw botiumErrorFromList([...assertErrors, err], {})
-              } else {
-                throw failErr
-              }
+              failSafeAndThrow(failErr, lastMeConvoStep)
             }
 
             if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
