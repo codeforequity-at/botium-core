@@ -403,6 +403,55 @@ class Convo {
               throw failErr
             }
 
+            const orders = convoStep.asserters.map(a => a.order).concat(convoStep.logicHooks.map(a => a.order)).sort()
+            // if there is no gap, then the text asserter is the last one. Otherwise the gap in orders determines its position
+            const orderOfTextAsserter = (orders.length === 0 || orders[orders.length - 1]) ? orders.length : orders.find((o, i) => o !== i) - 1
+
+            const assertErrors = []
+            try {
+              const { justAsserterError, error } = await this.scriptingEvents.onBot({
+                convo: this,
+                convoStep,
+                container,
+                scriptingMemory,
+                botMsg,
+                transcript,
+                transcriptStep,
+                filter: (asserterOrLogicHook) => asserterOrLogicHook.order < orderOfTextAsserter,
+                callGlobals: false
+              })
+              if (error) {
+                if (justAsserterError) {
+                  const nextConvoStep = this.conversation[i + 1]
+                  if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
+                    waitForBotSays = false
+                    skipTranscriptStep = true
+                    continue
+                  }
+                }
+                // error can be aggregated. Is it the right way to deal with it?
+                const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error(s) - ${error.message || error}`, error)
+                debug(failErr)
+                try {
+                  this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
+                } catch (failErr) {
+                }
+                if (justAsserterError && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                  assertErrors.push(error)
+                } else {
+                  throw failErr
+                }
+              }
+            } catch (err) {
+              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error - ${err.message || err}`, err)
+              try {
+                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
+              } catch (failErr) {
+              }
+              // assertErrors must be empty here. But to be sure
+              throw botiumErrorFromList([...assertErrors, err], {})
+            }
+
             if (!botMsg || (!botMsg.messageText && !botMsg.media && !botMsg.buttons && !botMsg.cards && !botMsg.sourceData && !botMsg.nlp)) {
               const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
               debug(failErr)
@@ -426,7 +475,6 @@ class Convo {
                 throw err
               }
             }
-            const assertErrors = []
             const scriptingMemoryUpdate = {}
             if (convoStep.messageText) {
               const response = this._checkNormalizeText(container, botMsg.messageText)
@@ -460,10 +508,52 @@ class Convo {
               }
             }
             Object.assign(scriptingMemory, scriptingMemoryUpdate)
+
             try {
-              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
+              const { justAsserterError, error } = await this.scriptingEvents.onBot({
+                convo: this,
+                convoStep,
+                container,
+                scriptingMemory,
+                botMsg,
+                transcript,
+                transcriptStep,
+                filter: (asserterOrLogicHook) => asserterOrLogicHook.order > orderOfTextAsserter
+              })
+              if (error) {
+                if (justAsserterError) {
+                  const nextConvoStep = this.conversation[i + 1]
+                  if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
+                    waitForBotSays = false
+                    skipTranscriptStep = true
+                    continue
+                  }
+                }
+                // error can be aggregated. Is it the right way to deal with it?
+                const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error(s) - ${error.message || error}`, error)
+                debug(failErr)
+                try {
+                  this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
+                } catch (failErr) {
+                }
+                if (justAsserterError && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                  assertErrors.push(error)
+                } else {
+                  throw failErr
+                }
+              }
+            } catch (err) {
+              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error - ${err.message || err}`, err)
+              try {
+                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
+              } catch (failErr) {
+              }
+              throw botiumErrorFromList([...assertErrors, err], {})
+            }
+            try {
               await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
             } catch (err) {
+              // checking optional on logic hook error??? Looks as a bug
               const nextConvoStep = this.conversation[i + 1]
               if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
                 waitForBotSays = false
@@ -476,12 +566,13 @@ class Convo {
                 this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
               } catch (failErr) {
               }
-              if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS] && err instanceof BotiumError) {
-                assertErrors.push(err)
+              if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                throw botiumErrorFromList([...assertErrors, err], {})
               } else {
                 throw failErr
               }
             }
+
             if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
               if (assertErrors.length > 0) {
                 throw botiumErrorFromList(assertErrors, {})

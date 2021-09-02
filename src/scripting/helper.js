@@ -85,6 +85,9 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
   // local eslint accepts it without disable, but build on github does not
   // eslint-disable-next-line no-unused-vars
   let textLinesAccepted = true
+  // shows the order for 3 thing
+  // if the line does not contain any of them, it should not increased.
+  let asserterLogicHookTextAsserterOrder = 0
   for (const rawLine of lines) {
     if (_.isString(rawLine)) {
       let optional = false
@@ -105,14 +108,16 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
       const name = logicLine.split(' ')[0]
       if (sender !== 'me' && context.IsAsserterValid(name)) {
         const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-        convoStep.asserters.push({ name, args, not, optional })
+        convoStep.asserters.push({ name, args, not, optional, order: asserterLogicHookTextAsserterOrder })
+        asserterLogicHookTextAsserterOrder++
       } else if (sender === 'me' && context.IsUserInputValid(name)) {
         const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
         convoStep.userInputs.push({ name, args })
         textLinesAccepted = false
       } else if (context.IsLogicHookValid(name)) {
         const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
-        convoStep.logicHooks.push({ name, args })
+        convoStep.logicHooks.push({ name, args, order: asserterLogicHookTextAsserterOrder })
+        asserterLogicHookTextAsserterOrder++
         textLinesAccepted = false
       } else {
         if (sender === 'me') {
@@ -123,9 +128,15 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
               // skip empty lines
             }
           } else {
+            if (!textLinesRaw.length) {
+              asserterLogicHookTextAsserterOrder++
+            }
             textLinesRaw.push(rawLine)
           }
         } else {
+          if (!textLinesRaw.length) {
+            asserterLogicHookTextAsserterOrder++
+          }
           textLinesRaw.push(rawLine)
         }
       }

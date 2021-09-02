@@ -1,0 +1,9 @@
+#bot
+BUTTONS Test1
+PAUSE 1
+sometext
+PAUSE 2
+BUTTONS Test2
+
+#me
+hugo

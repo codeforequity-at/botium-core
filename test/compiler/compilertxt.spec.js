@@ -306,7 +306,26 @@ describe('compiler.compilertxt', function () {
       const convo = context.convos[0]
       assert.equal(convo.conversation.length, 2)
       assert.equal(convo.conversation[0].asserters.length, 1)
-      assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test1', 'Test2'], not: true, optional: false })
+      assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test1', 'Test2'], not: true, optional: false, order: 0 })
     })
+  })
+  it('should store order', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_logichook_asserter_order.convo.txt'))
+    const context = buildContextWithPause()
+    const caps = {
+    }
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    const convo = context.convos[0]
+    assert.equal(convo.conversation.length, 2)
+
+    assert.equal(convo.conversation[0].asserters.length, 2)
+    assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test1'], not: false, optional: false, order: 0 })
+    assert.deepEqual(convo.conversation[0].asserters[1], { name: 'BUTTONS', args: ['Test2'], not: false, optional: false, order: 4 })
+
+    assert.equal(convo.conversation[0].logicHooks.length, 2)
+    assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
+    assert.deepEqual(convo.conversation[0].logicHooks[1], { name: 'PAUSE', args: ['2'], order: 3 })
   })
 })
