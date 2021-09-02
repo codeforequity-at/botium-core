@@ -136,6 +136,9 @@ module.exports = class ScriptingProvider {
       onMePrepare: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterAndLogicHookPromises({ hookType: 'onMePrepare', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
+      onMe: ({ convo, convoStep, scriptingMemory, filter, ...rest }) => {
+        return this._createAsserterAndLogicHookPromises({ hookType: 'onMe', logicHooks: convoStep.logicHooks, convo, convoStep, scriptingMemory, filter, ...rest })
+      },
       onMeEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterAndLogicHookPromises({ hookType: 'onMeEnd', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
@@ -145,7 +148,9 @@ module.exports = class ScriptingProvider {
       onBotPrepare: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterAndLogicHookPromises({ hookType: 'onBotPrepare', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      // required just for legacy mode
+      onBot: ({ convo, convoStep, scriptingMemory, filter, ...rest }) => {
+        return this._createAsserterAndLogicHookPromises({ hookType: 'onBot', logicHooks: convoStep.logicHooks, asserterType: 'assertConvoEnd', asserters: convo.endAsserter, convo, convoStep, scriptingMemory, filter, ...rest })
+      },
       onBotEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterAndLogicHookPromises({ hookType: 'onBotEnd', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
@@ -157,9 +162,6 @@ module.exports = class ScriptingProvider {
       // },
       assertConvoEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterAndLogicHookPromises({ asserterType: 'assertConvoEnd', asserters: (convo.endAsserter || []), convo, convoStep, scriptingMemory, ...rest })
-      },
-      onBot: ({ convo, convoStep, scriptingMemory, filter, ...rest }) => {
-        return this._createAsserterAndLogicHookPromises({ hookType: 'onBot', logicHooks: convoStep.logicHooks, asserterType: 'assertConvoEnd', asserters: convo.endAsserter, convo, convoStep, scriptingMemory, filter, ...rest })
       },
       setUserInput: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createUserInputPromises({ convo, convoStep, scriptingMemory, ...rest })
