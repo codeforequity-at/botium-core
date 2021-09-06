@@ -88,6 +88,8 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
   // shows the order for 3 thing
   // if the line does not contain any of them, it should not increased.
   let asserterLogicHookTextAsserterOrder = 0
+  let mainAsserterDetectedAt = null
+
   for (const rawLine of lines) {
     if (_.isString(rawLine)) {
       let optional = false
@@ -128,21 +130,19 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
               // skip empty lines
             }
           } else {
-            if (!textLinesRaw.length) {
-              asserterLogicHookTextAsserterOrder++
-            }
             textLinesRaw.push(rawLine)
           }
         } else {
-          if (!textLinesRaw.length) {
-            asserterLogicHookTextAsserterOrder++
-          }
           textLinesRaw.push(rawLine)
         }
       }
       // line is not textline if it is empty, and there is no line with data after it.
       if (textLinesRaw.length > 0) {
         if (rawLine.trim().length) {
+          if (!textLines.length) {
+            mainAsserterDetectedAt = asserterLogicHookTextAsserterOrder
+            asserterLogicHookTextAsserterOrder++
+          }
           textLines.push(...textLinesRaw)
           textLinesRaw = []
         }
@@ -155,15 +155,19 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
           name: rawLine.asserter,
           args: (rawLine.args && _.isString(rawLine.args) ? [rawLine.args] : rawLine.args) || [],
           not: !!rawLine.not,
-          optional: !!rawLine.optional
+          optional: !!rawLine.optional,
+          order: asserterLogicHookTextAsserterOrder
         })
+        asserterLogicHookTextAsserterOrder++
       } else if (rawLine.logichook || rawLine.logicHook) {
         const logicHookName = rawLine.logichook || rawLine.logicHook
         if (!context.IsLogicHookValid(logicHookName)) throw new Error(`Failed to parse conversation. No logichook "${logicHookName}" registered for section "${sender}"`)
         convoStep.logicHooks.push({
           name: logicHookName,
-          args: (rawLine.args && _.isString(rawLine.args) ? [rawLine.args] : rawLine.args) || []
+          args: (rawLine.args && _.isString(rawLine.args) ? [rawLine.args] : rawLine.args) || [],
+          order: asserterLogicHookTextAsserterOrder
         })
+        asserterLogicHookTextAsserterOrder++
       } else if (rawLine.userinput || rawLine.userInput) {
         const userInputName = rawLine.userinput || rawLine.userInput
         if (sender !== 'me') throw new Error(`Failed to parse conversation. No userinput "${userInputName}" expected in section "${sender}"`)
@@ -196,8 +200,10 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
             name,
             args: (content && _.isString(content) ? [content] : content) || [],
             not,
-            optional
+            optional,
+            order: asserterLogicHookTextAsserterOrder
           })
+          asserterLogicHookTextAsserterOrder++
         } else if (sender === 'me' && context.IsUserInputValid(name)) {
           convoStep.userInputs.push({
             name,
@@ -206,8 +212,10 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
         } else if (context.IsLogicHookValid(name)) {
           convoStep.logicHooks.push({
             name,
-            args: (content && _.isString(content) ? [content] : content) || []
+            args: (content && _.isString(content) ? [content] : content) || [],
+            order: asserterLogicHookTextAsserterOrder
           })
+          asserterLogicHookTextAsserterOrder++
         } else {
           throw new Error(`Failed to parse conversation. Line not recognized '${JSON.stringify(rawLine)}'`)
         }
@@ -219,6 +227,8 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
 
   // deal with just message convosteps
   if (textLinesRaw.length >= 1 && textLines.length === 0) {
+    mainAsserterDetectedAt = asserterLogicHookTextAsserterOrder
+    asserterLogicHookTextAsserterOrder++
     textLines.push(...textLinesRaw)
     textLinesRaw.pop()
   }
@@ -266,6 +276,24 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
   if (optionalSet.size > 1) {
     throw new Error(`Failed to parse conversation. All element in convo step has to be optional or not optional: ${JSON.stringify(lines)}`)
   }
+
+  if (_.isNil(mainAsserterDetectedAt)) {
+    // if there is not main text asserter, then every logichook and asserter will be considered as after-main-text asserter
+    for (const asserter of convoStep.asserters) {
+      asserter.order++
+    }
+    for (const logicHook of convoStep.logicHooks) {
+      logicHook.order++
+    }
+  } else {
+    if (convoStep.asserters.length && convoStep.asserters[0].order < mainAsserterDetectedAt && convoStep.logicHooks.find(l => l.order < mainAsserterDetectedAt && l.order > convoStep.asserters[0].order)) {
+      throw new Error(`Before main asserter logichooks must be before asserters. Check logichooks after asserter ${convoStep.asserters[0].name}`)
+    }
+  }
+  for (const asserter of convoStep.asserters) {
+    optionalSet.add(asserter.optional)
+  }
+
 
   return convoStep
 }

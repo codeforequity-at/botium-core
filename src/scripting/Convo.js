@@ -33,6 +33,10 @@ class ConvoStepAssert {
     this.args = fromJson.args
     this.not = fromJson.not
     this.optional = fromJson.optional
+    if (_.isNil(fromJson.order)) {
+      throw new Error('Internal error. The order of the asserter is unknown')
+    }
+    this.order = fromJson.order
   }
 
   toString () {
@@ -44,6 +48,10 @@ class ConvoStepLogicHook {
   constructor (fromJson = {}) {
     this.name = fromJson.name
     this.args = fromJson.args
+    if (_.isNil(fromJson.order)) {
+      throw new Error('Internal error. The order of the logichook is unknown')
+    }
+    this.order = fromJson.order
   }
 
   toString () {
@@ -336,8 +344,7 @@ class Convo {
                 meMsg,
                 transcript,
                 transcriptStep,
-                filter: (logicHook) => logicHook.order < orderOfMeMessage,
-                callGlobals: false
+                filter: (entry, type, global) => !global && entry.order < orderOfMeMessage
               })
 
               // all errors coming from onMe are fatal errors on me section
@@ -377,8 +384,7 @@ class Convo {
                   meMsg,
                   transcript,
                   transcriptStep,
-                  filter: (logicHook) => logicHook.order > orderOfMeMessage,
-                  callGlobals: true
+                  filter: (entry, type, global) => global || entry.order > orderOfMeMessage
                 })
 
                 // all errors coming from onMe are fatal errors on me section
@@ -411,9 +417,55 @@ class Convo {
               waitForBotSays = true
             }
 
+            const assertErrors = []
+            const orders = convoStep.asserters.map(a => a.order).concat(convoStep.logicHooks.map(a => a.order)).sort()
+            // if there is no gap, then the text asserter is the last one. Otherwise the gap in orders determines its position
+            const orderOfBotMessage = (orders.length === 0 || orders[orders.length - 1]) ? orders.length : orders.find((o, i) => o !== i) - 1
+            const executeOnBotHook = async (filter) => {
+              try {
+                const { justAsserterError, error } = await this.scriptingEvents.onBot({
+                  convo: this,
+                  convoStep,
+                  container,
+                  scriptingMemory,
+                  botMsg,
+                  filter
+                })
+                if (error) {
+                  if (justAsserterError) {
+                    const nextConvoStep = this.conversation[i + 1]
+                    if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
+                      waitForBotSays = false
+                      skipTranscriptStep = true
+                      return { doContiunue: true }
+                    }
+                  }
+                  // error can be aggregated. Is it the right way to deal with it?
+                  const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error(s) - ${error.message || error}`, error)
+                  failSafe(failErr, lastMeConvoStep)
+                  if (justAsserterError && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+                    assertErrors.push(error)
+                  } else {
+                    throw failErr
+                  }
+                }
+              } catch (err) {
+                const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error phase - ${err.message || err}`, err)
+                failSafeAndThrow(failErr, lastMeConvoStep)
+              }
+
+              return { doContiunue: false }
+            }
+
             try {
               debug(`${this.header.name} wait for bot ${convoStep.channel || ''}`)
               await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript, transcriptStep })
+              const executeOnBotHookResult = await executeOnBotHook((entry, type, global) => {
+                return !global && type === 'logicHook' && entry.order < orderOfBotMessage
+              })
+              if (executeOnBotHookResult.doContiunue) {
+                throw new Error('Internal error. doContinue has sense where asserters are allowed. And asserters are not allowed before wait bot says')
+              }
               transcriptStep.botBegin = new Date()
               if (!botMsg) {
                 botMsg = await container.WaitBotSays(convoStep.channel)
@@ -443,44 +495,12 @@ class Convo {
               failSafeAndThrow(failErr, lastMeConvoStep)
             }
 
-            const orders = convoStep.asserters.map(a => a.order).concat(convoStep.logicHooks.map(a => a.order)).sort()
-            // if there is no gap, then the text asserter is the last one. Otherwise the gap in orders determines its position
-            const orderOfBotMessage = (orders.length === 0 || orders[orders.length - 1]) ? orders.length : orders.find((o, i) => o !== i) - 1
 
-            const assertErrors = []
-            try {
-              const { justAsserterError, error } = await this.scriptingEvents.onBot({
-                convo: this,
-                convoStep,
-                container,
-                scriptingMemory,
-                botMsg,
-                transcript,
-                transcriptStep,
-                filter: (asserterOrLogicHook) => asserterOrLogicHook.order < orderOfBotMessage,
-                callGlobals: false
-              })
-              if (error) {
-                if (justAsserterError) {
-                  const nextConvoStep = this.conversation[i + 1]
-                  if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
-                    waitForBotSays = false
-                    skipTranscriptStep = true
-                    continue
-                  }
-                }
-                // error can be aggregated. Is it the right way to deal with it?
-                const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error(s) - ${error.message || error}`, error)
-                failSafe(failErr, lastMeConvoStep)
-                if (justAsserterError && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                  assertErrors.push(error)
-                } else {
-                  throw failErr
-                }
-              }
-            } catch (err) {
-              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error - ${err.message || err}`, err)
-              failSafeAndThrow(failErr, lastMeConvoStep)
+            const executeOnBotHookResultBetween = await executeOnBotHook((entry, type, global) => {
+              return !global && type === 'asserter' && entry.order < orderOfBotMessage
+            })
+            if (executeOnBotHookResultBetween.doContiunue) {
+              continue
             }
 
             if (!botMsg || (!botMsg.messageText && !botMsg.media && !botMsg.buttons && !botMsg.cards && !botMsg.sourceData && !botMsg.nlp)) {
@@ -536,38 +556,11 @@ class Convo {
             }
             Object.assign(scriptingMemory, scriptingMemoryUpdate)
 
-            try {
-              const { justAsserterError, error } = await this.scriptingEvents.onBot({
-                convo: this,
-                convoStep,
-                container,
-                scriptingMemory,
-                botMsg,
-                transcript,
-                transcriptStep,
-                filter: (asserterOrLogicHook) => asserterOrLogicHook.order > orderOfBotMessage
-              })
-              if (error) {
-                if (justAsserterError) {
-                  const nextConvoStep = this.conversation[i + 1]
-                  if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
-                    waitForBotSays = false
-                    skipTranscriptStep = true
-                    continue
-                  }
-                }
-                // error can be aggregated. Is it the right way to deal with it?
-                const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error(s) - ${error.message || error}`, error)
-                failSafe(failErr, lastMeConvoStep)
-                if (justAsserterError && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                  assertErrors.push(error)
-                } else {
-                  throw failErr
-                }
-              }
-            } catch (err) {
-              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error - ${err.message || err}`, err)
-              failSafeAndThrow(failErr, lastMeConvoStep)
+            const executeOnBotHookResult = await executeOnBotHook((entry, type, global) => {
+              return global || entry.order > orderOfBotMessage
+            })
+            if (executeOnBotHookResult.doContiunue) {
+              continue
             }
             try {
               await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })

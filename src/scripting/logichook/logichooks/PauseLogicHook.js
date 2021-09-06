@@ -9,11 +9,11 @@ module.exports = class PauseLogicHook {
     return pause('PauseLogicHook', 'onConvoBegin', args)
   }
 
-  onMeEnd ({ convoStep, args }) {
+  onMe ({ convoStep, args }) {
     return pause('PauseLogicHook', convoStep.stepTag, args)
   }
 
-  onBotEnd ({ convoStep, args }) {
+  onBot ({ convoStep, args }) {
     return pause('PauseLogicHook', convoStep.stepTag, args)
   }
 

@@ -12,11 +12,11 @@ module.exports = class ClearScriptingMemoryLogicHook {
     return this._clearScriptingMemory(scriptingMemory, convoStep, args)
   }
 
-  onMeEnd ({ scriptingMemory, convoStep, args }) {
+  onMe ({ scriptingMemory, convoStep, args }) {
     return this._clearScriptingMemory(scriptingMemory, convoStep, args)
   }
 
-  onBotEnd ({ scriptingMemory, convoStep, args }) {
+  onBot ({ scriptingMemory, convoStep, args }) {
     return this._clearScriptingMemory(scriptingMemory, convoStep, args)
   }
 

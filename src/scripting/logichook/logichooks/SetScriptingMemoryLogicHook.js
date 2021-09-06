@@ -17,11 +17,11 @@ module.exports = class SetScriptingMemoryLogicHook {
     return this._setScriptingMemory(scriptingMemory, { stepTag: 'onConvoBegin' }, args, isGlobal, 'onConvoBegin')
   }
 
-  onMeEnd ({ scriptingMemory, convoStep, args, isGlobal }) {
+  onMe ({ scriptingMemory, convoStep, args, isGlobal }) {
     return this._setScriptingMemory(scriptingMemory, convoStep, args, isGlobal, 'onMeEnd')
   }
 
-  onBotEnd ({ scriptingMemory, convoStep, args, isGlobal }) {
+  onBot ({ scriptingMemory, convoStep, args, isGlobal }) {
     return this._setScriptingMemory(scriptingMemory, convoStep, args, isGlobal, 'onMeEnd')
   }
 

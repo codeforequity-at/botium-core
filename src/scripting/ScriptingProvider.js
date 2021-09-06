@@ -157,9 +157,6 @@ module.exports = class ScriptingProvider {
       assertConvoBegin: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterAndLogicHookPromises({ asserterType: 'assertConvoBegin', asserters: (convo.beginAsserter || []), convo, convoStep, scriptingMemory, ...rest })
       },
-      // assertConvoStep: ({ convo, convoStep, scriptingMemory, ...rest }) => {
-      //   return this._createAsserterAndLogicHookPromises({ asserterType: 'assertConvoStep', asserters: (convoStep.asserters || []), convo, convoStep, scriptingMemory, ...rest })
-      // },
       assertConvoEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterAndLogicHookPromises({ asserterType: 'assertConvoEnd', asserters: (convo.endAsserter || []), convo, convoStep, scriptingMemory, ...rest })
       },
@@ -237,9 +234,9 @@ module.exports = class ScriptingProvider {
     this.retryHelperUserInput = new RetryHelper(this.caps, 'USERINPUT')
   }
 
-  async _createAsserterAndLogicHookPromises ({ asserterType, asserters = [], hookType, logicHooks = [], convo, convoStep, scriptingMemory, filter, callGlobals = true, ...rest }) {
-    if (hookType && (hookType !== 'onMeStart' && hookType !== 'onMePrepare' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' &&
-      hookType !== 'onBotPrepare' && hookType !== 'onBot' && hookType !== 'onBotEnd' &&
+  async _createAsserterAndLogicHookPromises ({ asserterType, asserters = [], hookType, logicHooks = [], convo, convoStep, scriptingMemory, filter, ...rest }) {
+    if (hookType && (hookType !== 'onMeStart' && hookType !== 'onMePrepare' && hookType !== 'onMe' && hookType !== 'onMeEnd' &&
+      hookType !== 'onBotStart' && hookType !== 'onBotPrepare' && hookType !== 'onBot' && hookType !== 'onBotEnd' &&
       hookType !== 'onConvoBegin' && hookType !== 'onConvoEnd')
     ) {
       throw Error(`Unknown hookType ${hookType}`)
@@ -249,11 +246,14 @@ module.exports = class ScriptingProvider {
       throw Error(`Unknown asserterType ${asserterType}`)
     }
 
+    const logicHooksToExecute = logicHooks.filter(l => this.logicHooks[l.name][hookType] && (!filter || filter(l, 'logicHook', false))).map(l => ({ type: 'logicHook', order: l.order, spec: l }))
+    const assertersToExecute = asserters.filter(a => this.asserters[a.name][asserterType] && (!filter || filter(a, 'asserter', false))).map(a => ({ type: 'asserter', order: a.order, spec: a }))
+
     const assertersAndLogicHooks = [
-      ...logicHooks.filter(l => this.logicHooks[l.name][hookType] && (!filter || filter(l))).map(l => ({ type: 'logicHook', order: l.order, spec: l })),
-      ...asserters.filter(a => this.asserters[a.name][asserterType] && (!filter || filter(a))).map(a => ({ type: 'asserter', order: a.order, spec: a }))
+      ...logicHooksToExecute,
+      ...assertersToExecute
     ]
-    _.sort(assertersAndLogicHooks, entry => entry.order)
+    _.sortBy(assertersAndLogicHooks, entry => entry.order)
 
     const multipleAsserterErrors = []
 
@@ -290,31 +290,29 @@ module.exports = class ScriptingProvider {
       }
     }
 
-    if (callGlobals) {
-      if (asserterType) {
-        for (const globalAsserter of Object.values(this.globalAsserter).filter(a => a[asserterType])) {
-          try {
-            await p(this.retryHelperAsserter, () => globalAsserter[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest }))
-          } catch (error) {
-            if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-              multipleAsserterErrors.push(error)
-            } else {
-              return { justAsserterError: true, error }
-            }
+    if (asserterType) {
+      for (const globalAsserter of Object.values(this.globalAsserter).filter(a => a[asserterType] && (!filter || filter(a, 'asserter', true)))) {
+        try {
+          await p(this.retryHelperAsserter, () => globalAsserter[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest }))
+        } catch (error) {
+          if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
+            multipleAsserterErrors.push(error)
+          } else {
+            return { justAsserterError: true, error }
           }
         }
       }
+    }
 
-      if (hookType) {
-        for (const globalLogicHook of Object.values(this.globalLogicHook).filter(l => l[hookType])) {
-          try {
-            await p(this.retryHelperLogicHook, () => globalLogicHook[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest }))
-          } catch (error) {
-            if (multipleAsserterErrors.length) {
-              return { justAsserterError: false, error: botiumErrorFromList([...multipleAsserterErrors, error], {}) }
-            } else {
-              return { justAsserterError: false, error }
-            }
+    if (hookType) {
+      for (const globalLogicHook of Object.values(this.globalLogicHook).filter(l => l[hookType] && (!filter || filter(a, 'logicHook', true)))) {
+        try {
+          await p(this.retryHelperLogicHook, () => globalLogicHook[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest }))
+        } catch (error) {
+          if (multipleAsserterErrors.length) {
+            return { justAsserterError: false, error: botiumErrorFromList([...multipleAsserterErrors, error], {}) }
+          } else {
+            return { justAsserterError: false, error }
           }
         }
       }
@@ -371,7 +369,6 @@ module.exports = class ScriptingProvider {
       GetPartialConvos: this.GetPartialConvos.bind(this),
       scriptingEvents: {
         assertConvoBegin: this.scriptingEvents.assertConvoBegin.bind(this),
-        // assertConvoStep: this.scriptingEvents.assertConvoStep.bind(this),
         assertConvoEnd: this.scriptingEvents.assertConvoEnd.bind(this),
         resolveUtterance: this.scriptingEvents.resolveUtterance.bind(this),
         assertBotResponse: this.scriptingEvents.assertBotResponse.bind(this),
@@ -380,9 +377,11 @@ module.exports = class ScriptingProvider {
         onConvoEnd: this.scriptingEvents.onConvoEnd.bind(this),
         onMeStart: this.scriptingEvents.onMeStart.bind(this),
         onMePrepare: this.scriptingEvents.onMePrepare.bind(this),
+        onMe: this.scriptingEvents.onMe.bind(this),
         onMeEnd: this.scriptingEvents.onMeEnd.bind(this),
         onBotStart: this.scriptingEvents.onBotStart.bind(this),
         onBotPrepare: this.scriptingEvents.onBotPrepare.bind(this),
+        onBot: this.scriptingEvents.onBot.bind(this),
         onBotEnd: this.scriptingEvents.onBotEnd.bind(this),
         setUserInput: this.scriptingEvents.setUserInput.bind(this),
         fail: this.scriptingEvents.fail && this.scriptingEvents.fail.bind(this)

@@ -11,7 +11,7 @@ module.exports = class AssignScriptingMemoryLogicHook {
     this.globalArgs = globalArgs
   }
 
-  onBotEnd ({ scriptingMemory, convoStep, args, isGlobal, botMsg }) {
+  onBot ({ scriptingMemory, convoStep, args, isGlobal, botMsg }) {
     let params = null
     try {
       params = extractParams({
