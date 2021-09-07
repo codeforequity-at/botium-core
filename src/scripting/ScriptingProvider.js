@@ -318,7 +318,7 @@ module.exports = class ScriptingProvider {
       }
     }
 
-    return { justAsserterError: true, error: multipleAsserterErrors.length ? botiumErrorFromList(multipleAsserterErrors) : null }
+    return { justAsserterError: true, error: multipleAsserterErrors.length ? botiumErrorFromList(multipleAsserterErrors, {}) : null }
   }
 
   _createUserInputPromises ({ convo, convoStep, scriptingMemory, ...rest }) {

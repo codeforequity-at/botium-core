@@ -441,7 +441,7 @@ class Convo {
                     }
                   }
                   // error can be aggregated. Is it the right way to deal with it?
-                  const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error(s) - ${error.message || error}`, error)
+                  const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: ${justAsserterError ? 'assertion' : 'critical'} error - ${error.message || error}`, error)
                   failSafe(failErr, lastMeConvoStep)
                   if (justAsserterError && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
                     assertErrors.push(error)
@@ -450,7 +450,7 @@ class Convo {
                   }
                 }
               } catch (err) {
-                const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBot error phase - ${err.message || err}`, err)
+                const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: internal error - ${err.message || err}`, err)
                 failSafeAndThrow(failErr, lastMeConvoStep)
               }
 
