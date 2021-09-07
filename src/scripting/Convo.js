@@ -420,7 +420,7 @@ class Convo {
             const assertErrors = []
             const orders = convoStep.asserters.map(a => a.order).concat(convoStep.logicHooks.map(a => a.order)).sort()
             // if there is no gap, then the text asserter is the last one. Otherwise the gap in orders determines its position
-            const orderOfBotMessage = (orders.length === 0 || orders[orders.length - 1]) ? orders.length : orders.find((o, i) => o !== i) - 1
+            const orderOfBotMessage = (orders.length === 0 || orders[orders.length - 1] === orders.length - 1) ? orders.length : orders.find((o, i) => o !== i) - 1
             const executeOnBotHook = async (filter) => {
               try {
                 const { justAsserterError, error } = await this.scriptingEvents.onBot({
@@ -494,7 +494,6 @@ class Convo {
               const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: onBotPrepare error - ${err.message || err}`, err)
               failSafeAndThrow(failErr, lastMeConvoStep)
             }
-
 
             const executeOnBotHookResultBetween = await executeOnBotHook((entry, type, global) => {
               return !global && type === 'asserter' && entry.order < orderOfBotMessage

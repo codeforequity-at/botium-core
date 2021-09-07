@@ -149,7 +149,7 @@ module.exports = class ScriptingProvider {
         return this._createAsserterAndLogicHookPromises({ hookType: 'onBotPrepare', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
       onBot: ({ convo, convoStep, scriptingMemory, filter, ...rest }) => {
-        return this._createAsserterAndLogicHookPromises({ hookType: 'onBot', logicHooks: convoStep.logicHooks, asserterType: 'assertConvoEnd', asserters: convo.endAsserter, convo, convoStep, scriptingMemory, filter, ...rest })
+        return this._createAsserterAndLogicHookPromises({ hookType: 'onBot', logicHooks: convoStep.logicHooks, asserterType: 'assertConvoStep', asserters: convoStep.asserters, convo, convoStep, scriptingMemory, filter, ...rest })
       },
       onBotEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterAndLogicHookPromises({ hookType: 'onBotEnd', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })

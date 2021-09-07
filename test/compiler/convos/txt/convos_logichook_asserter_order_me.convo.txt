@@ -1,0 +1,4 @@
+#me
+PAUSE 1
+sometext
+PAUSE 2

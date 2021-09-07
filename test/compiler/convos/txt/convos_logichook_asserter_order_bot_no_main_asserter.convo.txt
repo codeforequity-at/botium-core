@@ -1,0 +1,5 @@
+#bot
+PAUSE 1
+BUTTONS Test1
+PAUSE 2
+BUTTONS Test2

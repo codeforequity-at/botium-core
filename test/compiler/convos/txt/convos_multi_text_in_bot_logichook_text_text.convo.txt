@@ -1,0 +1,4 @@
+#bot
+sometext
+PAUSE 1
+sometext2

@@ -123,12 +123,8 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
         textLinesAccepted = false
       } else {
         if (sender === 'me') {
-          if (!textLinesAccepted) {
-            if (rawLine.trim().length) {
-              throw new Error(`Failed to parse conversation. No text expected here: '${rawLine.trim()}' in convo:\n ${lines.join('\n')}`)
-            } else {
-              // skip empty lines
-            }
+          if (!textLinesAccepted && !rawLine.trim().length) {
+            // skip empty lines
           } else {
             textLinesRaw.push(rawLine)
           }
@@ -286,14 +282,14 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
       logicHook.order++
     }
   } else {
-    if (convoStep.asserters.length && convoStep.asserters[0].order < mainAsserterDetectedAt && convoStep.logicHooks.find(l => l.order < mainAsserterDetectedAt && l.order > convoStep.asserters[0].order)) {
-      throw new Error(`Before main asserter logichooks must be before asserters. Check logichooks after asserter ${convoStep.asserters[0].name}`)
+    const invalidLogicHooks = convoStep.asserters.length && convoStep.asserters[0].order < mainAsserterDetectedAt && convoStep.logicHooks.filter(l => l.order < mainAsserterDetectedAt && l.order > convoStep.asserters[0].order)
+    if (invalidLogicHooks && invalidLogicHooks.length) {
+      throw new Error(`Before main asserter logichooks must be before asserters. Check logichook(s) "${invalidLogicHooks.map(l => l.name).join(', ')}" and asserter "${convoStep.asserters[0].name}"`)
     }
   }
   for (const asserter of convoStep.asserters) {
     optionalSet.add(asserter.optional)
   }
-
 
   return convoStep
 }
