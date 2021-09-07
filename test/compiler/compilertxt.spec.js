@@ -423,19 +423,6 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation[0].logicHooks.length, 1)
       assert.equal(convo.conversation[1].messageText, 'Hi')
     })
-    it('should throw error if there is message after logichook', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_emptyrow_text_after_logichook.convo.txt'))
-      const context = buildContextWithPause()
-      const caps = {
-      }
-      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
-      try {
-        compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
-        assert.fail('expected error')
-      } catch (err) {
-        assert.equal(err.message, 'Failed to parse conversation. No text expected here: \'Hi!\' in convo:\n PAUSE 100\nHi!\n')
-      }
-    })
   })
 
   describe('compiler.compilertxt.asserter', function () {
@@ -479,7 +466,7 @@ describe('compiler.compilertxt', function () {
       assert.deepEqual(convo.conversation[0].logicHooks[3], { name: 'PAUSE', args: ['4'], order: 7 })
       assert.deepEqual(convo.conversation[0].asserters[3], { name: 'BUTTONS', args: ['Test4'], not: false, optional: false, order: 8 })
     })
-    it('should parse asserters and logichooks after main text asserter if its not in script in bot section', async function () {
+    it('should parse asserters and logichooks after main text asserter after main text asserter even if there is no text asserter in script', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_logichook_asserter_order_bot_no_main_asserter.convo.txt'))
       const context = buildContextWithPause()
       const compiler = new Compiler(context, DefaultCapabilities)
@@ -525,17 +512,20 @@ describe('compiler.compilertxt', function () {
       // gap order 1
       assert.deepEqual(convo.conversation[0].logicHooks[1], { name: 'PAUSE', args: ['2'], order: 2 })
     })
-    it('should parse logichooks after main text asserter if its not in me section', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_logichook_asserter_order_me.convo.txt'))
+    it('should parse logichooks after main text asserter even if there is no text asserter in script in me section', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_logichook_asserter_order_me_no_main_asserter.convo.txt'))
       const context = buildContextWithPause()
       const compiler = new Compiler(context, DefaultCapabilities)
 
-      try {
-        compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
-        assert.fail('expected error')
-      } catch (err) {
-        assert.equal(err.message, 'Before main asserter logichooks must be before asserters. Check logichook(s) "PAUSE" and asserter "BUTTONS"')
-      }
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      const convo = context.convos[0]
+      assert.equal(convo.conversation.length, 1)
+
+      assert.equal(convo.conversation[0].asserters.length, 0)
+      assert.equal(convo.conversation[0].logicHooks.length, 1)
+
+      // gap order 0
+      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
     })
   })
 })

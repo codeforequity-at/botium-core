@@ -28,35 +28,6 @@ const mapAsserterNot = {
   assertConvoEnd: 'assertNotConvoEnd'
 }
 
-const callAsserter = (asserterSpec, asserter, params, asserterType, convoStep) => {
-  if (asserterSpec.not) {
-    const notAsserterType = mapAsserterNot[asserterType]
-    if (asserter[notAsserterType]) {
-      return p(this.retryHelperAsserter, () => asserter[notAsserterType](params))
-    } else {
-      return pnot(this.retryHelperAsserter, () => asserter[asserterType](params),
-        new BotiumError(
-          `${convoStep.stepTag}: Expected asserter ${asserter.name || asserterSpec.name} with args "${params.args}" to fail`,
-          {
-            type: 'asserter',
-            source: asserter.name || asserterSpec.name,
-            params: {
-              args: params.args
-            },
-            cause: {
-              not: true,
-              expected: 'failed',
-              actual: 'not failed'
-            }
-          }
-        )
-      )
-    }
-  } else {
-    return p(this.retryHelperAsserter, () => asserter[asserterType](params))
-  }
-}
-
 const p = (retryHelper, fn) => {
   const promise = () => new Promise((resolve, reject) => {
     try {
@@ -234,6 +205,35 @@ module.exports = class ScriptingProvider {
     this.retryHelperUserInput = new RetryHelper(this.caps, 'USERINPUT')
   }
 
+  callAsserter (asserterSpec, asserter, params, asserterType, convoStep) {
+    if (asserterSpec.not) {
+      const notAsserterType = mapAsserterNot[asserterType]
+      if (asserter[notAsserterType]) {
+        return p(this.retryHelperAsserter, () => asserter[notAsserterType](params))
+      } else {
+        return pnot(this.retryHelperAsserter, () => asserter[asserterType](params),
+          new BotiumError(
+            `${convoStep.stepTag}: Expected asserter ${asserter.name || asserterSpec.name} with args "${params.args}" to fail`,
+            {
+              type: 'asserter',
+              source: asserter.name || asserterSpec.name,
+              params: {
+                args: params.args
+              },
+              cause: {
+                not: true,
+                expected: 'failed',
+                actual: 'not failed'
+              }
+            }
+          )
+        )
+      }
+    } else {
+      return p(this.retryHelperAsserter, () => asserter[asserterType](params))
+    }
+  }
+
   async _createAsserterAndLogicHookPromises ({ asserterType, asserters = [], hookType, logicHooks = [], convo, convoStep, scriptingMemory, filter, ...rest }) {
     if (hookType && (hookType !== 'onMeStart' && hookType !== 'onMePrepare' && hookType !== 'onMe' && hookType !== 'onMeEnd' &&
       hookType !== 'onBotStart' && hookType !== 'onBotPrepare' && hookType !== 'onBot' && hookType !== 'onBotEnd' &&
@@ -278,7 +278,7 @@ module.exports = class ScriptingProvider {
         }
       } else {
         try {
-          await callAsserter(asserterOrLogichook.spec, this.asserters[asserterOrLogichook.spec.name], params, asserterType, convoStep)
+          await this.callAsserter(asserterOrLogichook.spec, this.asserters[asserterOrLogichook.spec.name], params, asserterType, convoStep)
         } catch (error) {
           if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
             multipleAsserterErrors.push(error)
@@ -827,7 +827,8 @@ module.exports = class ScriptingProvider {
                 asserters: [
                   {
                     name: 'INTENT',
-                    args: [utt.name]
+                    args: [utt.name],
+                    order: 0
                   }
                 ],
                 stepTag: 'Step 2 - check intent',

@@ -284,20 +284,6 @@ describe('compiler.compilerxlsx', function () {
       const convo = context.convos[0]
       assert.equal(convo.conversation[0].logicHooks.length, 1)
     })
-    it('should throw error if logic hook is after message', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_logichook_before.xlsx'))
-      const context = buildContextWithPause()
-      const caps = {
-      }
-      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
-
-      try {
-        compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
-        assert.fail('expected error')
-      } catch (err) {
-        assert.equal(err.message, 'Failed to parse conversation. No text expected here: \'Hello\' in convo:\n PAUSE 100\nHello')
-      }
-    })
   })
 
   it('should read 2x2 convos and no utterances in simplified mode', async function () {
