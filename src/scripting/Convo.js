@@ -332,9 +332,9 @@ class Convo {
 
               await this._checkBotRepliesConsumed(container)
 
-              const orders = convoStep.logicHooks.map(a => a.order).sort()
+              const orders = convoStep.logicHooks.map(l => l.order).sort()
               // if there is no gap, then the text asserter is the last one. Otherwise the gap in orders determines its position
-              const orderOfMeMessage = (orders.length === 0 || orders[orders.length - 1]) ? orders.length : orders.find((o, i) => o !== i) - 1
+              const orderOfMeMessage = (orders.length === 0 || orders[orders.length - 1] === orders.length - 1) ? orders.length : orders.find((o, i) => o !== i) - 1
 
               const { justAsserterError, error } = await this.scriptingEvents.onMe({
                 convo: this,
@@ -463,10 +463,10 @@ class Convo {
             try {
               debug(`${this.header.name} wait for bot ${convoStep.channel || ''}`)
               await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript, transcriptStep })
-              const executeOnBotHookResult = await executeOnBotHook((entry, type, global) => {
+              const executeOnBotHookLogicHookResult = await executeOnBotHook((entry, type, global) => {
                 return !global && type === 'logicHook' && entry.order < orderOfBotMessage
               })
-              if (executeOnBotHookResult.doContiunue) {
+              if (executeOnBotHookLogicHookResult.doContiunue) {
                 throw new Error('Internal error. doContinue has sense where asserters are allowed. And asserters are not allowed before wait bot says')
               }
               transcriptStep.botBegin = new Date()
@@ -498,10 +498,10 @@ class Convo {
               failSafeAndThrow(failErr, lastMeConvoStep)
             }
 
-            const executeOnBotHookResultBetween = await executeOnBotHook((entry, type, global) => {
+            const executeOnBotHookResultAsserter = await executeOnBotHook((entry, type, global) => {
               return !global && type === 'asserter' && entry.order < orderOfBotMessage
             })
-            if (executeOnBotHookResultBetween.doContiunue) {
+            if (executeOnBotHookResultAsserter.doContiunue) {
               continue
             }
 
