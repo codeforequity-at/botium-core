@@ -273,17 +273,11 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
     throw new Error(`Failed to parse conversation. All element in convo step has to be optional or not optional: ${JSON.stringify(lines)}`)
   }
 
-  if (_.isNil(mainAsserterDetectedAt)) {
-    // if there is not main text asserter, then every logichook and asserter will be considered as after-main-text asserter
-    for (const asserter of convoStep.asserters) {
-      asserter.order++
-    }
-    for (const logicHook of convoStep.logicHooks) {
-      logicHook.order++
-    }
-  } else {
+  if (!_.isNil(mainAsserterDetectedAt)) {
     const invalidLogicHooks = convoStep.asserters.length && convoStep.asserters[0].order < mainAsserterDetectedAt && convoStep.logicHooks.filter(l => l.order < mainAsserterDetectedAt && l.order > convoStep.asserters[0].order)
     if (invalidLogicHooks && invalidLogicHooks.length) {
+      // we cant really sure about it now. If the logichook has no onBot callback, then the position does not matter.
+      // But its better to keep it strict here, and on the UI too.
       throw new Error(`Before main asserter logichooks must be before asserters. Check logichook(s) "${invalidLogicHooks.map(l => l.name).join(', ')}" and asserter "${convoStep.asserters[0].name}"`)
     }
   }

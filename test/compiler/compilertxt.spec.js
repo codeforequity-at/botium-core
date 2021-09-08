@@ -466,7 +466,7 @@ describe('compiler.compilertxt', function () {
       assert.deepEqual(convo.conversation[0].logicHooks[3], { name: 'PAUSE', args: ['4'], order: 7 })
       assert.deepEqual(convo.conversation[0].asserters[3], { name: 'BUTTONS', args: ['Test4'], not: false, optional: false, order: 8 })
     })
-    it('should parse asserters and logichooks after main text asserter after main text asserter even if there is no text asserter in script', async function () {
+    it('should parse order in bot section if there is no text asserter', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_logichook_asserter_order_bot_no_main_asserter.convo.txt'))
       const context = buildContextWithPause()
       const compiler = new Compiler(context, DefaultCapabilities)
@@ -478,13 +478,13 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation[0].asserters.length, 2)
       assert.equal(convo.conversation[0].logicHooks.length, 2)
 
-      // gap order 0
-      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
-      assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test1'], not: false, optional: false, order: 2 })
-      assert.deepEqual(convo.conversation[0].logicHooks[1], { name: 'PAUSE', args: ['2'], order: 3 })
-      assert.deepEqual(convo.conversation[0].asserters[1], { name: 'BUTTONS', args: ['Test2'], not: false, optional: false, order: 4 })
+      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 0 })
+      assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test1'], not: false, optional: false, order: 1 })
+      assert.deepEqual(convo.conversation[0].logicHooks[1], { name: 'PAUSE', args: ['2'], order: 2 })
+      assert.deepEqual(convo.conversation[0].asserters[1], { name: 'BUTTONS', args: ['Test2'], not: false, optional: false, order: 3 })
+      // gap order 5
     })
-    it('should throw error if logichooks/asserters are not in correct order in bot section', async function () {
+    it('should throw error in bot section if logichooks/asserters are not in correct order', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_logichook_asserter_order_bot_bad.convo.txt'))
       const context = buildContextWithPause()
       const compiler = new Compiler(context, DefaultCapabilities)
@@ -512,7 +512,7 @@ describe('compiler.compilertxt', function () {
       // gap order 1
       assert.deepEqual(convo.conversation[0].logicHooks[1], { name: 'PAUSE', args: ['2'], order: 2 })
     })
-    it('should parse logichooks after main text asserter even if there is no text asserter in script in me section', async function () {
+    it('should parse order in me section if there is no text asserter', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_logichook_asserter_order_me_no_main_asserter.convo.txt'))
       const context = buildContextWithPause()
       const compiler = new Compiler(context, DefaultCapabilities)
@@ -524,8 +524,7 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation[0].asserters.length, 0)
       assert.equal(convo.conversation[0].logicHooks.length, 1)
 
-      // gap order 0
-      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
+      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 0 })
     })
   })
 })
