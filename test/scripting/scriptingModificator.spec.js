@@ -15,7 +15,8 @@ describe('scriptingModificator.assertions', function () {
           {
             name: 'BUTTONS',
             args: ['test1'],
-            not: true
+            not: true,
+            order: 1
           }
         ]
       },
@@ -34,32 +35,29 @@ describe('scriptingModificator.assertions', function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
     const scriptingContext = scriptingProvider._buildScriptContext()
-    try {
-      await scriptingContext.scriptingEvents.onBot({
-        convo: {},
-        convoStep: {
-          stepTag: 'test',
-          asserters: [
-            {
-              name: 'INTENT',
-              args: ['test1'],
-              not: true,
-              order: 1
-            }
-          ]
-        },
-        scriptingMemory: {},
-        botMsg: {
-          nlp: {
-            intent: { name: 'test1' }
+    const onBotResult = await scriptingContext.scriptingEvents.onBot({
+      convo: {},
+      convoStep: {
+        stepTag: 'test',
+        asserters: [
+          {
+            name: 'INTENT',
+            args: ['test1'],
+            not: true,
+            order: 1
           }
+        ]
+      },
+      scriptingMemory: {},
+      botMsg: {
+        nlp: {
+          intent: { name: 'test1' }
         }
-      })
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected asserter IntentAsserter with args "test1" to fail') > 0)
-      assert.isNotNull(err.context)
-      assert.equal(err.context.source, 'IntentAsserter')
-    }
+      }
+    })
+    assert.isNotNull(onBotResult.error)
+    assert.isTrue(onBotResult.error.message.indexOf('Expected asserter IntentAsserter with args "test1" to fail') > 0)
+    assert.isNotNull(onBotResult.error.context)
+    assert.equal(onBotResult.error.context.source, 'IntentAsserter')
   })
 })
