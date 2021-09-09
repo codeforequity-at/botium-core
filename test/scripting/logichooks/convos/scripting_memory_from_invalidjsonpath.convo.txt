@@ -4,4 +4,5 @@ scripting_memory_from_invalidjsonpath
 hello
 
 #bot
+
 ASSIGN_SCRIPTING_MEMORY cardcontent|$.cards[0].nonexistingfield

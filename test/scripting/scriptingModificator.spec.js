@@ -7,7 +7,7 @@ describe('scriptingModificator.assertions', function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
     const scriptingContext = scriptingProvider._buildScriptContext()
-    await scriptingContext.scriptingEvents.assertConvoStep({
+    const onBotResult = await scriptingContext.scriptingEvents.onBot({
       convo: {},
       convoStep: {
         stepTag: 'test',
@@ -28,13 +28,14 @@ describe('scriptingModificator.assertions', function () {
         ]
       }
     })
+    assert.isNull(onBotResult.error)
   })
   it('should use assertConvoNotStep for "not" modificator and fail with generic handler', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
     const scriptingContext = scriptingProvider._buildScriptContext()
     try {
-      await scriptingContext.scriptingEvents.assertConvoStep({
+      await scriptingContext.scriptingEvents.onBot({
         convo: {},
         convoStep: {
           stepTag: 'test',
@@ -42,7 +43,8 @@ describe('scriptingModificator.assertions', function () {
             {
               name: 'INTENT',
               args: ['test1'],
-              not: true
+              not: true,
+              order: 1
             }
           ]
         },

@@ -120,6 +120,16 @@ module.exports = class ScriptingProvider {
         return this._createAsserterAndLogicHookPromises({ hookType: 'onBotPrepare', logicHooks: (convoStep.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
       onBot: ({ convo, convoStep, scriptingMemory, filter, ...rest }) => {
+        for (const l of convoStep.logicHooks || []) {
+          if (!_.isNumber(l.order)) {
+            throw new Error(`Order if logichook "${l.name}" must be a number`)
+          }
+        }
+        for (const a of convoStep.asserters || []) {
+          if (!_.isNumber(a.order)) {
+            throw new Error(`Order if logichook "${a.name}" must be a number`)
+          }
+        }
         return this._createAsserterAndLogicHookPromises({ hookType: 'onBot', logicHooks: convoStep.logicHooks, asserterType: 'assertConvoStep', asserters: convoStep.asserters, convo, convoStep, scriptingMemory, filter, ...rest })
       },
       onBotEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
