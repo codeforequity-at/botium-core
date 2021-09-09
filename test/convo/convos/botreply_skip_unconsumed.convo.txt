@@ -10,6 +10,7 @@ Hello
 Hello
 
 #bot
+
 BOT_UNCONSUMED_COUNT =2
 SKIP_BOT_UNCONSUMED
 
