@@ -36,7 +36,17 @@ describe('convo.transcript', function () {
     const myCapsMultipleAssertErrors = {
       [Capabilities.PROJECTNAME]: 'convo.transcript',
       [Capabilities.CONTAINERMODE]: echoConnector,
-      [Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]: true
+      [Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]: true,
+      [Capabilities.LOGIC_HOOKS]: [
+        {
+          ref: 'CUSTOM_FAILING_LOGICHOOK',
+          src: {
+            onBot: ({ botMsg, args }) => {
+              throw new Error('Some logichook error')
+            }
+          }
+        }
+      ]
     }
     this.driverMultipleAssertErrors = new BotDriver(myCapsMultipleAssertErrors)
     this.compilerMultipleAssertErrors = this.driverMultipleAssertErrors.BuildCompiler()
@@ -312,6 +322,56 @@ describe('convo.transcript', function () {
       assert.equal(err.transcript.err.context.errors[3].source, 'assertConvoEnd')
     }
   })
+
+  it('should throw simple error with multiple asserting errors if its enabled and assertConvoEnd fail, order matters', async function () {
+    this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'multiple_asserting_errors_asserter_first.convo.txt')
+    this.compilerMultipleAssertErrors.convos[0].scriptingEvents.assertConvoEnd = () => {
+      throw new BotiumError('assertConvoEnd failed',
+        {
+          type: 'asserter',
+          source: 'assertConvoEnd'
+        }
+      )
+    }
+    try {
+      await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(
+        err.transcript.err.message,
+        'Line 6: Expected button(s) with text "btn1",\n' +
+        'asserters/Line 6: Bot response (on Line 3: #me - Hello) "Hello" expected to match "Goodbye!",\n' +
+        'Line 6: Expected button(s) with text "btn2",\n' +
+        'asserters: assertConvoEnd failed')
+
+      assert.equal(err.transcript.err.context.input.messageText, 'Hello')
+      assert.equal(err.transcript.err.context.errors[0].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[0].source, 'ButtonsAsserter')
+      assert.equal(err.transcript.err.context.errors[1].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[1].source, 'TextMatchAsserter')
+      assert.equal(err.transcript.err.context.errors[2].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[2].source, 'ButtonsAsserter')
+      assert.equal(err.transcript.err.context.errors[3].type, 'asserter')
+      assert.equal(err.transcript.err.context.errors[3].source, 'assertConvoEnd')
+    }
+  })
+
+  it('should break on non asserter errors even if multiple asserting errors if its enabled', async function () {
+    this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'multiple_asserting_errors_break_on_non_asserting_error.convo.txt')
+
+    try {
+      await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(
+        err.transcript.err.message,
+        'asserters/Line 6: critical error - Some logichook error')
+
+      assert.equal(err.transcript.err.context.input.messageText, 'Hello')
+      assert.equal(err.transcript.err.context.err.message, 'Some logichook error')
+    }
+  })
+
   it('should fail on unconsumed bot reply on #me', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_not_consumed_me.convo.txt')
     assert.equal(this.compiler.convos.length, 1)

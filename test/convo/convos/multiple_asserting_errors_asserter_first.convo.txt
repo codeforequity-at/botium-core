@@ -1,0 +1,9 @@
+asserters
+
+#me
+Hello
+
+#bot
+BUTTONS btn1
+Goodbye!
+BUTTONS btn2

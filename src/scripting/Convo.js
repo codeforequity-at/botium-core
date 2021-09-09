@@ -592,7 +592,6 @@ class Convo {
             failSafeAndThrow(failErr)
           }
         } catch (err) {
-          console.log(err)
           if (lastMeConvoStep) {
             if (err instanceof BotiumError && err.context) {
               err.context.input = new ConvoStep(lastMeConvoStep)

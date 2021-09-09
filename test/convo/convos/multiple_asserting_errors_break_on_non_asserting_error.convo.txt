@@ -1,0 +1,10 @@
+asserters
+
+#me
+Hello
+
+#bot
+BUTTONS btn1
+Goodbye!
+CUSTOM_FAILING_LOGICHOOK
+BUTTONS btn2
