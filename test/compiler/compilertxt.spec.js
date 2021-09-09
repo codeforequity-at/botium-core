@@ -147,6 +147,7 @@ describe('compiler.compilertxt', function () {
       assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test'], not: false, optional: false, order: 1 })
       assert.equal(convo.conversation[0].messageText, 'sometext\nsometext2')
     })
+    // Edge case, this behavior can be changed free
     it('should accept multi text messages assertes between them. Empty before, text after', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_multi_text_in_bot_asserter_empty_text.convo.txt'))
       const context = buildContextWithPause()
@@ -158,7 +159,7 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation.length, 1)
 
       assert.equal(convo.conversation[0].asserters.length, 1)
-      assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test'], not: false, optional: false, order: 0 })
+      assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test'], not: false, optional: false, order: 1 })
       assert.equal(convo.conversation[0].messageText, 'sometext')
     })
     it('should accept multi text messages assertes between them. Text before, empty after', async function () {
@@ -175,6 +176,20 @@ describe('compiler.compilertxt', function () {
       assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test'], not: false, optional: false, order: 1 })
       assert.equal(convo.conversation[0].messageText, 'sometext')
     })
+    it('should accept multi text messages assertes between them. Empty before, empty after', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_multi_text_in_bot_asserter_empty_empty.convo.txt'))
+      const context = buildContextWithPause()
+      const compiler = new Compiler(context, DefaultCapabilities)
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      const convo = context.convos[0]
+
+      assert.equal(convo.conversation.length, 1)
+
+      assert.equal(convo.conversation[0].asserters.length, 1)
+      assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test'], not: false, optional: false, order: 1 })
+      assert.equal(convo.conversation[0].messageText, '')
+    })
     it('should should accept multi text messages logichooks between them. Text before, text after', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_multi_text_in_bot_logichook_text_text.convo.txt'))
       const context = buildContextWithPause()
@@ -189,6 +204,7 @@ describe('compiler.compilertxt', function () {
       assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
       assert.equal(convo.conversation[0].messageText, 'sometext\nsometext2')
     })
+    // Edge case, this behavior can be changed free
     it('should should accept multi text messages logichooks between them. Empty before, text after', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_multi_text_in_bot_logichook_empty_text.convo.txt'))
       const context = buildContextWithPause()
@@ -200,7 +216,7 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation.length, 1)
 
       assert.equal(convo.conversation[0].logicHooks.length, 1)
-      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 0 })
+      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
       assert.equal(convo.conversation[0].messageText, 'sometext')
     })
     it('should should accept multi text messages logichooks between them. Text before, empty after', async function () {
@@ -217,6 +233,20 @@ describe('compiler.compilertxt', function () {
       assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
       assert.equal(convo.conversation[0].messageText, 'sometext')
     })
+    it('should should accept multi text messages logichooks between them. Empty before, empty after', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_multi_text_in_bot_logichook_empty_empty.convo.txt'))
+      const context = buildContextWithPause()
+      const compiler = new Compiler(context, DefaultCapabilities)
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      const convo = context.convos[0]
+
+      assert.equal(convo.conversation.length, 1)
+
+      assert.equal(convo.conversation[0].logicHooks.length, 1)
+      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
+      assert.equal(convo.conversation[0].messageText, '')
+    })
     it('should should accept multi text messages in me section logichooks between them. Text before, text after', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_multi_text_in_me_text_text.convo.txt'))
       const context = buildContextWithPause()
@@ -231,6 +261,7 @@ describe('compiler.compilertxt', function () {
       assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
       assert.equal(convo.conversation[0].messageText, 'sometext\nsometext2')
     })
+    // Edge case, this behavior can be changed free
     it('should should accept multi text messages in me section logichooks between them. Empty before, text after', async function () {
       const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_multi_text_in_me_empty_text.convo.txt'))
       const context = buildContextWithPause()
@@ -242,7 +273,7 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation.length, 1)
 
       assert.equal(convo.conversation[0].logicHooks.length, 1)
-      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 0 })
+      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
       assert.equal(convo.conversation[0].messageText, 'sometext')
     })
     it('should should accept multi text messages in me section logichooks between them. Text before, empty after', async function () {
@@ -258,6 +289,20 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation[0].logicHooks.length, 1)
       assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
       assert.equal(convo.conversation[0].messageText, 'sometext')
+    })
+    it('should should accept multi text messages in me section logichooks between them. Empty before, empty after', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_multi_text_in_me_empty_empty.convo.txt'))
+      const context = buildContextWithPause()
+      const compiler = new Compiler(context, DefaultCapabilities)
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      const convo = context.convos[0]
+
+      assert.equal(convo.conversation.length, 1)
+
+      assert.equal(convo.conversation[0].logicHooks.length, 1)
+      assert.deepEqual(convo.conversation[0].logicHooks[0], { name: 'PAUSE', args: ['1'], order: 1 })
+      assert.equal(convo.conversation[0].messageText, '')
     })
   })
 

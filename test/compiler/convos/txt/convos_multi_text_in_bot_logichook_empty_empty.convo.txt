@@ -1,0 +1,3 @@
+#bot
+
+PAUSE 1

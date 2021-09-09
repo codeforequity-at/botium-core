@@ -134,11 +134,14 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
       }
       // line is not textline if it is empty, and there is no line with data after it.
       if (textLinesRaw.length > 0) {
-        if (rawLine.trim().length) {
-          if (!textLines.length) {
+        if (!textLines.length) {
+          if (_.isNil(mainAsserterDetectedAt)) {
             mainAsserterDetectedAt = asserterLogicHookTextAsserterOrder
-            asserterLogicHookTextAsserterOrder++
+            // because its an empty row
           }
+          asserterLogicHookTextAsserterOrder++
+        }
+        if (rawLine.trim().length) {
           textLines.push(...textLinesRaw)
           textLinesRaw = []
         }
@@ -223,7 +226,9 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
 
   // deal with just message convosteps
   if (textLinesRaw.length >= 1 && textLines.length === 0) {
-    mainAsserterDetectedAt = asserterLogicHookTextAsserterOrder
+    if (_.isNil(mainAsserterDetectedAt)) {
+      mainAsserterDetectedAt = asserterLogicHookTextAsserterOrder
+    }
     asserterLogicHookTextAsserterOrder++
     textLines.push(...textLinesRaw)
     textLinesRaw.pop()

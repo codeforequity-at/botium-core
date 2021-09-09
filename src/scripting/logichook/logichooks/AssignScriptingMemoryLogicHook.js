@@ -12,6 +12,9 @@ module.exports = class AssignScriptingMemoryLogicHook {
   }
 
   onBot ({ scriptingMemory, convoStep, args, isGlobal, botMsg }) {
+    if (!botMsg) {
+      return Promise.reject(new Error(`${convoStep.stepTag}: AssignScriptingMemoryLogicHook, incorrect script, LogicHook has to be after main asserter`))
+    }
     let params = null
     try {
       params = extractParams({
