@@ -1094,7 +1094,7 @@ module.exports = class ScriptingProvider {
   }
 
   GetConversationFlowView ({
-    getConvoNodeHash = null, detectLoops = false, summarizeMultiSteps = true, includeConvoSteps = false,
+    getConvoNodeHash = null, detectLoops = false, summarizeMultiSteps = true,
     extPickMeNodeProps = [], extPickBotNodeProps = [], extPickMeHashProps = [], extPickBotHashProps = []
   } = {}) {
     const root = []
@@ -1139,8 +1139,7 @@ module.exports = class ScriptingProvider {
         const convoNodeHeader = {
           header: _.pick(convo.header, ['name', 'description']),
           sourceTag: convo.sourceTag,
-          convoStepIndices: convoNode.convoStepIndices,
-          conversation: includeConvoSteps ? convo.conversation : undefined
+          convoStepIndices: convoNode.convoStepIndices
         }
 
         let hash = getConvoNodeHash && getConvoNodeHash({ convo, convoNode })
@@ -1154,7 +1153,7 @@ module.exports = class ScriptingProvider {
 
         const existingChildNode = currentChildren.find(c => c.hash === hash)
         if (existingChildNode) {
-          existingChildNode.convos.push(convoNodeHeader)
+          existingChildNode.convos.push(_.cloneDeep(convoNodeHeader))
           currentChildren = existingChildNode.childNodes
           continue
         }
@@ -1170,7 +1169,7 @@ module.exports = class ScriptingProvider {
           if (existingConvo) {
             existingConvo.convoStepIndices = [...existingConvo.convoStepIndices, ...convoNodeHeader.convoStepIndices]
           } else {
-            existingBotNode.convos.push(convoNodeHeader)
+            existingBotNode.convos.push(_.cloneDeep(convoNodeHeader))
           }
           currentChildren = existingBotNode.childNodes
           continue
@@ -1180,7 +1179,7 @@ module.exports = class ScriptingProvider {
           key: randomize('0', 20),
           hash: hash,
           convoNodes: convoNodeValues,
-          convos: [convoNodeHeader],
+          convos: [_.cloneDeep(convoNodeHeader)],
           childNodes: []
         }
         if (node.sender === 'bot') {
