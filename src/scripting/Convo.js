@@ -433,8 +433,6 @@ class Convo {
                   filter
                 })
               } catch (err) {
-                console.log(err)
-
                 const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: internal error - ${err.message || err}`, err)
                 failSafeAndThrow(failErr, lastMeConvoStep)
               }
