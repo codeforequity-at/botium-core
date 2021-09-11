@@ -1,0 +1,9 @@
+created_by_logic_hook_used_by_asserter
+
+#me
+Greeting!
+
+
+#bot
+SET_SCRIPTING_MEMORY response|This wont be there for sure
+$response

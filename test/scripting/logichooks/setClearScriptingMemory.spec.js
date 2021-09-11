@@ -61,6 +61,18 @@ describe('SetClearScriptingMemory', function () {
     assert.equal(transcript.scriptingMemory.$created_by_logic_hook, 'created_by_logic_hook_from_logic_hook')
   })
 
+  it('should be created by logic hook, and used by asserter', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_created_by_logic_hook_used_by_asserter.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('created_by_logic_hook_used_by_asserter/Line 7: Bot response (on Line 3: #me - Greeting!) "Greeting!" expected to match "This wont be there for sure"') >= 0)
+    }
+  })
+
   it('should be cleared by logic hook', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_cleared_by_logic_hook.convo.txt')
     assert.equal(this.compiler.convos.length, 1)
