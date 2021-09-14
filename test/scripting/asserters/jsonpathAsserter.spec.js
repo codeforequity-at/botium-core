@@ -420,7 +420,7 @@ describe('scripting.asserters.jsonPathCountAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected JsonPath count 2>2') >= 0)
+      assert.isTrue(err.message.indexOf('Expected JsonPath count 2 to be >2') >= 0)
     }
   })
 })

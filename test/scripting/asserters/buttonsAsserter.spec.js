@@ -192,10 +192,68 @@ describe('scripting.asserters.buttonsCountAsserter', function () {
       }
     })
   })
+  it('should succeed on 3 with 3 buttons', async function () {
+    await this.buttonsCountAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['3'],
+      botMsg: {
+        buttons: [{ text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }],
+        cards: [
+          { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
+        ]
+      }
+    })
+  })
+  it('should fail on 3 with 4 buttons', async function () {
+    try {
+      await this.buttonsCountAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['3'],
+        botMsg: {
+          buttons: [{ text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }],
+          cards: [
+            { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
+          ]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected Buttons count 4 to be 3') >= 0)
+    }
+  })
+  it('should fail on >3 with 3 buttons', async function () {
+    try {
+      await this.buttonsCountAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['>3'],
+        botMsg: {
+          buttons: [{ text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }],
+          cards: [
+            { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
+          ]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected Buttons count 3 to be >3') >= 0)
+    }
+  })
   it('should succeed on >=3 with rec buttons', async function () {
     await this.buttonsCountRecAsserter.assertConvoStep({
       convoStep: { stepTag: 'test' },
       args: ['>=3'],
+      botMsg: {
+        buttons: [{ text: 'test.jpg' }],
+        cards: [
+          { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
+        ]
+      }
+    })
+  })
+  it('should succeed on 3 with rec buttons', async function () {
+    await this.buttonsCountRecAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['3'],
       botMsg: {
         buttons: [{ text: 'test.jpg' }],
         cards: [

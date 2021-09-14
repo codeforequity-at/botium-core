@@ -77,7 +77,7 @@ describe('scripting.asserters.textContainsAllAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_all_nok_base/Line 2: assertion error - Line 2: Expected texts in response "word3"')
+      assert.equal(err.message, 'text_contains_all_nok_base/Line 2: assertion error - Line 2: Expected text(s) in response "word3"')
     }
   })
 
@@ -91,7 +91,7 @@ describe('scripting.asserters.textContainsAllAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_all_nok_more_words/Line 2: assertion error - Line 2: Expected texts in response "word3,word4,word5"')
+      assert.equal(err.message, 'text_contains_all_nok_more_words/Line 2: assertion error - Line 2: Expected text(s) in response "word3,word4,word5"')
     }
   })
 
@@ -105,7 +105,7 @@ describe('scripting.asserters.textContainsAllAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_all_nok_more_words/Line 2: assertion error - Line 2: Expected texts in response "word3,word4"')
+      assert.equal(err.message, 'text_contains_all_nok_more_words/Line 2: assertion error - Line 2: Expected text(s) in response "word3,word4"')
     }
   })
 
@@ -119,7 +119,7 @@ describe('scripting.asserters.textContainsAllAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_all_nok_utterances/Line 2: assertion error - Line 2: Expected texts in response "word3,word4,hi,hello!"')
+      assert.equal(err.message, 'text_contains_all_nok_utterances/Line 2: assertion error - Line 2: Expected text(s) in response "word3,word4,hi,hello!"')
     }
   })
 
@@ -133,7 +133,7 @@ describe('scripting.asserters.textContainsAllAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_all_nok_ignore_case/Line 2: assertion error - Line 2: Expected texts in response "Word3"')
+      assert.equal(err.message, 'text_contains_all_nok_ignore_case/Line 2: assertion error - Line 2: Expected text(s) in response "Word3"')
     }
   })
 
@@ -147,7 +147,7 @@ describe('scripting.asserters.textContainsAllAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'text_contains_all_nok_negate/Line 2: assertion error - Line 2: Not expected texts in response "word2"')
+      assert.equal(err.message, 'text_contains_all_nok_negate/Line 2: assertion error - Line 2: Not expected text(s) in response "word2"')
     }
   })
 })
