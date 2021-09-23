@@ -124,6 +124,18 @@ module.exports = class SimpleRestContainer {
           executeHook(this.caps, this.startHook, this.view).then(() => startHookComplete()).catch(startHookComplete)
         },
 
+        (inboundListenerComplete) => {
+          this._subscribeInbound()
+            .then(() => inboundListenerComplete())
+            .catch(inboundListenerComplete)
+        },
+
+        (startPollingComplete) => {
+          this._startPolling()
+            .then(() => startPollingComplete())
+            .catch(startPollingComplete)
+        },
+
         (pingComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
             this._makeCall('SIMPLEREST_PING')
@@ -153,22 +165,10 @@ module.exports = class SimpleRestContainer {
 
         (initComplete) => {
           if (_.isString(this.caps[Capabilities.SIMPLEREST_INIT_TEXT])) {
-            this._doRequest({ messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }, false, true).then(() => initComplete()).catch(initComplete)
+            this._doRequest({ messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }, !!this.caps[Capabilities.SIMPLEREST_INIT_PROCESS_RESPONSE], true).then(() => initComplete()).catch(initComplete)
           } else {
             initComplete()
           }
-        },
-
-        (inboundListenerComplete) => {
-          this._subscribeInbound()
-            .then(() => inboundListenerComplete())
-            .catch(inboundListenerComplete)
-        },
-
-        (startPollingComplete) => {
-          this._startPolling()
-            .then(() => startPollingComplete())
-            .catch(startPollingComplete)
         },
 
         (startCallComplete) => {

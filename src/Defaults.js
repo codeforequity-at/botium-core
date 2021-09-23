@@ -15,6 +15,7 @@ module.exports = {
     [Capabilities.SIMPLEREST_PING_VERB]: 'GET',
     [Capabilities.SIMPLEREST_PING_UPDATE_CONTEXT]: true,
     [Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]: false,
+    [Capabilities.SIMPLEREST_INIT_PROCESS_RESPONSE]: false,
     [Capabilities.SIMPLEREST_STOP_RETRIES]: 6,
     [Capabilities.SIMPLEREST_STOP_TIMEOUT]: 10000,
     [Capabilities.SIMPLEREST_STOP_VERB]: 'GET',
