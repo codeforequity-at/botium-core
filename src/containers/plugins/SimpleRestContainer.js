@@ -57,7 +57,20 @@ module.exports = class SimpleRestContainer {
     this.startHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_START_HOOK])
     this.stopHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_STOP_HOOK])
     this.requestHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_REQUEST_HOOK])
+    this.parserHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_PARSER_HOOK])
     this.responseHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_RESPONSE_HOOK])
+    this.pollRequestHook = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_POLL_REQUEST_HOOK])
+
+    this.requestHooks = {}
+    if (this.caps[Capabilities.SIMPLEREST_PING_REQUEST_HOOK]) {
+      this.requestHooks.SIMPLEREST_PING = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_PING_REQUEST_HOOK])
+    }
+    if (this.caps[Capabilities.SIMPLEREST_START_REQUEST_HOOK]) {
+      this.requestHooks.SIMPLEREST_START = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_START_REQUEST_HOOK])
+    }
+    if (this.caps[Capabilities.SIMPLEREST_STOP_REQUEST_HOOK]) {
+      this.requestHooks.SIMPLEREST_STOP = getHook(this.caps, this.caps[Capabilities.SIMPLEREST_STOP_REQUEST_HOOK])
+    }
   }
 
   Build () {
@@ -111,18 +124,34 @@ module.exports = class SimpleRestContainer {
           executeHook(this.caps, this.startHook, this.view).then(() => startHookComplete()).catch(startHookComplete)
         },
 
+        (inboundListenerComplete) => {
+          this._subscribeInbound()
+            .then(() => inboundListenerComplete())
+            .catch(inboundListenerComplete)
+        },
+
+        (startPollingComplete) => {
+          this._startPolling()
+            .then(() => startPollingComplete())
+            .catch(startPollingComplete)
+        },
+
         (pingComplete) => {
           if (this.caps[Capabilities.SIMPLEREST_PING_URL]) {
             this._makeCall('SIMPLEREST_PING')
-              .then(response => {
+              .then(body => {
                 if (this.caps[Capabilities.SIMPLEREST_PING_UPDATE_CONTEXT] || this.caps[Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]) {
-                  if (_.isObject(response) || botiumUtils.isStringJson(response)) {
-                    debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} returned JSON response: ${botiumUtils.shortenJsonString(response)}`)
-                    const body = _.isObject(response) ? response : JSON.parse(response)
-                    return this._processBodyAsync(body, !!this.caps[Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE], !!this.caps[Capabilities.SIMPLEREST_PING_UPDATE_CONTEXT])
-                  } else {
-                    debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} didn't return JSON response, ignoring it.`)
-                  }
+                  return this._parseResponseBody(body)
+                    .then(body => {
+                      if (body) {
+                        debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} returned JSON response: ${botiumUtils.shortenJsonString(body)}`)
+                        return this._processBodyAsync(body, !!this.caps[Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE], !!this.caps[Capabilities.SIMPLEREST_PING_UPDATE_CONTEXT])
+                      } else {
+                        debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} didn't return JSON response, ignoring it.`)
+                      }
+                    }).catch(err => {
+                      debug(`Ping Uri ${this.caps[Capabilities.SIMPLEREST_PING_URL]} didn't return JSON response, ignoring it (${err.message})`)
+                    })
                 }
               }).then(() => {
                 pingComplete()
@@ -136,37 +165,29 @@ module.exports = class SimpleRestContainer {
 
         (initComplete) => {
           if (_.isString(this.caps[Capabilities.SIMPLEREST_INIT_TEXT])) {
-            this._doRequest({ messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }, false, true).then(() => initComplete()).catch(initComplete)
+            this._doRequest({ messageText: this.caps[Capabilities.SIMPLEREST_INIT_TEXT] }, !!this.caps[Capabilities.SIMPLEREST_INIT_PROCESS_RESPONSE], true).then(() => initComplete()).catch(initComplete)
           } else {
             initComplete()
           }
-        },
-
-        (inboundListenerComplete) => {
-          this._subscribeInbound()
-            .then(() => inboundListenerComplete())
-            .catch(inboundListenerComplete)
-        },
-
-        (startPollingComplete) => {
-          this._startPolling()
-            .then(() => startPollingComplete())
-            .catch(startPollingComplete)
         },
 
         (startCallComplete) => {
           this.processInbound = true
           if (this.caps[Capabilities.SIMPLEREST_START_URL]) {
             this._makeCall('SIMPLEREST_START')
-              .then(response => {
+              .then(body => {
                 if (this.caps[Capabilities.SIMPLEREST_START_UPDATE_CONTEXT] || this.caps[Capabilities.SIMPLEREST_START_PROCESS_RESPONSE]) {
-                  if (_.isObject(response) || botiumUtils.isStringJson(response)) {
-                    debug(`Start Uri ${this.caps[Capabilities.SIMPLEREST_START_URL]} returned JSON response: ${botiumUtils.shortenJsonString(response)}`)
-                    const body = _.isObject(response) ? response : JSON.parse(response)
-                    return this._processBodyAsync(body, !!this.caps[Capabilities.SIMPLEREST_START_PROCESS_RESPONSE], !!this.caps[Capabilities.SIMPLEREST_START_UPDATE_CONTEXT])
-                  } else {
-                    debug(`Start Uri ${this.caps[Capabilities.SIMPLEREST_START_URL]} didn't return JSON response, ignoring it.`)
-                  }
+                  return this._parseResponseBody(body)
+                    .then(body => {
+                      if (body) {
+                        debug(`Start Uri ${this.caps[Capabilities.SIMPLEREST_START_URL]} returned JSON response: ${botiumUtils.shortenJsonString(body)}`)
+                        return this._processBodyAsync(body, !!this.caps[Capabilities.SIMPLEREST_START_PROCESS_RESPONSE], !!this.caps[Capabilities.SIMPLEREST_START_UPDATE_CONTEXT])
+                      } else {
+                        debug(`Start Uri ${this.caps[Capabilities.SIMPLEREST_START_URL]} didn't return JSON response, ignoring it.`)
+                      }
+                    }).catch(err => {
+                      debug(`Start Uri ${this.caps[Capabilities.SIMPLEREST_START_URL]} didn't return JSON response, ignoring it (${err.message})`)
+                    })
                 }
               }).then(() => {
                 startCallComplete()
@@ -357,9 +378,9 @@ module.exports = class SimpleRestContainer {
 
         this.waitProcessQueue = []
 
-        request(requestOptions, (err, response, body) => {
+        request(requestOptions, async (err, response, body) => {
           if (err) {
-            reject(new Error(`rest request failed: ${err.message}`))
+            return reject(new Error(`rest request failed: ${err.message}`))
           } else {
             if (response.statusCode >= 400) {
               debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
@@ -368,16 +389,17 @@ module.exports = class SimpleRestContainer {
 
             if (body) {
               debug(`got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}`)
-              if (_.isString(body)) {
-                try {
-                  body = JSON.parse(body.trim())
-                  this._processBodyAsync(body, isFromUser, updateContext).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
-                } catch (err) {
-                  debug(`ignoring not JSON formatted response body (${err.message})`)
-                  resolve(this)
-                  this._emptyWaitProcessQueue()
-                }
-              } else if (_.isObject(body)) {
+
+              try {
+                body = await this._parseResponseBody(body)
+              } catch (err) {
+                debug(`ignoring not JSON formatted response body: ${err.message}`)
+                resolve(this)
+                this._emptyWaitProcessQueue()
+                return
+              }
+
+              if (body) {
                 this._processBodyAsync(body, isFromUser, updateContext).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
               } else {
                 debug('ignoring response body (no string and no JSON object)')
@@ -500,6 +522,22 @@ module.exports = class SimpleRestContainer {
         return body
       }
     }
+  }
+
+  async _parseResponseBody (body) {
+    if (!_.isObject(body) && _.isString(body)) {
+      try {
+        body = JSON.parse(body)
+      } catch (err) {
+        if (!this.parserHook) throw err
+      }
+    }
+    if (this.parserHook) {
+      await executeHook(this.caps, this.parserHook, Object.assign({ body, changeBody: (b) => { body = b } }, this.view))
+    }
+    if (_.isObject(body)) return body
+    else if (_.isString(body)) return JSON.parse(body)
+    else return null
   }
 
   _getCapValue (capName) {
@@ -629,7 +667,7 @@ module.exports = class SimpleRestContainer {
     }
   }
 
-  _runPolling () {
+  async _runPolling () {
     if (!this.processInbound) return
 
     if (this.caps[Capabilities.SIMPLEREST_POLL_URL]) {
@@ -662,7 +700,13 @@ module.exports = class SimpleRestContainer {
       }
       this._addRequestOptions(pollConfig)
 
-      request(pollConfig, (err, response, body) => {
+      try {
+        await executeHook(this.caps, this.pollRequestHook, Object.assign({ requestOptions: pollConfig }, this.view))
+      } catch (err) {
+        debug(`_runPolling: exeucting request hook failed - (${err.message})`)
+        return
+      }
+      request(pollConfig, async (err, response, body) => {
         if (err) {
           debug(`_runPolling: rest request failed: ${err.message}, request: ${JSON.stringify(pollConfig)}`)
         } else {
@@ -670,14 +714,14 @@ module.exports = class SimpleRestContainer {
             debug(`_runPolling: got error response: ${response.statusCode}/${response.statusMessage}, request: ${JSON.stringify(pollConfig)}`)
           } else if (body) {
             debug(`_runPolling: got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}`)
-            if (_.isString(body)) {
-              try {
-                body = JSON.parse(body)
-                setTimeout(() => this._processBodyAsync(body, true, !!this.caps[Capabilities.SIMPLEREST_POLL_UPDATE_CONTEXT]), 0)
-              } catch (err) {
-                debug(`_runPolling: ignoring not JSON formatted response body (${err.message})`)
-              }
-            } else if (_.isObject(body)) {
+
+            try {
+              body = await this._parseResponseBody(body)
+            } catch (err) {
+              debug(`_runPolling: ignoring not JSON formatted response body: ${err.message}`)
+              return
+            }
+            if (body) {
               setTimeout(() => this._processBodyAsync(body, true, !!this.caps[Capabilities.SIMPLEREST_POLL_UPDATE_CONTEXT]), 0)
             } else {
               debug('_runPolling: ignoring response body (no string and no JSON object)')
@@ -732,6 +776,8 @@ module.exports = class SimpleRestContainer {
       }
     }
     this._addRequestOptions(httpConfig)
+
+    await executeHook(this.caps, this.requestHooks[capPrefix], Object.assign({ requestOptions: httpConfig }, this.view))
 
     const retries = this._getCapValue(`${capPrefix}_RETRIES`)
     debug(`_makeCall(${capPrefix}): rest request: ${JSON.stringify(httpConfig)}`)

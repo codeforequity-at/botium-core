@@ -1,8 +1,6 @@
 const util = require('util')
 const _ = require('lodash')
 
-const { isStringJson } = require('../../../helpers/Utils')
-
 module.exports = class UpdateCustomLogicHook {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
@@ -58,10 +56,11 @@ module.exports = class UpdateCustomLogicHook {
   }
 
   _getValue (raw) {
-    if (isStringJson(raw)) {
+    try {
       return JSON.parse(raw)
+    } catch (e) {
+      return raw
     }
-    return raw
   }
 
   _update (args, meMsg) {

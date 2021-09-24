@@ -782,8 +782,12 @@ describe('connectors.simplerest.useresponse', function () {
       this.scope = nock('https://mock.com')
         .get('/ping').reply(200, { text: 'response from ping' })
         .get('/pingtrash').reply(200, 'asdfasdfasdfasdf')
+        .get('/pingencoded').reply(200, { text: JSON.stringify({ prop: 'response from ping' }) })
+        .get('/pingstring').reply(200, 'response from ping')
         .get('/start').reply(200, { text: 'response from start' })
         .get('/starttrash').reply(200, 'asdfasdfasdfasdf')
+        .get('/startencoded').reply(200, { text: JSON.stringify({ prop: 'response from start' }) })
+        .get('/startstring').reply(200, 'response from start')
         .get('/msg').reply(200, { text: 'response from msg' })
         .persist()
 
@@ -832,6 +836,32 @@ describe('connectors.simplerest.useresponse', function () {
     }
   })
 
+  it('should use parser to parse response from ping', async function () {
+    await this.init({
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingencoded',
+      [Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]: true,
+      [Capabilities.SIMPLEREST_PARSER_HOOK]: 'body.text = JSON.parse(body.text).prop'
+    })
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromping.convo.txt')
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.messageText, 'response from ping')
+  })
+
+  it('should use parser to parse string from ping', async function () {
+    await this.init({
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingstring',
+      [Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]: true,
+      [Capabilities.SIMPLEREST_PARSER_HOOK]: 'changeBody({ text: body })'
+    })
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromping.convo.txt')
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.messageText, 'response from ping')
+  })
+
   it('should use response from start', async function () {
     await this.init({
       [Capabilities.SIMPLEREST_START_URL]: 'https://mock.com/start',
@@ -857,6 +887,32 @@ describe('connectors.simplerest.useresponse', function () {
     } catch (err) {
       assert.isTrue(err.message.indexOf('Bot did not respond within') >= 0)
     }
+  })
+
+  it('should use parser to parse response from ping', async function () {
+    await this.init({
+      [Capabilities.SIMPLEREST_START_URL]: 'https://mock.com/startencoded',
+      [Capabilities.SIMPLEREST_START_PROCESS_RESPONSE]: true,
+      [Capabilities.SIMPLEREST_PARSER_HOOK]: 'body.text = JSON.parse(body.text).prop'
+    })
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromstart.convo.txt')
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.messageText, 'response from start')
+  })
+
+  it('should use parser to parse string from ping', async function () {
+    await this.init({
+      [Capabilities.SIMPLEREST_START_URL]: 'https://mock.com/startstring',
+      [Capabilities.SIMPLEREST_START_PROCESS_RESPONSE]: true,
+      [Capabilities.SIMPLEREST_PARSER_HOOK]: 'changeBody({ text: body })'
+    })
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromstart.convo.txt')
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.messageText, 'response from start')
   })
 })
 
@@ -972,6 +1028,37 @@ describe('connectors.simplerest.polling', function () {
         text: 'you called me'
       })
       .get('/poll')
+      .reply(200, {
+        text: 'you called me'
+      })
+      .persist()
+
+    const driver = new BotDriver(caps)
+    const container = await driver.Build()
+    await container.Start()
+
+    await container.UserSays({ text: 'hallo' })
+    await container.WaitBotSays()
+    await container.WaitBotSays()
+
+    await container.Stop()
+    await container.Clean()
+    scope.persist(false)
+  }).timeout(5000)
+  it('should use request hook for polling', async () => {
+    const caps = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: () => 'https://mock.com/endpoint',
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: () => ['$.text'],
+      [Capabilities.SIMPLEREST_POLL_URL]: () => 'https://mock.com/poll',
+      [Capabilities.SIMPLEREST_POLL_REQUEST_HOOK]: 'requestOptions.uri = "https://mock.com/_from_hook"'
+    }
+    const scope = nock('https://mock.com')
+      .get('/endpoint')
+      .reply(200, {
+        text: 'you called me'
+      })
+      .get('/_from_hook')
       .reply(200, {
         text: 'you called me'
       })
