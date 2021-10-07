@@ -72,7 +72,7 @@ const toString = (value) => {
 }
 
 const flatString = (str) => {
-  return str.split('\n').map(s => s.trim()).join(' ')
+  return str ? str.split('\n').map(s => s.trim()).join(' ') : ''
 }
 
 const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
@@ -439,7 +439,7 @@ const convoStepToLines = (step) => {
     if (step.messageText) {
       lines.push((step.optional ? '?' : '') + (step.not ? '!' : '') + step.messageText)
     }
-    if (step.buttons && step.buttons.length > 0) lines.push('BUTTONS ' + step.buttons.map(b => flatString(b.text)).join('|'))
+    if (step.buttons && step.buttons.length > 0) lines.push('BUTTONS ' + step.buttons.filter(b => b.text).map(b => flatString(b.text)).join('|'))
     if (step.media && step.media.length > 0) lines.push('MEDIA ' + step.media.filter(m => !m.buffer && m.mediaUri).map(m => m.mediaUri).join('|'))
     if (step.cards && step.cards.length > 0) {
       step.cards.forEach(c => {
@@ -449,7 +449,7 @@ const convoStepToLines = (step) => {
         if (c.content) cardTexts = cardTexts.concat(_.isArray(c.content) ? c.content : [c.content])
         if (cardTexts.length > 0) lines.push('CARDS ' + cardTexts.map(c => flatString(c)).join('|'))
 
-        if (c.buttons && c.buttons.length > 0) lines.push('BUTTONS ' + c.buttons.map(b => flatString(b.text)).join('|'))
+        if (c.buttons && c.buttons.length > 0) lines.push('BUTTONS ' + c.buttons.filter(b => b.text).map(b => flatString(b.text)).join('|'))
         if (c.image && !c.image.buffer && c.image.mediaUri) lines.push('MEDIA ' + c.image.mediaUri)
       })
     }
