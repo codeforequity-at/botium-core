@@ -944,7 +944,7 @@ module.exports = class ScriptingProvider {
         }
       }
     } else {
-      expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: convoStepsStack }))
+      expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) }))
     }
   }
 
