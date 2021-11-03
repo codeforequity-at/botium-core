@@ -1,0 +1,7 @@
+convos:
+  - name: text_wildcardexact_all_nok
+    steps:
+      - me:
+          - Im Joe, my number is 12345, and my ID is id1_123
+      - bot:
+          - TEXT_WILDCARDEXACT_ALL Im Joe, my number is 12345, and my ID is id2_*3|Im Joe, my number is 1*5, and my ID is id1_123
