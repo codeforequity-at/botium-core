@@ -206,6 +206,49 @@ describe('matching.matchingmode.wildcardIgnoreCase', function () {
   })
 })
 
+describe('matching.matchingmode.wildcardExact', function () {
+  beforeEach(async function () {
+    const myCaps = {
+      [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_MATCHING_MODE]: 'wildcardExact'
+    }
+    const driver = new BotDriver(myCaps)
+    this.compiler = driver.BuildCompiler()
+    this.container = await driver.Build()
+  })
+  afterEach(async function () {
+    this.container && await this.container.Clean()
+  })
+
+  it('should not match response with substring', async function () {
+    assert.isFalse(this.compiler.Match('Interesting...', 'Interesting'))
+  })
+  it('should match long response with wildcard', async function () {
+    assert.isTrue(this.compiler.Match('this is a long text', 'this is a * text'))
+  })
+  it('should match very long response with wildcard', async function () {
+    assert.isTrue(this.compiler.Match('this is a long text this is a long text this is a long text this is a long text', 'this is a * text this is a * text this is a * text this is a * text'))
+  })
+  it('should not match long uppcercase response with wildcard', async function () {
+    assert.isFalse(this.compiler.Match('THIS IS A LONG TEXT', 'this is a * text'))
+  })
+  it('should match very long response with very long wildcard', async function () {
+    assert.isTrue(this.compiler.Match('begin this is a long text this is a long text this is a long text this is a long text end', 'begin * end'))
+  })
+  it('should not allow more than 10 wildcards in a string', async function () {
+    try {
+      this.compiler.Match('some text', 'begin * * * * * * * * * * * end')
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.equal(err.message, 'Maximum number of 10 wildcards supported.')
+    }
+  })
+  it('should not match if pattern is not matching', async function () {
+    assert.isFalse(this.compiler.Match('This is a long text', '*notthere*'))
+  })
+})
+
 describe('matching.matchingmode.equals', function () {
   beforeEach(async function () {
     const myCaps = {

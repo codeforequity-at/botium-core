@@ -112,7 +112,7 @@ module.exports = {
   SCRIPTING_ENABLE_MEMORY: 'SCRIPTING_ENABLE_MEMORY',
   SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS: 'SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS',
   SCRIPTING_FORCE_BOT_CONSUMED: 'SCRIPTING_FORCE_BOT_CONSUMED',
-  // regexp, regexpIgnoreCase, wildcard, wildcardIgnoreCase, include, includeIgnoreCase, equals, equalsIgnoreCase
+  // regexp, regexpIgnoreCase, wildcard, wildcardIgnoreCase, wildcardExact, wildcardExactIgnoreCase, include, includeIgnoreCase, equals, equalsIgnoreCase
   SCRIPTING_MATCHING_MODE: 'SCRIPTING_MATCHING_MODE',
   // all, first, random
   SCRIPTING_UTTEXPANSION_MODE: 'SCRIPTING_UTTEXPANSION_MODE',

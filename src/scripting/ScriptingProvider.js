@@ -464,11 +464,33 @@ module.exports = class ScriptingProvider {
     return { convos: dirConvos, utterances: dirUtterances, pconvos: dirPartialConvos, scriptingMemories: dirScriptingMemories }
   }
 
+  ReadScriptFromBuffer (scriptBuffer, scriptingFormat, scriptingTypes = null) {
+    if (_.isString(scriptingTypes)) scriptingTypes = [scriptingTypes]
+    if (_.isArray(scriptingTypes) && scriptingTypes.length === 0) scriptingTypes = null
+
+    const result = {
+      convos: [],
+      utterances: [],
+      pconvos: [],
+      scriptingMemories: []
+    }
+    if (!scriptingTypes || scriptingTypes.includes(Constants.SCRIPTING_TYPE_UTTERANCES)) {
+      result.utterances = this.Compile(scriptBuffer, scriptingFormat, Constants.SCRIPTING_TYPE_UTTERANCES)
+    }
+    if (!scriptingTypes || scriptingTypes.includes(Constants.SCRIPTING_TYPE_PCONVO)) {
+      result.pconvos = this.Compile(scriptBuffer, scriptingFormat, Constants.SCRIPTING_TYPE_PCONVO)
+    }
+    if (!scriptingTypes || scriptingTypes.includes(Constants.SCRIPTING_TYPE_CONVO)) {
+      result.convos = this.Compile(scriptBuffer, scriptingFormat, Constants.SCRIPTING_TYPE_CONVO)
+    }
+    if (!scriptingTypes || scriptingTypes.includes(Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)) {
+      result.scriptingMemories = this.Compile(scriptBuffer, scriptingFormat, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+    }
+    return result
+  }
+
   ReadScript (convoDir, filename) {
-    let fileConvos = []
-    let fileUtterances = []
-    let filePartialConvos = []
-    let fileScriptingMemories = []
+    let result = {}
 
     try {
       let scriptBuffer = fs.readFileSync(path.resolve(convoDir, filename))
@@ -487,36 +509,25 @@ module.exports = class ScriptingProvider {
       }
 
       if (filename.endsWith('.xlsx') || filename.endsWith('.xlsm')) {
-        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_UTTERANCES)
-        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_PCONVO)
-        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_CONVO)
-        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_XSLX, [Constants.SCRIPTING_TYPE_UTTERANCES, Constants.SCRIPTING_TYPE_PCONVO, Constants.SCRIPTING_TYPE_CONVO, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY])
       } else if (filename.endsWith('.convo.txt')) {
-        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_CONVO)
       } else if (filename.endsWith('.pconvo.txt')) {
-        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_PCONVO)
       } else if (filename.endsWith('.utterances.txt')) {
-        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_UTTERANCES)
       } else if (filename.endsWith('.scriptingmemory.txt')) {
-        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_TXT, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
       } else if (filename.endsWith('.convo.csv')) {
-        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
       } else if (filename.endsWith('.pconvo.csv')) {
-        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
       } else if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
-        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_UTTERANCES)
-        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_PCONVO)
-        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_CONVO)
-        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, [Constants.SCRIPTING_TYPE_UTTERANCES, Constants.SCRIPTING_TYPE_PCONVO, Constants.SCRIPTING_TYPE_CONVO, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY])
       } else if (filename.endsWith('.json')) {
-        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_UTTERANCES)
-        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_PCONVO)
-        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_CONVO)
-        fileScriptingMemories = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_JSON, [Constants.SCRIPTING_TYPE_UTTERANCES, Constants.SCRIPTING_TYPE_PCONVO, Constants.SCRIPTING_TYPE_CONVO, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY])
       } else if (filename.endsWith('.markdown') || filename.endsWith('.md')) {
-        fileUtterances = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_UTTERANCES)
-        fileConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_CONVO)
-        filePartialConvos = this.Compile(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, Constants.SCRIPTING_TYPE_PCONVO)
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_MARKDOWN, [Constants.SCRIPTING_TYPE_UTTERANCES, Constants.SCRIPTING_TYPE_PCONVO, Constants.SCRIPTING_TYPE_CONVO])
       } else {
         debug(`ReadScript - dropped file: ${filename}, filename not supported`)
       }
@@ -526,42 +537,40 @@ module.exports = class ScriptingProvider {
     }
 
     // Compilers saved the convos, and we alter here the saved version too
-    if (fileConvos) {
-      fileConvos.forEach((fileConvo) => {
+    if (result.convos && result.convos.length > 0) {
+      result.convos.forEach((fileConvo) => {
         fileConvo.sourceTag = { convoDir, filename }
         if (!fileConvo.header.name) {
           fileConvo.header.name = filename
         }
       })
       const isSkip = (c) => c.header.name && skipPattern.test(c.header.name.toLowerCase())
-      fileConvos.filter(c => isSkip(c)).forEach(c => debug(`ReadScript - skipping convo '${c.header.name}'`))
-      fileConvos = fileConvos.filter(c => !isSkip(c))
+      result.convos.filter(c => isSkip(c)).forEach(c => debug(`ReadScript - skipping convo '${c.header.name}'`))
+      result.convos = result.convos.filter(c => !isSkip(c))
     }
-    if (filePartialConvos) {
-      filePartialConvos.forEach((filePartialConvo) => {
+    if (result.pconvos && result.pconvos.length > 0) {
+      result.pconvos.forEach((filePartialConvo) => {
         filePartialConvo.sourceTag = { convoDir, filename }
         if (!filePartialConvo.header.name) {
           filePartialConvo.header.name = filename
         }
       })
     }
-    if (fileScriptingMemories && fileScriptingMemories.length) {
-      fileScriptingMemories.forEach((scriptingMemory) => {
+    if (result.scriptingMemories && result.scriptingMemories.length > 0) {
+      result.scriptingMemories.forEach((scriptingMemory) => {
         scriptingMemory.sourceTag = { filename }
       })
     }
-
-    if (fileUtterances) {
-      this.fileUtterances = this._tagAndCleanupUtterances(fileUtterances, convoDir, filename)
+    if (result.utterances) {
+      result.utterances = this._tagAndCleanupUtterances(result.utterances, convoDir, filename)
     }
-    return { convos: fileConvos, utterances: fileUtterances, pconvos: filePartialConvos, scriptingMemories: fileScriptingMemories }
+    return { convos: result.convos || [], utterances: result.utterances || [], pconvos: result.pconvos || [], scriptingMemories: result.scriptingMemories || [] }
   }
 
   _tagAndCleanupUtterances (utteranceFiles, convoDir, filename) {
     return utteranceFiles.map((fileUtt) => {
       fileUtt.sourceTag = { convoDir, filename }
-      fileUtt.utterances = fileUtt.utterances
-        .filter(u => u)
+      fileUtt.utterances = fileUtt.utterances.filter(u => u)
       return fileUtt
     })
   }
@@ -944,7 +953,7 @@ module.exports = class ScriptingProvider {
         }
       }
     } else {
-      expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: convoStepsStack }))
+      expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) }))
     }
   }
 

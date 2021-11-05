@@ -37,6 +37,24 @@ const wildcard = (ignoreCase) => (botresponse, utterance) => {
   return regexp.test(botresponse)
 }
 
+const wildcardExact = (ignoreCase) => (botresponse, utterance) => {
+  if (_.isUndefined(botresponse)) {
+    if (utterance.trim() === '*') return true
+    else return false
+  }
+  utterance = toString(utterance)
+  botresponse = _normalize(botresponse)
+
+  const numWildcards = utterance.split('*').length - 1
+  if (numWildcards > 10) {
+    throw new Error('Maximum number of 10 wildcards supported.')
+  }
+  const utteranceRe = '^' + quoteRegexpString(utterance).replace(/\\\*/g, '(.*)') + '$'
+
+  const regexp = ignoreCase ? (new RegExp(utteranceRe, 'i')) : (new RegExp(utteranceRe, ''))
+  return regexp.test(botresponse)
+}
+
 const include = (ignoreCase) => (botresponse, utterance) => {
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
@@ -66,6 +84,8 @@ const getMatchFunction = (matchingMode) => {
     return regexp(matchingMode === 'regexpIgnoreCase')
   } else if (matchingMode === 'wildcard' || matchingMode === 'wildcardIgnoreCase' || matchingMode === 'wildcardLowerCase') {
     return wildcard(matchingMode === 'wildcardIgnoreCase' || matchingMode === 'wildcardLowerCase')
+  } else if (matchingMode === 'wildcardExact' || matchingMode === 'wildcardExactIgnoreCase') {
+    return wildcardExact(matchingMode === 'wildcardExactIgnoreCase')
   } else if (matchingMode === 'include' || matchingMode === 'includeIgnoreCase' || matchingMode === 'includeLowerCase') {
     return include(matchingMode === 'includeIgnoreCase' || matchingMode === 'includeLowerCase')
   } else if (matchingMode === 'equals' || matchingMode === 'equalsIgnoreCase') {
@@ -78,6 +98,7 @@ const getMatchFunction = (matchingMode) => {
 module.exports = {
   regexp,
   wildcard,
+  wildcardExact,
   include,
   equals,
   getMatchFunction
