@@ -384,6 +384,9 @@ module.exports = class SimpleRestContainer {
           } else {
             if (response.statusCode >= 400) {
               debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
+              if (debug.enabled && body) {
+                debug(botiumUtils.shortenJsonString(body))
+              }
               return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))
             }
 
@@ -516,9 +519,15 @@ module.exports = class SimpleRestContainer {
         await timeout(pingConfig.timeout)
       } else if (response.statusCode >= 400) {
         debug(`_waitForUrlResponse on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
+        if (debug.enabled && body) {
+          debug(botiumUtils.shortenJsonString(body))
+        }
         await timeout(pingConfig.timeout)
       } else {
-        debug(`_waitForUrlResponse success on url check ${pingConfig.uri}`)
+        debug(`_waitForUrlResponse success on url check ${pingConfig.uri}: ${response.statusCode}/${response.statusMessage}`)
+        if (debug.enabled && body) {
+          debug(botiumUtils.shortenJsonString(body))
+        }
         return body
       }
     }
@@ -712,6 +721,9 @@ module.exports = class SimpleRestContainer {
         } else {
           if (response.statusCode >= 400) {
             debug(`_runPolling: got error response: ${response.statusCode}/${response.statusMessage}, request: ${JSON.stringify(pollConfig)}`)
+            if (debug.enabled && body) {
+              debug(botiumUtils.shortenJsonString(body))
+            }
           } else if (body) {
             debug(`_runPolling: got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}`)
 
