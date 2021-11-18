@@ -1,6 +1,6 @@
 {
   "name": "botium-core",
-  "version": "1.11.15",
+  "version": "1.11.16",
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "module": "dist/botium-es.js",
