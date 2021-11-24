@@ -22,6 +22,12 @@ const myCapsPost = {
   [Capabilities.SIMPLEREST_BODY_TEMPLATE]: { BODY1: 'BODY1VALUE', BODY2: '{{msg.messageText}}' },
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
+const myCapsFormPost = {
+  [Capabilities.CONTAINERMODE]: 'simplerest',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
+  [Capabilities.SIMPLEREST_METHOD]: 'POST',
+  [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
+}
 
 const myCapsScriptingMemory = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -448,7 +454,7 @@ describe('connectors.simplerest.build', function () {
       assert.isTrue(err.message.includes('Cant load hook, syntax is not valid'))
     }
   })
-  it('should query params from UPDATE_CUSTOM (without "?")', async function () {
+  it('should add query params from UPDATE_CUSTOM (without "?")', async function () {
     const myCaps = Object.assign({}, myCapsGet)
     const myMsg = Object.assign({}, msg)
     myMsg.ADD_QUERY_PARAM = {
@@ -467,7 +473,7 @@ describe('connectors.simplerest.build', function () {
 
     await container.Clean()
   })
-  it('should query params from UPDATE_CUSTOM (with "?")', async function () {
+  it('should add query params from UPDATE_CUSTOM (with "?")', async function () {
     const myCaps = Object.assign({}, myCapsGet)
     myCaps.SIMPLEREST_URL = 'http://my-host.com/api/endpoint/messageText?const1=const1'
     const myMsg = Object.assign({}, msg)
@@ -507,6 +513,26 @@ describe('connectors.simplerest.build', function () {
     assert.isObject(request.headers)
     assert.equal(request.uri,
       `http://my-host.com/api/endpoint/messageText?queryparam1=valueparam1&queryparam2=${encodeURIComponent(JSON.stringify(jsonObject))}&queryparam3=11`)
+
+    await container.Clean()
+  })
+  it('should add form params from UPDATE_CUSTOM (without "?")', async function () {
+    const myCaps = Object.assign({}, myCapsFormPost)
+    const myMsg = Object.assign({}, msg)
+    myMsg.ADD_FORM_PARAM = {
+      formparam1: 'valueparam1',
+      formparam2: '{{msg.messageText}}'
+    }
+
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const request = await container.pluginInstance._buildRequest(myMsg)
+    assert.isObject(request.form)
+    assert.equal(request.form.formparam1, 'valueparam1')
+    assert.equal(request.form.formparam2, 'messageText')
 
     await container.Clean()
   })

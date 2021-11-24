@@ -478,6 +478,15 @@ module.exports = class SimpleRestContainer {
         requestOptions.uri = `${requestOptions.uri}?${appendToUri}`
       }
     }
+    if (msg.ADD_FORM_PARAM && Object.keys(msg.ADD_FORM_PARAM).length > 0) {
+      requestOptions.form = {}
+      for (const formKey of Object.keys(msg.ADD_FORM_PARAM)) {
+        const formValue = this._getMustachedVal(
+          _.isString(msg.ADD_FORM_PARAM[formKey]) ? msg.ADD_FORM_PARAM[formKey] : JSON.stringify(msg.ADD_FORM_PARAM[formKey]),
+          false)
+        requestOptions.form[formKey] = formValue
+      }
+    }
     if (msg.ADD_HEADER && Object.keys(msg.ADD_HEADER).length > 0) {
       requestOptions.headers = requestOptions.headers || {}
 
