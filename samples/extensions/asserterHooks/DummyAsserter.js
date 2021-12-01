@@ -6,17 +6,17 @@ module.exports = class DummyAsserter {
     this.caps = caps
   }
 
-  assertConvoBegin ({convo, container, args}) {
+  assertConvoBegin ({ convo, container, args }) {
     console.log(`Dummy asserter Begin started with those args: ${utils.inspect(args)}`)
     return Promise.resolve()
   }
 
-  assertConvoStep ({convo, convoStep, args, botMsg}) {
+  assertConvoStep ({ convo, convoStep, args, botMsg }) {
     console.log(`ConvoStep dummy assertion with those args: ${utils.inspect(args)}, botMessage: ${utils.inspect(botMsg)} ...`)
     return Promise.resolve()
   }
 
-  assertConvoEnd ({convo, container, transcript, args}) {
+  assertConvoEnd ({ convo, container, transcript, args }) {
     console.log(`ConvoEnd dummy assertion with those args: ${utils.inspect(args)}, transcript: ${utils.inspect(transcript)} ...`)
     return Promise.resolve()
   }
