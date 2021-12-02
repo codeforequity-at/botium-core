@@ -17,6 +17,7 @@ const Defaults = require('../../Defaults').Capabilities
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 const { getHook, executeHook } = require('../../helpers/HookUtils')
 const { escapeJSONString } = require('../../helpers/Utils')
+const { BotiumError } = require('../../scripting/BotiumError')
 
 Mustache.escape = s => s
 
@@ -386,6 +387,15 @@ module.exports = class SimpleRestContainer {
               debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
               if (debug.enabled && body) {
                 debug(botiumUtils.shortenJsonString(body))
+              }
+              if (body) {
+                const jsonBody = botiumUtils.toJsonWeak(body)
+                const errKey = Object.keys(jsonBody).find(k => k.startsWith('err') || k.startsWith('fail'))
+                if (errKey) {
+                  return reject(new BotiumError(`got error response: ${response.statusCode}/${response.statusMessage} - ${jsonBody[errKey]}`, {
+                    message: botiumUtils.shortenJsonString(body)
+                  }))
+                }
               }
               return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))
             }

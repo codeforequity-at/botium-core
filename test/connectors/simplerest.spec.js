@@ -815,6 +815,7 @@ describe('connectors.simplerest.useresponse', function () {
         .get('/startencoded').reply(200, { text: JSON.stringify({ prop: 'response from start' }) })
         .get('/startstring').reply(200, 'response from start')
         .get('/msg').reply(200, { text: 'response from msg' })
+        .get('/msgfail').reply(400, { error: 'failure text' })
         .persist()
 
       const myCaps = Object.assign({
@@ -939,6 +940,19 @@ describe('connectors.simplerest.useresponse', function () {
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.equal(transcript.steps.length, 1)
     assert.equal(transcript.steps[0].actual.messageText, 'response from start')
+  })
+
+  it('should use error body content', async function () {
+    await this.init({
+      [Capabilities.SIMPLEREST_URL]: 'https://mock.com/msgfail'
+    })
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'hello.convo.txt')
+    try {
+      await this.compiler.convos[0].Run(this.container)
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('failure text') >= 0)
+    }
   })
 })
 
