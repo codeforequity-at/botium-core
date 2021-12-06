@@ -22,7 +22,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
   }
 
   _filterSheetnames (sheetnames, selectors) {
-    const filteredSheetnames = sheetnames.filter(sheetname => !!selectors.find(selector => selector === '*' || sheetname === selector))
+    const filteredSheetnames = sheetnames.filter(sheetname => !!selectors.find(selector => selector === '*' || sheetname.includes(selector)))
     debug(`_filterSheetnames(sheetnames: ${JSON.stringify(sheetnames)}, selectors: ${JSON.stringify(selectors)}, filteredSheetnames: ${JSON.stringify(filteredSheetnames)})`)
     return filteredSheetnames
   }
