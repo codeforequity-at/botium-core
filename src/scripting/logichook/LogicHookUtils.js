@@ -240,6 +240,8 @@ module.exports = class LogicHookUtils {
           return CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else if (isClass(CheckClass.PluginClass)) {
           return new CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
+        } else if (_.isFunction(CheckClass.PluginClass)) {
+          return CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else {
           throw new Error(`${src} class or function expected`)
         }

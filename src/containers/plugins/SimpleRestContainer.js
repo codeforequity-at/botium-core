@@ -17,6 +17,7 @@ const Defaults = require('../../Defaults').Capabilities
 const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
 const { getHook, executeHook } = require('../../helpers/HookUtils')
 const { escapeJSONString } = require('../../helpers/Utils')
+const { BotiumError } = require('../../scripting/BotiumError')
 
 Mustache.escape = s => s
 
@@ -387,6 +388,15 @@ module.exports = class SimpleRestContainer {
               if (debug.enabled && body) {
                 debug(botiumUtils.shortenJsonString(body))
               }
+              if (body) {
+                const jsonBody = botiumUtils.toJsonWeak(body)
+                const errKey = Object.keys(jsonBody).find(k => k.startsWith('err') || k.startsWith('fail'))
+                if (errKey) {
+                  return reject(new BotiumError(`got error response: ${response.statusCode}/${response.statusMessage} - ${jsonBody[errKey]}`, {
+                    message: botiumUtils.shortenJsonString(body)
+                  }))
+                }
+              }
               return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))
             }
 
@@ -476,6 +486,15 @@ module.exports = class SimpleRestContainer {
         requestOptions.uri = `${requestOptions.uri}&${appendToUri}`
       } else {
         requestOptions.uri = `${requestOptions.uri}?${appendToUri}`
+      }
+    }
+    if (msg.ADD_FORM_PARAM && Object.keys(msg.ADD_FORM_PARAM).length > 0) {
+      requestOptions.form = {}
+      for (const formKey of Object.keys(msg.ADD_FORM_PARAM)) {
+        const formValue = this._getMustachedVal(
+          _.isString(msg.ADD_FORM_PARAM[formKey]) ? msg.ADD_FORM_PARAM[formKey] : JSON.stringify(msg.ADD_FORM_PARAM[formKey]),
+          false)
+        requestOptions.form[formKey] = formValue
       }
     }
     if (msg.ADD_HEADER && Object.keys(msg.ADD_HEADER).length > 0) {

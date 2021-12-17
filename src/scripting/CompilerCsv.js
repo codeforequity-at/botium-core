@@ -1,4 +1,4 @@
-const parse = require('csv-parse/lib/sync')
+const { parse } = require('csv-parse/sync')
 const _ = require('lodash')
 const debug = require('debug')('botium-core-CompilerCsv')
 

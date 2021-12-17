@@ -23,13 +23,13 @@ class BotiumConnectorMyApi {
         [CoreCapabilities.SIMPLEREST_URL]: this.caps[Capabilities.MYAPI_URL],
         [CoreCapabilities.SIMPLEREST_METHOD]: 'POST',
         [CoreCapabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.reply',
-        [CoreCapabilities.SIMPLEREST_BODY_TEMPLATE]: JSON.stringify({ 
+        [CoreCapabilities.SIMPLEREST_BODY_TEMPLATE]: JSON.stringify({
           username: 'botium',
           message: '{{msg.messageText}}',
           session: '{{botium.conversationId}}',
           startsession: false,
           quickreply: null
-         })
+        })
       }
       if (this.caps[Capabilities.MYAPI_TOKEN]) {
         this.delegateCaps[CoreCapabilities.SIMPLEREST_HEADERS_TEMPLATE] = `{ "Authorization": "Token ${this.caps[Capabilities.MYAPI_TOKEN]}"}`
