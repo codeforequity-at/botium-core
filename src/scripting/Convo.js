@@ -36,7 +36,7 @@ class ConvoStepAssert {
   }
 
   toString () {
-    return (this.optional ? '?' : '') + (this.not ? '!' : '') + this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
+    return (this.optional ? '?' : '') + (this.not ? '!' : '') + this.name + '(' + (this.args ? this.args.map(a => _.truncate(a, { length: 200 })).join(',') : 'no args') + ')'
   }
 }
 
@@ -47,7 +47,7 @@ class ConvoStepLogicHook {
   }
 
   toString () {
-    return this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
+    return this.name + '(' + (this.args ? this.args.map(a => _.truncate(a, { length: 200 })).join(',') : 'no args') + ')'
   }
 }
 
@@ -58,7 +58,7 @@ class ConvoStepUserInput {
   }
 
   toString () {
-    return this.name + '(' + (this.args ? this.args.join(',') : 'no args') + ')'
+    return this.name + '(' + (this.args ? this.args.map(a => _.truncate(a, { length: 200 })).join(',') : 'no args') + ')'
   }
 }
 

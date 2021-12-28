@@ -20,6 +20,9 @@ module.exports = class MediaInput {
   }
 
   _getResolvedUri (uri, convo) {
+    if (uri.startsWith('data:')) {
+      return new url.URL(uri)
+    }
     if (this.globalArgs && this.globalArgs.baseUris) {
       const baseUrisSelector = _.get(convo, this.globalArgs.baseSelector || DEFAULT_BASE_SELECTOR)
       if (baseUrisSelector && this.globalArgs.baseUris[baseUrisSelector]) {
@@ -134,12 +137,21 @@ module.exports = class MediaInput {
             }
           })
         })
+      } else if (uri.protocol === 'data:') {
+        return Buffer.from(uri.href.split(',')[1], 'base64')
       }
     }
   }
 
   _isWildcard (arg) {
     return arg.indexOf('*') >= 0
+  }
+
+  _mime (arg) {
+    if (arg.startsWith('data:')) {
+      return arg.substring(arg.indexOf(':') + 1, arg.indexOf(';'))
+    }
+    return mime.lookup(arg)
   }
 
   expandConvo ({ convo, convoStep, args }) {
@@ -187,14 +199,14 @@ module.exports = class MediaInput {
         meMsg.media.push(new BotiumMockMedia({
           mediaUri: args[0],
           downloadUri: uri.toString(),
-          mimeType: mime.lookup(args[0]),
+          mimeType: this._mime(args[0]),
           buffer
         }))
       }
     } else if (args.length === 2) {
       meMsg.media.push(new BotiumMockMedia({
         mediaUri: args[0],
-        mimeType: mime.lookup(args[0]),
+        mimeType: this._mime(args[0]),
         buffer: args[1]
       }))
     }

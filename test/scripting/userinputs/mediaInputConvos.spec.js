@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require('fs')
 const assert = require('chai').assert
 const nock = require('nock')
 const BotDriver = require('../../../').BotDriver
@@ -95,6 +96,30 @@ describe('scripting.userinputs.mediaInputConvos.relative', function () {
     assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].args[0], 'files/botium0.png')
     assert.equal(this.compiler.convos[1].conversation[0].userInputs[0].args[0], 'files/botium1.png')
     assert.equal(this.compiler.convos[2].conversation[0].userInputs[0].args[0], 'files/botium2.png')
+  })
+
+  it('should use dataUri as media in user message', async function () {
+    const mediaData = fs.readFileSync(path.resolve(__dirname, 'convos', 'files', 'botium0.png'))
+    const mediaUri = `data:image/png;base64,${mediaData.toString('base64')}`
+    const script = `should use dataUri as media in user message
+
+#me
+MEDIA ${mediaUri}
+`
+
+    this.compiler.Compile(script, 'SCRIPTING_FORMAT_TXT', 'SCRIPTING_TYPE_CONVO')
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(this.compiler.convos[0].conversation.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].name, 'MEDIA')
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].args.length, 1)
+    assert.isTrue(this.compiler.convos[0].conversation[0].userInputs[0].args[0].startsWith('data:image/png'))
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 1)
+    assert.isTrue(transcript.steps[0].actual.media[0].downloadUri.startsWith('data:image/png'))
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
   })
 })
 
@@ -257,6 +282,7 @@ describe('scripting.userinputs.mediaInputConvos.baseDir', function () {
           ref: 'MEDIA',
           src: 'MediaInput',
           args: {
+            downloadMedia: true,
             baseDir: path.join(__dirname, 'convos', 'files')
           }
         }
@@ -315,6 +341,31 @@ describe('scripting.userinputs.mediaInputConvos.baseDir', function () {
       assert.isTrue(err.message.startsWith('mediaoutofbasedir/Line 3: error sending to bot - The uri \'../*.png\' is pointing out of the base directory'))
     }
   })
+
+  it('should use dataUri as media in user message', async function () {
+    const mediaData = fs.readFileSync(path.resolve(__dirname, 'convos', 'files', 'botium0.png'))
+    const mediaUri = `data:image/png;base64,${mediaData.toString('base64')}`
+    const script = `should use dataUri as media in user message
+
+#me
+MEDIA ${mediaUri}
+`
+
+    this.compiler.Compile(script, 'SCRIPTING_FORMAT_TXT', 'SCRIPTING_TYPE_CONVO')
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(this.compiler.convos[0].conversation.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs.length, 1)
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].name, 'MEDIA')
+    assert.equal(this.compiler.convos[0].conversation[0].userInputs[0].args.length, 1)
+    assert.isTrue(this.compiler.convos[0].conversation[0].userInputs[0].args[0].startsWith('data:image/png'))
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.equal(transcript.steps.length, 1)
+    assert.equal(transcript.steps[0].actual.media.length, 1)
+    assert.isTrue(transcript.steps[0].actual.media[0].downloadUri.startsWith('data:image/png'))
+    assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
+    assert.isTrue(Buffer.isBuffer(transcript.steps[0].actual.media[0].buffer))
+  })
 })
 
 describe('scripting.userinputs.mediaInputDownloadConvos.relative', function () {
@@ -349,7 +400,7 @@ describe('scripting.userinputs.mediaInputDownloadConvos.relative', function () {
     assert.equal(transcript.steps[0].actual.media.length, 1)
     assert.isTrue(transcript.steps[0].actual.media[0].downloadUri.endsWith('test/scripting/userinputs/convos/botium.png'))
     assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
-    assert.isNotNull(transcript.steps[0].actual.media[0].buffer)
+    assert.isTrue(Buffer.isBuffer(transcript.steps[0].actual.media[0].buffer))
   })
 })
 
@@ -391,7 +442,7 @@ describe('scripting.userinputs.mediaInputDownloadConvos.baseUri', function () {
     assert.equal(transcript.steps[0].actual.media.length, 1)
     assert.equal(transcript.steps[0].actual.media[0].downloadUri, 'https://www.botium.at/botium.png')
     assert.equal(transcript.steps[0].actual.media[0].mimeType, 'image/png')
-    assert.isNotNull(transcript.steps[0].actual.media[0].buffer)
+    assert.isTrue(Buffer.isBuffer(transcript.steps[0].actual.media[0].buffer))
 
     scope.persist(false)
   })
