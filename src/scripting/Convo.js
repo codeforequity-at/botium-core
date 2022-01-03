@@ -511,7 +511,13 @@ class Convo {
             }
           }
           transcriptStep.err = err
-          throw err
+          if (err instanceof BotiumError && container.caps[Capabilities.SCRIPTING_ENABLE_SKIP_ASSERT_ERRORS]) {
+            if (!err.isAsserterError()) {
+              throw err
+            }
+          } else {
+            throw err
+          }
         } finally {
           if (convoStep.sender !== 'begin' && convoStep.sender !== 'end' && !skipTranscriptStep) {
             transcriptStep.scriptingMemory = Object.assign({}, scriptingMemory)
@@ -526,6 +532,12 @@ class Convo {
       transcript.steps = transcriptSteps.filter(s => s)
       transcript.scriptingMemory = scriptingMemory
       transcript.convoEnd = new Date()
+      if (container.caps[Capabilities.SCRIPTING_ENABLE_SKIP_ASSERT_ERRORS]) {
+        const transcriptStepErrs = transcript.steps.filter(s => s.err).map(s => s.err)
+        if (transcriptStepErrs && transcriptStepErrs.length > 0) {
+          transcript.err = botiumErrorFromList([transcriptStepErrs, transcript.err].filter(e => e), {})
+        }
+      }
     }
   }
 
