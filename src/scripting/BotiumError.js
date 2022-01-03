@@ -26,6 +26,27 @@ const BotiumError = class BotiumError extends Error {
     this.context.message = message.message || message
   }
 
+  isAsserterError () {
+    if (this.context) {
+      const errArr = _.isArray(this.context) ? this.context : [this.context]
+      const hasNotAsserterError = errArr.findIndex(errDetail => {
+        if (errDetail.type === 'list') {
+          if (errDetail.errors) {
+            return errDetail.errors.findIndex(e => e.type !== 'asserter') >= 0
+          } else {
+            return true
+          }
+        } else {
+          return errDetail.type !== 'asserter'
+        }
+      }) >= 0
+      if (hasNotAsserterError) return false
+      return true
+    } else {
+      return false
+    }
+  }
+
   prettify (includeJson) {
     const lines = []
     if (this.context) {

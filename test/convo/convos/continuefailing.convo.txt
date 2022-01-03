@@ -1,0 +1,19 @@
+continuefailing
+
+#me
+Hello
+
+#bot
+Hello
+
+#me
+Hello again!
+
+#bot
+Hello again FAILING!
+
+#me
+working again
+
+#bot
+working again
