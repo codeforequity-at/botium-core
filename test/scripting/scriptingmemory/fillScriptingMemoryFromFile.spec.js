@@ -71,6 +71,27 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
     }
   })
 
+  it('two scripting memory file, one colum each, column mode testcasenames', async function () {
+    // all variations are generated
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosTwoTablesCols'))
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 4)
+
+    const assertScriptingMemory = [
+      { $productName: 'Wiener Schnitzel', $customerName: 'GoodCustomer' },
+      { $productName: 'Pfannkuchen', $customerName: 'GoodCustomer' },
+      { $productName: 'Wiener Schnitzel', $customerName: 'BadCustomer' },
+      { $productName: 'Pfannkuchen', $customerName: 'BadCustomer' }
+    ]
+
+    for (const [i, convo] of this.compiler.convos.entries()) {
+      const transcript = await convo.Run(this.container)
+      assert.isObject(transcript.scriptingMemory)
+      assert.equal(transcript.scriptingMemory.$productName, assertScriptingMemory[i].$productName)
+      assert.equal(transcript.scriptingMemory.$customerName, assertScriptingMemory[i].$customerName)
+    }
+  })
+
   it('Value is optional in the scripting memory file', async function () {
     // all variations are generated
     this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosValueOptional'))
@@ -85,6 +106,19 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
 
   it('Using text file', async function () {
     this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosSimpleText'))
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.container)
+    assert.isObject(transcript.scriptingMemory)
+    assert.isDefined(transcript.scriptingMemory.$productName)
+    assert.equal(transcript.scriptingMemory.$productName, 'Wiener Schnitzel')
+    assert.isDefined(transcript.scriptingMemory.$customer)
+    assert.equal(transcript.scriptingMemory.$customer, 'Joe')
+  })
+
+  it('Using text file in column mode testcasenames', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosSimpleCols'))
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
 
@@ -169,6 +203,17 @@ describe('scripting.fillingScriptingMemoryFromFile.memoryenabled.originaldeleted
 
     it('should work with same variable names', async function () {
       this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemorySame'))
+      this.compiler.ExpandScriptingMemoryToConvos()
+      assert.equal(this.compiler.convos.length, 4)
+
+      const transcript = await this.compiler.convos[3].Run(this.container)
+      assert.isObject(transcript.scriptingMemory)
+      assert.isDefined(transcript.scriptingMemory.$productName)
+      assert.equal(transcript.scriptingMemory.$productName, 'Hamburger')
+    })
+
+    it('should work with same variable names in column mode testcasenames', async function () {
+      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosMultiMemorySameCols'))
       this.compiler.ExpandScriptingMemoryToConvos()
       assert.equal(this.compiler.convos.length, 4)
 

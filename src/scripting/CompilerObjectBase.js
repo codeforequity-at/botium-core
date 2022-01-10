@@ -6,7 +6,7 @@ const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const Utterance = require('./Utterance')
 const { Convo } = require('./Convo')
-const { linesToConvoStep, validSenders } = require('./helper')
+const { linesToConvoStep, validSenders, linesToScriptingMemories } = require('./helper')
 
 module.exports = class CompilerObjectBase extends CompilerBase {
   constructor (context, caps = {}) {
@@ -109,20 +109,10 @@ module.exports = class CompilerObjectBase extends CompilerBase {
     if (lines && lines.length > 0) {
       if (_.isString(lines[0])) {
         if (lines.length > 1) {
-          const names = lines[0].split('|').map((name) => name.trim()).slice(1)
-          const scriptingMemories = []
-          for (let row = 1; row < lines.length; row++) {
-            const rawRow = lines[row].split('|').map((name) => name.trim())
-            const caseName = rawRow[0]
-            const values = rawRow.slice(1)
-            const json = {}
-            for (let col = 0; col < names.length; col++) {
-              json[names[col]] = values[col]
-            }
-            const scriptingMemory = { header: { name: caseName }, values: json }
-            scriptingMemories.push(scriptingMemory)
+          const scriptingMemories = linesToScriptingMemories(lines, this.caps[Capabilities.SCRIPTING_MEMORY_COLUMN_MODE])
+          if (scriptingMemories && scriptingMemories.length > 0) {
+            this.context.AddScriptingMemories(scriptingMemories)
           }
-          this.context.AddScriptingMemories(scriptingMemories)
           return scriptingMemories
         }
       } else {

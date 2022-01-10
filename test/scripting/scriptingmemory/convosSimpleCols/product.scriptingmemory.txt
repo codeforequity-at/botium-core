@@ -1,0 +1,3 @@
+              |product1
+$productName  |Wiener Schnitzel
+$customer     |Joe

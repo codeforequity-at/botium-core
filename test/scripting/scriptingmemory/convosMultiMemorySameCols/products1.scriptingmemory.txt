@@ -1,0 +1,2 @@
+             | productBread | productBeer | productEE
+$productName | Bread        | Beer        | Everything Else

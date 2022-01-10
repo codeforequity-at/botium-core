@@ -761,6 +761,7 @@ module.exports = class ScriptingProvider {
 
     debug(`ExpandScriptingMemoryToConvos - ${convosExpandedAll.length} convo expanded, added to convos (${this.convos.length}). Result ${convosExpandedAll.length + this.convos.length} convo`)
     this.convos = this.convos.concat(convosExpandedAll)
+    this._sortConvos()
   }
 
   ExpandUtterancesToConvos ({ useNameAsIntent, incomprehensionUtt } = {}) {
