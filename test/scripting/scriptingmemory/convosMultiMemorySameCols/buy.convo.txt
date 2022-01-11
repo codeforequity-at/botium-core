@@ -1,0 +1,6 @@
+buy
+
+#me
+Ok, then send me some $productName
+
+#bot

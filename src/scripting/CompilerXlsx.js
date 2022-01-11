@@ -4,6 +4,7 @@ const _ = require('lodash')
 const debug = require('debug')('botium-core-CompilerXlsx')
 
 const Capabilities = require('../Capabilities')
+const { E_SCRIPTING_MEMORY_COLUMN_MODE } = require('../Enums')
 const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const Utterance = require('./Utterance')
@@ -286,38 +287,93 @@ module.exports = class CompilerXlsx extends CompilerBase {
       }
 
       if (scriptType === Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY) {
-        const variableNames = []
-        let colindexTemp = colindex + 1
-        while (true) {
-          const variableNameCell = this.colnames[colindexTemp] + rowindex
-          if (sheet[variableNameCell] && sheet[variableNameCell].v) {
-            variableNames.push(sheet[variableNameCell].v)
-          } else {
-            break
+        const guessScriptingMemoryColumnMode = () => {
+          const line1Cell = this.colnames[colindex] + (rowindex + 1)
+          if (sheet[line1Cell] && sheet[line1Cell].v) {
+            if (sheet[line1Cell].v.startsWith('$')) return E_SCRIPTING_MEMORY_COLUMN_MODE.TESTCASENAMES
+          }
+          return E_SCRIPTING_MEMORY_COLUMN_MODE.VARNAMES
+        }
+        const columnMode = this.caps[Capabilities.SCRIPTING_MEMORY_COLUMN_MODE] || guessScriptingMemoryColumnMode()
+
+        if (columnMode === E_SCRIPTING_MEMORY_COLUMN_MODE.TESTCASENAMES) {
+          const caseNames = []
+          let colindexTemp = colindex + 1
+          while (true) {
+            const caseNameCell = this.colnames[colindexTemp] + rowindex
+            if (sheet[caseNameCell] && sheet[caseNameCell].v) {
+              caseNames.push(sheet[caseNameCell].v)
+            } else {
+              break
+            }
+            colindexTemp++
           }
 
-          colindexTemp++
-        }
+          const varNames = []
+          const varValues = []
 
-        rowindex += 1
-        while (true) {
-          const caseNameCell = this.colnames[colindex] + rowindex
-          if (sheet[caseNameCell] && sheet[caseNameCell].v) {
-            const caseName = sheet[caseNameCell].v
-            const values = {}
-            for (let i = 0; i < variableNames.length; i++) {
-              const variableValueCell = this.colnames[colindex + 1 + i] + rowindex
-              if (sheet[variableValueCell] && sheet[variableValueCell].v) {
-                values[variableNames[i]] = sheet[variableValueCell].v.toString()
-              } else {
-                values[variableNames[i]] = null
+          rowindex += 1
+          while (true) {
+            const varNameCell = this.colnames[colindex] + rowindex
+            if (sheet[varNameCell] && sheet[varNameCell].v) {
+              varNames.push(sheet[varNameCell].v)
+              const values = []
+              for (let i = 0; i < caseNames.length; i++) {
+                const variableValueCell = this.colnames[colindex + 1 + i] + rowindex
+                if (sheet[variableValueCell] && sheet[variableValueCell].v) {
+                  values.push(sheet[variableValueCell].v.toString())
+                } else {
+                  values.push(null)
+                }
               }
+              varValues.push(values)
+              rowindex += 1
+            } else {
+              break
             }
-            rowindex += 1
+          }
+          for (let caseIndex = 0; caseIndex < caseNames.length; caseIndex++) {
+            const caseName = caseNames[caseIndex]
 
+            const values = varNames.reduce((agg, varName, varIndex) => {
+              agg[varName] = varValues[varIndex][caseIndex] || null
+              return agg
+            }, {})
             scriptResults.push({ header: { name: caseName }, values: values })
-          } else {
-            break
+          }
+        } else {
+          const variableNames = []
+          let colindexTemp = colindex + 1
+          while (true) {
+            const variableNameCell = this.colnames[colindexTemp] + rowindex
+            if (sheet[variableNameCell] && sheet[variableNameCell].v) {
+              variableNames.push(sheet[variableNameCell].v)
+            } else {
+              break
+            }
+            colindexTemp++
+          }
+
+          rowindex += 1
+          while (true) {
+            const caseNameCell = this.colnames[colindex] + rowindex
+            if (sheet[caseNameCell] && sheet[caseNameCell].v) {
+              const caseName = sheet[caseNameCell].v
+              const values = {}
+              for (let i = 0; i < variableNames.length; i++) {
+                const variableValueCell = this.colnames[colindex + 1 + i] + rowindex
+                if (sheet[variableValueCell] && sheet[variableValueCell].v) {
+                  values[variableNames[i]] = sheet[variableValueCell].v.toString()
+                } else {
+                  values[variableNames[i]] = null
+                }
+              }
+              rowindex += 1
+
+              scriptResults.push({ header: { name: caseName }, values: values })
+            } else {
+              break
+            }
           }
         }
       }

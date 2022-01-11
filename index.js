@@ -4,6 +4,7 @@ module.exports = {
   ScriptingConstants: require('./src/scripting/Constants'),
   Capabilities: require('./src/Capabilities'),
   Defaults: require('./src/Defaults'),
+  Enums: require('./src/Enums'),
   Source: require('./src/Source'),
   Events: require('./src/Events'),
   Plugins: require('./src/Plugins'),
