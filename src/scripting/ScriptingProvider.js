@@ -797,6 +797,11 @@ module.exports = class ScriptingProvider {
         conversation: [
           {
             sender: 'me',
+            logicHooks: [
+              {
+                name: 'SKIP_BOT_UNCONSUMED'
+              }
+            ],
             messageText: utt.name,
             stepTag: 'Step 1 - tell utterance'
           },
