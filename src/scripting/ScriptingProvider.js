@@ -761,6 +761,7 @@ module.exports = class ScriptingProvider {
 
     debug(`ExpandScriptingMemoryToConvos - ${convosExpandedAll.length} convo expanded, added to convos (${this.convos.length}). Result ${convosExpandedAll.length + this.convos.length} convo`)
     this.convos = this.convos.concat(convosExpandedAll)
+    this._sortConvos()
   }
 
   ExpandUtterancesToConvos ({ useNameAsIntent, incomprehensionUtt } = {}) {
@@ -796,6 +797,11 @@ module.exports = class ScriptingProvider {
         conversation: [
           {
             sender: 'me',
+            logicHooks: [
+              {
+                name: 'SKIP_BOT_UNCONSUMED'
+              }
+            ],
             messageText: utt.name,
             stepTag: 'Step 1 - tell utterance'
           },

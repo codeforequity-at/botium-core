@@ -1,6 +1,8 @@
 const _ = require('lodash')
 const isJSON = require('is-json')
 
+const { E_SCRIPTING_MEMORY_COLUMN_MODE } = require('../Enums')
+
 const normalizeText = (str, doCleanup) => {
   if (str && _.isArray(str)) {
     str = str.join(' ')
@@ -463,6 +465,56 @@ const convoStepToLines = (step) => {
   return lines.map(l => l.trim())
 }
 
+const linesToScriptingMemories = (lines, columnMode = null) => {
+  const guessScriptingMemoryColumnMode = (lines) => {
+    if (lines && lines.length > 1) {
+      if (lines[1].trim().startsWith('$')) return E_SCRIPTING_MEMORY_COLUMN_MODE.TESTCASENAMES
+    }
+    return E_SCRIPTING_MEMORY_COLUMN_MODE.VARNAMES
+  }
+  columnMode = columnMode || guessScriptingMemoryColumnMode(lines)
+
+  const scriptingMemories = []
+
+  if (columnMode === E_SCRIPTING_MEMORY_COLUMN_MODE.TESTCASENAMES) {
+    const caseNames = lines[0].split('|').map((name) => name.trim()).slice(1)
+
+    const varNames = []
+    const varValues = []
+    for (let row = 1; row < lines.length; row++) {
+      if (!lines[row] || lines[row].length === 0) continue
+      const rawRow = lines[row].split('|').map((name) => name.trim())
+      varNames.push(rawRow[0])
+      varValues.push(rawRow.slice(1))
+    }
+    for (let caseIndex = 0; caseIndex < caseNames.length; caseIndex++) {
+      const caseName = caseNames[caseIndex]
+
+      const values = varNames.reduce((agg, varName, varIndex) => {
+        agg[varName] = varValues[varIndex][caseIndex] || null
+        return agg
+      }, {})
+      const scriptingMemory = { header: { name: caseName }, values: values }
+      scriptingMemories.push(scriptingMemory)
+    }
+  } else {
+    const varNames = lines[0].split('|').map((name) => name.trim()).slice(1)
+    for (let row = 1; row < lines.length; row++) {
+      if (!lines[row] || lines[row].length === 0) continue
+      const rawRow = lines[row].split('|').map((name) => name.trim())
+      const caseName = rawRow[0]
+      const values = rawRow.slice(1)
+      const varValues = {}
+      for (let varIndex = 0; varIndex < varNames.length; varIndex++) {
+        varValues[varNames[varIndex]] = values[varIndex]
+      }
+      const scriptingMemory = { header: { name: caseName }, values: varValues }
+      scriptingMemories.push(scriptingMemory)
+    }
+  }
+  return scriptingMemories
+}
+
 module.exports = {
   normalizeText,
   splitStringInNonEmptyLines,
@@ -475,5 +527,6 @@ module.exports = {
   convoStepToObject,
   validSenders,
   validateSender,
-  validateConvo
+  validateConvo,
+  linesToScriptingMemories
 }

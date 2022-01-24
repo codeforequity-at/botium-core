@@ -9,7 +9,7 @@ module.exports = class ClearQueueLogicHook {
     container._EmptyQueue()
   }
 
-  onMeEnd ({ container }) {
+  onMeStart ({ container }) {
     container._EmptyQueue()
   }
 

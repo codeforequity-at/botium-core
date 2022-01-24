@@ -42,12 +42,25 @@ describe('convo.transcript', function () {
     this.compilerMultipleAssertErrors = this.driverMultipleAssertErrors.BuildCompiler()
     this.containerMultipleAssertErrors = await this.driverMultipleAssertErrors.Build()
     await this.containerMultipleAssertErrors.Start()
+
+    const myCapsSkipAssertErrors = {
+      [Capabilities.PROJECTNAME]: 'convo.transcript',
+      [Capabilities.CONTAINERMODE]: echoConnector,
+      [Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]: true,
+      [Capabilities.SCRIPTING_ENABLE_SKIP_ASSERT_ERRORS]: true
+    }
+    this.driverSkipAssertErrors = new BotDriver(myCapsSkipAssertErrors)
+    this.compilerSkipAssertErrors = this.driverSkipAssertErrors.BuildCompiler()
+    this.containerSkipAssertErrors = await this.driverSkipAssertErrors.Build()
+    await this.containerSkipAssertErrors.Start()
   })
   afterEach(async function () {
     await this.container.Stop()
     await this.container.Clean()
     await this.containerMultipleAssertErrors.Stop()
     await this.containerMultipleAssertErrors.Clean()
+    await this.containerSkipAssertErrors.Stop()
+    await this.containerSkipAssertErrors.Clean()
   })
   it('should provide transcript steps on success', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2steps.convo.txt')
@@ -346,5 +359,26 @@ describe('convo.transcript', function () {
     this.compilerMultipleAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'botreply_skip_unconsumed.convo.txt')
     assert.equal(this.compilerMultipleAssertErrors.convos.length, 1)
     await this.compilerMultipleAssertErrors.convos[0].Run(this.containerMultipleAssertErrors)
+  })
+  it('should continue on failing assertion', async function () {
+    this.compilerSkipAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'continuefailing.convo.txt')
+    assert.equal(this.compilerSkipAssertErrors.convos.length, 1)
+
+    try {
+      await this.compilerSkipAssertErrors.convos[0].Run(this.containerSkipAssertErrors)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.isDefined(err.transcript)
+      assert.equal(err.transcript.steps.length, 6)
+      assert.equal(err.transcript.steps[0].actual.messageText, this.compilerSkipAssertErrors.convos[0].conversation[0].messageText)
+      assert.equal(err.transcript.steps[1].actual.messageText, this.compilerSkipAssertErrors.convos[0].conversation[1].messageText)
+      assert.equal(err.transcript.steps[2].actual.messageText, this.compilerSkipAssertErrors.convos[0].conversation[2].messageText)
+      assert.equal(err.transcript.steps[3].expected.messageText, this.compilerSkipAssertErrors.convos[0].conversation[3].messageText)
+      assert.notEqual(err.transcript.steps[3].actual.messageText, this.compilerSkipAssertErrors.convos[0].conversation[3].messageText)
+      assert.isDefined(err.transcript.steps[3].err)
+      assert.equal(err.transcript.steps[4].expected.messageText, this.compilerSkipAssertErrors.convos[0].conversation[4].messageText)
+      assert.equal(err.transcript.steps[5].expected.messageText, this.compilerSkipAssertErrors.convos[0].conversation[5].messageText)
+      assert.isNull(err.transcript.steps[5].err)
+    }
   })
 })
