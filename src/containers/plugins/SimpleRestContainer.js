@@ -22,9 +22,10 @@ const { BotiumError } = require('../../scripting/BotiumError')
 Mustache.escape = s => s
 
 module.exports = class SimpleRestContainer {
-  constructor ({ queueBotSays, caps }) {
+  constructor ({ queueBotSays, caps, bottleneck }) {
     this.queueBotSays = queueBotSays
     this.caps = Object.assign({}, Defaults, caps)
+    this.bottleneck = bottleneck || ((fn) => fn())
     this.processInbound = false
     this.redisTopic = this.caps[Capabilities.SIMPLEREST_REDIS_TOPIC] || 'SIMPLEREST_INBOUND_SUBSCRIPTION'
 
@@ -528,11 +529,11 @@ module.exports = class SimpleRestContainer {
         throw new Error(`Failed to ping bot after ${retries} retries`)
       }
       tries++
-      const { err, response, body } = await new Promise((resolve) => {
+      const { err, response, body } = await this.bottleneck(() => new Promise((resolve) => {
         request(pingConfig, (err, response, body) => {
           resolve({ err, response, body })
         })
-      })
+      }))
       if (err) {
         debug(`_waitForUrlResponse error on url check ${pingConfig.uri}: ${err}`)
         await timeout(pingConfig.timeout)

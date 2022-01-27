@@ -21,7 +21,7 @@ module.exports = class BaseContainer {
     this.tempDirectory = tempDirectory
     this.cleanupTasks = []
     this.queues = {}
-    this.userSaysLimiter = null
+    this.bottleneck = null
   }
 
   Validate () {
@@ -36,11 +36,21 @@ module.exports = class BaseContainer {
   }
 
   Build () {
-    if (this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT] || this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]) {
+    if (this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN]) {
+      if (_.isFunction(this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN])) {
+        this.bottleneck = this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN]
+        debug('Build: Applying userSays rate limits from capability')
+      } else {
+        const limiter = new Bottleneck(this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN])
+        this.bottleneck = (fn) => limiter.schedule(fn)
+        debug(`Build: Applying userSays rate limits ${util.inspect(this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN])}`)
+      }
+    } else if (this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT] || this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]) {
       const opts = {}
       if (this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT]) opts.maxConcurrent = this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT]
       if (this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]) opts.minTime = this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]
-      this.userSaysLimiter = new Bottleneck(opts)
+      const limiter = new Bottleneck(opts)
+      this.bottleneck = (fn) => limiter.schedule(fn)
       debug(`Build: Applying userSays rate limits ${util.inspect(opts)}`)
     }
 
@@ -69,8 +79,8 @@ module.exports = class BaseContainer {
     const run = () => this._RunCustomHook('onUserSays', this.onUserSaysHook, { meMsg })
       .then(() => this.UserSaysImpl(meMsg))
 
-    if (this.userSaysLimiter) {
-      return this.userSaysLimiter.schedule(run)
+    if (this.bottleneck) {
+      return this.bottleneck(run)
     } else {
       return run()
     }

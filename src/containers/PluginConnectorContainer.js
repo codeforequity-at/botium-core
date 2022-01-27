@@ -17,6 +17,7 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       {
         container: this,
         queueBotSays: (msg) => this._QueueBotSays(msg),
+        bottleneck: this.bottleneck,
         eventEmitter: this.eventEmitter,
         caps: this.caps,
         sources: this.sources,
