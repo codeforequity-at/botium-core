@@ -21,7 +21,7 @@ module.exports = class BaseContainer {
     this.tempDirectory = tempDirectory
     this.cleanupTasks = []
     this.queues = {}
-    this.userSaysLimiter = null
+    this.bottleneck = null
   }
 
   Validate () {
@@ -32,18 +32,28 @@ module.exports = class BaseContainer {
     this.onStopHook = getHook(this.caps, this.caps[Capabilities.CUSTOMHOOK_ONSTOP])
     this.onCleanHook = getHook(this.caps, this.caps[Capabilities.CUSTOMHOOK_ONCLEAN])
 
+    if (this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN]) {
+      if (_.isFunction(this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN])) {
+        this.bottleneck = this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN]
+        debug('Validate: Applying userSays rate limits from capability')
+      } else {
+        const limiter = new Bottleneck(this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN])
+        this.bottleneck = (fn) => limiter.schedule(fn)
+        debug(`Validate: Applying userSays rate limits ${util.inspect(this.caps[Capabilities.RATELIMIT_BOTTLENECK_FN])}`)
+      }
+    } else if (this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT] || this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]) {
+      const opts = {}
+      if (this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT]) opts.maxConcurrent = this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT]
+      if (this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]) opts.minTime = this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]
+      const limiter = new Bottleneck(opts)
+      this.bottleneck = (fn) => limiter.schedule(fn)
+      debug(`Validate: Applying userSays rate limits ${util.inspect(opts)}`)
+    }
+
     return Promise.resolve()
   }
 
   Build () {
-    if (this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT] || this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]) {
-      const opts = {}
-      if (this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT]) opts.maxConcurrent = this.caps[Capabilities.RATELIMIT_USERSAYS_MAXCONCURRENT]
-      if (this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]) opts.minTime = this.caps[Capabilities.RATELIMIT_USERSAYS_MINTIME]
-      this.userSaysLimiter = new Bottleneck(opts)
-      debug(`Build: Applying userSays rate limits ${util.inspect(opts)}`)
-    }
-
     return new Promise((resolve, reject) => {
       this._RunCustomHook('onBuild', this.onBuildHook)
         .then(() => resolve(this))
@@ -69,8 +79,8 @@ module.exports = class BaseContainer {
     const run = () => this._RunCustomHook('onUserSays', this.onUserSaysHook, { meMsg })
       .then(() => this.UserSaysImpl(meMsg))
 
-    if (this.userSaysLimiter) {
-      return this.userSaysLimiter.schedule(run)
+    if (this.bottleneck) {
+      return this.bottleneck(run)
     } else {
       return run()
     }
