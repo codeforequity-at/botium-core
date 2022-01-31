@@ -109,9 +109,9 @@ module.exports = class BotDriver {
 
   Build () {
     debug(`Build - Botium Core Version: ${version}`)
-    debug(`Build - Capabilites: ${util.inspect(this.caps)}`)
-    debug(`Build - Sources : ${util.inspect(this.sources)}`)
-    debug(`Build - Envs : ${util.inspect(this.envs)}`)
+    debug(`Build - Capabilites: ${JSON.stringify(_.pickBy(this.caps, (value, key) => Defaults.Capabilities[key] !== value), null, 2)}`)
+    debug(`Build - Sources: ${JSON.stringify(_.pickBy(this.sources, (value, key) => Defaults.Sources[key] !== value), null, 2)}`)
+    debug(`Build - Envs: ${JSON.stringify(_.pickBy(this.envs, (value, key) => Defaults.Envs[key] !== value), null, 2)}`)
     this.eventEmitter.emit(Events.CONTAINER_BUILDING)
 
     return new Promise((resolve, reject) => {
