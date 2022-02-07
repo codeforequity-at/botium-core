@@ -309,34 +309,82 @@ module.exports = class SimpleRestContainer {
       }
 
       for (const jsonPathRoot of jsonPathRoots) {
-        const media = []
-        const buttons = []
+        const _retrieveMedia = (jsonPathMediaRoot, jsonPathsMedia) => {
+          const retrievedMedia = []
+          jsonPathsMedia.forEach(jsonPath => {
+            const responseMedia = jp.query(jsonPathMediaRoot, jsonPath)
+            if (responseMedia) {
+              (_.isArray(responseMedia) ? _.flattenDeep(responseMedia) : [responseMedia]).forEach(m =>
+                retrievedMedia.push({
+                  mediaUri: m,
+                  mimeType: mime.lookup(m) || 'application/unknown'
+                })
+              )
+            }
+          })
+          return retrievedMedia
+        }
 
-        const jsonPathsMedia = getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH, this.caps)
-        jsonPathsMedia.forEach(jsonPath => {
-          const responseMedia = jp.query(jsonPathRoot, jsonPath)
-          if (responseMedia) {
-            (_.isArray(responseMedia) ? _.flattenDeep(responseMedia) : [responseMedia]).forEach(m =>
-              media.push({
-                mediaUri: m,
-                mimeType: mime.lookup(m) || 'application/unknown'
+        const _retrieveButtons = (jsonPathButtonRoot, jsonPathsButtons) => {
+          const retrievedButtons = []
+          jsonPathsButtons.forEach(jsonPath => {
+            const responseButtons = jp.query(jsonPathButtonRoot, jsonPath)
+            if (responseButtons) {
+              (_.isArray(responseButtons) ? _.flattenDeep(responseButtons) : [responseButtons]).forEach(b =>
+                retrievedButtons.push({
+                  text: b
+                })
+              )
+            }
+          })
+          return retrievedButtons
+        }
+
+        const _getCardText = (responseCardText) => {
+          if (responseCardText) {
+            const texts = _.isArray(responseCardText) ? _.flattenDeep(responseCardText) : [responseCardText]
+            if (texts.length > 1) {
+              debug(`more than one text found for card: ${util.inspect(texts)}`)
+            }
+            if (texts.length > 0) {
+              return texts[0]
+            }
+          }
+        }
+
+        const media = _retrieveMedia(jsonPathRoot, getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH, this.caps))
+        debug(`found response media: ${util.inspect(media)}`)
+        const buttons = _retrieveButtons(jsonPathRoot, getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH, this.caps))
+        debug(`found response buttons: ${util.inspect(buttons)}`)
+        const cards = []
+
+        const jsonPathsCards = getAllCapValues(Capabilities.SIMPLEREST_CARDS_JSONPATH, this.caps)
+        jsonPathsCards.forEach(jsonPath => {
+          const responseCards = jp.query(jsonPathRoot, jsonPath)
+          if (responseCards) {
+            (_.isArray(responseCards) ? _.flattenDeep(responseCards) : [responseCards]).forEach(c => {
+              const card = {}
+
+              const jsonPathsCardText = getAllCapValues(Capabilities.SIMPLEREST_CARD_TEXT_JSONPATH, this.caps)
+              jsonPathsCardText.forEach(jsonPath => {
+                card.text = _getCardText(jp.query(c, jsonPath))
               })
-            )
-            debug(`found response media: ${util.inspect(media)}`)
+
+              const jsonPathsCardSubText = getAllCapValues(Capabilities.SIMPLEREST_CARD_SUBTEXT_JSONPATH, this.caps)
+              jsonPathsCardSubText.forEach(jsonPath => {
+                card.subtext = _getCardText(jp.query(c, jsonPath))
+              })
+
+              card.buttons = _retrieveButtons(c, getAllCapValues(Capabilities.SIMPLEREST_CARD_BUTTONS_JSONPATH, this.caps))
+              card.media = _retrieveMedia(c, getAllCapValues(Capabilities.SIMPLEREST_CARD_ATTACHMENTS_JSONPATH, this.caps))
+
+              if (_.keys(card).length > 0) {
+                cards.push(card)
+              }
+            })
           }
         })
-        const jsonPathsButtons = getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH, this.caps)
-        jsonPathsButtons.forEach(jsonPath => {
-          const responseButtons = jp.query(jsonPathRoot, jsonPath)
-          if (responseButtons) {
-            (_.isArray(responseButtons) ? _.flattenDeep(responseButtons) : [responseButtons]).forEach(b =>
-              buttons.push({
-                text: b
-              })
-            )
-            debug(`found response buttons: ${util.inspect(buttons)}`)
-          }
-        })
+        debug(`found response cards: ${util.inspect(cards)}`)
 
         let hasMessageText = false
         const jsonPathsTexts = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, this.caps)
@@ -351,18 +399,18 @@ module.exports = class SimpleRestContainer {
             if (!messageText) continue
 
             hasMessageText = true
-            const botMsg = { sourceData: body, messageText, media, buttons }
+            const botMsg = { sourceData: body, messageText, media, buttons, cards }
             await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot, messageTextIndex }, this.view))
             result.push(botMsg)
           }
         }
 
         if (!hasMessageText) {
-          const botMsg = { messageText: '', sourceData: body, media, buttons }
+          const botMsg = { messageText: '', sourceData: body, media, buttons, cards }
           const beforeHookKeys = Object.keys(botMsg)
           await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
           const afterHookKeys = Object.keys(botMsg)
-          if (beforeHookKeys.length !== afterHookKeys.length || !!(botMsg.messageText && botMsg.messageText.length > 0) || botMsg.media.length > 0 || botMsg.buttons.length > 0 || !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
+          if (beforeHookKeys.length !== afterHookKeys.length || !!(botMsg.messageText && botMsg.messageText.length > 0) || botMsg.media.length > 0 || botMsg.buttons.length > 0 || botMsg.cards.length > 0 || !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
             result.push(botMsg)
           }
         }
