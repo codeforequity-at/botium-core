@@ -762,6 +762,70 @@ describe('connectors.simplerest.processBody', function () {
 
     await container.Clean()
   })
+  it('should process card responses', async function () {
+    const myCaps = Object.assign({}, myCapsGet, {
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+      [Capabilities.SIMPLEREST_CARDS_JSONPATH]: '$.cards',
+      [Capabilities.SIMPLEREST_CARD_TEXT_JSONPATH]: '$.title',
+      [Capabilities.SIMPLEREST_CARD_SUBTEXT_JSONPATH]: '$.subTitle',
+      [Capabilities.SIMPLEREST_CARD_ATTACHMENTS_JSONPATH]: '$.media',
+      [Capabilities.SIMPLEREST_CARD_BUTTONS_JSONPATH]: '$.buttons[*].text'
+    })
+    const driver = new BotDriver(myCaps)
+    const container = await driver.Build()
+    assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+    await container.Start()
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({
+      cards: [
+        {
+          title: 'card1',
+          subTitle: 'card1 sub',
+          media: 'http://botium.at/1.jpg',
+          buttons: [
+            {
+              text: 'c1b1'
+            },
+            {
+              text: 'c1b2'
+            }
+          ]
+        },
+        {
+          title: 'card2',
+          subTitle: 'card2 sub',
+          media: 'http://botium.at/2.jpg',
+          buttons: [
+            {
+              text: 'c2b1'
+            }
+          ]
+        }
+      ]
+    }, true)
+
+    assert.exists(msgs)
+    assert.equal(msgs.length, 1)
+    assert.equal(msgs[0].cards.length, 2)
+    assert.equal(msgs[0].cards[0].text, 'card1')
+    assert.equal(msgs[0].cards[0].subtext, 'card1 sub')
+    assert.equal(msgs[0].cards[0].media.length, 1)
+    assert.equal(msgs[0].cards[0].media[0].mediaUri, 'http://botium.at/1.jpg')
+    assert.equal(msgs[0].cards[0].media[0].mimeType, 'image/jpeg')
+    assert.equal(msgs[0].cards[0].buttons.length, 2)
+    assert.equal(msgs[0].cards[0].buttons[0].text, 'c1b1')
+    assert.equal(msgs[0].cards[0].buttons[1].text, 'c1b2')
+
+    assert.equal(msgs[0].cards[1].text, 'card2')
+    assert.equal(msgs[0].cards[1].subtext, 'card2 sub')
+    assert.equal(msgs[0].cards[1].media.length, 1)
+    assert.equal(msgs[0].cards[1].media[0].mediaUri, 'http://botium.at/2.jpg')
+    assert.equal(msgs[0].cards[1].media[0].mimeType, 'image/jpeg')
+    assert.equal(msgs[0].cards[1].buttons.length, 1)
+    assert.equal(msgs[0].cards[1].buttons[0].text, 'c2b1')
+
+    await container.Clean()
+  })
 })
 describe('connectors.simplerest.parseCapabilities', function () {
   it('should get multiple cap values from array', async function () {
