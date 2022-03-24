@@ -307,9 +307,9 @@ class Convo {
             transcriptStep.actual = meMsg
 
             try {
-              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
-              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
-              await this.scriptingEvents.onMePrepare({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep })
+              await this.scriptingEvents.setUserInput({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep, transcriptSteps })
+              await this.scriptingEvents.onMeStart({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep, transcriptSteps })
+              await this.scriptingEvents.onMePrepare({ convo: this, convoStep, container, scriptingMemory, meMsg, transcript, transcriptStep, transcriptSteps })
 
               await this._checkBotRepliesConsumed(container)
 
