@@ -142,7 +142,8 @@ describe('connectors.simplerest.nock', function () {
       [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint/{{msg.messageText}}',
       [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
       [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$'],
-      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingget'
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingget',
+      [Capabilities.SIMPLEREST_COOKIE_REPLICATION]: false
     }
     const scope = nock('https://mock.com')
       .get('/pingget')
@@ -170,8 +171,8 @@ describe('connectors.simplerest.nock', function () {
       [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
       [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$'],
       [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingpost',
-      [Capabilities.SIMPLEREST_PING_RETRIES]: 2
-
+      [Capabilities.SIMPLEREST_PING_RETRIES]: 2,
+      [Capabilities.SIMPLEREST_COOKIE_REPLICATION]: false
     }
     const scope = nock('https://mock.com')
       .post('/pingpost', { status: 'ok?' }, null)
@@ -201,7 +202,8 @@ describe('connectors.simplerest.nock', function () {
       [Capabilities.SIMPLEREST_STOP_URL]: 'https://mock.com/stoppost',
       [Capabilities.SIMPLEREST_STOP_RETRIES]: 2,
       [Capabilities.SIMPLEREST_STOP_VERB]: 'POST',
-      [Capabilities.SIMPLEREST_STOP_BODY]: { status: 'ok?' }
+      [Capabilities.SIMPLEREST_STOP_BODY]: { status: 'ok?' },
+      [Capabilities.SIMPLEREST_COOKIE_REPLICATION]: false
     }
     const scope = nock('https://mock.com')
       .post('/stoppost', { status: 'ok?' }, null)
@@ -222,7 +224,8 @@ describe('connectors.simplerest.nock', function () {
       [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
       [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$'],
       [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingfail',
-      [Capabilities.SIMPLEREST_PING_RETRIES]: 2
+      [Capabilities.SIMPLEREST_PING_RETRIES]: 2,
+      [Capabilities.SIMPLEREST_COOKIE_REPLICATION]: false
     }
     const scope = nock('https://mock.com')
       .get('/pingfail')
@@ -245,6 +248,44 @@ describe('connectors.simplerest.nock', function () {
     } catch (err) {
     }
     scope.persist(false)
+  })
+  it('should store cookies from ping and use for user says request', async () => {
+    const caps = {
+      [Capabilities.CONTAINERMODE]: 'simplerest',
+      [Capabilities.SIMPLEREST_URL]: 'https://mock2.com/endpoint',
+      [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: { HEADER1: 'HEADER1VALUE', HEADER2: '{{msg.token}}' },
+      [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
+      [Capabilities.SIMPLEREST_PING_URL]: 'https://mock2.com/pingget'
+    }
+    const scope = nock('https://mock2.com')
+      .get('/pingget')
+      .reply(200, {
+        status: 'ok'
+      }, {
+        'set-cookie': 'botium=test-cookie'
+      }).persist()
+
+    const scope2 = nock('https://mock2.com', {
+      reqheaders: {
+        cookie: 'botium=test-cookie'
+      }
+    })
+      .get('/endpoint')
+      .reply(200, {
+        text: 'you called me'
+      })
+      .persist()
+    const driver = new BotDriver(caps)
+    const container = await driver.Build()
+    await container.Start()
+
+    await container.UserSays({ text: 'hallo' })
+    await container.WaitBotSays()
+
+    await container.Stop()
+    await container.Clean()
+    scope.persist(false)
+    scope2.persist(false)
   })
 })
 
