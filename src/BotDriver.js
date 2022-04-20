@@ -115,6 +115,7 @@ module.exports = class BotDriver {
     this.eventEmitter.emit(Events.CONTAINER_BUILDING)
 
     return new Promise((resolve, reject) => {
+      let tempDirectory = null
       let repo = null
       let container = null
 
@@ -126,9 +127,19 @@ module.exports = class BotDriver {
             .catch(driverValidated)
         },
 
+        (tempDirectoryCreated) => {
+          tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], sanitize(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
+          try {
+            mkdirp.sync(tempDirectory)
+            tempDirectoryCreated()
+          } catch (err) {
+            tempDirectoryCreated(new Error(`Unable to create temp directory ${tempDirectory}: ${err.message}`))
+          }
+        },
+
         (repoValidated) => {
           try {
-            repo = this._getRepo()
+            repo = this._getRepo(tempDirectory)
           } catch (err) {
             return repoValidated(err)
           }
@@ -141,7 +152,7 @@ module.exports = class BotDriver {
 
         (containerValidated) => {
           try {
-            container = this._getContainer(repo)
+            container = this._getContainer(tempDirectory, repo)
           } catch (err) {
             return containerValidated(err)
           }
@@ -156,9 +167,9 @@ module.exports = class BotDriver {
         if (err) {
           debug(`BotDriver Build error: ${err}`)
           this.eventEmitter.emit(Events.CONTAINER_BUILD_ERROR, err)
-          if (this.tempDirectory) {
-            rimraf(this.tempDirectory, (err) => {
-              if (err) debug(`Cleanup temp dir ${this.tempDirectory} failed: ${util.inspect(err)}`)
+          if (tempDirectory) {
+            rimraf(tempDirectory, (err) => {
+              if (err) debug(`Cleanup temp dir ${tempDirectory} failed: ${util.inspect(err)}`)
             })
           }
           return reject(err)
@@ -311,12 +322,6 @@ module.exports = class BotDriver {
           throw new Error(`Capability '${Capabilities.CONTAINERMODE}' or '${Capabilities.BOTIUMGRIDURL}' missing`)
         }
 
-        this.tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], sanitize(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
-        try {
-          mkdirp.sync(this.tempDirectory)
-        } catch (err) {
-          throw new Error(`Unable to create temp directory ${this.tempDirectory}: ${err}`)
-        }
         resolve(this)
       } catch (err) {
         reject(err)
@@ -324,35 +329,35 @@ module.exports = class BotDriver {
     })
   }
 
-  _getRepo () {
+  _getRepo (tempDirectory) {
     if (this.caps[Capabilities.BOTIUMGRIDURL]) {
       const NoRepo = require('./repos/NoRepo')
-      return new NoRepo(this.tempDirectory, this.sources)
+      return new NoRepo(tempDirectory, this.sources)
     }
     if (this.sources[Source.GITURL]) {
       const GitRepo = require('./repos/GitRepo')
-      return new GitRepo(this.tempDirectory, this.sources)
+      return new GitRepo(tempDirectory, this.sources)
     }
     if (this.sources[Source.LOCALPATH]) {
       const LocalRepo = require('./repos/LocalRepo')
-      return new LocalRepo(this.tempDirectory, this.sources)
+      return new LocalRepo(tempDirectory, this.sources)
     }
     throw new Error(`No Repo provider found for Sources ${util.inspect(this.sources)}`)
   }
 
-  _getContainer (repo) {
+  _getContainer (tempDirectory, repo) {
     if (this.caps[Capabilities.BOTIUMGRIDURL]) {
       const GridContainer = require('./containers/GridContainer')
-      return new GridContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
+      return new GridContainer(this.eventEmitter, tempDirectory, repo, this.caps, this.envs)
     }
     if (!this.caps[Capabilities.CONTAINERMODE]) {
       throw new Error(`Capability '${Capabilities.CONTAINERMODE}' missing`)
     }
     if (this.caps[Capabilities.CONTAINERMODE] === 'inprocess') {
       const InProcessContainer = require('./containers/InProcessContainer')
-      return new InProcessContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
+      return new InProcessContainer(this.eventEmitter, tempDirectory, repo, this.caps, this.envs)
     }
     const PluginConnectorContainer = require('./containers/PluginConnectorContainer')
-    return new PluginConnectorContainer(this.eventEmitter, this.tempDirectory, repo, this.caps, this.envs)
+    return new PluginConnectorContainer(this.eventEmitter, tempDirectory, repo, this.caps, this.envs)
   }
 }
