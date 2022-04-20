@@ -28,7 +28,7 @@ module.exports = class BaseCountAsserter {
         args
       },
       cause: {
-        not: not,
+        not,
         expected: check,
         actual: count
       }

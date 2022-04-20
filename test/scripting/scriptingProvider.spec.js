@@ -226,7 +226,7 @@ describe('scriptingProvider._tagAndCleanupUtterances', function () {
   it('positive case remove empty String from utterances', async function () {
     const scriptingProvider = new ScriptingProvider()
     const utterances = ['don\'t understand', 'sorry', '']
-    const fileUtterances = [{ name: 'INCOMPREHENSION', utterances: utterances }]
+    const fileUtterances = [{ name: 'INCOMPREHENSION', utterances }]
     const actualResult = scriptingProvider._tagAndCleanupUtterances(fileUtterances, 'mydir', 'incomprehension.utterances.txt')
     expect(actualResult[0].utterances).to.eql(utterances.slice(0, 2))
   })

@@ -28,6 +28,7 @@ module.exports = class SimpleRestContainer {
     this.bottleneck = bottleneck || ((fn) => fn())
     this.processInbound = false
     this.redisTopic = this.caps[Capabilities.SIMPLEREST_REDIS_TOPIC] || 'SIMPLEREST_INBOUND_SUBSCRIPTION'
+    this.cookies = {}
 
     if (this.caps[Capabilities.SIMPLEREST_INBOUND_ORDER_UNSETTLED_EVENTS_JSONPATH]) {
       const debounceTimeout = this.caps[Capabilities.SIMPLEREST_INBOUND_DEBOUNCE_TIMEOUT] || 500
@@ -451,7 +452,7 @@ module.exports = class SimpleRestContainer {
 
             if (body) {
               debug(`got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}`)
-
+              this._storeCookiesFromResponse(response)
               try {
                 body = await this._parseResponseBody(body)
               } catch (err) {
@@ -560,8 +561,8 @@ module.exports = class SimpleRestContainer {
       }
     }
     this._addRequestOptions(requestOptions)
-
     await executeHook(this.caps, this.requestHook, Object.assign({ requestOptions }, this.view))
+    this._addRequestCookies(requestOptions)
 
     return requestOptions
   }
@@ -593,6 +594,7 @@ module.exports = class SimpleRestContainer {
         await timeout(pingConfig.timeout)
       } else {
         debug(`_waitForUrlResponse success on url check ${pingConfig.uri}: ${response.statusCode}/${response.statusMessage}`)
+        this._storeCookiesFromResponse(response)
         if (debug.enabled && body) {
           debug(botiumUtils.shortenJsonString(body))
         }
@@ -753,9 +755,9 @@ module.exports = class SimpleRestContainer {
       const timeout = this._getCapValue(Capabilities.SIMPLEREST_POLL_TIMEOUT)
       const pollConfig = {
         method: verb,
-        uri: uri,
+        uri,
         followAllRedirects: true,
-        timeout: timeout
+        timeout
       }
       if (this.caps[Capabilities.SIMPLEREST_POLL_HEADERS]) {
         try {
@@ -783,6 +785,8 @@ module.exports = class SimpleRestContainer {
         debug(`_runPolling: exeucting request hook failed - (${err.message})`)
         return
       }
+      this._addRequestCookies(pollConfig)
+
       request(pollConfig, async (err, response, body) => {
         if (err) {
           debug(`_runPolling: rest request failed: ${err.message}, request: ${JSON.stringify(pollConfig)}`)
@@ -794,7 +798,7 @@ module.exports = class SimpleRestContainer {
             }
           } else if (body) {
             debug(`_runPolling: got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}`)
-
+            this._storeCookiesFromResponse(response)
             try {
               body = await this._parseResponseBody(body)
             } catch (err) {
@@ -835,9 +839,9 @@ module.exports = class SimpleRestContainer {
     const timeout = this._getCapValue(`${capPrefix}_TIMEOUT`) || this._getCapValue(Capabilities.SIMPLEREST_TIMEOUT)
     const httpConfig = {
       method: verb,
-      uri: uri,
+      uri,
       followAllRedirects: true,
-      timeout: timeout
+      timeout
     }
     if (this.caps[`${capPrefix}_HEADERS`]) {
       try {
@@ -856,8 +860,8 @@ module.exports = class SimpleRestContainer {
       }
     }
     this._addRequestOptions(httpConfig)
-
     await executeHook(this.caps, this.requestHooks[capPrefix], Object.assign({ requestOptions: httpConfig }, this.view))
+    this._addRequestCookies(httpConfig)
 
     const retries = this._getCapValue(`${capPrefix}_RETRIES`)
     debug(`_makeCall(${capPrefix}): rest request: ${JSON.stringify(httpConfig)}`)
@@ -872,6 +876,36 @@ module.exports = class SimpleRestContainer {
     }
     if (this.caps[Capabilities.SIMPLEREST_EXTRA_OPTIONS]) {
       _.merge(httpConfig, this.caps[Capabilities.SIMPLEREST_EXTRA_OPTIONS])
+    }
+  }
+
+  _addRequestCookies (requestOptions) {
+    if (!this.caps[Capabilities.SIMPLEREST_COOKIE_REPLICATION] || !requestOptions) {
+      return
+    }
+    const url = new URL(requestOptions.uri)
+    if (!requestOptions.headers) {
+      requestOptions.headers = {}
+    }
+    requestOptions.headers.Cookie = requestOptions.headers.Cookie ? `${requestOptions.headers.Cookie}; ${this.cookies[url.host]}` : this.cookies[url.host]
+  }
+
+  _storeCookiesFromResponse (response) {
+    if (!this.caps[Capabilities.SIMPLEREST_COOKIE_REPLICATION] || !response) {
+      return
+    }
+    const responseCookies = response.headers['set-cookie']
+    if (!responseCookies) {
+      return
+    }
+    const host = _.get(response, 'request.uri.host')
+    let cookie
+    responseCookies.forEach(cookieString => {
+      cookie = cookie ? `${cookie}; ${cookieString}` : cookieString
+    })
+
+    if (cookie) {
+      this.cookies[host] = cookie
     }
   }
 }

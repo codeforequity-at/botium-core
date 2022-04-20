@@ -34,6 +34,7 @@ module.exports = {
     [Capabilities.SIMPLEREST_STRICT_SSL]: true,
     [Capabilities.SIMPLEREST_INBOUND_UPDATE_CONTEXT]: true,
     [Capabilities.SIMPLEREST_CONTEXT_MERGE_OR_REPLACE]: 'MERGE',
+    [Capabilities.SIMPLEREST_COOKIE_REPLICATION]: true,
     [Capabilities.SCRIPTING_TXT_EOL]: '\n',
     [Capabilities.SCRIPTING_XLSX_EOL_WRITE]: '\r\n',
     [Capabilities.SCRIPTING_XLSX_HASHEADERS]: true,

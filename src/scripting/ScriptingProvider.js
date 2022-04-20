@@ -1192,7 +1192,7 @@ module.exports = class ScriptingProvider {
         const node = {
           sender: convoNode.sender,
           key: randomize('0', 20),
-          hash: hash,
+          hash,
           convoNodes: convoNodeValues,
           convos: [_.cloneDeep(convoNodeHeader)],
           childNodes: []

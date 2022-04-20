@@ -235,14 +235,14 @@ class Convo {
       await this.runConversation(container, scriptingMemory, transcript)
       await this._checkBotRepliesConsumed(container)
       try {
-        await this.scriptingEvents.onConvoEnd({ convo: this, convoStep: { stepTag: '#end' }, container, transcript, scriptingMemory: scriptingMemory })
+        await this.scriptingEvents.onConvoEnd({ convo: this, convoStep: { stepTag: '#end' }, container, transcript, scriptingMemory })
       } catch (err) {
         throw new TranscriptError(botiumErrorFromErr(`${this.header.name}: ${err.message}`, err), transcript)
       }
       if (transcript.err && container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
         let assertConvoEndErr = null
         try {
-          await this.scriptingEvents.assertConvoEnd({ convo: this, convoStep: { stepTag: '#end' }, container, transcript, scriptingMemory: scriptingMemory })
+          await this.scriptingEvents.assertConvoEnd({ convo: this, convoStep: { stepTag: '#end' }, container, transcript, scriptingMemory })
         } catch (err) {
           assertConvoEndErr = botiumErrorFromErr(`${this.header.name}: ${err.message}`, err)
         }
@@ -257,7 +257,7 @@ class Convo {
         throw new TranscriptError(transcript.err, transcript)
       }
       try {
-        await this.scriptingEvents.assertConvoEnd({ convo: this, convoStep: { stepTag: '#end' }, container, transcript, scriptingMemory: scriptingMemory })
+        await this.scriptingEvents.assertConvoEnd({ convo: this, convoStep: { stepTag: '#end' }, container, transcript, scriptingMemory })
       } catch (err) {
         transcript.err = botiumErrorFromErr(`${this.header.name}: ${err.message}`, err)
         throw new TranscriptError(transcript.err, transcript)

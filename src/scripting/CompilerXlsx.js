@@ -339,7 +339,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
               agg[varName] = varValues[varIndex][caseIndex] || null
               return agg
             }, {})
-            scriptResults.push({ header: { name: caseName }, values: values })
+            scriptResults.push({ header: { name: caseName }, values })
           }
         } else {
           const variableNames = []
@@ -370,7 +370,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
               }
               rowindex += 1
 
-              scriptResults.push({ header: { name: caseName }, values: values })
+              scriptResults.push({ header: { name: caseName }, values })
             } else {
               break
             }
