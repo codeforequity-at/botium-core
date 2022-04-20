@@ -494,7 +494,7 @@ const linesToScriptingMemories = (lines, columnMode = null) => {
         agg[varName] = varValues[varIndex][caseIndex] || null
         return agg
       }, {})
-      const scriptingMemory = { header: { name: caseName }, values: values }
+      const scriptingMemory = { header: { name: caseName }, values }
       scriptingMemories.push(scriptingMemory)
     }
   } else {

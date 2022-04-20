@@ -755,9 +755,9 @@ module.exports = class SimpleRestContainer {
       const timeout = this._getCapValue(Capabilities.SIMPLEREST_POLL_TIMEOUT)
       const pollConfig = {
         method: verb,
-        uri: uri,
+        uri,
         followAllRedirects: true,
-        timeout: timeout
+        timeout
       }
       if (this.caps[Capabilities.SIMPLEREST_POLL_HEADERS]) {
         try {
@@ -839,9 +839,9 @@ module.exports = class SimpleRestContainer {
     const timeout = this._getCapValue(`${capPrefix}_TIMEOUT`) || this._getCapValue(Capabilities.SIMPLEREST_TIMEOUT)
     const httpConfig = {
       method: verb,
-      uri: uri,
+      uri,
       followAllRedirects: true,
-      timeout: timeout
+      timeout
     }
     if (this.caps[`${capPrefix}_HEADERS`]) {
       try {

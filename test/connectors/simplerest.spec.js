@@ -157,7 +157,7 @@ describe('connectors.simplerest.nock', function () {
     const pingConfig = {
       method: 'GET',
       uri: 'https://mock.com/pingget',
-      body: body,
+      body,
       timeout: 10000
     }
     const responseBody = await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
@@ -186,7 +186,7 @@ describe('connectors.simplerest.nock', function () {
     const pingConfig = {
       method: 'POST',
       uri: 'https://mock.com/pingpost',
-      body: body,
+      body,
       timeout: 100
     }
     const responseBody = await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
@@ -239,7 +239,7 @@ describe('connectors.simplerest.nock', function () {
     const pingConfig = {
       method: 'GET',
       uri: 'https://mock.com/pingfail',
-      body: body,
+      body,
       timeout: 100
     }
     try {

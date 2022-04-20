@@ -46,7 +46,7 @@ const toJsonWeak = (stringOrNot) => {
 
 const optionalJson = (json) => {
   const body = isJson(json)
-  return body ? { 'content-type': 'application/json', body: body } : { 'content-type': 'text/plain', body: json }
+  return body ? { 'content-type': 'application/json', body } : { 'content-type': 'text/plain', body: json }
 }
 
 const shortenJsonString = (obj) => {

@@ -69,7 +69,7 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
           source: 'src/containers/plugins/index.js',
           cause: {
             SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
-            mode: mode,
+            mode,
             ...cause
           }
         }
