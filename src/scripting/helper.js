@@ -77,6 +77,13 @@ const flatString = (str) => {
   return str ? str.split('\n').map(s => s.trim()).join(' ') : ''
 }
 
+const _formatAppendArgs = (args) => {
+  return args ? ` ${args.map(a => a.replace(/\|/g, '\\|')).join('|')}` : ''
+}
+const _parseArgs = (str) => {
+  return (str && str.length > 0 && str.replace(/\\\|/g, '###ESCAPESPLIT###').split('|').map(s => s.replace(/###ESCAPESPLIT###/g, '|').trim())) || []
+}
+
 const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
   if (!validateSender(sender)) throw new Error(`Failed to parse conversation. Section "${sender}" unknown.`)
 
@@ -106,14 +113,14 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
       }
       const name = logicLine.split(' ')[0]
       if (sender !== 'me' && context.IsAsserterValid(name)) {
-        const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+        const args = (logicLine.length > name.length ? _parseArgs(logicLine.substr(name.length + 1)) : [])
         convoStep.asserters.push({ name, args, not, optional })
       } else if (sender === 'me' && context.IsUserInputValid(name)) {
-        const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+        const args = (logicLine.length > name.length ? _parseArgs(logicLine.substr(name.length + 1)) : [])
         convoStep.userInputs.push({ name, args })
         textLinesAccepted = false
       } else if (context.IsLogicHookValid(name)) {
-        const args = (logicLine.length > name.length ? logicLine.substr(name.length + 1).split('|').map(a => a.trim()) : [])
+        const args = (logicLine.length > name.length ? _parseArgs(logicLine.substr(name.length + 1)) : [])
         convoStep.logicHooks.push({ name, args })
         textLinesAccepted = false
       } else {
@@ -422,7 +429,7 @@ const convoStepToLines = (step) => {
   const lines = []
   if (step.sender === 'me') {
     step.forms && step.forms.filter(form => form.value).forEach((form) => {
-      lines.push(`FORM ${form.name}|${form.value}`)
+      lines.push(`FORM${_formatAppendArgs([form.name, form.value])}`)
     })
     if (step.buttons && step.buttons.length > 0) {
       lines.push('BUTTON ' + _decompileButton(step.buttons[0]))
@@ -432,34 +439,34 @@ const convoStepToLines = (step) => {
       lines.push(step.messageText)
     }
     step.userInputs && step.userInputs.forEach((userInput) => {
-      lines.push(userInput.name + (userInput.args ? ' ' + userInput.args.join('|') : ''))
+      lines.push(userInput.name + _formatAppendArgs(userInput.args))
     })
     step.logicHooks && step.logicHooks.forEach((logicHook) => {
-      lines.push(logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : ''))
+      lines.push(logicHook.name + _formatAppendArgs(logicHook.args))
     })
   } else {
     if (step.messageText) {
       lines.push((step.optional ? '?' : '') + (step.not ? '!' : '') + step.messageText)
     }
-    if (step.buttons && step.buttons.length > 0) lines.push('BUTTONS ' + step.buttons.filter(b => b.text).map(b => flatString(b.text)).join('|'))
-    if (step.media && step.media.length > 0) lines.push('MEDIA ' + step.media.filter(m => !m.buffer && m.mediaUri).map(m => m.mediaUri).join('|'))
+    if (step.buttons && step.buttons.length > 0) lines.push('BUTTONS' + _formatAppendArgs(step.buttons.filter(b => b.text).map(b => flatString(b.text))))
+    if (step.media && step.media.length > 0) lines.push('MEDIA' + _formatAppendArgs(step.media.filter(m => !m.buffer && m.mediaUri).map(m => m.mediaUri)))
     if (step.cards && step.cards.length > 0) {
       step.cards.forEach(c => {
         let cardTexts = []
         if (c.text) cardTexts = cardTexts.concat(_.isArray(c.text) ? c.text : [c.text])
         if (c.subtext) cardTexts = cardTexts.concat(_.isArray(c.subtext) ? c.subtext : [c.subtext])
         if (c.content) cardTexts = cardTexts.concat(_.isArray(c.content) ? c.content : [c.content])
-        if (cardTexts.length > 0) lines.push('CARDS ' + cardTexts.map(c => flatString(c)).join('|'))
+        if (cardTexts.length > 0) lines.push('CARDS' + _formatAppendArgs(cardTexts.map(c => flatString(c))))
 
-        if (c.buttons && c.buttons.length > 0) lines.push('BUTTONS ' + c.buttons.filter(b => b.text).map(b => flatString(b.text)).join('|'))
+        if (c.buttons && c.buttons.length > 0) lines.push('BUTTONS' + _formatAppendArgs(c.buttons.filter(b => b.text).map(b => flatString(b.text))))
         if (c.image && !c.image.buffer && c.image.mediaUri) lines.push('MEDIA ' + c.image.mediaUri)
       })
     }
     step.asserters && step.asserters.forEach((asserter) => {
-      lines.push((asserter.optional ? '?' : '') + (asserter.not ? '!' : '') + asserter.name + (asserter.args ? ' ' + asserter.args.join('|') : ''))
+      lines.push((asserter.optional ? '?' : '') + (asserter.not ? '!' : '') + asserter.name + _formatAppendArgs(asserter.args))
     })
     step.logicHooks && step.logicHooks.forEach((logicHook) => {
-      lines.push(logicHook.name + (logicHook.args ? ' ' + logicHook.args.join('|') : ''))
+      lines.push(logicHook.name + _formatAppendArgs(logicHook.args))
     })
   }
   return lines.map(l => l.trim())

@@ -308,5 +308,18 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation[0].asserters.length, 1)
       assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test1', 'Test2'], not: true, optional: false })
     })
+    it('should allow escape pipe for args', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_args_escape.convo.txt'))
+      const context = buildContextWithPause()
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      const convo = context.convos[0]
+      assert.equal(convo.conversation.length, 1)
+      assert.equal(convo.conversation[0].asserters.length, 1)
+      assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test|1', 'Test|2'], not: false, optional: false })
+    })
   })
 })
