@@ -535,7 +535,7 @@ class Convo {
       if (container.caps[Capabilities.SCRIPTING_ENABLE_SKIP_ASSERT_ERRORS]) {
         const transcriptStepErrs = transcript.steps.filter(s => s.err).map(s => s.err)
         if (transcriptStepErrs && transcriptStepErrs.length > 0) {
-          transcript.err = botiumErrorFromList([transcriptStepErrs, transcript.err].filter(e => e), {})
+          transcript.err = botiumErrorFromList([...transcriptStepErrs.filter(err => err !== transcript.err), transcript.err].filter(e => e), {})
         }
       }
     }
