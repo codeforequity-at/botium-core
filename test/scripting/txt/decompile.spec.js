@@ -637,4 +637,28 @@ CUSTOMINPUT arg1|arg2
 `
     )
   })
+  it('should escape pipe in args', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'me',
+          userInputs: [{ name: 'CUSTOMINPUT', args: ['arg|1', 'arg|2'] }]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#me
+CUSTOMINPUT arg\\|1|arg\\|2
+`
+    )
+  })
 })

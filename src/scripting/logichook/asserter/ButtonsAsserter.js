@@ -1,5 +1,7 @@
+const { SCRIPTING_NORMALIZE_TEXT } = require('../../../Capabilities')
 const { BotiumError } = require('../../BotiumError')
 const { buttonsFromMsg } = require('../helpers')
+const { normalizeText } = require('../../helper')
 
 module.exports = class ButtonsAsserter {
   constructor (context, caps = {}) {
@@ -9,14 +11,14 @@ module.exports = class ButtonsAsserter {
   }
 
   _evalButtons (args, botMsg) {
-    const allButtons = buttonsFromMsg(botMsg, true).map(b => b.text)
+    const allButtons = buttonsFromMsg(botMsg, true).map(b => b.text).filter(b => b).map(b => normalizeText(b, !!this.caps[SCRIPTING_NORMALIZE_TEXT]))
     if (!args || args.length === 0) {
       return { allButtons, buttonsNotFound: [], buttonsFound: allButtons }
     }
     const buttonsNotFound = []
     const buttonsFound = []
     for (let i = 0; i < (args || []).length; i++) {
-      if (allButtons.findIndex(b => this.context.Match(b, args[i])) < 0) {
+      if (allButtons.findIndex(b => this.context.Match(b, normalizeText(args[i], !!this.caps[SCRIPTING_NORMALIZE_TEXT]))) < 0) {
         buttonsNotFound.push(args[i])
       } else {
         buttonsFound.push(args[i])

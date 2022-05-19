@@ -263,3 +263,50 @@ describe('scripting.asserters.buttonsCountAsserter', function () {
     })
   })
 })
+
+describe('scripting.asserters.buttonsNormalizeAsserter', function () {
+  beforeEach(async function () {
+    this.cardsAsserter = new ButtonsAsserter({
+      Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+    }, { SCRIPTING_NORMALIZE_TEXT: true })
+  })
+
+  it('should succeed with normalized text', async function () {
+    await this.cardsAsserter.assertConvoStep({
+      convoStep: { stepTag: 'test' },
+      args: ['Test Html header      test html text'],
+      botMsg: {
+        buttons: [
+          {
+            text: '<html><h1>test html header</h1><p>test html text</p>'
+          }
+        ]
+      }
+    })
+  })
+
+  it('should fail with normalized text', async function () {
+    try {
+      await this.cardsAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['Test Html header1      test html text'],
+        botMsg: {
+          buttons: [
+            {
+              text: '<html><h1>test html header</h1><p>test html text</p>'
+            }
+          ]
+        }
+      })
+      assert.fail('should have failed')
+    } catch (err) {
+      assert.isTrue(err.message.indexOf('Expected button(s) with text "Test Html header1      test html text"') > 0)
+      assert.isNotNull(err.context)
+      assert.isNotNull(err.context.cause)
+      assert.isArray(err.context.cause.expected)
+      assert.deepEqual(err.context.cause.expected, ['Test Html header1      test html text'])
+      assert.deepEqual(err.context.cause.actual, ['test html header test html text'])
+      assert.deepEqual(err.context.cause.diff, ['Test Html header1      test html text'])
+    }
+  })
+})

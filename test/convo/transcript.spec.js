@@ -47,7 +47,8 @@ describe('convo.transcript', function () {
       [Capabilities.PROJECTNAME]: 'convo.transcript',
       [Capabilities.CONTAINERMODE]: echoConnector,
       [Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]: true,
-      [Capabilities.SCRIPTING_ENABLE_SKIP_ASSERT_ERRORS]: true
+      [Capabilities.SCRIPTING_ENABLE_SKIP_ASSERT_ERRORS]: true,
+      [Capabilities.WAITFORBOTTIMEOUT]: 500
     }
     this.driverSkipAssertErrors = new BotDriver(myCapsSkipAssertErrors)
     this.compilerSkipAssertErrors = this.driverSkipAssertErrors.BuildCompiler()
@@ -379,6 +380,22 @@ describe('convo.transcript', function () {
       assert.equal(err.transcript.steps[4].expected.messageText, this.compilerSkipAssertErrors.convos[0].conversation[4].messageText)
       assert.equal(err.transcript.steps[5].expected.messageText, this.compilerSkipAssertErrors.convos[0].conversation[5].messageText)
       assert.isNull(err.transcript.steps[5].err)
+    }
+  })
+  it('should continue on failing assertion with timeout', async function () {
+    this.compilerSkipAssertErrors.ReadScript(path.resolve(__dirname, 'convos'), 'continuefailing_timeout.convo.txt')
+    assert.equal(this.compilerSkipAssertErrors.convos.length, 1)
+
+    try {
+      await this.compilerSkipAssertErrors.convos[0].Run(this.containerSkipAssertErrors)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.isDefined(err.cause)
+      assert.equal(err.cause.message, 'continuefailing/Line 12: Bot response (on Line 9: #me - Hello again!) "Hello again!" expected to match "Hello again FAILING!",\ncontinuefailing/Line 15: error waiting for bot - Bot did not respond within 500ms')
+      assert.equal(err.cause.context.errors.length, 2)
+
+      assert.isDefined(err.transcript)
+      assert.equal(err.transcript.steps.length, 5)
     }
   })
 })
