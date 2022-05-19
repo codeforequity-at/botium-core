@@ -78,7 +78,7 @@ const flatString = (str) => {
 }
 
 const _formatAppendArgs = (args) => {
-  return args ? ` ${args.map(a => a.replace(/\|/g, '\\|')).join('|')}` : ''
+  return args ? ` ${args.map(a => _.isString(a) ? a.replace(/\|/g, '\\|') : `${a}`).join('|')}` : ''
 }
 const _parseArgs = (str) => {
   return (str && str.length > 0 && str.replace(/\\\|/g, '###ESCAPESPLIT###').split('|').map(s => s.replace(/###ESCAPESPLIT###/g, '|').trim())) || []
