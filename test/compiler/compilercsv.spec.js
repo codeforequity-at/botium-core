@@ -452,10 +452,10 @@ describe('compiler.compilercsv', function () {
           assert.lengthOf(context.utterances, 5)
           assert.lengthOf(context.convos, 0)
           assert.deepEqual(context.utterances[0], {
-            "name": "5col",
-            "utterances": [
-              "hello",
-              "hi"
+            name: '5col',
+            utterances: [
+              'hello',
+              'hi'
             ]
           })
         })
@@ -466,22 +466,23 @@ describe('compiler.compilercsv', function () {
 
           const caps = {
             [Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW]: 12,
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STOP_ON_EMPTY]: true,
             [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
           }
           const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
           compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
-          assert.lengthOf(context.utterances, 21)
+          assert.lengthOf(context.utterances, 18)
           assert.lengthOf(context.convos, 0)
           assert.deepEqual(context.utterances[0], {
-            "name": "ask about installation",
-            "utterances": [
-              "about my appointment",
-              "book service installation appointment"
+            name: 'ask about installation',
+            utterances: [
+              'about my appointment',
+              'book service installation appointment'
             ]
           })
         })
-        it('should read liveperson format with SCRIPTING_CSV_STARTROWHEADER', async function () {
+        it('should read liveperson format with SCRIPTING_CSV_STARTROW without stop', async function () {
           const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_liveperson.csv'))
           const context = buildContext()
 
@@ -489,18 +490,50 @@ describe('compiler.compilercsv', function () {
             [Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW]: 12,
             [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
           }
+          const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+          compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
+          // description fields are pared as utterances. even metaintents
+          assert.lengthOf(context.utterances, 21)
+        })
+        it('should read liveperson format with SCRIPTING_CSV_STARTROWHEADER', async function () {
+          const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_liveperson.csv'))
+          const context = buildContext()
+
+          const caps = {
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW]: 12,
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STOP_ON_EMPTY]: true,
+            [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
+          }
 
           const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
           compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
-          assert.lengthOf(context.utterances, 21)
+          assert.lengthOf(context.utterances, 18)
           assert.lengthOf(context.convos, 0)
           assert.deepEqual(context.utterances[0], {
-            "name": "ask about installation",
-            "utterances": [
-              "about my appointment",
-              "book service installation appointment"
+            name: 'ask about installation',
+            utterances: [
+              'about my appointment',
+              'book service installation appointment'
             ]
+          })
+        })
+        it('should work with variable length csv', async function () {
+          const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_variable_row_len.csv'))
+          const context = buildContext()
+
+          const caps = {
+            [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
+          }
+
+          const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+          compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
+          assert.lengthOf(context.utterances, 5)
+          assert.deepEqual(context.utterances[0], {
+            name: 'variable_row_len',
+            utterances: ['hello', 'hi']
           })
         })
       })

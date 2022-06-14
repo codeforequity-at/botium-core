@@ -81,35 +81,12 @@ module.exports = class CompilerCsv extends CompilerBase {
     if (rows.length === 0) {
       return []
     }
-    const columnCount = Math.max(...rows.map(row => row.length))
+    const columnCount = rows[0].length
+    debug(`Legacy mode ${legacyModeOn ? 'on' : 'off'} rows ${rows.length} columns ${columnCount}`)
 
-    const parseUtterances = () => {
-      const result = []
-      const startRow = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW, 2) - 1
-      const startRowHeader = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW_HEADER)
-      for (let col = 0; col < columnCount; col++) {
-        const uttStruct = {
-          name: rows[0][col],
-          utterances: []
-        }
-        let skip = startRowHeader ? true : false
-        for (let row = startRow; row < rows.length && (skip || !!rows[row][col]); row++) {
-          if (!skip) {
-            uttStruct.utterances.push(rows[row][col])
-          } else {
-            if (startRowHeader === rows[row][col]) {
-              skip = false
-            }
-          }
-        }
-        result.push(uttStruct)
-      }
-
-      this.context.AddUtterances(result)
-
-    }
     if ((scriptType === Constants.SCRIPTING_TYPE_CONVO || scriptType === Constants.SCRIPTING_TYPE_PCONVO)) {
       if (columnCount === 1 || (!legacyModeOn && columnCount > 3)) {
+        debug(`Invalid column count '${columnCount}' in convo mode`)
         return []
       }
       let header = null
@@ -118,13 +95,12 @@ module.exports = class CompilerCsv extends CompilerBase {
         rows = rows.slice(1)
       }
       if (rows.length === 0) {
+        debug('Datarows not found in convo mode')
         return []
       }
 
       const lineNumberBase = this.caps[Capabilities.SCRIPTING_CSV_SKIP_HEADER] ? 2 : 1
       if (columnCount === 2) {
-        debug('Found 2-column CSV file, treating it as question/answer file')
-
         let colQuestion = DEFAULT_QA_COLUMN_QUESTION
         let colAnswer = DEFAULT_QA_COLUMN_ANSWER
 
@@ -165,12 +141,11 @@ module.exports = class CompilerCsv extends CompilerBase {
         } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
           this.context.AddPartialConvos(convos)
         }
+        debug(`Found 2-column CSV file, treating it as question/answer file, extracted ${convos.length} convos`)
         return convos
       }
 
       if (columnCount >= 3) {
-        debug('Found 3-column CSV file, treating it as multi-row conversation file')
-
         let colConversationId = DEFAULT_MULTIROW_COLUMN_CONVERSATION
         let colSender = DEFAULT_MULTIROW_COLUMN_SENDER
         let colText = DEFAULT_MULTIROW_COLUMN_TEXT
@@ -214,33 +189,57 @@ module.exports = class CompilerCsv extends CompilerBase {
         } else if (scriptType === Constants.SCRIPTING_TYPE_PCONVO) {
           this.context.AddPartialConvos(convos)
         }
+        debug(`Found 3-column CSV file, treating it as multi-row conversation file, extracted ${convos.length} convos`)
         return convos
       }
     } else if (scriptType === Constants.SCRIPTING_TYPE_UTTERANCES) {
       if (columnCount === 2 || columnCount === 3 || (legacyModeOn && columnCount > 4)) {
+        debug(`Invalid column count '${columnCount}' in utterances mode`)
         return []
       }
       const result = []
       const startRow = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW, 2) - 1
       const startRowHeader = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW_HEADER)
+      const stopOnEmpty = this._GetOptionalCapability(Capabilities.SCRIPTING_CSV_UTTERANCE_STOP_ON_EMPTY)
+
       for (let col = 0; col < columnCount; col++) {
+        const name = rows[0][col]
+        if (!name || name.trim().length === 0) {
+          debug(`Column ${col + 1} has no header, skipping`)
+          continue
+        }
+
         const uttStruct = {
-          name: rows[0][col],
+          name,
           utterances: []
         }
-        let skip = startRowHeader ? true : false
-        for (let row = startRow; row < rows.length && (skip || !!rows[row][col]); row++) {
+        let skip = !!startRowHeader
+        const getData = (row) => {
+          return rows[row][col] ? rows[row][col].trim() : false
+        }
+        //
+        for (let row = startRow; row < rows.length && (skip || !stopOnEmpty || !!getData(row)); row++) { // eslint-disable-line no-unmodified-loop-condition
+          const data = getData(row)
+          if (!data) {
+            continue
+          }
           if (!skip) {
-            uttStruct.utterances.push(rows[row][col])
+            uttStruct.utterances.push(data)
           } else {
             if (startRowHeader === rows[row][col]) {
               skip = false
             }
           }
         }
+        if (uttStruct.utterances.length === 0) {
+          // liveperson, skipping meta intents
+          debug(`Column ${col + 1} has no utterances, skipping`)
+          continue
+        }
         result.push(uttStruct)
       }
 
+      debug(`Multi-column utterance file, extracted ${result.length} utterances`)
       this.context.AddUtterances(result)
       return result
     } else {
