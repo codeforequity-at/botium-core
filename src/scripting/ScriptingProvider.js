@@ -20,7 +20,7 @@ const RetryHelper = require('../helpers/RetryHelper')
 const { getMatchFunction } = require('./MatchFunctions')
 const precompilers = require('./precompilers')
 
-const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.xlsm|*.convo.csv|*.pconvo.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
+const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.xlsm|*.convo.csv|*.pconvo.csv|*.utterances.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
 const skipPattern = /^skip[.\-_]/i
 
 const p = (retryHelper, fn) => {
@@ -522,6 +522,10 @@ module.exports = class ScriptingProvider {
         result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_CONVO)
       } else if (filename.endsWith('.pconvo.csv')) {
         result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
+      } else if (filename.endsWith('.pconvo.csv')) {
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_PCONVO)
+      } else if (filename.endsWith('.utterance.csv')) {
+        result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_CSV, Constants.SCRIPTING_TYPE_UTTERANCES)
       } else if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
         result = this.ReadScriptFromBuffer(scriptBuffer, Constants.SCRIPTING_FORMAT_YAML, [Constants.SCRIPTING_TYPE_UTTERANCES, Constants.SCRIPTING_TYPE_PCONVO, Constants.SCRIPTING_TYPE_CONVO, Constants.SCRIPTING_TYPE_SCRIPTING_MEMORY])
       } else if (filename.endsWith('.json')) {
