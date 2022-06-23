@@ -2,11 +2,11 @@ const util = require('util')
 const _ = require('lodash')
 
 module.exports = class RetryHelper {
-  constructor (caps, section) {
+  constructor (caps, section, options = {}) {
     this.retrySettings = {
-      retries: caps[`RETRY_${section.toUpperCase()}_NUMRETRIES`] || 1,
-      factor: caps[`RETRY_${section.toUpperCase()}_FACTOR`] || 1,
-      minTimeout: caps[`RETRY_${section.toUpperCase()}_MINTIMEOUT`] || 1000
+      retries: caps[`RETRY_${section.toUpperCase()}_NUMRETRIES`] || (_.isNil(options.numRetries) ? 1 : options.numRetries),
+      factor: caps[`RETRY_${section.toUpperCase()}_FACTOR`] || (_.isNil(options.factor) ? 1 : options.factor),
+      minTimeout: caps[`RETRY_${section.toUpperCase()}_MINTIMEOUT`] || (_.isNil(options.minTimeout) ? 1000 : options.minTimeout)
     }
     this.retryErrorPatterns = []
     const onErrorRegexp = caps[`RETRY_${section.toUpperCase()}_ONERROR_REGEXP`] || []
