@@ -214,17 +214,17 @@ class Convo {
   async Run (container) {
     const retryHelper = new RetryHelper(container.caps, 'CONVO', { minTimeout: 0 })
     return promiseRetry(async (retry, number) => {
-        return this.RunImpl(container).catch(err => {
-          if (retryHelper.shouldRetry(err)) {
-            debug(`Convo failed with error "${err.message || JSON.stringify(err)}", retry (#${number}/${retryHelper.retrySettings.retries}) active`)
-            retry(err)
-          } else {
-            if (retryHelper.retryErrorPatterns.length > 0) {
-              debug(`Convo failed with error "${err.message || JSON.stringify(err)}", retry (#${number}/${retryHelper.retrySettings.retries}) not active`)
-            }
-            throw err
+      return this.RunImpl(container).catch(err => {
+        if (retryHelper.shouldRetry(err)) {
+          debug(`Convo failed with error "${err.message || JSON.stringify(err)}", retry (#${number}/${retryHelper.retrySettings.retries}) active`)
+          retry(err)
+        } else {
+          if (retryHelper.retryErrorPatterns.length > 0) {
+            debug(`Convo failed with error "${err.message || JSON.stringify(err)}", retry (#${number}/${retryHelper.retrySettings.retries}) not active`)
           }
-        })
+          throw err
+        }
+      })
     }, retryHelper.retrySettings)
   }
 
