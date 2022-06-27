@@ -24,6 +24,7 @@ describe('convo.retries', function () {
       const myCaps = {
         [Capabilities.PROJECTNAME]: 'convo.retry',
         [Capabilities.CONTAINERMODE]: echoConnector(numErrors, errorText),
+        RETRY_CONVO_MINTIMEOUT: 10,
         RETRY_CONVO_ONERROR_REGEXP: errorPatterns
       }
       if (!isNaN(numRetries)) {

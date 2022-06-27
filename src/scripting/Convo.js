@@ -212,15 +212,16 @@ class Convo {
   }
 
   async Run (container) {
-    const retryHelper = new RetryHelper(container.caps, 'CONVO', { minTimeout: 0 })
+    const retryHelper = new RetryHelper(container.caps, 'CONVO')
     return promiseRetry(async (retry, number) => {
       return this.RunImpl(container).catch(err => {
+        const retryRemaining = retryHelper.retrySettings.retries - number + 1
         if (retryHelper.shouldRetry(err)) {
-          debug(`Convo failed with error "${err.message || JSON.stringify(err)}", retry (#${number}/${retryHelper.retrySettings.retries}) active`)
+          debug(`Convo failed with error "${err.message || JSON.stringify(err)}". Retry ${retryRemaining > 0 ? 'enabled' : 'disabled'} (remaining #${retryRemaining}/${retryHelper.retrySettings.retries}, criterion matches)`)
           retry(err)
         } else {
           if (retryHelper.retryErrorPatterns.length > 0) {
-            debug(`Convo failed with error "${err.message || JSON.stringify(err)}", retry (#${number}/${retryHelper.retrySettings.retries}) not active`)
+            debug(`Convo failed with error "${err.message || JSON.stringify(err)}". Retry 'disabled' (remaining (#${retryRemaining}/${retryHelper.retrySettings.retries}), criterion does not match)`)
           }
           throw err
         }
