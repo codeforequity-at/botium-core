@@ -53,8 +53,14 @@ describe('convo.retries', function () {
     }
     assert.fail('should have failed without retry')
   })
-  it('should succeed after one retry with default settings', async function () {
+  it('should succeed after one retry with default numRetries', async function () {
     await this.init(1, 'myerror', 'myerror')
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '1step.convo.txt')
+    await this.compiler.convos[0].Run(this.container)
+  })
+  it('should succeed after one retry with joker regex', async function () {
+    await this.init(1, 'myerror', null, 1)
 
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '1step.convo.txt')
     await this.compiler.convos[0].Run(this.container)
