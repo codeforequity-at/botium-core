@@ -192,7 +192,7 @@ module.exports = class LogicHookUtils {
                 })
                 return vm.run(script)
               } catch (err) {
-                throw new Error(`${err.message || err}`)
+                throw new Error(`Script ${key} is not valid - ${err.message || err}`)
               }
             } else {
               throw new Error(`Script "${key}" is not valid - only functions and javascript code accepted`)
