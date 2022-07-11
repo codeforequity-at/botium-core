@@ -1,6 +1,7 @@
 const util = require('util')
 const _ = require('lodash')
 const debug = require('debug')('botium-core-Convo')
+const promiseRetry = require('promise-retry')
 
 const BotiumMockMessage = require('../mocks/BotiumMockMessage')
 const Capabilities = require('../Capabilities')
@@ -8,6 +9,7 @@ const Events = require('../Events')
 const ScriptingMemory = require('./ScriptingMemory')
 const { BotiumError, botiumErrorFromErr, botiumErrorFromList } = require('./BotiumError')
 const { normalizeText, toString, removeBuffers, splitStringInNonEmptyLines } = require('./helper')
+const RetryHelper = require('../helpers/RetryHelper')
 
 const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
 
@@ -210,6 +212,24 @@ class Convo {
   }
 
   async Run (container) {
+    const retryHelper = new RetryHelper(container.caps, 'CONVO')
+    return promiseRetry(async (retry, number) => {
+      return this.RunImpl(container).catch(err => {
+        const retryRemaining = retryHelper.retrySettings.retries - number + 1
+        if (retryHelper.shouldRetry(err)) {
+          debug(`Convo failed with error "${err.message || JSON.stringify(err)}". Retry ${retryRemaining > 0 ? 'enabled' : 'disabled'} (remaining #${retryRemaining}/${retryHelper.retrySettings.retries}, criterion matches)`)
+          retry(err)
+        } else {
+          if (retryHelper.retryErrorPatterns.length > 0) {
+            debug(`Convo failed with error "${err.message || JSON.stringify(err)}". Retry 'disabled' (remaining (#${retryRemaining}/${retryHelper.retrySettings.retries}), criterion does not match)`)
+          }
+          throw err
+        }
+      })
+    }, retryHelper.retrySettings)
+  }
+
+  async RunImpl (container) {
     const transcript = new Transcript({
       steps: [],
       attachments: [],
