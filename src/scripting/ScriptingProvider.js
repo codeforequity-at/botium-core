@@ -845,8 +845,7 @@ module.exports = class ScriptingProvider {
   ExpandConvos () {
     const expandedConvos = []
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
-    this.convos.
-    forEach((convo) => {
+    this.convos.forEach((convo) => {
       convo.expandPartialConvos()
       this._expandConvo(expandedConvos, convo)
     })
@@ -902,7 +901,7 @@ module.exports = class ScriptingProvider {
             const allutterances = this.utterances[uttName].utterances
             const processSampleUtterances = (sampleutterances, myContext) => {
               sampleutterances.forEach((utt, index) => {
-                processSampleUtterance(utt, sampleutterances.length, index, Object.assign({indexExpansionModeIndex: index}, myContext || context))
+                processSampleUtterance(utt, sampleutterances.length, index, Object.assign({ indexExpansionModeIndex: index }, myContext || context))
               })
             }
             const processSampleUtterance = (sampleutterance, length, index, myContext) => {
@@ -921,21 +920,23 @@ module.exports = class ScriptingProvider {
             if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'index') {
               if (_.isNil(context.indexExpansionModeWidth)) {
                 // executed for the first found utterance
-                processSampleUtterances(allutterances, Object.assign({}, context, {indexExpansionModeWidth: allutterances.length}))
+                processSampleUtterances(allutterances, Object.assign({}, context, { indexExpansionModeWidth: allutterances.length }))
               } else {
                 if (_.isNil(context.indexExpansionModeIndex)) {
                   throw new Error('indexExpansionModeIndex must be set!')
                 }
-                const localIndex = Math.min(context.indexExpansionModeIndex, allutterances.length - 1)
-                if (localIndex !== context.indexExpansionModeIndex) {
-                  debug(`While expanding convos by index found utterance "${uttName}" less examples (${allutterances.length}) as expected (${context.indexExpansionModeIndex + 1})`)
-                }
                 // executing the current 'thread', if current utterance has no example to current index, fallback to the last one
-                const myContext = Object.assign({}, context, {indexExpansionModeWidth: Math.max(allutterances.length, context.indexExpansionModeWidth)})
+                const localIndex = Math.min(context.indexExpansionModeIndex, allutterances.length - 1)
+                if (localIndex < context.indexExpansionModeIndex && context.indexExpansionModeIndex === context.indexExpansionModeWidth - 1) {
+                  debug(`While expanding convos by index found in utterance "${uttName}" less examples (${allutterances.length}) as expected (${context.indexExpansionModeWidth})`)
+                }
+                const myContext = Object.assign({}, context, { indexExpansionModeWidth: Math.max(allutterances.length, context.indexExpansionModeWidth) })
                 processSampleUtterance(allutterances[localIndex], allutterances.length, localIndex, myContext)
                 if (allutterances.length > context.indexExpansionModeWidth && context.indexExpansionModeIndex + 1 === context.indexExpansionModeWidth) {
-                  for (let i = context.indexExpansionModeWidth; i < allutterances.length; i++ ) {
+                  debug(`While expanding convos by index found in utterance "${uttName}" more examples (${allutterances.length}) as expected (${context.indexExpansionModeWidth})`)
+                  for (let i = context.indexExpansionModeWidth; i < allutterances.length; i++) {
                     // if we found a utterance with more examples as any utterances before, we have to start new 'thread'
+                    const myContext = Object.assign({}, context, { indexExpansionModeWidth: allutterances.length, indexExpansionModeIndex: i })
                     processSampleUtterance(allutterances[i], allutterances.length, i, myContext)
                   }
                 }
@@ -965,12 +966,10 @@ module.exports = class ScriptingProvider {
                 // let sampleinputs = expandedUserInputs
                 const processSampleInputs = (sampleinputs, myContext, uiIndex) => {
                   sampleinputs.forEach((input, index) => {
-                    processSampleInput(input, sampleinputs.length, index, Object.assign({indexExpansionModeIndex: index}, myContext || context), uiIndex)
+                    processSampleInput(input, sampleinputs.length, index, Object.assign({ indexExpansionModeIndex: index }, myContext || context), uiIndex)
                   })
                 }
                 const processSampleInput = (sampleinput, length, index, myContext, uiIndex) => {
-                  // TODO
-                  console.log(`processSampleInput.${currentConvo.header.name}.index ===> ${JSON.stringify(index)}`)
                   const lineTag = `${index + 1}`.padStart(`${length}`.length, '0')
                   const currentStepsStack = convoStepsStack.slice()
                   const currentStepMod = _.cloneDeep(currentStep)
@@ -988,12 +987,17 @@ module.exports = class ScriptingProvider {
                     if (_.isNil(context.indexExpansionModeIndex)) {
                       throw new Error('indexExpansionModeIndex must be set!')
                     }
-                    const localIndex = Math.min(context.indexExpansionModeIndex, expandedUserInputs.length - 1)
                     // executing the current 'thread', if current utterance has no example to current index, fallback to the last one
+                    const localIndex = Math.min(context.indexExpansionModeIndex, expandedUserInputs.length - 1)
+                    if (localIndex < context.indexExpansionModeIndex && context.indexExpansionModeIndex === context.indexExpansionModeWidth - 1) {
+                      debug(`While expanding convos by index found user input "${ui.name}, ${ui.args}" less examples (${expandedUserInputs.length}) as expected (${context.indexExpansionModeWidth})`)
+                    }
                     const myContext = Object.assign({}, context, { indexExpansionModeWidth: Math.max(expandedUserInputs.length, context.indexExpansionModeWidth) })
                     processSampleInput(expandedUserInputs[localIndex], expandedUserInputs.length, localIndex, myContext, uiIndex)
                     if (expandedUserInputs.length > context.indexExpansionModeWidth && context.indexExpansionModeIndex + 1 === context.indexExpansionModeWidth) {
+                      debug(`While expanding convos by index found user input "${ui.name}, ${ui.args}" more examples (${expandedUserInputs.length}) as expected (${context.indexExpansionModeWidth})`)
                       for (let i = context.indexExpansionModeWidth; i < expandedUserInputs.length; i++) {
+                        const myContext = Object.assign({}, context, { indexExpansionModeWidth: expandedUserInputs.length, indexExpansionModeIndex: i })
                         processSampleInput(expandedUserInputs[i], expandedUserInputs.length, i, myContext, uiIndex)
                       }
                     }
