@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const speechScorer = require('word-error-rate')
 
 const { toString, quoteRegexpString } = require('./helper')
 
@@ -79,6 +80,16 @@ const equals = (ignoreCase) => (botresponse, utterance) => {
   return botresponse === utterance
 }
 
+const wer = (ignoreCase) => (botresponse, utterance, args) => {
+  botresponse = _normalize(botresponse || '')
+  utterance = toString(utterance || '')
+  if (ignoreCase) {
+    utterance = utterance.toLowerCase()
+    botresponse = botresponse.toLowerCase()
+  }
+  return speechScorer.wordErrorRate(botresponse, utterance) > args[0]
+}
+
 const getMatchFunction = (matchingMode) => {
   if (matchingMode === 'regexp' || matchingMode === 'regexpIgnoreCase') {
     return regexp(matchingMode === 'regexpIgnoreCase')
@@ -90,6 +101,8 @@ const getMatchFunction = (matchingMode) => {
     return include(matchingMode === 'includeIgnoreCase' || matchingMode === 'includeLowerCase')
   } else if (matchingMode === 'equals' || matchingMode === 'equalsIgnoreCase') {
     return equals(matchingMode === 'equalsIgnoreCase')
+  } else if (matchingMode === 'wer' || matchingMode === 'werIgnoreCase') {
+    return wer(matchingMode === 'werIgnoreCase')
   } else {
     return equals(false)
   }
@@ -101,5 +114,6 @@ module.exports = {
   wildcardExact,
   include,
   equals,
+  wer,
   getMatchFunction
 }
