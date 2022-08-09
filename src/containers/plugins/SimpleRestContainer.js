@@ -520,6 +520,9 @@ module.exports = class SimpleRestContainer {
       try {
         requestOptions.body = this._getMustachedCap(Capabilities.SIMPLEREST_BODY_TEMPLATE, !bodyRaw)
         requestOptions.json = !bodyRaw
+        if (requestOptions.json && (!requestOptions.body || Object.keys(requestOptions.body).length === 0)) {
+          debug(`warning: requestOptions.body content seems to be empty - ${requestOptions.body} - capability: "${this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]}"`)
+        }
       } catch (err) {
         throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${err.message})`)
       }

@@ -69,7 +69,7 @@ describe('logichooks.hookfromsrc', function () {
       await compiler.convos[0].Run(container)
       assert.fail('it should have failed')
     } catch (err) {
-      assert.isTrue(err.message.includes('Line 6: assertion error - Unexpected end of input'))
+      assert.isTrue(err.message.includes('Line 6: assertion error - Script assertConvoStep is not valid'))
     }
   })
 })
