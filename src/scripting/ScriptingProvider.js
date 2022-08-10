@@ -135,7 +135,7 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
-        const asserterType = Capabilities.SCRIPTING_MATCHING_MODE === 'wer' ? 'WerAsserter' : 'TextMatchAsserter'
+        const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'WerAsserter' : 'TextMatchAsserter'
         if (_.isNil(found)) {
           let message = `${stepTag}: Bot response `
           message += meMsg ? `(on ${meMsg}) ` : ''
@@ -166,7 +166,7 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
         const found = _.find(nottomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
-        const asserterType = Capabilities.SCRIPTING_MATCHING_MODE === 'wer' ? 'WerAsserter' : 'TextMatchAsserter'
+        const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'WerAsserter' : 'TextMatchAsserter'
         if (!_.isNil(found)) {
           let message = `${stepTag}: Bot response `
           message += meMsg ? `(on ${meMsg}) ` : ''
@@ -380,10 +380,6 @@ module.exports = class ScriptingProvider {
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN] = new CompilerMarkdown(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN].Validate()
 
-    console.log('lala')
-
-    console.log(this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS])
-
     this.matchFn = getMatchFunction(this.caps[Capabilities.SCRIPTING_MATCHING_MODE])
 
     const logicHookUtils = new LogicHookUtils({ buildScriptContext: this._buildScriptContext(), caps: this.caps })
@@ -407,7 +403,6 @@ module.exports = class ScriptingProvider {
   }
 
   Match (botresponse, utterance) {
-    console.log(this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS])
     return this.matchFn(botresponse, utterance, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS])
   }
 

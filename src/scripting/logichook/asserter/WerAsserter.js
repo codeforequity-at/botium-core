@@ -10,9 +10,8 @@ module.exports = class WerAsserter {
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
-    console.log(args)
     if (!args || args.length < 1) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentAsserter Missing argument`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: WerAsserter Missing argument`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
@@ -22,7 +21,7 @@ module.exports = class WerAsserter {
       ))
     }
     if (args.length > 2) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentAsserter Too much argument "${args}"`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: WerAsserter Too much argument "${args}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',

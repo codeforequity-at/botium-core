@@ -87,7 +87,7 @@ const wer = (ignoreCase) => (botresponse, utterance, args) => {
     utterance = utterance.toLowerCase()
     botresponse = botresponse.toLowerCase()
   }
-  return speechScorer.wordErrorRate(botresponse, utterance) > args[0]
+  return speechScorer.wordErrorRate(botresponse, utterance) < args[0]
 }
 
 const getMatchFunction = (matchingMode) => {
