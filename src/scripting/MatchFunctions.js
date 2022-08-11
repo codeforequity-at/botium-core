@@ -80,14 +80,10 @@ const equals = (ignoreCase) => (botresponse, utterance) => {
   return botresponse === utterance
 }
 
-const wer = (ignoreCase) => (botresponse, utterance, args) => {
+const wer = () => (botresponse, utterance, args) => {
   botresponse = _normalize(botresponse || '')
   utterance = toString(utterance || '')
-  if (ignoreCase) {
-    utterance = utterance.toLowerCase()
-    botresponse = botresponse.toLowerCase()
-  }
-  return speechScorer.wordErrorRate(botresponse, utterance) < args[0]
+  return speechScorer.wordErrorRate(botresponse, utterance) <= args[0]
 }
 
 const getMatchFunction = (matchingMode) => {
@@ -101,8 +97,8 @@ const getMatchFunction = (matchingMode) => {
     return include(matchingMode === 'includeIgnoreCase' || matchingMode === 'includeLowerCase')
   } else if (matchingMode === 'equals' || matchingMode === 'equalsIgnoreCase') {
     return equals(matchingMode === 'equalsIgnoreCase')
-  } else if (matchingMode === 'wer' || matchingMode === 'werIgnoreCase') {
-    return wer(matchingMode === 'werIgnoreCase')
+  } else if (matchingMode === 'wer') {
+    return wer()
   } else {
     return equals(false)
   }
