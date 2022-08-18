@@ -473,7 +473,7 @@ describe('compiler.compilerxlsx', function () {
 
     assert.lengthOf(context.utterances, 0)
   })
-  it('should read 3 convos without name (forced)', async function () {
+  it('should read 3 convos without name (forced) 2', async function () {
     const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_2convos_without_names_noheader.xlsx'))
     const context = buildContext()
 

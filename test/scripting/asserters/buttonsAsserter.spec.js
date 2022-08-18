@@ -4,104 +4,17 @@ const ButtonsCountAsserter = require('../../../src/scripting/logichook/asserter/
 const ButtonsCountRecAsserter = require('../../../src/scripting/logichook/asserter/ButtonsCountRecAsserter')
 
 describe('scripting.asserters.buttonsAsserter', function () {
-  beforeEach(async function () {
-    this.buttonsAsserter = new ButtonsAsserter({
-      Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
-    }, {})
-  })
+  describe('buttonsAsserter', function () {
+    beforeEach(async function () {
+      this.buttonsAsserter = new ButtonsAsserter({
+        Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+      }, {})
+    })
 
-  it('should succeed on existing button', async function () {
-    await this.buttonsAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: ['test'],
-      botMsg: {
-        buttons: [
-          {
-            text: 'test'
-          }
-        ]
-      }
-    })
-  })
-  it('should succeed on existing card button', async function () {
-    await this.buttonsAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: ['test'],
-      botMsg: {
-        cards: [
-          {
-            buttons: [
-              {
-                text: 'test'
-              }
-            ]
-          }
-        ]
-      }
-    })
-  })
-  it('should succeed on existing card buttons', async function () {
-    await this.buttonsAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: ['test', 'test1'],
-      botMsg: {
-        buttons: [
-          {
-            text: 'test'
-          }
-        ],
-        cards: [
-          {
-            buttons: [
-              {
-                text: 'test1'
-              }
-            ]
-          }
-        ]
-      }
-    })
-  })
-  it('should succeed on existing card buttons', async function () {
-    await this.buttonsAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: ['test', 'test1'],
-      botMsg: {
-        buttons: [
-          {
-            text: 'test'
-          }
-        ],
-        cards: [
-          {
-            buttons: [
-              {
-                text: 'test1'
-              }
-            ]
-          }
-        ]
-      }
-    })
-  })
-  it('should succeed on not existing button', async function () {
-    await this.buttonsAsserter.assertNotConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: ['test1'],
-      botMsg: {
-        buttons: [
-          {
-            text: 'test'
-          }
-        ]
-      }
-    })
-  })
-  it('should fail on unexpected button', async function () {
-    try {
-      await this.buttonsAsserter.assertNotConvoStep({
+    it('should succeed on existing button', async function () {
+      await this.buttonsAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: ['test', 'test1'],
+        args: ['test'],
         botMsg: {
           buttons: [
             {
@@ -110,51 +23,108 @@ describe('scripting.asserters.buttonsAsserter', function () {
           ]
         }
       })
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err.message.indexOf('Not expected button(s) with text "test"') > 0)
-      assert.isNotNull(err.context)
-      assert.isNotNull(err.context.cause)
-      assert.isArray(err.context.cause.expected)
-      assert.isTrue(err.context.cause.not)
-      assert.deepEqual(err.context.cause.expected, ['test', 'test1'])
-      assert.deepEqual(err.context.cause.actual, ['test'])
-      assert.deepEqual(err.context.cause.diff, ['test'])
-    }
-  })
-  it('should succeed on existing button if has no arg', async function () {
-    await this.buttonsAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: [],
-      botMsg: {
-        buttons: [
-          {
-            text: 'test'
+    })
+    it('should succeed on existing card button', async function () {
+      await this.buttonsAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['test'],
+        botMsg: {
+          cards: [
+            {
+              buttons: [
+                {
+                  text: 'test'
+                }
+              ]
+            }
+          ]
+        }
+      })
+    })
+    it('should succeed on existing card buttons', async function () {
+      await this.buttonsAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['test', 'test1'],
+        botMsg: {
+          buttons: [
+            {
+              text: 'test'
+            }
+          ],
+          cards: [
+            {
+              buttons: [
+                {
+                  text: 'test1'
+                }
+              ]
+            }
+          ]
+        }
+      })
+    })
+    it('should succeed on existing card buttons 2', async function () {
+      await this.buttonsAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['test', 'test1'],
+        botMsg: {
+          buttons: [
+            {
+              text: 'test'
+            }
+          ],
+          cards: [
+            {
+              buttons: [
+                {
+                  text: 'test1'
+                }
+              ]
+            }
+          ]
+        }
+      })
+    })
+    it('should succeed on not existing button', async function () {
+      await this.buttonsAsserter.assertNotConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['test1'],
+        botMsg: {
+          buttons: [
+            {
+              text: 'test'
+            }
+          ]
+        }
+      })
+    })
+    it('should fail on unexpected button', async function () {
+      try {
+        await this.buttonsAsserter.assertNotConvoStep({
+          convoStep: { stepTag: 'test' },
+          args: ['test', 'test1'],
+          botMsg: {
+            buttons: [
+              {
+                text: 'test'
+              }
+            ]
           }
-        ]
+        })
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('Not expected button(s) with text "test"') > 0)
+        assert.isNotNull(err.context)
+        assert.isNotNull(err.context.cause)
+        assert.isArray(err.context.cause.expected)
+        assert.isTrue(err.context.cause.not)
+        assert.deepEqual(err.context.cause.expected, ['test', 'test1'])
+        assert.deepEqual(err.context.cause.actual, ['test'])
+        assert.deepEqual(err.context.cause.diff, ['test'])
       }
     })
-  })
-  it('should fail on no button if has no arg', async function () {
-    try {
-      await this.buttonsAsserter.assertConvoStep({ convoStep: { stepTag: 'test' } })
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected some button(s)') > 0)
-      assert.isNotNull(err.context)
-      assert.isNotNull(err.context.cause)
-      assert.isArray(err.context.cause.expected)
-      assert.isNotTrue(err.context.cause.not)
-      assert.deepEqual(err.context.cause.expected, [])
-      assert.deepEqual(err.context.cause.actual, [])
-    }
-  })
-  it('should succeed on not existing button if has no arg and negated', async function () {
-    await this.buttonsAsserter.assertNotConvoStep({ convoStep: { stepTag: 'test' } })
-  })
-  it('should fail on button if has no arg and negated', async function () {
-    try {
-      await this.buttonsAsserter.assertNotConvoStep({
+    it('should succeed on existing button if has no arg', async function () {
+      await this.buttonsAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
         args: [],
         botMsg: {
@@ -165,131 +135,162 @@ describe('scripting.asserters.buttonsAsserter', function () {
           ]
         }
       })
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err.message.indexOf('Not expected button(s) with text "test"') > 0)
-      assert.isNotNull(err.context)
-      assert.isNotNull(err.context.cause)
-      assert.isArray(err.context.cause.expected)
-      assert.isTrue(err.context.cause.not)
-      assert.deepEqual(err.context.cause.expected, [])
-      assert.deepEqual(err.context.cause.actual, ['test'])
-    }
+    })
+    it('should fail on no button if has no arg', async function () {
+      try {
+        await this.buttonsAsserter.assertConvoStep({ convoStep: { stepTag: 'test' } })
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('Expected some button(s)') > 0)
+        assert.isNotNull(err.context)
+        assert.isNotNull(err.context.cause)
+        assert.isArray(err.context.cause.expected)
+        assert.isNotTrue(err.context.cause.not)
+        assert.deepEqual(err.context.cause.expected, [])
+        assert.deepEqual(err.context.cause.actual, [])
+      }
+    })
+    it('should succeed on not existing button if has no arg and negated', async function () {
+      await this.buttonsAsserter.assertNotConvoStep({ convoStep: { stepTag: 'test' } })
+    })
+    it('should fail on button if has no arg and negated', async function () {
+      try {
+        await this.buttonsAsserter.assertNotConvoStep({
+          convoStep: { stepTag: 'test' },
+          args: [],
+          botMsg: {
+            buttons: [
+              {
+                text: 'test'
+              }
+            ]
+          }
+        })
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('Not expected button(s) with text "test"') > 0)
+        assert.isNotNull(err.context)
+        assert.isNotNull(err.context.cause)
+        assert.isArray(err.context.cause.expected)
+        assert.isTrue(err.context.cause.not)
+        assert.deepEqual(err.context.cause.expected, [])
+        assert.deepEqual(err.context.cause.actual, ['test'])
+      }
+    })
   })
-})
-describe('scripting.asserters.buttonsCountAsserter', function () {
-  beforeEach(async function () {
-    this.buttonsCountAsserter = new ButtonsCountAsserter({}, {})
-    this.buttonsCountRecAsserter = new ButtonsCountRecAsserter({}, {})
-  })
+  describe('buttonsCountAsserter', function () {
+    beforeEach(async function () {
+      this.buttonsCountAsserter = new ButtonsCountAsserter({}, {})
+      this.buttonsCountRecAsserter = new ButtonsCountRecAsserter({}, {})
+    })
 
-  it('should succeed on no args with one button', async function () {
-    await this.buttonsCountAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: [],
-      botMsg: {
-        buttons: [{ text: 'test.jpg' }]
-      }
+    it('should succeed on no args with one button', async function () {
+      await this.buttonsCountAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: [],
+        botMsg: {
+          buttons: [{ text: 'test.jpg' }]
+        }
+      })
     })
-  })
-  it('should succeed on 3 with 3 buttons', async function () {
-    await this.buttonsCountAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: ['3'],
-      botMsg: {
-        buttons: [{ text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }],
-        cards: [
-          { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
-        ]
-      }
-    })
-  })
-  it('should fail on 3 with 4 buttons', async function () {
-    try {
+    it('should succeed on 3 with 3 buttons', async function () {
       await this.buttonsCountAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
         args: ['3'],
         botMsg: {
-          buttons: [{ text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }],
-          cards: [
-            { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
-          ]
-        }
-      })
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected Buttons count 4 to be 3') >= 0)
-    }
-  })
-  it('should fail on >3 with 3 buttons', async function () {
-    try {
-      await this.buttonsCountAsserter.assertConvoStep({
-        convoStep: { stepTag: 'test' },
-        args: ['>3'],
-        botMsg: {
           buttons: [{ text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }],
           cards: [
-            { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
+            {
+              buttons: [{ text: 'test.jpg' }],
+              cards: [{ buttons: [{ text: 'test.jpg' }] }]
+            }
           ]
         }
       })
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected Buttons count 3 to be >3') >= 0)
-    }
-  })
-  it('should succeed on >=3 with rec buttons', async function () {
-    await this.buttonsCountRecAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: ['>=3'],
-      botMsg: {
-        buttons: [{ text: 'test.jpg' }],
-        cards: [
-          { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
-        ]
-      }
     })
-  })
-  it('should succeed on 3 with rec buttons', async function () {
-    await this.buttonsCountRecAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: ['3'],
-      botMsg: {
-        buttons: [{ text: 'test.jpg' }],
-        cards: [
-          { buttons: [{ text: 'test.jpg' }], cards: [{ buttons: [{ text: 'test.jpg' }] }] }
-        ]
-      }
-    })
-  })
-})
-
-describe('scripting.asserters.buttonsNormalizeAsserter', function () {
-  beforeEach(async function () {
-    this.cardsAsserter = new ButtonsAsserter({
-      Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
-    }, { SCRIPTING_NORMALIZE_TEXT: true })
-  })
-
-  it('should succeed with normalized text', async function () {
-    await this.cardsAsserter.assertConvoStep({
-      convoStep: { stepTag: 'test' },
-      args: ['Test Html header      test html text'],
-      botMsg: {
-        buttons: [
-          {
-            text: '<html><h1>test html header</h1><p>test html text</p>'
+    it('should fail on 3 with 4 buttons', async function () {
+      try {
+        await this.buttonsCountAsserter.assertConvoStep({
+          convoStep: { stepTag: 'test' },
+          args: ['3'],
+          botMsg: {
+            buttons: [{ text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }],
+            cards: [
+              {
+                buttons: [{ text: 'test.jpg' }],
+                cards: [{ buttons: [{ text: 'test.jpg' }] }]
+              }
+            ]
           }
-        ]
+        })
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('Expected Buttons count 4 to be 3') >= 0)
       }
+    })
+    it('should fail on >3 with 3 buttons', async function () {
+      try {
+        await this.buttonsCountAsserter.assertConvoStep({
+          convoStep: { stepTag: 'test' },
+          args: ['>3'],
+          botMsg: {
+            buttons: [{ text: 'test.jpg' }, { text: 'test.jpg' }, { text: 'test.jpg' }],
+            cards: [
+              {
+                buttons: [{ text: 'test.jpg' }],
+                cards: [{ buttons: [{ text: 'test.jpg' }] }]
+              }
+            ]
+          }
+        })
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('Expected Buttons count 3 to be >3') >= 0)
+      }
+    })
+    it('should succeed on >=3 with rec buttons', async function () {
+      await this.buttonsCountRecAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['>=3'],
+        botMsg: {
+          buttons: [{ text: 'test.jpg' }],
+          cards: [
+            {
+              buttons: [{ text: 'test.jpg' }],
+              cards: [{ buttons: [{ text: 'test.jpg' }] }]
+            }
+          ]
+        }
+      })
+    })
+    it('should succeed on 3 with rec buttons', async function () {
+      await this.buttonsCountRecAsserter.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['3'],
+        botMsg: {
+          buttons: [{ text: 'test.jpg' }],
+          cards: [
+            {
+              buttons: [{ text: 'test.jpg' }],
+              cards: [{ buttons: [{ text: 'test.jpg' }] }]
+            }
+          ]
+        }
+      })
     })
   })
 
-  it('should fail with normalized text', async function () {
-    try {
+  describe('buttonsNormalizeAsserter', function () {
+    beforeEach(async function () {
+      this.cardsAsserter = new ButtonsAsserter({
+        Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
+      }, { SCRIPTING_NORMALIZE_TEXT: true })
+    })
+
+    it('should succeed with normalized text', async function () {
       await this.cardsAsserter.assertConvoStep({
         convoStep: { stepTag: 'test' },
-        args: ['Test Html header1      test html text'],
+        args: ['Test Html header      test html text'],
         botMsg: {
           buttons: [
             {
@@ -298,15 +299,31 @@ describe('scripting.asserters.buttonsNormalizeAsserter', function () {
           ]
         }
       })
-      assert.fail('should have failed')
-    } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected button(s) with text "Test Html header1      test html text"') > 0)
-      assert.isNotNull(err.context)
-      assert.isNotNull(err.context.cause)
-      assert.isArray(err.context.cause.expected)
-      assert.deepEqual(err.context.cause.expected, ['Test Html header1      test html text'])
-      assert.deepEqual(err.context.cause.actual, ['test html header test html text'])
-      assert.deepEqual(err.context.cause.diff, ['Test Html header1      test html text'])
-    }
+    })
+
+    it('should fail with normalized text', async function () {
+      try {
+        await this.cardsAsserter.assertConvoStep({
+          convoStep: { stepTag: 'test' },
+          args: ['Test Html header1      test html text'],
+          botMsg: {
+            buttons: [
+              {
+                text: '<html><h1>test html header</h1><p>test html text</p>'
+              }
+            ]
+          }
+        })
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('Expected button(s) with text "Test Html header1      test html text"') > 0)
+        assert.isNotNull(err.context)
+        assert.isNotNull(err.context.cause)
+        assert.isArray(err.context.cause.expected)
+        assert.deepEqual(err.context.cause.expected, ['Test Html header1      test html text'])
+        assert.deepEqual(err.context.cause.actual, ['test html header test html text'])
+        assert.deepEqual(err.context.cause.diff, ['Test Html header1      test html text'])
+      }
+    })
   })
 })

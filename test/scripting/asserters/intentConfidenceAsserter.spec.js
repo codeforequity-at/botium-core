@@ -8,6 +8,40 @@ const asserterWithGlobal = new IntentConfidenceAsserter(null, null, { expectedMi
 const asserterWithoutGlobal = new IntentConfidenceAsserter(null)
 
 describe('scripting.asserters.intentConfidenceAsserter', function () {
+  const _assert = (useWithGlobal, expected, found, negative) => {
+    const steptag = `UseWithGlobal: ${useWithGlobal}, expected: ${util.inspect(expected)}, found: ${util.inspect(found)}`
+    const promise = (useWithGlobal ? asserterWithGlobal : asserterWithoutGlobal).assertConvoStep(_params(
+      expected,
+      found,
+      steptag
+    ))
+
+    if (negative) {
+      return assert.isRejected(promise)
+    } else {
+      return assert.isFulfilled(promise)
+    }
+  }
+
+  const _params = (expected, found, steptag) => {
+    found = found / 100
+    return {
+      convoStep: {
+        stepTag: steptag
+      },
+      args: expected ? [expected] : [],
+      botMsg: {
+        nlp: found
+          ? {
+              intent: {
+                name: 'not_important',
+                confidence: found
+              }
+            }
+          : null
+      }
+    }
+  }
   // useWithGlobal, expected (minimum), found, negative (expect reject)
   const cases = [
     [true, null, null, true],
@@ -40,38 +74,3 @@ describe('scripting.asserters.intentConfidenceAsserter', function () {
     )
   })
 })
-
-const _assert = (useWithGlobal, expected, found, negative) => {
-  const steptag = `UseWithGlobal: ${useWithGlobal}, expected: ${util.inspect(expected)}, found: ${util.inspect(found)}`
-  const promise = (useWithGlobal ? asserterWithGlobal : asserterWithoutGlobal).assertConvoStep(_params(
-    expected,
-    found,
-    steptag
-  ))
-
-  if (negative) {
-    return assert.isRejected(promise)
-  } else {
-    return assert.isFulfilled(promise)
-  }
-}
-
-const _params = (expected, found, steptag) => {
-  found = found / 100
-  return {
-    convoStep: {
-      stepTag: steptag
-    },
-    args: expected ? [expected] : [],
-    botMsg: {
-      nlp: found
-        ? {
-            intent: {
-              name: 'not_important',
-              confidence: found
-            }
-          }
-        : null
-    }
-  }
-}
