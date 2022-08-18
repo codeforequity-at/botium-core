@@ -1,0 +1,12 @@
+Cancel Pre-Authorized Payment,Payee - Correct/Modify,Pre-Authorized Payment - Correct/Modify,E-Transfer Recipient – Delete
+DisplayName,DisplayName,DisplayName,DisplayName
+Cancel Pre-Authorized Payment,Payee - Correct/Modify,Pre-Authorized Payment - Correct/Modify,E-Transfer Recipient – Delete
+KeyPhrases,KeyPhrases,KeyPhrases,KeyPhrases
+,,,
+MetaIntent,MetaIntent,MetaIntent,MetaIntent
+,,,
+SampleSentences,SampleSentences,SampleSentences,SampleSentences
+Can I call back to re-start the payment,Can I modify my existing payee?,Can I delay my payment to (company)?,Can you delete my friend as an e-transfer recipient?
+Can I stop a direct debit,Can you change the name of the payee?,,Can you delete this e-transfer recipient
+Can you cancel a preauthorized payment for me,,,Can you delete this recipient
+Can you help me cancel my pre authorized payment,,,
