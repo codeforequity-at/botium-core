@@ -982,7 +982,7 @@ module.exports = class ScriptingProvider {
     } else {
       if (expandedConvos.length < options.skip) {
         expandedConvos.push(null)
-      } else if (expandedConvos.length >= options.skip + options.keep){
+      } else if (expandedConvos.length >= options.skip + options.keep) {
         if (!options.stopAfterKeep) {
           expandedConvos.push(null)
         }
@@ -1010,7 +1010,6 @@ module.exports = class ScriptingProvider {
         }
       }
     })
-
   }
 
   AddConvos (convos) {
