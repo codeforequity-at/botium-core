@@ -844,15 +844,27 @@ module.exports = class ScriptingProvider {
     this._sortConvos()
   }
 
-  ExpandConvos () {
+  ExpandConvos (options = {}) {
+    options = Object.assign({
+      // the skipped convos will be filled with null's
+      skip: 0,
+      // number of kept convos
+      keep: Number.MAX_SAFE_INTEGER,
+      // true: stop expansion after all convos kept, or start to fill convo list with nulls
+      stopAfterKeep: null
+    }, options)
     const expandedConvos = []
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     this.convos.forEach((convo) => {
       convo.expandPartialConvos()
-      this._expandConvo(expandedConvos, convo)
+      this._expandConvo(expandedConvos, convo, options)
     })
     this.convos = expandedConvos
-    this._sortConvos()
+    if (options.skip === 0 && options.keep === Number.MAX_SAFE_INTEGER) {
+      this._sortConvos()
+    } else {
+      this._updateConvos()
+    }
   }
 
   /**
@@ -863,7 +875,10 @@ module.exports = class ScriptingProvider {
    * @param convoStepsStack list of ConvoSteps
    * @private
    */
-  _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = []) {
+  _expandConvo (expandedConvos, currentConvo, options, convoStepIndex = 0, convoStepsStack = []) {
+    if (expandedConvos.length >= options.skip + options.keep && options.stopAfterKeep) {
+      return
+    }
     const utterancePostfix = (lineTag, uttOrUserInput) => {
       const naming = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE] || Defaults.capabilities[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]
       if (naming === 'justLineTag') {
@@ -883,7 +898,7 @@ module.exports = class ScriptingProvider {
       if (currentStep.sender === 'bot' || currentStep.sender === 'begin' || currentStep.sender === 'end') {
         const currentStepsStack = convoStepsStack.slice()
         currentStepsStack.push(_.cloneDeep(currentStep))
-        this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+        this._expandConvo(expandedConvos, currentConvo, options, convoStepIndex + 1, currentStepsStack)
       } else if (currentStep.sender === 'me') {
         let useUnexpanded = true
         if (currentStep.messageText) {
@@ -921,7 +936,7 @@ module.exports = class ScriptingProvider {
               Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-${utterancePostfix(lineTag, utt)}` })
               if (!currentConvoLabeled.sourceTag) currentConvoLabeled.sourceTag = {}
               if (!currentConvoLabeled.sourceTag.origConvoName) currentConvoLabeled.sourceTag.origConvoName = currentConvo.header.name
-              this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
+              this._expandConvo(expandedConvos, currentConvoLabeled, options, convoStepIndex + 1, currentStepsStack)
             })
             useUnexpanded = false
           }
@@ -951,7 +966,7 @@ module.exports = class ScriptingProvider {
                   currentStepsStack.push(currentStepMod)
                   const currentConvoLabeled = _.cloneDeep(currentConvo)
                   Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-${utterancePostfix(lineTag, (sampleinput.args && sampleinput.args.length) ? sampleinput.args.join(', ') : 'no-args')}` })
-                  this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack)
+                  this._expandConvo(expandedConvos, currentConvoLabeled, options, convoStepIndex + 1, currentStepsStack)
                 })
                 useUnexpanded = false
               }
@@ -961,26 +976,41 @@ module.exports = class ScriptingProvider {
         if (useUnexpanded) {
           const currentStepsStack = convoStepsStack.slice()
           currentStepsStack.push(_.cloneDeep(currentStep))
-          this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack)
+          this._expandConvo(expandedConvos, currentConvo, options, convoStepIndex + 1, currentStepsStack)
         }
       }
     } else {
-      expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) }))
+      if (expandedConvos.length < options.skip) {
+        expandedConvos.push(null)
+      } else if (expandedConvos.length >= options.skip + options.keep){
+        if (!options.stopAfterKeep) {
+          expandedConvos.push(null)
+        }
+      } else {
+        expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) }))
+      }
     }
   }
 
   _sortConvos () {
     this.convos = _.sortBy(this.convos, [(convo) => convo.header.sort || convo.header.name])
+    this._updateConvos()
+  }
+
+  _updateConvos () {
     let i = 0
     this.convos.forEach((convo) => {
-      convo.header.order = ++i
-      if (!convo.header.projectname) {
-        convo.header.projectname = this.caps[Capabilities.PROJECTNAME]
-      }
-      if (!convo.header.testsessionname) {
-        convo.header.testsessionname = this.caps[Capabilities.TESTSESSIONNAME]
+      if (convo) {
+        convo.header.order = ++i
+        if (!convo.header.projectname) {
+          convo.header.projectname = this.caps[Capabilities.PROJECTNAME]
+        }
+        if (!convo.header.testsessionname) {
+          convo.header.testsessionname = this.caps[Capabilities.TESTSESSIONNAME]
+        }
       }
     })
+
   }
 
   AddConvos (convos) {
@@ -989,7 +1019,11 @@ module.exports = class ScriptingProvider {
     } else if (convos) {
       this.convos.push(convos)
     }
-    this._sortConvos()
+    if (this.convos.filter(c => _.isNil(c))) {
+      this._updateConvos()
+    } else {
+      this._sortConvos()
+    }
   }
 
   AddUtterances (utterances) {

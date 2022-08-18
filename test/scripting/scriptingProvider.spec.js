@@ -493,6 +493,56 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[4].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
       })
     })
+    describe('should have be possible to generate / store convos partially', function () {
+      const _createConvos = async () => {
+        const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+        await scriptingProvider.Build()
+        scriptingProvider.AddUtterances({
+          name: 'utt1',
+          utterances: ['TEXT1', 'TEXT2', 'TEXT3', 'TEXT4', 'TEXT5']
+        })
+        scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
+          header: {
+            name: 'test convo'
+          },
+          conversation: [
+            {
+              sender: 'me',
+              messageText: 'utt1'
+            },
+            {
+              sender: 'bot',
+              messageText: 'some text'
+            },
+            {
+              sender: 'me',
+              messageText: 'utt1'
+            }
+          ]
+        }))
+        return scriptingProvider
+      }
+
+      it('should build convos using skip and keep', async function () {
+        const scriptingProvider = await _createConvos()
+        scriptingProvider.ExpandConvos({ skip: 10, keep: 8, stopAfterKeep: true })
+        assert.equal(scriptingProvider.convos.length, 18)
+        for (let i = 0; i < 10; i++) {
+          assert.isNull(scriptingProvider.convos[i])
+        }
+        for (let i = 10; i < 18; i++) {
+          assert.isNotNull(scriptingProvider.convos[i])
+        }
+      })
+      it('should build convos with nulls (to detect convo count)', async function () {
+        const scriptingProvider = await _createConvos()
+        scriptingProvider.ExpandConvos({ keep: 0, stopAfterKeep: false })
+        assert.equal(scriptingProvider.convos.length, 25)
+        for (let i = 0; i < 25; i++) {
+          assert.isNull(scriptingProvider.convos[i])
+        }
+      })
+    })
   })
 
   describe('ExpandUtterancesToConvos', function () {
