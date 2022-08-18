@@ -160,8 +160,8 @@ describe('connectors.simplerest.nock', function () {
       body,
       timeout: 10000
     }
-    const responseBody = await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
-    assert.equal(responseBody, '{"status":"ok"}')
+    const response = await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
+    assert.equal(response.body, '{"status":"ok"}')
     scope.persist(false)
   })
   it('post ping endpoint', async () => {
@@ -189,8 +189,8 @@ describe('connectors.simplerest.nock', function () {
       body,
       timeout: 100
     }
-    const responseBody = await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
-    assert.equal(responseBody, '{"status":"ok"}')
+    const response = await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
+    assert.equal(response.body, '{"status":"ok"}')
     scope.persist(false)
   })
   it('post stop endpoint', async () => {
@@ -213,8 +213,8 @@ describe('connectors.simplerest.nock', function () {
       .persist()
     const driver = new BotDriver(caps)
     const container = await driver.Build()
-    const responseBody = await container.pluginInstance._makeCall('SIMPLEREST_STOP')
-    assert.equal(responseBody.status, 'ok')
+    const response = await container.pluginInstance._makeCall('SIMPLEREST_STOP')
+    assert.equal(response.body.status, 'ok')
     scope.persist(false)
   })
   it('error case can\'t connect', async () => {
@@ -629,7 +629,7 @@ describe('connectors.simplerest.processBody', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, {}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 1)
@@ -649,7 +649,7 @@ describe('connectors.simplerest.processBody', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, {}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 0)
@@ -667,7 +667,7 @@ describe('connectors.simplerest.processBody', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, {}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 1)
@@ -686,7 +686,7 @@ describe('connectors.simplerest.processBody', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const msgs = await container.pluginInstance._processBodyAsyncImpl({ media: ['hugo.jpg'] }, true)
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({ media: ['hugo.jpg'] }, {}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 1)
@@ -710,7 +710,7 @@ describe('connectors.simplerest.processBody', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, {}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 1)
@@ -733,7 +733,7 @@ describe('connectors.simplerest.processBody', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, {}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 1)
@@ -756,7 +756,7 @@ describe('connectors.simplerest.processBody', function () {
     assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
 
     await container.Start()
-    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, true)
+    const msgs = await container.pluginInstance._processBodyAsyncImpl({}, {}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 1)
@@ -790,7 +790,7 @@ describe('connectors.simplerest.processBody', function () {
           media: 'http://botium.at/3.jpg'
         }
       ]
-    }, true)
+    }, {}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 3)
@@ -843,7 +843,7 @@ describe('connectors.simplerest.processBody', function () {
           ]
         }
       ]
-    }, true)
+    }, {}, true)
 
     assert.exists(msgs)
     assert.equal(msgs.length, 1)
