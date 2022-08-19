@@ -67,6 +67,31 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(tomatch[1], 'TEXT2')
       scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1')
     })
+    it('should resolve multiple utterance', async function () {
+      const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+      await scriptingProvider.Build()
+      const scriptingContext = scriptingProvider._buildScriptContext()
+      scriptingProvider.AddUtterances([{
+        name: 'utt1',
+        utterances: ['TEXT1', 'TEXT2']
+      },
+      {
+        name: 'utt2',
+        utterances: ['TEXT3', 'TEXT4']
+      }])
+
+      const tomatchUtt1 = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt1' })
+      assert.isArray(tomatchUtt1)
+      assert.equal(tomatchUtt1.length, 2)
+      assert.equal(tomatchUtt1[0], 'TEXT1')
+      assert.equal(tomatchUtt1[1], 'TEXT2')
+      scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatchUtt1, 'test1')
+      const tomatchUtt2 = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt2' })
+      assert.isArray(tomatchUtt2)
+      assert.equal(tomatchUtt2.length, 2)
+      assert.equal(tomatchUtt2[0], 'TEXT3')
+      assert.equal(tomatchUtt2[1], 'TEXT4')
+    })
     it('should resolve null on invalid utterance', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
