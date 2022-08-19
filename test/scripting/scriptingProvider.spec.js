@@ -60,12 +60,12 @@ describe('scripting.scriptingProvider', function () {
         utterances: ['TEXT1', 'TEXT2']
       })
 
-      const tomatchUtt1 = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt1' })
-      assert.isArray(tomatchUtt1)
-      assert.equal(tomatchUtt1.length, 2)
-      assert.equal(tomatchUtt1[0], 'TEXT1')
-      assert.equal(tomatchUtt1[1], 'TEXT2')
-      scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatchUtt1, 'test1')
+      const tomatch = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt1' })
+      assert.isArray(tomatch)
+      assert.equal(tomatch.length, 2)
+      assert.equal(tomatch[0], 'TEXT1')
+      assert.equal(tomatch[1], 'TEXT2')
+      scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1')
     })
     it('should resolve multiple utterance', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
