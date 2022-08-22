@@ -813,29 +813,29 @@ module.exports = class ScriptingProvider {
           },
           useNameAsIntent
             ? {
-                sender: 'bot',
-                asserters: [
-                  {
-                    name: 'INTENT',
-                    args: [utt.name]
-                  }
-                ],
-                stepTag: 'Step 2 - check intent',
-                not: false
-              }
+              sender: 'bot',
+              asserters: [
+                {
+                  name: 'INTENT',
+                  args: [utt.name]
+                }
+              ],
+              stepTag: 'Step 2 - check intent',
+              not: false
+            }
             : incomprehensionUtt
-              ? {
-                  sender: 'bot',
-                  messageText: incomprehensionUtt,
-                  stepTag: 'Step 2 - check incomprehension',
-                  not: true
-                }
-              : {
-                  sender: 'bot',
-                  messageText: '',
-                  stepTag: 'Step 2 - check bot response',
-                  not: false
-                }
+            ? {
+              sender: 'bot',
+              messageText: incomprehensionUtt,
+              stepTag: 'Step 2 - check incomprehension',
+              not: true
+            }
+            : {
+              sender: 'bot',
+              messageText: '',
+              stepTag: 'Step 2 - check bot response',
+              not: false
+            }
         ],
         sourceTag: Object.assign({}, utt.sourceTag, { origUttName: utt.name })
       }))
@@ -850,8 +850,11 @@ module.exports = class ScriptingProvider {
       skip: 0,
       // number of kept convos
       keep: Number.MAX_SAFE_INTEGER,
-      // true: stop expansion after all convos kept, or start to fill convo list with nulls
-      stopAfterKeep: null
+      // true: stop expansion after all convos kept, or start to fill convo list with nulls.
+      // if keep is used, then this has to be set too
+      stopAfterKeep: null,
+      // drop unwanted convos
+      convoFilter: null
     }, options)
     const expandedConvos = []
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
@@ -876,6 +879,10 @@ module.exports = class ScriptingProvider {
    * @private
    */
   _expandConvo (expandedConvos, currentConvo, options, convoStepIndex = 0, convoStepsStack = []) {
+    if (!(expandedConvos.length % 1000)) {
+      // TODO
+      console.log(`expandedConvos.length ===> ${JSON.stringify(expandedConvos.length)}`)
+    }
     if (expandedConvos.length >= options.skip + options.keep && options.stopAfterKeep) {
       return
     }
@@ -980,14 +987,16 @@ module.exports = class ScriptingProvider {
         }
       }
     } else {
-      if (expandedConvos.length < options.skip) {
-        expandedConvos.push(null)
-      } else if (expandedConvos.length >= options.skip + options.keep) {
-        if (!options.stopAfterKeep) {
+      if (!options.convoFilter || options.convoFilter(currentConvo)) {
+        if (expandedConvos.length < options.skip) {
           expandedConvos.push(null)
+        } else if (expandedConvos.length >= options.skip + options.keep) {
+          if (!options.stopAfterKeep) {
+            expandedConvos.push(null)
+          }
+        } else {
+          expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) }))
         }
-      } else {
-        expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) }))
       }
     }
   }
