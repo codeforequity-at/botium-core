@@ -15,8 +15,15 @@ const buildContext = () => {
     AddConvos: (c) => {
       result.convos = result.convos.concat(c)
     },
-    AddUtterances: (u) => {
-      result.utterances = result.utterances.concat(u)
+    AddUtterances: (utteranceStructsToAdd) => {
+      for (const utteranceStructToAdd of utteranceStructsToAdd) {
+        const existing = result.utterances.find(entry => entry.name === utteranceStructToAdd.name)
+        if (existing) {
+          existing.utterances = existing.utterances.concat(utteranceStructToAdd.utterances)
+        } else {
+          result.utterances.push(utteranceStructToAdd)
+        }
+      }
     },
     convos: [],
     utterances: []
@@ -475,27 +482,6 @@ describe('compiler.compilercsv', function () {
         })
         it('should read multi column format 5 col', async function () {
           const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_multicolumn5col.csv'))
-          const context = buildContext()
-
-          const caps = {
-            [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
-          }
-
-          const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
-
-          compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
-          assert.lengthOf(context.utterances, 5)
-          assert.lengthOf(context.convos, 0)
-          assert.deepEqual(context.utterances[0], {
-            name: '5col',
-            utterances: [
-              'hello',
-              'hi'
-            ]
-          })
-        })
-        it('should read multi column format 5 col with duplicate names', async function () {
-          const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_multicolumn5col_dupl.csv'))
           const context = buildContext()
 
           const caps = {
