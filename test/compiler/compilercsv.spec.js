@@ -494,6 +494,27 @@ describe('compiler.compilercsv', function () {
             ]
           })
         })
+        it('should read multi column format 5 col with duplicate names', async function () {
+          const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_multicolumn5col_dupl.csv'))
+          const context = buildContext()
+
+          const caps = {
+            [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
+          }
+
+          const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+          compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
+          assert.lengthOf(context.utterances, 5)
+          assert.lengthOf(context.convos, 0)
+          assert.deepEqual(context.utterances[0], {
+            name: '5col',
+            utterances: [
+              'hello',
+              'hi'
+            ]
+          })
+        })
         it('should read liveperson format with SCRIPTING_CSV_STARTROW', async function () {
           const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_liveperson.csv'))
           const context = buildContext()

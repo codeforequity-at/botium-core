@@ -846,13 +846,8 @@ module.exports = class ScriptingProvider {
 
   ExpandConvos (options = {}) {
     options = Object.assign({
-      // the skipped convos will be filled with null's
-      skip: 0,
-      // number of kept convos
-      keep: Number.MAX_SAFE_INTEGER,
-      // true: stop expansion after all convos kept, or start to fill convo list with nulls.
-      // if keep is used, then this has to be set too
-      stopAfterKeep: null,
+      // use skip and keep, or justNulls
+      justNulls: false,
       // drop unwanted convos
       convoFilter: null
     }, options)
@@ -860,32 +855,47 @@ module.exports = class ScriptingProvider {
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     this.convos.forEach((convo) => {
       convo.expandPartialConvos()
-      this._expandConvo(expandedConvos, convo, options)
+      for (const expanded of this._expandConvo(convo, options)) {
+        if (options.justNulls) {
+          expandedConvos.push(null)
+        } else {
+          expandedConvos.push(expanded)
+        }
+      }
     })
     this.convos = expandedConvos
-    if (options.skip === 0 && options.keep === Number.MAX_SAFE_INTEGER) {
+    if (!options.justNulls) {
       this._sortConvos()
     } else {
       this._updateConvos()
     }
   }
 
+  ExpandConvosIterable (options = {}) {
+    options = Object.assign({
+      // drop unwanted convos
+      convoFilter: null
+    }, options)
+    debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
+    this.convosIterable = this._convosIterable(options)
+  }
+
+  // creating a nested generator, calling the other.
+  // We hope this.convos does not changes while this iterator is used
+  * _convosIterable(options) {
+    for (const convo of this.convos) {
+      convo.expandPartialConvos()
+      yield * this._expandConvo(convo, options)
+    }
+  }
   /**
-   *
-   * @param expandedConvos
+   * This is a generator function with yield
    * @param currentConvo
    * @param convoStepIndex
    * @param convoStepsStack list of ConvoSteps
    * @private
    */
-  _expandConvo (expandedConvos, currentConvo, options, convoStepIndex = 0, convoStepsStack = []) {
-    if (!(expandedConvos.length % 1000)) {
-      // TODO
-      console.log(`expandedConvos.length ===> ${JSON.stringify(expandedConvos.length)}`)
-    }
-    if (expandedConvos.length >= options.skip + options.keep && options.stopAfterKeep) {
-      return
-    }
+  * _expandConvo(currentConvo, options, convoStepIndex = 0, convoStepsStack = []) {
     const utterancePostfix = (lineTag, uttOrUserInput) => {
       const naming = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE] || Defaults.capabilities[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]
       if (naming === 'justLineTag') {
@@ -905,7 +915,7 @@ module.exports = class ScriptingProvider {
       if (currentStep.sender === 'bot' || currentStep.sender === 'begin' || currentStep.sender === 'end') {
         const currentStepsStack = convoStepsStack.slice()
         currentStepsStack.push(_.cloneDeep(currentStep))
-        this._expandConvo(expandedConvos, currentConvo, options, convoStepIndex + 1, currentStepsStack)
+        yield * this._expandConvo(currentConvo, options, convoStepIndex + 1, currentStepsStack)
       } else if (currentStep.sender === 'me') {
         let useUnexpanded = true
         if (currentStep.messageText) {
@@ -932,7 +942,8 @@ module.exports = class ScriptingProvider {
                 .map(a => a.x)
                 .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
             }
-            sampleutterances.forEach((utt, index) => {
+            for (let index = 0; index < sampleutterances.length; index++) {
+              let utt = sampleutterances[index]
               const lineTag = `${index + 1}`.padStart(`${sampleutterances.length}`.length, '0')
               const currentStepsStack = convoStepsStack.slice()
               if (uttArgs) {
@@ -943,13 +954,14 @@ module.exports = class ScriptingProvider {
               Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-${utterancePostfix(lineTag, utt)}` })
               if (!currentConvoLabeled.sourceTag) currentConvoLabeled.sourceTag = {}
               if (!currentConvoLabeled.sourceTag.origConvoName) currentConvoLabeled.sourceTag.origConvoName = currentConvo.header.name
-              this._expandConvo(expandedConvos, currentConvoLabeled, options, convoStepIndex + 1, currentStepsStack)
-            })
+              yield * this._expandConvo(currentConvoLabeled, options, convoStepIndex + 1, currentStepsStack)
+            }
             useUnexpanded = false
           }
         }
         if (currentStep.userInputs && currentStep.userInputs.length > 0) {
-          currentStep.userInputs.forEach((ui, uiIndex) => {
+          for (let uiIndex = 0; uiIndex < currentStep.userInputs.length; uiIndex++) {
+            const ui = currentStep.userInputs[uiIndex]
             const userInput = this.userInputs[ui.name]
             if (userInput && userInput.expandConvo) {
               const expandedUserInputs = userInput.expandConvo({ convo: currentConvo, convoStep: currentStep, args: ui.args })
@@ -964,7 +976,8 @@ module.exports = class ScriptingProvider {
                     .map(a => a.x)
                     .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT])
                 }
-                sampleinputs.forEach((sampleinput, index) => {
+                for (let index = 0; index < sampleinputs.length; index++) {
+                  let sampleinput = sampleinputs[index]
                   const lineTag = `${index + 1}`.padStart(`${sampleinputs.length}`.length, '0')
                   const currentStepsStack = convoStepsStack.slice()
                   const currentStepMod = _.cloneDeep(currentStep)
@@ -973,30 +986,22 @@ module.exports = class ScriptingProvider {
                   currentStepsStack.push(currentStepMod)
                   const currentConvoLabeled = _.cloneDeep(currentConvo)
                   Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-${utterancePostfix(lineTag, (sampleinput.args && sampleinput.args.length) ? sampleinput.args.join(', ') : 'no-args')}` })
-                  this._expandConvo(expandedConvos, currentConvoLabeled, options, convoStepIndex + 1, currentStepsStack)
-                })
+                  yield * this._expandConvo(currentConvoLabeled, options, convoStepIndex + 1, currentStepsStack)
+                }
                 useUnexpanded = false
               }
             }
-          })
+          }
         }
         if (useUnexpanded) {
           const currentStepsStack = convoStepsStack.slice()
           currentStepsStack.push(_.cloneDeep(currentStep))
-          this._expandConvo(expandedConvos, currentConvo, options, convoStepIndex + 1, currentStepsStack)
+          yield * this._expandConvo(currentConvo, options, convoStepIndex + 1, currentStepsStack)
         }
       }
     } else {
-      if (!options.convoFilter || options.convoFilter(currentConvo)) {
-        if (expandedConvos.length < options.skip) {
-          expandedConvos.push(null)
-        } else if (expandedConvos.length >= options.skip + options.keep) {
-          if (!options.stopAfterKeep) {
-            expandedConvos.push(null)
-          }
-        } else {
-          expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) }))
-        }
+      if (!options.convoFilter || options.convoFilter(expanded)) {
+        yield Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) })
       }
     }
   }

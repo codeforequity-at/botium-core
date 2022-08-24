@@ -268,6 +268,48 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt1-L2')
       assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
     })
+    it('should build convos for utterance using iterator', async function () {
+      const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['TEXT1', 'TEXT2']
+      })
+      scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
+        header: {
+          name: 'test convo'
+        },
+        conversation: [
+          {
+            sender: 'me',
+            messageText: 'utt1'
+          }
+        ]
+      }))
+
+      scriptingProvider.ExpandConvosIterable()
+      const expected = [
+        {
+          header: { name: 'test convo/utt1-L1' },
+          conversation: [{ messageText: 'TEXT1' }]
+        },
+        {
+          header: { name: 'test convo/utt1-L2' },
+          conversation: [{ messageText: 'TEXT2' }]
+        }
+      ]
+      let i = 0
+      for (const c of scriptingProvider.convosIterable) {
+        const exp = expected[i++]
+        assert.equal(c.header.name, exp.header.name)
+        assert.equal(c.conversation.length, exp.conversation.length)
+        assert.deepEqual(c.conversation.map(s => s.messageText), exp.conversation.map(s => s.messageText))
+      }
+      assert.equal(i, 2)
+      // scriptingProvider.convosIterable.forEach((iteratedConvo, index) => {
+      //   assert.deepEqual(iteratedConvo, expected[index])
+      // })
+    })
     it('should build convos for utterance with parameters', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -523,20 +565,9 @@ describe('scripting.scriptingProvider', function () {
         return scriptingProvider
       }
 
-      it('should build convos using skip and keep', async function () {
-        const scriptingProvider = await _createConvos()
-        scriptingProvider.ExpandConvos({ skip: 10, keep: 8, stopAfterKeep: true })
-        assert.equal(scriptingProvider.convos.length, 18)
-        for (let i = 0; i < 10; i++) {
-          assert.isNull(scriptingProvider.convos[i])
-        }
-        for (let i = 10; i < 18; i++) {
-          assert.isNotNull(scriptingProvider.convos[i])
-        }
-      })
       it('should build convos with nulls (to detect convo count)', async function () {
         const scriptingProvider = await _createConvos()
-        scriptingProvider.ExpandConvos({ keep: 0, stopAfterKeep: false })
+        scriptingProvider.ExpandConvos({ justNulls: true })
         assert.equal(scriptingProvider.convos.length, 25)
         for (let i = 0; i < 25; i++) {
           assert.isNull(scriptingProvider.convos[i])
