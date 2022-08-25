@@ -29,7 +29,8 @@ const setupEndpoints = ({ app, endpoint, middleware, processEvent }) => {
       processEvent({
         originalUrl: req.originalUrl,
         originalMethod: req.method,
-        body: req.body
+        body: req.body,
+        headers: req.headers
       })
       res.status(200).json({}).end()
     } else {
