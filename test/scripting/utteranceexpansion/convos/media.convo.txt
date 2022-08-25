@@ -1,0 +1,19 @@
+mediawc
+
+#me
+MEDIA files/step0*.wav
+
+#bot
+hello
+
+#me
+MEDIA files/step1*.wav
+
+#bot
+ok
+
+#me
+MEDIA files/step2*.wav
+
+#bot
+goodbye!
