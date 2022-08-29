@@ -639,7 +639,7 @@ module.exports = class SimpleRestContainer {
       try {
         return JSON.parse(raw)
       } catch (err) {
-        return new Error(`JSON parsing failed - try to use {{#fnc.jsonify}}{{xxx}}{{/fnc.jsonify}} to escape JSON special characters (ERR: ${err.message})`)
+        throw new Error(`JSON parsing failed - try to use {{#fnc.jsonify}}{{xxx}}{{/fnc.jsonify}} to escape JSON special characters (ERR: ${err.message})`)
       }
     } else {
       return raw
