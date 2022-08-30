@@ -639,6 +639,9 @@ module.exports = class SimpleRestContainer {
       try {
         return JSON.parse(raw)
       } catch (err) {
+        if (debug.enabled) {
+          debug(`JSON parsing failed (${err.message}) for: ${botiumUtils.shortenJsonString(raw)}`)
+        }
         throw new Error(`JSON parsing failed - try to use {{#fnc.jsonify}}{{xxx}}{{/fnc.jsonify}} to escape JSON special characters (ERR: ${err.message})`)
       }
     } else {
