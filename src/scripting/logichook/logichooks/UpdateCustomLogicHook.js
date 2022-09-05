@@ -1,5 +1,6 @@
 const util = require('util')
 const _ = require('lodash')
+const { ConvoStepLogicHook } = require('../../Convo')
 
 module.exports = class UpdateCustomLogicHook {
   constructor (context, caps = {}, globalArgs = {}) {
@@ -14,10 +15,10 @@ module.exports = class UpdateCustomLogicHook {
     const validConvoSteps = convo.conversation.filter(s => s.sender === 'me')
     for (const convoStep of validConvoSteps) {
       convoStep.logicHooks = (convoStep.logicHooks || [])
-      convoStep.logicHooks.push({
+      convoStep.logicHooks.push(new ConvoStepLogicHook({
         name: 'UPDATE_CUSTOM',
         args
-      })
+      }))
     }
   }
 
