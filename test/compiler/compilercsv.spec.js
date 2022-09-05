@@ -24,6 +24,41 @@ const buildContext = () => {
   return result
 }
 
+const assertLivepersonV2 = (context) => {
+  assert.lengthOf(context.utterances, 4)
+  assert.lengthOf(context.convos, 0)
+  assert.deepEqual(context.utterances[0], {
+    name: 'Cancel Pre-Authorized Payment',
+    utterances: [
+      'Can I call back to re-start the payment',
+      'Can I stop a direct debit',
+      'Can you cancel a preauthorized payment for me',
+      'Can you help me cancel my pre authorized payment'
+    ]
+  })
+  assert.deepEqual(context.utterances[1], {
+    name: 'Payee - Correct/Modify',
+    utterances: [
+      'Can I modify my existing payee?',
+      'Can you change the name of the payee?'
+    ]
+  })
+  assert.deepEqual(context.utterances[2], {
+    name: 'Pre-Authorized Payment - Correct/Modify',
+    utterances: [
+      'Can I delay my payment to (company)?'
+    ]
+  })
+  assert.deepEqual(context.utterances[3], {
+    name: 'E-Transfer Recipient – Delete',
+    utterances: [
+      'Can you delete my friend as an e-transfer recipient?',
+      'Can you delete this e-transfer recipient',
+      'Can you delete this recipient'
+    ]
+  })
+}
+
 describe('compiler.compilercsv', function () {
   describe('ROW_PER_MESSAGE mode, full', function () {
     it('should read basic case', async function () {
@@ -357,7 +392,7 @@ describe('compiler.compilercsv', function () {
             assert.equal(err.message, 'Failed to parse conversation. Section "goodbye" unknown.')
           }
         })
-        it('should not parse multi column uttrances as convos ???', async function () {
+        it('should not parse multi column uttrances as convos ??? 2', async function () {
           const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_multicolumn5col.csv'))
           const context = buildContext()
 
@@ -459,7 +494,6 @@ describe('compiler.compilercsv', function () {
             ]
           })
         })
-        // maybe we could read it
         it('should read liveperson format with SCRIPTING_CSV_STARTROW', async function () {
           const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_liveperson.csv'))
           const context = buildContext()
@@ -482,6 +516,20 @@ describe('compiler.compilercsv', function () {
             ]
           })
         })
+        it('should read liveperson format 2 with SCRIPTING_CSV_STARTROW', async function () {
+          const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_liveperson2.csv'))
+          const context = buildContext()
+
+          const caps = {
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW]: 9,
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STOP_ON_EMPTY]: true,
+            [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
+          }
+          const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+          compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
+          assertLivepersonV2(context)
+        })
         it('should read liveperson format with SCRIPTING_CSV_STARTROW without stop', async function () {
           const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_liveperson.csv'))
           const context = buildContext()
@@ -501,7 +549,7 @@ describe('compiler.compilercsv', function () {
           const context = buildContext()
 
           const caps = {
-            [Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW]: 12,
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW_HEADER]: 'SampleSentences',
             [Capabilities.SCRIPTING_CSV_UTTERANCE_STOP_ON_EMPTY]: true,
             [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
           }
@@ -518,6 +566,59 @@ describe('compiler.compilercsv', function () {
               'book service installation appointment'
             ]
           })
+        })
+        it('should read liveperson format 2 with SCRIPTING_CSV_STARTROWHEADER', async function () {
+          const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_liveperson2.csv'))
+          const context = buildContext()
+
+          const caps = {
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW_HEADER]: 'SampleSentences',
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STOP_ON_EMPTY]: true,
+            [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
+          }
+
+          const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+          compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
+          assertLivepersonV2(context)
+        })
+        it('should read liveperson format with SCRIPTING_CSV_STARTROWHEADER 2', async function () {
+          const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_liveperson.csv'))
+          const context = buildContext()
+
+          const caps = {
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW_HEADER]: 'SampleSentences',
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STOP_ON_EMPTY]: true,
+            [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
+          }
+
+          const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+          compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
+          assert.lengthOf(context.utterances, 18)
+          assert.lengthOf(context.convos, 0)
+          assert.deepEqual(context.utterances[0], {
+            name: 'ask about installation',
+            utterances: [
+              'about my appointment',
+              'book service installation appointment'
+            ]
+          })
+        })
+        it('should read liveperson format 2 with SCRIPTING_CSV_STARTROWHEADER 2', async function () {
+          const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_liveperson2.csv'))
+          const context = buildContext()
+
+          const caps = {
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STARTROW_HEADER]: 'SampleSentences',
+            [Capabilities.SCRIPTING_CSV_UTTERANCE_STOP_ON_EMPTY]: true,
+            [Capabilities.SCRIPTING_CSV_LEGACY_MODE_OFF]: true
+          }
+
+          const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+          compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_UTTERANCES')
+          assertLivepersonV2(context)
         })
         it('should work with variable length csv', async function () {
           const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'utterances_variable_row_len.csv'))

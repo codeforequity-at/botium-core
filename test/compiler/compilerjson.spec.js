@@ -109,9 +109,7 @@ describe('compiler.compilerjson', function () {
     assert.equal(context.scriptingMemories[0].header.name, 'scenario1')
     assert.equal(context.scriptingMemories[0].values.$var1, 'var1_1')
   })
-})
 
-describe('compiler.decompilerjson', function () {
   it('should decompile convos', async function () {
     const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_and_utterances.json'))
     const context = buildContext()
