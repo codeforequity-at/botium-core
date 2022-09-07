@@ -1,0 +1,33 @@
+{
+    "convos": [
+      {
+        "name": "goodbye",
+        "description": "desc of convo goodbye",
+        "steps": [
+          {
+            "me": "UTT_GREETING"
+          },
+          {
+            "bot": "hello"
+          },
+          {
+            "me": "UTT_GOODBYE"
+          },
+          {
+            "bot": "goodbye"
+          }
+        ]
+      }
+    ],
+    "utterances": {
+      "UTT_GREETING": [
+        "hi",
+        "hello!",
+        "hey!"
+      ],
+      "UTT_GOODBYE": [
+        "bye!",
+        "goodbye!"
+      ]
+    }
+  }
