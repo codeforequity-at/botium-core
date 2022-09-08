@@ -902,17 +902,17 @@ module.exports = class ScriptingProvider {
       convoFilter: null
     }, options)
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
-    this.convosIterable = this._convosIterable(options)
-  }
+    // creating a nested generator, calling the other.
+    // We hope this.convos does not changes while this iterator is used
+    const _convosIterable = function * (options) {
+      const context = { count: 0 }
+      for (const convo of this.convos) {
+        convo.expandPartialConvos()
+        yield * this._expandConvo(convo, options, context)
+      }
+    }.bind(this)
 
-  // creating a nested generator, calling the other.
-  // We hope this.convos does not changes while this iterator is used
-  * _convosIterable (options) {
-    const context = { count: 0 }
-    for (const convo of this.convos) {
-      convo.expandPartialConvos()
-      yield * this._expandConvo(convo, options, context)
-    }
+    this.convosIterable = _convosIterable(options)
   }
 
   /**
@@ -963,7 +963,7 @@ module.exports = class ScriptingProvider {
               for (let index = 0; index < sampleutterances.length; index++) {
                 yield * processSampleUtterance(sampleutterances[index], sampleutterances.length, index, Object.assign({ indexExpansionModeIndex: index }, myContext || context))
               }
-            }.bind(this)
+            }
             const processSampleUtterance = function * (sampleutterance, length, index, myContext) {
               const lineTag = `${index + 1}`.padStart(`${length}`.length, '0')
               const currentStepsStack = convoStepsStack.slice()
@@ -1029,7 +1029,7 @@ module.exports = class ScriptingProvider {
                   for (let index = 0; index < sampleinputs.length; index++) {
                     yield * processSampleInput(sampleinputs[index], sampleinputs.length, index, Object.assign({ indexExpansionModeIndex: index }, myContext || context), uiIndex)
                   }
-                }.bind(this)
+                }
                 const processSampleInput = function * (sampleinput, length, index, myContext, uiIndex) {
                   const lineTag = `${index + 1}`.padStart(`${length}`.length, '0')
                   const currentStepsStack = convoStepsStack.slice()
