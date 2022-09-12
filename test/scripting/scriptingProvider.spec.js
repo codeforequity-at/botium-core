@@ -692,6 +692,63 @@ describe('scripting.scriptingProvider', function () {
         assert.isTrue(err.message.indexOf('incomprehension utterance \'INCOMPREHENSION\' undefined') > 0)
       }
     })
+    it('should add incomprehension utterances to new utterance list', async function () {
+      const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['TEXT1', 'TEXT2']
+      })
+
+      scriptingProvider.ExpandUtterancesToConvos({ incomprehensionUtt: 'INCOMPREHENSION', incomprehensionUtts: ['INCOMPREHENSION3', 'INCOMPREHENSION4'] })
+      assert.lengthOf(scriptingProvider.utterances.INCOMPREHENSION.utterances, 2)
+    })
+    it('should add incomprehension utterances to new default utterance list', async function () {
+      const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['TEXT1', 'TEXT2']
+      })
+
+      scriptingProvider.ExpandUtterancesToConvos({ incomprehensionUtts: ['INCOMPREHENSION3', 'INCOMPREHENSION4'] })
+      assert.lengthOf(scriptingProvider.utterances.UTT_INCOMPREHENSION.utterances, 2)
+    })
+    it('should add incomprehension utterances to existing utterance list', async function () {
+      const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['TEXT1', 'TEXT2']
+      })
+      scriptingProvider.AddUtterances({
+        name: 'INCOMPREHENSION',
+        utterances: ['INCOMPREHENSION1', 'INCOMPREHENSION2']
+      })
+
+      scriptingProvider.ExpandUtterancesToConvos({ incomprehensionUtt: 'INCOMPREHENSION', incomprehensionUtts: ['INCOMPREHENSION3', 'INCOMPREHENSION4'] })
+      assert.lengthOf(scriptingProvider.utterances.INCOMPREHENSION.utterances, 4)
+    })
+    it('should add incomprehension intent to asserter list', async function () {
+      const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['TEXT1', 'TEXT2']
+      })
+
+      scriptingProvider.ExpandUtterancesToConvos({ incomprehensionIntents: ['FALLBACK1', 'FALLBACK2'] })
+      assert.equal(scriptingProvider.convos.length, 1)
+      assert.equal(scriptingProvider.convos[0].conversation.length, 2)
+      assert.equal(scriptingProvider.convos[0].conversation[0].messageText, 'utt1')
+      assert.equal(scriptingProvider.convos[0].conversation[1].asserters.length, 2)
+      assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].name, 'INTENT')
+      assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].args[0], 'FALLBACK1')
+      assert.equal(scriptingProvider.convos[0].conversation[1].asserters[0].not, true)
+      assert.equal(scriptingProvider.convos[0].conversation[1].asserters[1].name, 'INTENT')
+      assert.equal(scriptingProvider.convos[0].conversation[1].asserters[1].args[0], 'FALLBACK2')
+      assert.equal(scriptingProvider.convos[0].conversation[1].asserters[1].not, true)
+    })
   })
 
   describe('assertBotResponse', function () {

@@ -770,31 +770,79 @@ module.exports = class ScriptingProvider {
     this._sortConvos()
   }
 
-  ExpandUtterancesToConvos ({ useNameAsIntent, incomprehensionUtt } = {}) {
+  ExpandUtterancesToConvos ({ useNameAsIntent, incomprehensionIntents, incomprehensionUtts, incomprehensionUtt } = {}) {
     const expandedConvos = []
 
     if (_.isUndefined(useNameAsIntent)) {
       useNameAsIntent = !!this.caps[Capabilities.SCRIPTING_UTTEXPANSION_USENAMEASINTENT]
     }
+    if (_.isUndefined(incomprehensionIntents)) {
+      incomprehensionIntents = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_INCOMPREHENSIONINTENTS]
+    }
+    if (_.isUndefined(incomprehensionUtts)) {
+      incomprehensionUtts = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_INCOMPREHENSIONUTTS]
+    }
     if (_.isUndefined(incomprehensionUtt)) {
       incomprehensionUtt = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_INCOMPREHENSION]
     }
 
-    if (useNameAsIntent && incomprehensionUtt) {
-      throw new Error('ExpandUtterancesToConvos - SCRIPTING_UTTEXPANSION_USENAMEASINTENT and SCRIPTING_UTTEXPANSION_INCOMPREHENSION are incompatible')
+    if (incomprehensionUtt && (!incomprehensionUtts || incomprehensionUtts.length === 0) && !this.utterances[incomprehensionUtt]) {
+      throw new Error(`ExpandUtterancesToConvos - incomprehension utterance '${incomprehensionUtt}' undefined (and no user examples given)`)
     }
-    if (incomprehensionUtt && !this.utterances[incomprehensionUtt]) {
-      throw new Error(`ExpandUtterancesToConvos - incomprehension utterance '${incomprehensionUtt}' undefined`)
+    if (incomprehensionUtts && incomprehensionUtts.length > 0) {
+      if (!incomprehensionUtt) {
+        incomprehensionUtt = 'UTT_INCOMPREHENSION'
+      }
+      if (this.utterances[incomprehensionUtt]) {
+        this.utterances[incomprehensionUtt].utterances.push(...incomprehensionUtts)
+      } else {
+        this.utterances[incomprehensionUtt] = {
+          name: incomprehensionUtt,
+          utterances: [...incomprehensionUtts]
+        }
+      }
     }
 
     if (useNameAsIntent) {
       debug('ExpandUtterancesToConvos - Using utterance name as NLU intent')
-    } else if (incomprehensionUtt) {
-      debug(`ExpandUtterancesToConvos - Using incomprehension utterance expansion mode: ${incomprehensionUtt}`)
+    }
+    if (incomprehensionIntents && incomprehensionIntents.length > 0) {
+      debug(`ExpandUtterancesToConvos - Using ${incomprehensionIntents.length} incomprehension NLU intent(s)`)
+    }
+    if (incomprehensionUtt) {
+      debug(`ExpandUtterancesToConvos - Using incomprehension utterance expansion mode: ${incomprehensionUtt}, ${this.utterances[incomprehensionUtt].utterances.length} user example(s)`)
     }
 
     _.keys(this.utterances).filter(u => u !== incomprehensionUtt).forEach(uttName => {
       const utt = this.utterances[uttName]
+
+      const responseStep = {
+        sender: 'bot',
+        messageText: '',
+        asserters: [],
+        stepTag: 'Step 2 - check bot response',
+        not: false
+      }
+      if (useNameAsIntent) {
+        responseStep.asserters.push({
+          name: 'INTENT',
+          args: [utt.name]
+        })
+      }
+      if (incomprehensionIntents && incomprehensionIntents.length > 0) {
+        incomprehensionIntents.forEach(ii => {
+          responseStep.asserters.push({
+            name: 'INTENT',
+            args: [ii],
+            not: true
+          })
+        })
+      }
+      if (incomprehensionUtt) {
+        responseStep.messageText = incomprehensionUtt
+        responseStep.not = true
+      }
+
       expandedConvos.push(new Convo(this._buildScriptContext(), {
         header: {
           name: utt.name,
@@ -811,31 +859,7 @@ module.exports = class ScriptingProvider {
             messageText: utt.name,
             stepTag: 'Step 1 - tell utterance'
           },
-          useNameAsIntent
-            ? {
-                sender: 'bot',
-                asserters: [
-                  {
-                    name: 'INTENT',
-                    args: [utt.name]
-                  }
-                ],
-                stepTag: 'Step 2 - check intent',
-                not: false
-              }
-            : incomprehensionUtt
-              ? {
-                  sender: 'bot',
-                  messageText: incomprehensionUtt,
-                  stepTag: 'Step 2 - check incomprehension',
-                  not: true
-                }
-              : {
-                  sender: 'bot',
-                  messageText: '',
-                  stepTag: 'Step 2 - check bot response',
-                  not: false
-                }
+          responseStep
         ],
         sourceTag: Object.assign({}, utt.sourceTag, { origUttName: utt.name })
       }))
