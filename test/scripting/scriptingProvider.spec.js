@@ -293,6 +293,48 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt1-L2')
       assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
     })
+    it('should build convos for utterance using iterator', async function () {
+      const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+      await scriptingProvider.Build()
+      scriptingProvider.AddUtterances({
+        name: 'utt1',
+        utterances: ['TEXT1', 'TEXT2']
+      })
+      scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
+        header: {
+          name: 'test convo'
+        },
+        conversation: [
+          {
+            sender: 'me',
+            messageText: 'utt1'
+          }
+        ]
+      }))
+
+      scriptingProvider.ExpandConvosIterable()
+      const expected = [
+        {
+          header: { name: 'test convo/utt1-L1' },
+          conversation: [{ messageText: 'TEXT1' }]
+        },
+        {
+          header: { name: 'test convo/utt1-L2' },
+          conversation: [{ messageText: 'TEXT2' }]
+        }
+      ]
+      let i = 0
+      for (const c of scriptingProvider.convosIterable) {
+        const exp = expected[i++]
+        assert.equal(c.header.name, exp.header.name)
+        assert.equal(c.conversation.length, exp.conversation.length)
+        assert.deepEqual(c.conversation.map(s => s.messageText), exp.conversation.map(s => s.messageText))
+      }
+      assert.equal(i, 2)
+      // scriptingProvider.convosIterable.forEach((iteratedConvo, index) => {
+      //   assert.deepEqual(iteratedConvo, expected[index])
+      // })
+    })
     it('should build convos for utterance with parameters', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -516,6 +558,45 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[2].header.name, 'test convo/MEDIA-L3-test3.jpg')
         assert.equal(scriptingProvider.convos[3].header.name, 'test convo/uttText-L1-TEXT1 0123456...')
         assert.equal(scriptingProvider.convos[4].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
+      })
+    })
+    describe('should have be possible to generate / store convos partially', function () {
+      const _createConvos = async () => {
+        const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+        await scriptingProvider.Build()
+        scriptingProvider.AddUtterances({
+          name: 'utt1',
+          utterances: ['TEXT1', 'TEXT2', 'TEXT3', 'TEXT4', 'TEXT5']
+        })
+        scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
+          header: {
+            name: 'test convo'
+          },
+          conversation: [
+            {
+              sender: 'me',
+              messageText: 'utt1'
+            },
+            {
+              sender: 'bot',
+              messageText: 'some text'
+            },
+            {
+              sender: 'me',
+              messageText: 'utt1'
+            }
+          ]
+        }))
+        return scriptingProvider
+      }
+
+      it('should build convos with nulls (to detect convo count)', async function () {
+        const scriptingProvider = await _createConvos()
+        scriptingProvider.ExpandConvos({ justNulls: true })
+        assert.equal(scriptingProvider.convos.length, 25)
+        for (let i = 0; i < 25; i++) {
+          assert.isNull(scriptingProvider.convos[i])
+        }
       })
     })
   })

@@ -256,6 +256,7 @@ module.exports = class CompilerXlsx extends CompilerBase {
             if (!convo.header.name) {
               convo.header.name = `${convo.header.sheetname}-${this.colnames[convo.header.colindex]}${formatRowIndex(convo.header.rowindex)}`
             }
+            // it is not used anymore?
             convo.header.sort = convo.header.name
             scriptResults.push(convo)
           })

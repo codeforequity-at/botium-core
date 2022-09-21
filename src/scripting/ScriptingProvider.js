@@ -868,27 +868,61 @@ module.exports = class ScriptingProvider {
     this._sortConvos()
   }
 
-  ExpandConvos () {
+  ExpandConvos (options = {}) {
+    options = Object.assign({
+      // use skip and keep, or justNulls
+      justNulls: false,
+      // drop unwanted convos
+      convoFilter: null
+    }, options)
+    const context = { count: 0 }
     const expandedConvos = []
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     this.convos.forEach((convo) => {
       convo.expandPartialConvos()
-      this._expandConvo(expandedConvos, convo)
+      for (const expanded of this._expandConvo(convo, options, context)) {
+        if (options.justNulls) {
+          expandedConvos.push(null)
+        } else {
+          expandedConvos.push(expanded)
+        }
+      }
     })
     this.convos = expandedConvos
-    this._sortConvos()
+    if (!options.justNulls) {
+      this._sortConvos()
+    } else {
+      this._updateConvos()
+    }
+  }
+
+  ExpandConvosIterable (options = {}) {
+    options = Object.assign({
+      // drop unwanted convos
+      convoFilter: null
+    }, options)
+    debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
+    // creating a nested generator, calling the other.
+    // We hope this.convos does not changes while this iterator is used
+    const _convosIterable = function * (options) {
+      const context = { count: 0 }
+      for (const convo of this.convos) {
+        convo.expandPartialConvos()
+        yield * this._expandConvo(convo, options, context)
+      }
+    }.bind(this)
+
+    this.convosIterable = _convosIterable(options)
   }
 
   /**
-   *
-   * @param expandedConvos
+   * This is a generator function with yield
    * @param currentConvo
    * @param convoStepIndex
    * @param convoStepsStack list of ConvoSteps
-   * @param context {width: }
    * @private
    */
-  _expandConvo (expandedConvos, currentConvo, convoStepIndex = 0, convoStepsStack = [], context = {}) {
+  * _expandConvo (currentConvo, options, context, convoStepIndex = 0, convoStepsStack = []) {
     const utterancePostfix = (lineTag, uttOrUserInput) => {
       const naming = this.caps[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE] || Defaults.capabilities[Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]
       if (naming === 'justLineTag') {
@@ -908,7 +942,7 @@ module.exports = class ScriptingProvider {
       if (currentStep.sender === 'bot' || currentStep.sender === 'begin' || currentStep.sender === 'end') {
         const currentStepsStack = convoStepsStack.slice()
         currentStepsStack.push(_.cloneDeep(currentStep))
-        this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack, context)
+        yield * this._expandConvo(currentConvo, options, context, convoStepIndex + 1, currentStepsStack)
       } else if (currentStep.sender === 'me') {
         let useUnexpanded = true
         if (currentStep.messageText) {
@@ -925,12 +959,12 @@ module.exports = class ScriptingProvider {
           }
           if (this.utterances[uttName]) {
             const allutterances = this.utterances[uttName].utterances
-            const processSampleUtterances = (sampleutterances, myContext) => {
-              sampleutterances.forEach((utt, index) => {
-                processSampleUtterance(utt, sampleutterances.length, index, Object.assign({ indexExpansionModeIndex: index }, myContext || context))
-              })
+            const processSampleUtterances = function * (sampleutterances, myContext) {
+              for (let index = 0; index < sampleutterances.length; index++) {
+                yield * processSampleUtterance(sampleutterances[index], sampleutterances.length, index, Object.assign({ indexExpansionModeIndex: index }, myContext || context))
+              }
             }
-            const processSampleUtterance = (sampleutterance, length, index, myContext) => {
+            const processSampleUtterance = function * (sampleutterance, length, index, myContext) {
               const lineTag = `${index + 1}`.padStart(`${length}`.length, '0')
               const currentStepsStack = convoStepsStack.slice()
               if (uttArgs) {
@@ -941,12 +975,12 @@ module.exports = class ScriptingProvider {
               Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-${utterancePostfix(lineTag, sampleutterance)}` })
               if (!currentConvoLabeled.sourceTag) currentConvoLabeled.sourceTag = {}
               if (!currentConvoLabeled.sourceTag.origConvoName) currentConvoLabeled.sourceTag.origConvoName = currentConvo.header.name
-              this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack, myContext || context)
-            }
+              yield * this._expandConvo(currentConvoLabeled, options, myContext || context, convoStepIndex + 1, currentStepsStack)
+            }.bind(this)
             if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'index') {
               if (_.isNil(context.indexExpansionModeWidth)) {
                 // executed for the first found utterance
-                processSampleUtterances(allutterances, Object.assign({}, context, { indexExpansionModeWidth: allutterances.length }))
+                yield * processSampleUtterances(allutterances, Object.assign({}, context, { indexExpansionModeWidth: allutterances.length }))
               } else {
                 if (_.isNil(context.indexExpansionModeIndex)) {
                   throw new Error('indexExpansionModeIndex must be set!')
@@ -957,45 +991,46 @@ module.exports = class ScriptingProvider {
                   debug(`While expanding convos by index found in utterance "${uttName}" less examples (${allutterances.length}) as expected (${context.indexExpansionModeWidth})`)
                 }
                 const myContext = Object.assign({}, context, { indexExpansionModeWidth: Math.max(allutterances.length, context.indexExpansionModeWidth) })
-                processSampleUtterance(allutterances[localIndex], allutterances.length, localIndex, myContext)
+                yield * processSampleUtterance(allutterances[localIndex], allutterances.length, localIndex, myContext)
                 if (allutterances.length > context.indexExpansionModeWidth && context.indexExpansionModeIndex + 1 === context.indexExpansionModeWidth) {
                   debug(`While expanding convos by index found in utterance "${uttName}" more examples (${allutterances.length}) as expected (${context.indexExpansionModeWidth})`)
                   for (let i = context.indexExpansionModeWidth; i < allutterances.length; i++) {
                     // if we found a utterance with more examples as any utterances before, we have to start new 'thread'
                     const myContext = Object.assign({}, context, { indexExpansionModeWidth: allutterances.length, indexExpansionModeIndex: i })
-                    processSampleUtterance(allutterances[i], allutterances.length, i, myContext)
+                    yield * processSampleUtterance(allutterances[i], allutterances.length, i, myContext)
                   }
                 }
               }
             } else {
               if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'first') {
-                processSampleUtterances([allutterances[0]])
+                yield * processSampleUtterances([allutterances[0]])
               } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'random') {
-                processSampleUtterances(allutterances
+                yield * processSampleUtterances(allutterances
                   .map(x => ({ x, r: Math.random() }))
                   .sort((a, b) => a.r - b.r)
                   .map(a => a.x)
                   .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]))
               } else {
-                processSampleUtterances(allutterances)
+                yield * processSampleUtterances(allutterances)
               }
             }
             useUnexpanded = false
           }
         }
         if (currentStep.userInputs && currentStep.userInputs.length > 0) {
-          currentStep.userInputs.forEach((ui, uiIndex) => {
+          for (let uiIndex = 0; uiIndex < currentStep.userInputs.length; uiIndex++) {
+            const ui = currentStep.userInputs[uiIndex]
             const userInput = this.userInputs[ui.name]
             if (userInput && userInput.expandConvo) {
               const expandedUserInputs = userInput.expandConvo({ convo: currentConvo, convoStep: currentStep, args: ui.args })
               if (expandedUserInputs && expandedUserInputs.length > 0) {
                 // let sampleinputs = expandedUserInputs
-                const processSampleInputs = (sampleinputs, myContext, uiIndex) => {
-                  sampleinputs.forEach((input, index) => {
-                    processSampleInput(input, sampleinputs.length, index, Object.assign({ indexExpansionModeIndex: index }, myContext || context), uiIndex)
-                  })
+                const processSampleInputs = function * (sampleinputs, myContext, uiIndex) {
+                  for (let index = 0; index < sampleinputs.length; index++) {
+                    yield * processSampleInput(sampleinputs[index], sampleinputs.length, index, Object.assign({ indexExpansionModeIndex: index }, myContext || context), uiIndex)
+                  }
                 }
-                const processSampleInput = (sampleinput, length, index, myContext, uiIndex) => {
+                const processSampleInput = function * (sampleinput, length, index, myContext, uiIndex) {
                   const lineTag = `${index + 1}`.padStart(`${length}`.length, '0')
                   const currentStepsStack = convoStepsStack.slice()
                   const currentStepMod = _.cloneDeep(currentStep)
@@ -1004,11 +1039,11 @@ module.exports = class ScriptingProvider {
                   currentStepsStack.push(currentStepMod)
                   const currentConvoLabeled = _.cloneDeep(currentConvo)
                   Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-${utterancePostfix(lineTag, (sampleinput.args && sampleinput.args.length) ? sampleinput.args.join(', ') : 'no-args')}` })
-                  this._expandConvo(expandedConvos, currentConvoLabeled, convoStepIndex + 1, currentStepsStack, myContext || context)
-                }
+                  yield * this._expandConvo(currentConvoLabeled, options, myContext || context, convoStepIndex + 1, currentStepsStack)
+                }.bind(this)
                 if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'index') {
                   if (_.isNil(context.indexExpansionModeWidth)) {
-                    processSampleInputs(expandedUserInputs, Object.assign({}, context, { indexExpansionModeWidth: expandedUserInputs.length }), uiIndex)
+                    yield * processSampleInputs(expandedUserInputs, Object.assign({}, context, { indexExpansionModeWidth: expandedUserInputs.length }), uiIndex)
                   } else {
                     if (_.isNil(context.indexExpansionModeIndex)) {
                       throw new Error('indexExpansionModeIndex must be set!')
@@ -1019,20 +1054,20 @@ module.exports = class ScriptingProvider {
                       debug(`While expanding convos by index found user input "${ui.name}, ${ui.args}" less examples (${expandedUserInputs.length}) as expected (${context.indexExpansionModeWidth})`)
                     }
                     const myContext = Object.assign({}, context, { indexExpansionModeWidth: Math.max(expandedUserInputs.length, context.indexExpansionModeWidth) })
-                    processSampleInput(expandedUserInputs[localIndex], expandedUserInputs.length, localIndex, myContext, uiIndex)
+                    yield * processSampleInput(expandedUserInputs[localIndex], expandedUserInputs.length, localIndex, myContext, uiIndex)
                     if (expandedUserInputs.length > context.indexExpansionModeWidth && context.indexExpansionModeIndex + 1 === context.indexExpansionModeWidth) {
                       debug(`While expanding convos by index found user input "${ui.name}, ${ui.args}" more examples (${expandedUserInputs.length}) as expected (${context.indexExpansionModeWidth})`)
                       for (let i = context.indexExpansionModeWidth; i < expandedUserInputs.length; i++) {
                         const myContext = Object.assign({}, context, { indexExpansionModeWidth: expandedUserInputs.length, indexExpansionModeIndex: i })
-                        processSampleInput(expandedUserInputs[i], expandedUserInputs.length, i, myContext, uiIndex)
+                        yield * processSampleInput(expandedUserInputs[i], expandedUserInputs.length, i, myContext, uiIndex)
                       }
                     }
                   }
                 } else {
                   if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'first') {
-                    processSampleInputs([expandedUserInputs[0]], context, uiIndex)
+                    yield * processSampleInputs([expandedUserInputs[0]], context, uiIndex)
                   } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'random') {
-                    processSampleInputs(expandedUserInputs
+                    yield * processSampleInputs(expandedUserInputs
                       .map(x => ({
                         x,
                         r: Math.random()
@@ -1041,35 +1076,49 @@ module.exports = class ScriptingProvider {
                       .map(a => a.x)
                       .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]), context, uiIndex)
                   } else {
-                    processSampleInputs(expandedUserInputs, context, uiIndex)
+                    yield * processSampleInputs(expandedUserInputs, context, uiIndex)
                   }
                 }
                 useUnexpanded = false
               }
             }
-          })
+          }
         }
         if (useUnexpanded) {
           const currentStepsStack = convoStepsStack.slice()
           currentStepsStack.push(_.cloneDeep(currentStep))
-          this._expandConvo(expandedConvos, currentConvo, convoStepIndex + 1, currentStepsStack, context)
+          yield * this._expandConvo(currentConvo, options, context, convoStepIndex + 1, currentStepsStack)
         }
       }
     } else {
-      expandedConvos.push(Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) }))
+      const expanded = Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) })
+      if (!options.convoFilter || options.convoFilter(expanded)) {
+        context.count++
+        const logPerEntry = context.count < 10 ? 1 : context.count < 100 ? 10 : context.count < 1000 ? 100 : context.count < 10000 ? 1000 : 10000
+        if (context.count % logPerEntry === 0) {
+          debug(`Convo #${context.count} expanded (${expanded.header.name})`)
+        }
+        yield expanded
+      }
     }
   }
 
   _sortConvos () {
     this.convos = _.sortBy(this.convos, [(convo) => convo.header.sort || convo.header.name])
+    this._updateConvos()
+  }
+
+  _updateConvos () {
     let i = 0
     this.convos.forEach((convo) => {
-      convo.header.order = ++i
-      if (!convo.header.projectname) {
-        convo.header.projectname = this.caps[Capabilities.PROJECTNAME]
-      }
-      if (!convo.header.testsessionname) {
-        convo.header.testsessionname = this.caps[Capabilities.TESTSESSIONNAME]
+      if (convo) {
+        convo.header.order = ++i
+        if (!convo.header.projectname) {
+          convo.header.projectname = this.caps[Capabilities.PROJECTNAME]
+        }
+        if (!convo.header.testsessionname) {
+          convo.header.testsessionname = this.caps[Capabilities.TESTSESSIONNAME]
+        }
       }
     })
   }
@@ -1080,7 +1129,11 @@ module.exports = class ScriptingProvider {
     } else if (convos) {
       this.convos.push(convos)
     }
-    this._sortConvos()
+    if (this.convos.filter(c => _.isNil(c))) {
+      this._updateConvos()
+    } else {
+      this._sortConvos()
+    }
   }
 
   AddUtterances (utterances) {
