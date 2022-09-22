@@ -870,8 +870,8 @@ module.exports = class ScriptingProvider {
 
   ExpandConvos (options = {}) {
     options = Object.assign({
-      // use skip and keep, or justNulls
-      justNulls: false,
+      // use skip and keep, or justHeader
+      justHeader: false,
       // drop unwanted convos
       convoFilter: null
     }, options)
@@ -881,15 +881,22 @@ module.exports = class ScriptingProvider {
     this.convos.forEach((convo) => {
       convo.expandPartialConvos()
       for (const expanded of this._expandConvo(convo, options, context)) {
-        if (options.justNulls) {
-          expandedConvos.push(null)
+        expanded.header.assertionCount = this.GetAssertionCount(expanded)
+        if (options.justHeader) {
+          const ConvoWithOnlyHeader = {
+            header: {
+              name: expanded.header.name,
+              assertionCount: expanded.header.assertionCount
+            }
+          }
+          expandedConvos.push(ConvoWithOnlyHeader)
         } else {
           expandedConvos.push(expanded)
         }
       }
     })
     this.convos = expandedConvos
-    if (!options.justNulls) {
+    if (!options.justHeader) {
       this._sortConvos()
     } else {
       this._updateConvos()
@@ -1386,5 +1393,31 @@ module.exports = class ScriptingProvider {
       ...nodes,
       ...lines,
       '}'].join('\r\n')
+  }
+
+  GetAssertionCount (convo) {
+    if (!convo) {
+      return 0
+    }
+    let counter = 0
+    for (const step of convo.conversation) {
+      if (step.sender === 'bot') {
+        let stepCounter = step.asserters ? step.asserters.length : 0
+        if (step.messageText) {
+          stepCounter++
+        }
+        stepCounter = stepCounter === 0 ? 1 : stepCounter
+        counter += stepCounter
+      }
+    }
+
+    if (convo.convoBegin && convo.convoBegin.asserters) {
+      counter += convo.convoBegin.asserters.length
+    }
+
+    if (convo.convoEnd && convo.convoEnd.asserters) {
+      counter += convo.convoEnd.asserters.length
+    }
+    return counter === 0 ? 1 : counter
   }
 }
