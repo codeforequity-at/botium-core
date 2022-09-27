@@ -965,19 +965,23 @@ module.exports = class ScriptingProvider {
               }
             }
             const processSampleUtterance = function * (sampleutterance, length, index, myContext) {
-              const lineTag = `${index + 1}`.padStart(`${length}`.length, '0')
               const currentStepsStack = convoStepsStack.slice()
               if (uttArgs) {
                 sampleutterance = util.format(sampleutterance, ...uttArgs)
               }
               currentStepsStack.push(Object.assign(_.cloneDeep(currentStep), { messageText: sampleutterance }))
               const currentConvoLabeled = _.cloneDeep(currentConvo)
-              Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-${utterancePostfix(lineTag, sampleutterance)}` })
+              if (length > 1) {
+                const lineTag = `${index + 1}`.padStart(`${length}`.length, '0')
+                Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${uttName}-${utterancePostfix(lineTag, sampleutterance)}` })
+              }
               if (!currentConvoLabeled.sourceTag) currentConvoLabeled.sourceTag = {}
               if (!currentConvoLabeled.sourceTag.origConvoName) currentConvoLabeled.sourceTag.origConvoName = currentConvo.header.name
               yield * this._expandConvo(currentConvoLabeled, options, myContext || context, convoStepIndex + 1, currentStepsStack)
             }.bind(this)
-            if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'index') {
+            if (allutterances.length === 1) {
+              yield * processSampleUtterances([allutterances[0]])
+            } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'index') {
               if (_.isNil(context.indexExpansionModeWidth)) {
                 // executed for the first found utterance
                 yield * processSampleUtterances(allutterances, Object.assign({}, context, { indexExpansionModeWidth: allutterances.length }))
@@ -1031,17 +1035,25 @@ module.exports = class ScriptingProvider {
                   }
                 }
                 const processSampleInput = function * (sampleinput, length, index, myContext, uiIndex) {
-                  const lineTag = `${index + 1}`.padStart(`${length}`.length, '0')
                   const currentStepsStack = convoStepsStack.slice()
                   const currentStepMod = _.cloneDeep(currentStep)
                   currentStepMod.userInputs[uiIndex] = sampleinput
 
                   currentStepsStack.push(currentStepMod)
                   const currentConvoLabeled = _.cloneDeep(currentConvo)
-                  Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-${utterancePostfix(lineTag, (sampleinput.args && sampleinput.args.length) ? sampleinput.args.join(', ') : 'no-args')}` })
+                  if (length > 1) {
+                    if (sampleinput.convoPostfix) {
+                      Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-${sampleinput.convoPostfix}` })
+                    } else {
+                      const lineTag = `${index + 1}`.padStart(`${length}`.length, '0')
+                      Object.assign(currentConvoLabeled.header, { name: `${currentConvo.header.name}/${ui.name}-${utterancePostfix(lineTag, (sampleinput.args && sampleinput.args.length) ? sampleinput.args.join(', ') : 'no-args')}` })
+                    }
+                  }
                   yield * this._expandConvo(currentConvoLabeled, options, myContext || context, convoStepIndex + 1, currentStepsStack)
                 }.bind(this)
-                if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'index') {
+                if (expandedUserInputs.length === 1) {
+                  yield * processSampleInputs([expandedUserInputs[0]], context, uiIndex)
+                } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'index') {
                   if (_.isNil(context.indexExpansionModeWidth)) {
                     yield * processSampleInputs(expandedUserInputs, Object.assign({}, context, { indexExpansionModeWidth: expandedUserInputs.length }), uiIndex)
                   } else {

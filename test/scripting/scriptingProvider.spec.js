@@ -392,10 +392,12 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
     })
     describe('should build convos for SCRIPTING_UTTEXPANSION_NAMING_MODE', function () {
-      const utterances = {
-        name: 'uttText',
-        utterances: ['TEXT1 01234567890123456789', 'TEXT2 01234567890123456789']
-      }
+      const utterances = [
+        {
+          name: 'uttText',
+          utterances: ['TEXT1 01234567890123456789', 'TEXT2 01234567890123456789']
+        }
+      ]
       const convoUtterances = {
         header: {
           name: 'test convo'
@@ -439,7 +441,38 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[0].header.name, 'test convo/uttText-L1-TEXT1 0123456...')
         assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
       })
+      it('SCRIPTING_UTTEXPANSION_NAMING_MODE=utterance len=1', async function () {
+        const scriptingProvider = new ScriptingProvider(Object.assign(
+          {},
+          DefaultCapabilities,
+          {
+            [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]: 'utterance'
+          }
+        ))
+        await scriptingProvider.Build()
+        scriptingProvider.AddUtterances([
+          {
+            name: 'uttText1',
+            utterances: ['TEXT1 01234567890123456789']
+          }
+        ])
+        scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
+          header: {
+            name: 'test convo'
+          },
+          conversation: [
+            {
+              sender: 'me',
+              messageText: 'uttText1'
+            }
+          ]
+        }))
 
+        scriptingProvider.ExpandConvos()
+        assert.equal(scriptingProvider.convos.length, 1)
+        assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+        assert.equal(scriptingProvider.convos[0].header.name, 'test convo')
+      })
       it('SCRIPTING_UTTEXPANSION_NAMING_MODE=utterance, turn length off', async function () {
         const scriptingProvider = new ScriptingProvider(Object.assign(
           {},
@@ -516,6 +549,42 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[0].header.name, 'test convo/MEDIA-L1-test1.jpg')
         assert.equal(scriptingProvider.convos[1].header.name, 'test convo/MEDIA-L2-test2 0123456...')
         assert.equal(scriptingProvider.convos[2].header.name, 'test convo/MEDIA-L3-test3.jpg')
+      })
+      it('SCRIPTING_UTTEXPANSION_NAMING_MODE=utterance userinputs len=1', async function () {
+        const scriptingProvider = new ScriptingProvider(Object.assign(
+          {},
+          DefaultCapabilities,
+          {
+            [Capabilities.SCRIPTING_UTTEXPANSION_NAMING_MODE]: 'utterance'
+          }
+        ))
+        await scriptingProvider.Build()
+        scriptingProvider.AddConvos(new Convo(scriptingProvider._buildScriptContext(), {
+          header: {
+            name: 'test convo'
+          },
+          sourceTag: {},
+          conversation: [
+            {
+              sender: 'me',
+              userInputs: [
+                {
+                  name: 'BUTTON',
+                  args: ['button1']
+                },
+                {
+                  name: 'MEDIA',
+                  args: ['test1.jpg']
+                }
+              ]
+            }
+          ]
+        }))
+
+        scriptingProvider.ExpandConvos()
+        assert.equal(scriptingProvider.convos.length, 1)
+        assert.equal(scriptingProvider.convos[0].conversation.length, 1)
+        assert.equal(scriptingProvider.convos[0].header.name, 'test convo')
       })
       it('SCRIPTING_UTTEXPANSION_NAMING_MODE=utterance userinputs and utterances', async function () {
         const scriptingProvider = new ScriptingProvider(Object.assign(

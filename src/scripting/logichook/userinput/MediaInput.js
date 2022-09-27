@@ -165,7 +165,8 @@ module.exports = class MediaInput {
           mediaFiles.forEach(mf => {
             e.push({
               name: 'MEDIA',
-              args: [mf]
+              args: [mf],
+              convoPostfix: _.last(mf.split('/'))
             })
           })
         } else {
