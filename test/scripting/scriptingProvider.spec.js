@@ -592,10 +592,12 @@ describe('scripting.scriptingProvider', function () {
 
       it('should build convos with nulls (to detect convo count)', async function () {
         const scriptingProvider = await _createConvos()
-        scriptingProvider.ExpandConvos({ justNulls: true })
+        scriptingProvider.ExpandConvos({ justHeader: true })
         assert.equal(scriptingProvider.convos.length, 25)
         for (let i = 0; i < 25; i++) {
-          assert.isNull(scriptingProvider.convos[i])
+          const keys = Object.keys(scriptingProvider.convos[i])
+          assert.equal(keys.length, 1)
+          assert.equal(keys[0], 'header')
         }
       })
     })
