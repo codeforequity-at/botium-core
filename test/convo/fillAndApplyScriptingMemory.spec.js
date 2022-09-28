@@ -1,4 +1,5 @@
 const path = require('path')
+const moment = require('moment')
 const assert = require('chai').assert
 const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
@@ -695,6 +696,39 @@ describe('convo.fillAndApplyScriptingMemory', function () {
         assert(result.length === 13, '$timestap is invalid')
       })
 
+      it('tomorrow without format', async function () {
+        const result = ScriptingMemory.apply(
+          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+          {},
+          '$tomorrow'
+        )
+        assert.equal(result, moment().add(1, 'day').toDate().toLocaleDateString())
+      })
+      it('tomorrow with format', async function () {
+        const result = ScriptingMemory.apply(
+          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+          {},
+          '$tomorrow(YYYY.MM.DD)'
+        )
+        assert.equal(result, moment().add(1, 'day').format('YYYY.MM.DD'))
+      })
+      it('yesterday without format', async function () {
+        const result = ScriptingMemory.apply(
+          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+          {},
+          '$yesterday'
+        )
+        assert.equal(result, moment().subtract(1, 'day').toDate().toLocaleDateString())
+      })
+      it('yesterday with format', async function () {
+        const result = ScriptingMemory.apply(
+          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+          {},
+          '$yesterday(YYYY.MM.DD)'
+        )
+        assert.equal(result, moment().subtract(1, 'day').format('YYYY.MM.DD'))
+      })
+
       it('year', async function () {
         const result = ScriptingMemory.apply(
           { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
@@ -703,7 +737,7 @@ describe('convo.fillAndApplyScriptingMemory', function () {
         )
 
         const year = parseInt(result)
-        assert(year >= 2019 && year <= 2219, '$year invalid')
+        assert.equal(year, new Date().getFullYear(), '$year invalid')
       })
 
       it('month', async function () {
@@ -712,8 +746,7 @@ describe('convo.fillAndApplyScriptingMemory', function () {
           {},
           '$month'
         )
-
-        assert(result.length >= 2 && result.length <= 10, '$month invalid')
+        assert.equal(result, moment().format('MMMM'), '$month invalid')
       })
       it('month_MM', async function () {
         const result = ScriptingMemory.apply(
@@ -733,7 +766,7 @@ describe('convo.fillAndApplyScriptingMemory', function () {
         )
 
         const dayOfMonth = parseInt(result)
-        assert(dayOfMonth >= 1 && dayOfMonth <= 35, 'day_of_month invalid')
+        assert(dayOfMonth >= 1 && dayOfMonth <= 35, '$day_of_month invalid')
       })
 
       it('day_of_week', async function () {
@@ -744,6 +777,25 @@ describe('convo.fillAndApplyScriptingMemory', function () {
         )
 
         assert(result.length >= 2 && result.length <= 20, '$day_of_week invalid')
+      })
+
+      it('date_add', async function () {
+        const result = ScriptingMemory.apply(
+          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+          {},
+          '$date_add(1, "day", YYYY.MM.DD)'
+        )
+
+        assert.equal(result, moment().add(1, 'day').format('YYYY.MM.DD'))
+      })
+      it('date_subtract', async function () {
+        const result = ScriptingMemory.apply(
+          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+          {},
+          '$date_subtract(1, "month", YYYY.MM.DD)'
+        )
+
+        assert.equal(result, moment().subtract(1, 'month').format('YYYY.MM.DD'))
       })
 
       it('random', async function () {
@@ -812,6 +864,14 @@ describe('convo.fillAndApplyScriptingMemory', function () {
           '$func(process.env.MY_VAR_VALUE)'
         )
         assert.equal(result, 'botium')
+      })
+      it('func with moment', async function () {
+        const result = ScriptingMemory.apply(
+          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+          {},
+          '$func(moment(\\).subtract(1, "month"\\).startOf("month"\\).format("DD.MM.YYYY"\\))'
+        )
+        assert.equal(result, moment().subtract(1, 'month').startOf('month').format('DD.MM.YYYY'))
       })
       it('environment variable', async function () {
         process.env.MY_VAR_VALUE = 'botium'

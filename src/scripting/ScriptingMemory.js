@@ -73,6 +73,32 @@ const SCRIPTING_FUNCTIONS_RAW = {
     return Date.now()
   },
 
+  $tomorrow: (pattern) => {
+    if (pattern) {
+      return moment().add(1, 'day').format(pattern)
+    }
+    return moment().add(1, 'day').toDate().toLocaleDateString()
+  },
+  $yesterday: (pattern) => {
+    if (pattern) {
+      return moment().subtract(1, 'day').format(pattern)
+    }
+    return moment().subtract(1, 'day').toDate().toLocaleDateString()
+  },
+
+  $date_add: (amount, unit, pattern) => {
+    if (pattern) {
+      return moment().add(amount, unit).format(pattern)
+    }
+    return moment().add(amount, unit).toDate().toLocaleDateString()
+  },
+  $date_subtract: (amount, unit, pattern) => {
+    if (pattern) {
+      return moment().subtract(amount, unit).format(pattern)
+    }
+    return moment().subtract(amount, unit).toDate().toLocaleDateString()
+  },
+
   $year: () => {
     return new Date().getFullYear()
   },
@@ -168,7 +194,8 @@ const SCRIPTING_FUNCTIONS_RAW = {
           require: false,
           env: caps[Capabilities.SECURITY_ALLOW_UNSAFE] ? process.env : {},
           sandbox: {
-            caps
+            caps,
+            moment
           }
         })
         return vm.run(`module.exports = (${code})`)
@@ -246,7 +273,19 @@ const _apply = (scriptingMemory, str, caps, mockMsg) => {
         for (const match of matches) {
           if (match.indexOf('(') > 0) {
             const arg = match.substring(match.indexOf('(') + 1, match.lastIndexOf(')')).replace(/\\\)/g, ')')
-            str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps, arg, mockMsg))
+            let args = [arg]
+            if (SCRIPTING_FUNCTIONS[key].numberOfArguments > 1) {
+              args = arg.split(',')
+            }
+            args = args.map(arg => {
+              arg = arg.trim()
+              if (arg.startsWith('"') && arg.endsWith('"')) {
+                return arg.substring(1, arg.length - 1)
+              } else {
+                return arg
+              }
+            })
+            str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps, ...args, mockMsg))
           } else {
             str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps))
           }
