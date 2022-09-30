@@ -987,7 +987,7 @@ module.exports = class ScriptingProvider {
               yield * this._expandConvo(currentConvoLabeled, options, myContext || context, convoStepIndex + 1, currentStepsStack)
             }.bind(this)
             if (allutterances.length === 1) {
-              yield * processSampleUtterances([allutterances[0]])
+              yield * processSampleUtterances([allutterances[0]], context)
             } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'index') {
               if (_.isNil(context.indexExpansionModeWidth)) {
                 // executed for the first found utterance
@@ -1014,15 +1014,15 @@ module.exports = class ScriptingProvider {
               }
             } else {
               if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'first') {
-                yield * processSampleUtterances([allutterances[0]])
+                yield * processSampleUtterances([allutterances[0]], context)
               } else if (this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE] === 'random') {
                 yield * processSampleUtterances(allutterances
                   .map(x => ({ x, r: Math.random() }))
                   .sort((a, b) => a.r - b.r)
                   .map(a => a.x)
-                  .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]))
+                  .slice(0, this.caps[Capabilities.SCRIPTING_UTTEXPANSION_RANDOM_COUNT]), context)
               } else {
-                yield * processSampleUtterances(allutterances)
+                yield * processSampleUtterances(allutterances, context)
               }
             }
             useUnexpanded = false
