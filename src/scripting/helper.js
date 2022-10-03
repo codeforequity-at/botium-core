@@ -437,6 +437,8 @@ const convoStepToLines = (step) => {
       lines.push('MEDIA ' + step.media[0].mediaUri)
     } else if (step.messageText) {
       lines.push(step.messageText)
+    } else if (step.sourceData) {
+      lines.push(JSON.stringify(step.sourceData, null, 2))
     }
     step.userInputs && step.userInputs.forEach((userInput) => {
       lines.push(userInput.name + _formatAppendArgs(userInput.args))

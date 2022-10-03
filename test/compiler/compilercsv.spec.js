@@ -15,8 +15,15 @@ const buildContext = () => {
     AddConvos: (c) => {
       result.convos = result.convos.concat(c)
     },
-    AddUtterances: (u) => {
-      result.utterances = result.utterances.concat(u)
+    AddUtterances: (utteranceStructsToAdd) => {
+      for (const utteranceStructToAdd of utteranceStructsToAdd) {
+        const existing = result.utterances.find(entry => entry.name === utteranceStructToAdd.name)
+        if (existing) {
+          existing.utterances = existing.utterances.concat(utteranceStructToAdd.utterances)
+        } else {
+          result.utterances.push(utteranceStructToAdd)
+        }
+      }
     },
     convos: [],
     utterances: []

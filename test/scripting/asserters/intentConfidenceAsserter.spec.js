@@ -61,16 +61,12 @@ describe('scripting.asserters.intentConfidenceAsserter', function () {
     [false, 80, 85, false]
   ]
 
-  cases.forEach((cse) => {
-    const useWithGlobal = cse[0]
-    const expected = cse[1]
-    const found = cse[2]
-    const negative = cse[3]
+  for (const [useWithGlobal, expected, found, negative] of cases) {
     const message = `${negative ? 'negative' : 'positive'} case for intent confidence asserter ${useWithGlobal ? 'with global args' : 'without global args'}, exp: ${expected}, found: ${found}`
     it(message,
       async function () {
-        return _assert(...cse)
+        return _assert(useWithGlobal, expected, found, negative)
       }
     )
-  })
+  }
 })

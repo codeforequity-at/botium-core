@@ -398,4 +398,13 @@ describe('convo.transcript', function () {
       assert.equal(err.transcript.steps.length, 5)
     }
   })
+  it('should calculate assertion count', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2steps.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+    assert.equal(this.compiler.GetAssertionCount(this.compiler.convos[0]), 2)
+
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'asserters.convo.txt')
+    assert.equal(this.compiler.convos.length, 2)
+    assert.equal(this.compiler.GetAssertionCount(this.compiler.convos[1]), 1)
+  })
 })
