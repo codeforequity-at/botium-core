@@ -154,7 +154,8 @@ module.exports = class ScriptingProvider {
               cause: {
                 expected: tomatch,
                 actual: botresponse,
-                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE]
+                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
               }
             }
           )
@@ -186,7 +187,8 @@ module.exports = class ScriptingProvider {
                 not: true,
                 expected: nottomatch,
                 actual: botresponse,
-                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE]
+                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
               }
             }
           )
