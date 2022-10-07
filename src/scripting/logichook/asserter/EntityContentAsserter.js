@@ -6,12 +6,12 @@ module.exports = class EntityContentAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
-    this.name = 'EntityContentAsserter'
+    this.name = 'NLU Entity Content Asserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (!args || args.length < 2) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: EntityContentAsserter Missing argument`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: ${this.name} Missing argument`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',

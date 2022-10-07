@@ -3,7 +3,7 @@ const BaseCountAsserter = require('./BaseCountAsserter')
 module.exports = class BotRepliesConsumedAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
     super(context, caps, 'BotReplies')
-    this.name = 'BotRepliesConsumedAsserter'
+    this.name = 'Bot Replies Consumed Asserter'
   }
 
   async _getCount (argv) { return argv.container._QueueLength() }

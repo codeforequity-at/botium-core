@@ -5,7 +5,7 @@ module.exports = class MediaAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
-    this.name = 'MediaAsserter'
+    this.name = 'Media Attachment Asserter'
   }
 
   _evalMedia (args, botMsg) {

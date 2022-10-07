@@ -10,7 +10,7 @@ module.exports = class JsonPathAsserter {
     this.context = context
     this.caps = caps
     this.globalArgs = globalArgs
-    this.name = context.ref || 'JsonPathAsserter'
+    this.name = context.ref || 'JsonPath Asserter'
   }
 
   assertNotConvoStep (params) {
@@ -24,7 +24,7 @@ module.exports = class JsonPathAsserter {
   _getConfig (convoStep, args) {
     if (this.globalArgs && this.globalArgs.path) {
       if (args && args.length > 1) {
-        throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter 0 or 1 arguments expected "${toString(args)}"`,
+        throw new BotiumError(`${convoStep.stepTag}: ${this.name} 0 or 1 arguments expected "${toString(args)}"`,
           {
             type: 'asserter',
             subtype: 'wrong parameters',
@@ -44,7 +44,7 @@ module.exports = class JsonPathAsserter {
       if (_.has(this.globalArgs, 'argCount')) {
         const argCount = this.globalArgs.argCount
         if (argCount === 0 && args && args.length > 0) {
-          throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter ${argCount} arguments expected "${toString(args)}"`,
+          throw new BotiumError(`${convoStep.stepTag}: ${this.name} ${argCount} arguments expected "${toString(args)}"`,
             {
               type: 'asserter',
               subtype: 'wrong parameters',
@@ -56,7 +56,7 @@ module.exports = class JsonPathAsserter {
             }
           )
         } else if (!args || args.length !== argCount) {
-          throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter ${argCount} arguments expected "${toString(args)}"`,
+          throw new BotiumError(`${convoStep.stepTag}: ${this.name} ${argCount} arguments expected "${toString(args)}"`,
             {
               type: 'asserter',
               subtype: 'wrong parameters',
@@ -75,7 +75,7 @@ module.exports = class JsonPathAsserter {
       }
     } else {
       if (!args || args.length === 0 || args.length > 2) {
-        throw new BotiumError(`${convoStep.stepTag}: JsonPathAsserter 1 or 2 arguments expected "${toString(args)}"`,
+        throw new BotiumError(`${convoStep.stepTag}: ${this.name} 1 or 2 arguments expected "${toString(args)}"`,
           {
             type: 'asserter',
             subtype: 'wrong parameters',

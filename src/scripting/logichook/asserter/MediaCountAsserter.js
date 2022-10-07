@@ -8,7 +8,7 @@ const _mediaCount = ({ botMsg }) => {
 module.exports = class MediaCountAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
     super(context, caps, 'Media')
-    this.name = 'MediaCountAsserter'
+    this.name = 'Media Attachment Count Asserter'
   }
 
   async _getCount (argv) { return _mediaCount(argv) }

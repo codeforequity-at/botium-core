@@ -4,7 +4,7 @@ module.exports = class FormsAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
-    this.name = 'FormsAsserter'
+    this.name = 'Form Elements Asserter'
   }
 
   _formTextsFromCardsRecursive (cards) {

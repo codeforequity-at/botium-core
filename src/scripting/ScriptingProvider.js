@@ -135,7 +135,7 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
-        const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'WerAsserter' : 'TextMatchAsserter'
+        const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (_.isNil(found)) {
           let message = `${stepTag}: Bot response `
           message += meMsg ? `(on ${meMsg}) ` : ''
@@ -166,7 +166,7 @@ module.exports = class ScriptingProvider {
         }
         debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
         const found = _.find(nottomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
-        const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'WerAsserter' : 'TextMatchAsserter'
+        const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (!_.isNil(found)) {
           let message = `${stepTag}: Bot response `
           message += meMsg ? `(on ${meMsg}) ` : ''

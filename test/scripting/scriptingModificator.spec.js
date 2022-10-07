@@ -55,9 +55,8 @@ describe('scriptingModificator.assertions', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('Expected asserter IntentAsserter with args "test1" to fail') > 0)
+      assert.isTrue(err.message.indexOf('Expected asserter NLU Intent Asserter with args "test1" to fail') > 0)
       assert.isNotNull(err.context)
-      assert.equal(err.context.source, 'IntentAsserter')
     }
   })
 })
