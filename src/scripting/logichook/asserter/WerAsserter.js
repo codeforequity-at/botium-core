@@ -32,7 +32,7 @@ module.exports = class WerAsserter {
     }
 
     const utterance = args[0]
-    const threshold = args[1]
+    const threshold = ([',', '.'].find(p => `${args[1]}`.includes(p)) ? parseFloat(args[1]) : parseInt(args[1]) / 100)
 
     const wer = speechScorer.wordErrorRate(botMsg.messageText, utterance)
     if (wer > threshold) {
