@@ -148,6 +148,10 @@ module.exports = class ScriptingProvider {
             {
               type: 'asserter',
               source: asserterType,
+              params: {
+                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+              },
               context: {
                 stepTag
               },
@@ -180,6 +184,10 @@ module.exports = class ScriptingProvider {
             {
               type: 'asserter',
               source: asserterType,
+              params: {
+                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+              },
               context: {
                 stepTag
               },
