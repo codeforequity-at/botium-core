@@ -11,7 +11,7 @@ module.exports = class WerAsserter {
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (!args || args.length < 1) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: WerAsserter Missing argument`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Word Error Rate Asserter - no argument given`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
@@ -21,7 +21,7 @@ module.exports = class WerAsserter {
       ))
     }
     if (args.length > 2) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: WerAsserter Too much argument "${args}"`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: Word Error Rate Asserter - too many arguments "${args}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
@@ -36,8 +36,10 @@ module.exports = class WerAsserter {
 
     const wer = speechScorer.wordErrorRate(botMsg.messageText, utterance)
     if (wer > threshold) {
+      const _toPercent = (s) => `${(s * 100).toFixed(0)}%`
+
       return Promise.reject(new BotiumError(
-        `${convoStep.stepTag}: Word error rate ${wer} > ${threshold} for ${utterance}`,
+        `${convoStep.stepTag}: Word Error Rate (${_toPercent(wer)}) higher than accepted (${_toPercent(threshold)})`,
         {
           type: 'asserter',
           source: this.name,
@@ -47,8 +49,8 @@ module.exports = class WerAsserter {
             }
           },
           cause: {
-            expected: `Word error rate <= ${threshold}`,
-            actual: `Word error rate = ${wer}`
+            expected: `<=${_toPercent(threshold)}`,
+            actual: `${_toPercent(wer)}`
           }
         }
       ))

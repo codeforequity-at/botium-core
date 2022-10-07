@@ -45,7 +45,7 @@ describe('scripting.asserters.werAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'wer_threshold_nok/Line 2: assertion error - Line 2: Word error rate 0.5 > 0.1 for tast 123')
+      assert.equal(err.message, 'wer_threshold_nok/Line 2: assertion error - Line 2: Word Error Rate (50%) higher than accepted (10%)')
     }
   })
 })
