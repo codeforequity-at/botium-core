@@ -7,7 +7,7 @@ module.exports = class CardsAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
-    this.name = 'CardsAsserter'
+    this.name = 'Cards Asserter'
   }
 
   _evalCards (args, botMsg) {

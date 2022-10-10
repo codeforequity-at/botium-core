@@ -8,7 +8,7 @@ const _mediaCount = ({ botMsg }) => {
 module.exports = class MediaCountRecAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
     super(context, caps, 'Media')
-    this.name = 'MediaCountRecAsserter'
+    this.name = 'Media Count (recursive) Asserter'
   }
 
   async _getCount (argv) { return _mediaCount(argv) }

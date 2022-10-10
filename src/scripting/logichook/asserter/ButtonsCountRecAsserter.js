@@ -8,7 +8,7 @@ const _buttonsCount = ({ botMsg }) => {
 module.exports = class ButtonsCountRecAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
     super(context, caps, 'Buttons')
-    this.name = 'ButtonsCountRecAsserter'
+    this.name = 'Buttons Count (recursive) Asserter'
   }
 
   async _getCount (argv) { return _buttonsCount(argv) }

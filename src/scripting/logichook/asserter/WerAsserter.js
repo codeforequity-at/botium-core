@@ -6,12 +6,12 @@ module.exports = class WerAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
-    this.name = 'WerAsserter'
+    this.name = 'Word Error Rate Asserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (!args || args.length < 1) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: WerAsserter Missing argument`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: ${this.name} - no argument given`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
@@ -21,7 +21,7 @@ module.exports = class WerAsserter {
       ))
     }
     if (args.length > 2) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: WerAsserter Too much argument "${args}"`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: ${this.name} - too many arguments "${args}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
@@ -32,12 +32,14 @@ module.exports = class WerAsserter {
     }
 
     const utterance = args[0]
-    const threshold = args[1]
+    const threshold = ([',', '.'].find(p => `${args[1]}`.includes(p)) ? parseFloat(args[1]) : parseInt(args[1]) / 100).toFixed(2)
 
-    const wer = speechScorer.wordErrorRate(botMsg.messageText, utterance)
+    const wer = speechScorer.wordErrorRate(botMsg.messageText, utterance).toFixed(2)
     if (wer > threshold) {
+      const _toPercent = (s) => `${(s * 100).toFixed(0)}%`
+
       return Promise.reject(new BotiumError(
-        `${convoStep.stepTag}: Word error rate ${wer} > ${threshold} for ${utterance}`,
+        `${convoStep.stepTag}: Word Error Rate (${_toPercent(wer)}) higher than accepted (${_toPercent(threshold)})`,
         {
           type: 'asserter',
           source: this.name,
@@ -47,8 +49,8 @@ module.exports = class WerAsserter {
             }
           },
           cause: {
-            expected: `Word error rate <= ${threshold}`,
-            actual: `Word error rate = ${wer}`
+            expected: `<=${_toPercent(threshold)}`,
+            actual: `${_toPercent(wer)}`
           }
         }
       ))

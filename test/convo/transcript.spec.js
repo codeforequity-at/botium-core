@@ -287,11 +287,11 @@ describe('convo.transcript', function () {
 
       assert.equal(err.transcript.err.context.input.messageText, 'Hello')
       assert.equal(err.transcript.err.context.errors[0].type, 'asserter')
-      assert.equal(err.transcript.err.context.errors[0].source, 'TextMatchAsserter')
+      assert.equal(err.transcript.err.context.errors[0].source, 'Text Match Asserter')
       assert.equal(err.transcript.err.context.errors[1].type, 'asserter')
-      assert.equal(err.transcript.err.context.errors[1].source, 'ButtonsAsserter')
+      assert.equal(err.transcript.err.context.errors[1].source, 'Buttons Asserter')
       assert.equal(err.transcript.err.context.errors[2].type, 'asserter')
-      assert.equal(err.transcript.err.context.errors[2].source, 'ButtonsAsserter')
+      assert.equal(err.transcript.err.context.errors[2].source, 'Buttons Asserter')
     }
   })
   it('should throw simple error with multiple asserting errors if its enabled and assertConvoEnd fail', async function () {
@@ -317,11 +317,11 @@ describe('convo.transcript', function () {
 
       assert.equal(err.transcript.err.context.input.messageText, 'Hello')
       assert.equal(err.transcript.err.context.errors[0].type, 'asserter')
-      assert.equal(err.transcript.err.context.errors[0].source, 'TextMatchAsserter')
+      assert.equal(err.transcript.err.context.errors[0].source, 'Text Match Asserter')
       assert.equal(err.transcript.err.context.errors[1].type, 'asserter')
-      assert.equal(err.transcript.err.context.errors[1].source, 'ButtonsAsserter')
+      assert.equal(err.transcript.err.context.errors[1].source, 'Buttons Asserter')
       assert.equal(err.transcript.err.context.errors[2].type, 'asserter')
-      assert.equal(err.transcript.err.context.errors[2].source, 'ButtonsAsserter')
+      assert.equal(err.transcript.err.context.errors[2].source, 'Buttons Asserter')
       assert.equal(err.transcript.err.context.errors[3].type, 'asserter')
       assert.equal(err.transcript.err.context.errors[3].source, 'assertConvoEnd')
     }

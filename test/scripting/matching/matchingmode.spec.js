@@ -306,7 +306,7 @@ describe('scripting.matching.matchingmode', function () {
     })
   })
 
-  describe('wer.lowthreshold', function () {
+  describe('wer.lowthreshold (float)', function () {
     beforeEach(async function () {
       const myCaps = {
         [Capabilities.PROJECTNAME]: 'matching.matchingmode',
@@ -326,14 +326,54 @@ describe('scripting.matching.matchingmode', function () {
       assert.isFalse(this.compiler.Match('test 123', 'tast 123'))
     })
   })
+  describe('wer.lowthreshold (percentage)', function () {
+    beforeEach(async function () {
+      const myCaps = {
+        [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+        [Capabilities.CONTAINERMODE]: echoConnector,
+        [Capabilities.SCRIPTING_MATCHING_MODE]: 'wer',
+        [Capabilities.SCRIPTING_MATCHING_MODE_ARGS]: [10]
+      }
+      const driver = new BotDriver(myCaps)
+      this.compiler = driver.BuildCompiler()
+      this.container = await driver.Build()
+    })
+    afterEach(async function () {
+      this.container && await this.container.Clean()
+    })
 
-  describe('wer.highthreshold', function () {
+    it('should not match because of low threshold', async function () {
+      assert.isFalse(this.compiler.Match('test 123', 'tast 123'))
+    })
+  })
+
+  describe('wer.highthreshold (float)', function () {
     beforeEach(async function () {
       const myCaps = {
         [Capabilities.PROJECTNAME]: 'matching.matchingmode',
         [Capabilities.CONTAINERMODE]: echoConnector,
         [Capabilities.SCRIPTING_MATCHING_MODE]: 'wer',
         [Capabilities.SCRIPTING_MATCHING_MODE_ARGS]: [0.6]
+      }
+      const driver = new BotDriver(myCaps)
+      this.compiler = driver.BuildCompiler()
+      this.container = await driver.Build()
+    })
+    afterEach(async function () {
+      this.container && await this.container.Clean()
+    })
+
+    it('should match because of high threshold', async function () {
+      assert.isTrue(this.compiler.Match('test 123', 'tast 123'))
+    })
+  })
+  describe('wer.highthreshold (percentage)', function () {
+    beforeEach(async function () {
+      const myCaps = {
+        [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+        [Capabilities.CONTAINERMODE]: echoConnector,
+        [Capabilities.SCRIPTING_MATCHING_MODE]: 'wer',
+        [Capabilities.SCRIPTING_MATCHING_MODE_ARGS]: [60]
       }
       const driver = new BotDriver(myCaps)
       this.compiler = driver.BuildCompiler()

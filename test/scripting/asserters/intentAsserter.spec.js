@@ -62,7 +62,7 @@ const _assert = (expected, found) => {
   ))
 
   if (!expected) {
-    return assert.isRejected(promise, `${steptag}: IntentAsserter Missing argument`)
+    return assert.isRejected(promise, `${steptag}: NLU Intent Asserter Missing argument`)
   } else if (!found) {
     return assert.isRejected(promise, `${steptag}: Expected intent "${expected}" but found nothing`)
   } else if (expected !== found) {

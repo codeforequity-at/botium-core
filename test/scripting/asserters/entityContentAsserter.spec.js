@@ -20,10 +20,9 @@ describe('scripting.asserters.entityContentAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('EntityContentAsserter Missing argument') > 0)
+      assert.isTrue(err.message.indexOf('Missing argument') > 0)
       assert.isNotNull(err.context)
       assert.equal(err.context.type, 'asserter')
-      assert.equal(err.context.source, 'EntityContentAsserter')
     }
   })
 
@@ -36,10 +35,9 @@ describe('scripting.asserters.entityContentAsserter', function () {
       })
       assert.fail('should have failed')
     } catch (err) {
-      assert.isTrue(err.message.indexOf('EntityContentAsserter Missing argument') > 0)
+      assert.isTrue(err.message.indexOf('Missing argument') > 0)
       assert.isNotNull(err.context)
       assert.equal(err.context.type, 'asserter')
-      assert.equal(err.context.source, 'EntityContentAsserter')
     }
   })
 
@@ -55,7 +53,6 @@ describe('scripting.asserters.entityContentAsserter', function () {
       assert.isTrue(err.message.indexOf('Expected entity "something" but found nothing') > 0)
       assert.isNotNull(err.context)
       assert.equal(err.context.type, 'asserter')
-      assert.equal(err.context.source, 'EntityContentAsserter')
     }
   })
 
@@ -88,7 +85,6 @@ describe('scripting.asserters.entityContentAsserter', function () {
       assert.isTrue(err.message.indexOf('test: Missing entity content: [ \'something_value\' ] of entity "something"') >= 0)
       assert.isNotNull(err.context)
       assert.equal(err.context.type, 'asserter')
-      assert.equal(err.context.source, 'EntityContentAsserter')
       assert.isNotNull(err.context.cause)
       assert.equal(err.context.cause.entity, 'something')
       assert.deepEqual(err.context.cause.expected, ['something_value'])
@@ -126,7 +122,6 @@ describe('scripting.asserters.entityContentAsserter', function () {
       assert.isTrue(err.message.indexOf('test: Missing entity content: [ \'entity1_value1\', \'entity1_value3\' ] of entity "entity1"') >= 0)
       assert.isNotNull(err.context)
       assert.equal(err.context.type, 'asserter')
-      assert.equal(err.context.source, 'EntityContentAsserter')
       assert.isNotNull(err.context.cause)
       assert.equal(err.context.cause.entity, 'entity1')
       assert.deepEqual(err.context.cause.expected, ['entity1_value1', 'entity1_value1', 'entity1_value3'])

@@ -27,16 +27,23 @@ describe('scripting.asserters.werAsserter', function () {
     this.container && await this.container.Clean()
   })
 
-  it('ok', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_ok.yml'))
+  it('ok (float)', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_ok_float.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+    await this.compiler.convos[0].Run(this.container)
+  })
+  it('ok (percentage)', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_ok_percentage.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
     await this.compiler.convos[0].Run(this.container)
   })
 
-  it('nok', async function () {
-    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_nok.yml'))
+  it('nok (float)', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_nok_float.yml'))
 
     this.compiler.ExpandScriptingMemoryToConvos()
     assert.equal(this.compiler.convos.length, 1)
@@ -45,7 +52,20 @@ describe('scripting.asserters.werAsserter', function () {
       await this.compiler.convos[0].Run(this.container)
       assert.fail('expected error')
     } catch (err) {
-      assert.equal(err.message, 'wer_threshold_nok/Line 2: assertion error - Line 2: Word error rate 0.5 > 0.1 for tast 123')
+      assert.equal(err.message, 'wer_threshold_nok/Line 2: assertion error - Line 2: Word Error Rate (50%) higher than accepted (10%)')
+    }
+  })
+  it('nok (percentage)', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_nok_percentage.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'wer_threshold_nok/Line 2: assertion error - Line 2: Word Error Rate (50%) higher than accepted (10%)')
     }
   })
 })

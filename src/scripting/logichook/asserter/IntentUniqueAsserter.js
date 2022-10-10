@@ -5,13 +5,13 @@ module.exports = class IntentUniqueAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
-    this.name = 'IntentUniqueAsserter'
+    this.name = 'NLU Intent Unique Asserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
     if (args.length > 0) {
       return Promise.reject(new BotiumError(
-        `${convoStep.stepTag}: IntentUniqueAsserter Too much argument "${args}"`,
+        `${convoStep.stepTag}: ${this.name} Too much argument "${args}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',

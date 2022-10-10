@@ -25,8 +25,9 @@ module.exports = class RetryHelper {
       factor: caps[`RETRY_${section.toUpperCase()}_FACTOR`] || (_.isNil(options.factor) ? 1 : options.factor),
       minTimeout: caps[`RETRY_${section.toUpperCase()}_MINTIMEOUT`] || (_.isNil(options.minTimeout) ? 1000 : options.minTimeout)
     }
-
-    debug(`Retry for ${section} is ${this.retrySettings.retries > 0 ? 'enabled' : 'disabled'}. Settings: ${JSON.stringify(this.retrySettings)} Patterns: ${JSON.stringify(this.retryErrorPatterns.map(r => r.toString()))}`)
+    if (this.retrySettings.retries > 0) {
+      debug(`Retry for ${section} is enabled. Settings: ${JSON.stringify(this.retrySettings)} Patterns: ${JSON.stringify(this.retryErrorPatterns.map(r => r.toString()))}`)
+    }
   }
 
   shouldRetry (err) {

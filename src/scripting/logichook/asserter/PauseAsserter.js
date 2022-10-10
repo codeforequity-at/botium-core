@@ -4,7 +4,7 @@ module.exports = class PauseAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
-    this.name = 'PauseAsserter'
+    this.name = 'Pause Asserter'
   }
 
   assertConvoBegin ({ convo, args }) {

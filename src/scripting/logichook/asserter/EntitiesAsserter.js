@@ -6,7 +6,7 @@ module.exports = class EntitiesAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
-    this.name = 'EntitiesAsserter'
+    this.name = 'NLU Entities Asserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {

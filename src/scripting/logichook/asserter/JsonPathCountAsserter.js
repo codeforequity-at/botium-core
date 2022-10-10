@@ -11,7 +11,7 @@ const _jsonPathCount = ({ botMsg, args }) => {
 module.exports = class JsonPathCountAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
     super(context, caps, 'JsonPath', 1)
-    this.name = 'JsonPathCountAsserter'
+    this.name = 'JsonPath Count Asserter'
   }
 
   async _getCount (argv) { return _jsonPathCount(argv) }
@@ -20,7 +20,7 @@ module.exports = class JsonPathCountAsserter extends BaseCountAsserter {
     const { args, convoStep } = argv
 
     if (!args || args.length < 1 || args.length > 2) {
-      throw new BotiumError(`${convoStep.stepTag}: JsonPathCountAsserter 1 or 2 arguments expected "${args}"`,
+      throw new BotiumError(`${convoStep.stepTag}: ${this.name} 1 or 2 arguments expected "${args}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',

@@ -4,5 +4,6 @@ const MatchFunctions = require('../../MatchFunctions')
 module.exports = class TextWildcardExactAnyAsserter extends BaseTextAsserter {
   constructor (context, caps = {}) {
     super(context, caps, MatchFunctions.wildcardExact(false), 'any')
+    this.name = 'Text Wildcard Exact Any Asserter'
   }
 }

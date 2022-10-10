@@ -278,7 +278,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         })
         assert.fail('should have failed')
       } catch (err) {
-        assert.isTrue(err.message.indexOf('JsonPathAsserter 0 arguments expected') > 0)
+        assert.isTrue(err.message.indexOf('0 arguments expected') > 0)
       }
     })
     it('should succeed on existing jsonpath from pathPattern', async function () {

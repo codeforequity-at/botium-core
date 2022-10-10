@@ -7,7 +7,7 @@ module.exports = class ButtonsAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
-    this.name = 'ButtonsAsserter'
+    this.name = 'Buttons Asserter'
   }
 
   _evalButtons (args, botMsg) {

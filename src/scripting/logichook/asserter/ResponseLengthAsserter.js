@@ -12,6 +12,7 @@ module.exports = class ResponseLengthAsserter {
     if (globalArgs && globalArgs.maximumCount) {
       this.globalMaximumCount = Number(globalArgs.maximumCount)
     }
+    this.name = 'Response Length Asserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg }) {
@@ -32,7 +33,7 @@ module.exports = class ResponseLengthAsserter {
         return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected maximum response count ${checkCount}, found ${botMsg.messageText.length}`,
           {
             type: 'asserter',
-            source: 'ResponseCountAsserter',
+            source: this.name,
             context: {
               constructor: {
                 globalArgs: this.globalArgs
@@ -57,7 +58,7 @@ module.exports = class ResponseLengthAsserter {
           return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected maximum response length ${checkLength} characters, found ${textToCheck.length}`,
             {
               type: 'asserter',
-              source: 'ResponseLengthAsserter',
+              source: this.name,
               context: {
                 constructor: {
                   globalArgs: this.globalArgs

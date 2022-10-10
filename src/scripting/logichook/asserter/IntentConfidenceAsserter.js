@@ -17,12 +17,12 @@ module.exports = class IntentConfidenceAsserter {
         throw Error(`IntentConfidenceAsserter Excepted minimum is not valid ${this.globalExpectedMinimum}`)
       }
     }
-    this.name = 'IntentConfidenceAsserter'
+    this.name = 'NLU Intent Confidence Asserter'
   }
 
   assertConvoStep ({ convo, convoStep, args, botMsg, isGlobal }) {
     if (args.length > 1) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentConfidenceAsserter Too much arguments "${args}"`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: ${this.name} Too much arguments "${args}"`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
@@ -35,7 +35,7 @@ module.exports = class IntentConfidenceAsserter {
     const hasLocalExpectedMinimum = args && args.length
 
     if (!this.hasGlobalExpectedMinimum && !hasLocalExpectedMinimum) {
-      return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentConfidenceAsserter configured neither global, nor local`,
+      return Promise.reject(new BotiumError(`${convoStep.stepTag}: NLU Intent Confidence Asserter configured neither global, nor local`,
         {
           type: 'asserter',
           subtype: 'wrong parameters',
@@ -53,7 +53,7 @@ module.exports = class IntentConfidenceAsserter {
     if (hasLocalExpectedMinimum) {
       expectedMinimum = Number(args[0])
       if (parseInt(expectedMinimum, 10) !== expectedMinimum) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: IntentConfidenceAsserter Wrong argument. It must be integer "${args[0]}"`,
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: NLU Intent Confidence Asserter Wrong argument. It must be integer "${args[0]}"`,
           {
             type: 'asserter',
             subtype: 'wrong parameters',

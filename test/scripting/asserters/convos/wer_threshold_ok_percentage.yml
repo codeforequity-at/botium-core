@@ -1,0 +1,7 @@
+convos:
+  - name: wer_threshold_ok
+    steps:
+      - me:
+          - test 123
+      - bot:
+          - TEXT_WER tast 123|60

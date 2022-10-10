@@ -83,7 +83,9 @@ const equals = (ignoreCase) => (botresponse, utterance) => {
 const wer = () => (botresponse, utterance, args) => {
   botresponse = _normalize(botresponse || '')
   utterance = toString(utterance || '')
-  return speechScorer.wordErrorRate(botresponse, utterance) <= args[0]
+
+  const threshold = ([',', '.'].find(p => `${args[0]}`.includes(p)) ? parseFloat(args[0]) : parseInt(args[0]) / 100)
+  return speechScorer.wordErrorRate(botresponse, utterance) <= threshold
 }
 
 const getMatchFunction = (matchingMode) => {
