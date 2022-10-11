@@ -111,19 +111,19 @@ module.exports = class LogicHookUtils {
 
     // 1 gives possibility to use default asserter as global asserter
     if (hookType === 'asserter') {
-      const asserter = DEFAULT_ASSERTERS.find(asserter => src === asserter.className)
+      const asserter = DEFAULT_ASSERTERS.find(asserter => src === asserter.className || src === asserter.name)
       if (asserter) {
         return new (asserter.Class)({ ref, ...this.buildScriptContext }, this.caps, args)
       }
     }
     if (hookType === 'logichook') {
-      const lh = DEFAULT_LOGIC_HOOKS.find(lh => src === lh.className)
+      const lh = DEFAULT_LOGIC_HOOKS.find(lh => src === lh.className || src === lh.name)
       if (lh) {
         return new (lh.Class)({ ref, ...this.buildScriptContext }, this.caps, args)
       }
     }
     if (hookType === 'userinput') {
-      const ui = DEFAULT_USER_INPUTS.find(ui => src === ui.className)
+      const ui = DEFAULT_USER_INPUTS.find(ui => src === ui.className || src === ui.name)
       if (ui) {
         return new (ui.Class)({ ref, ...this.buildScriptContext }, this.caps, args)
       }

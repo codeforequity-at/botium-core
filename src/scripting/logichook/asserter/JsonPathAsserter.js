@@ -126,7 +126,8 @@ module.exports = class JsonPathAsserter {
         ))
       }
     }
-    if (assert) {
+
+    if (!_.isNil(assert)) {
       const actual = (_.isArray(jsonPathValues) && jsonPathValues.length === 1) ? jsonPathValues[0] : jsonPathValues
 
       let matchFn = this.context.Match
@@ -137,7 +138,7 @@ module.exports = class JsonPathAsserter {
       const match = jsonPathValues.find(a => matchFn(a, assert))
 
       if (not && match) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: ${toString(actual)} in jsonPath ${path}"`,
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: "${toString(actual)}" in jsonPath ${path}"`,
           {
             type: 'asserter',
             source: this.name,
@@ -158,7 +159,7 @@ module.exports = class JsonPathAsserter {
         ))
       }
       if (!not && !match) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected: ${assert} in jsonPath ${path}: Actual: ${toString(actual)}`,
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected: "${assert}" in jsonPath ${path}, actual: ${toString(actual)}`,
           {
             type: 'asserter',
             source: this.name,
