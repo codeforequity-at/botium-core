@@ -63,7 +63,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         })
       } catch (err) {
         console.log(err.message)
-        assert.isTrue(err.message.includes('Expected: message4 in jsonPath $.messages[*].label: Actual: message1,message2,message3'))
+        assert.isTrue(err.message.includes('Expected: "message4" in jsonPath $.messages[*].label, actual: message1,message2,message3'))
       }
     })
     it('should fail on not existing jsonpath', async function () {
@@ -133,7 +133,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
           }
         })
       } catch (err) {
-        assert.isTrue(err.message.indexOf('Expected: {"label":"message2"} in jsonPath $.messages[0]: Actual: {"label":"message1"}') > 0)
+        assert.isTrue(err.message.indexOf('Expected: "{"label":"message2"}" in jsonPath $.messages[0], actual: {"label":"message1"}') > 0)
         assert.isNotNull(err.context)
         assert.isNotNull(err.context.cause)
         assert.isNotTrue(err.context.cause.not)
@@ -155,7 +155,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         })
         assert.fail('should have failed')
       } catch (err) {
-        assert.isTrue(err.message.indexOf('Expected: test2 in jsonPath $.test') > 0)
+        assert.isTrue(err.message.indexOf('Expected: "test2" in jsonPath $.test') > 0)
         assert.isNotNull(err.context)
         assert.isNotNull(err.context.cause)
         assert.isNotTrue(err.context.cause.not)
@@ -196,7 +196,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         })
         assert.fail('should have failed')
       } catch (err) {
-        assert.isTrue(err.message.indexOf('Not expected: test1 in jsonPath $.test') > 0)
+        assert.isTrue(err.message.indexOf('Not expected: "test1" in jsonPath $.test') > 0)
         assert.isNotNull(err.context)
         assert.isNotNull(err.context.cause)
         assert.isTrue(err.context.cause.not)
@@ -252,7 +252,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         })
         assert.fail('should have failed')
       } catch (err) {
-        assert.isTrue(err.message.indexOf('Expected: test2 in jsonPath $.test') > 0)
+        assert.isTrue(err.message.indexOf('Expected: "test2" in jsonPath $.test') > 0)
         assert.isNotNull(err.context)
         assert.isNotNull(err.context.cause)
         assert.isNotTrue(err.context.cause.not)
@@ -332,7 +332,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         })
         assert.fail('should have failed')
       } catch (err) {
-        assert.isTrue(err.message.indexOf('Expected: value in jsonPath $.test') > 0)
+        assert.isTrue(err.message.indexOf('Expected: "value" in jsonPath $.test') > 0)
       }
     })
     it('should succeed on setting matching mode in global args', async function () {
@@ -373,7 +373,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         })
         assert.fail('should have failed')
       } catch (err) {
-        assert.isTrue(err.message.indexOf('Expected: value1 in jsonPath $.test') > 0)
+        assert.isTrue(err.message.indexOf('Expected: "value1" in jsonPath $.test') > 0)
       }
     })
   })
