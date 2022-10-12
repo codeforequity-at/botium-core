@@ -130,15 +130,21 @@ module.exports = class JsonPathAsserter {
     if (!_.isNil(assert)) {
       const actual = (_.isArray(jsonPathValues) && jsonPathValues.length === 1) ? jsonPathValues[0] : jsonPathValues
 
-      let matchFn = this.context.Match
+      // '' means here '', but in core matching it is '*'
+      let matchFn = (value, assert) => {
+        if (assert === '') {
+          return value === ''
+        }
+        return this.context.Match(value, assert)
+      }
       if (this.globalArgs && this.globalArgs.matchingMode) {
         matchFn = getMatchFunction(this.globalArgs.matchingMode)
       }
 
-      const match = jsonPathValues.find(a => matchFn(a, assert))
+      const match = !_.isNil(jsonPathValues.find(a => matchFn(a, assert)))
 
       if (not && match) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: "${toString(actual)}" in jsonPath ${path}"`,
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: "${actual === '' ? '<empty>' : toString(actual)}" in jsonPath ${path}"`,
           {
             type: 'asserter',
             source: this.name,
@@ -152,14 +158,14 @@ module.exports = class JsonPathAsserter {
             cause: {
               not: true,
               expected: assert,
-              actual,
+              actual: actual,
               path
             }
           }
         ))
       }
       if (!not && !match) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected: "${assert}" in jsonPath ${path}, actual: ${toString(actual)}`,
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected: "${assert === '' ? '<empty>' : assert}" in jsonPath ${path}, actual: ${actual === '' ? '<empty>' : toString(actual)}`,
           {
             type: 'asserter',
             source: this.name,
@@ -174,7 +180,7 @@ module.exports = class JsonPathAsserter {
             cause: {
               not: false,
               expected: assert,
-              actual,
+              actual: actual,
               path
             }
           }
