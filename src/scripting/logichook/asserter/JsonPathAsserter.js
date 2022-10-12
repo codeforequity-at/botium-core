@@ -127,6 +127,10 @@ module.exports = class JsonPathAsserter {
       }
     }
 
+    if (this.globalArgs && this.globalArgs.checkExistanceOnEmptyAssert) {
+      if (!assert) return Promise.resolve()
+    }
+
     if (!_.isNil(assert)) {
       const actual = (_.isArray(jsonPathValues) && jsonPathValues.length === 1) ? jsonPathValues[0] : jsonPathValues
 
@@ -135,10 +139,10 @@ module.exports = class JsonPathAsserter {
         matchFn = getMatchFunction(this.globalArgs.matchingMode)
       }
 
-      const match = jsonPathValues.find(a => matchFn(a, assert))
+      const match = !_.isNil(jsonPathValues.find(a => matchFn(a, assert)))
 
       if (not && match) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: "${toString(actual)}" in jsonPath ${path}"`,
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: "${actual === '' ? '<empty>' : toString(actual)}" in jsonPath ${path}"`,
           {
             type: 'asserter',
             source: this.name,
@@ -159,7 +163,7 @@ module.exports = class JsonPathAsserter {
         ))
       }
       if (!not && !match) {
-        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected: "${assert}" in jsonPath ${path}, actual: ${toString(actual)}`,
+        return Promise.reject(new BotiumError(`${convoStep.stepTag}: Expected: "${assert === '' ? '<empty>' : assert}" in jsonPath ${path}, actual: ${actual === '' ? '<empty>' : toString(actual)}`,
           {
             type: 'asserter',
             source: this.name,
