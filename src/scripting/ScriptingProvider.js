@@ -885,12 +885,11 @@ module.exports = class ScriptingProvider {
       // drop unwanted convos
       convoFilter: null
     }, options)
-    const context = { count: 0 }
     const expandedConvos = []
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     this.convos.forEach((convo) => {
       convo.expandPartialConvos()
-      for (const expanded of this._expandConvo(convo, options, context)) {
+      for (const expanded of this._expandConvo(convo, options, {})) {
         expanded.header.assertionCount = this.GetAssertionCount(expanded)
         if (options.justHeader) {
           const ConvoWithOnlyHeader = {
@@ -922,10 +921,9 @@ module.exports = class ScriptingProvider {
     // creating a nested generator, calling the other.
     // We hope this.convos does not changes while this iterator is used
     const _convosIterable = function * (options) {
-      const context = { count: 0 }
       for (const convo of this.convos) {
         convo.expandPartialConvos()
-        yield * this._expandConvo(convo, options, context)
+        yield * this._expandConvo(convo, options, {})
       }
     }.bind(this)
 
@@ -1122,11 +1120,6 @@ module.exports = class ScriptingProvider {
     } else {
       const expanded = Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) })
       if (!options.convoFilter || options.convoFilter(expanded)) {
-        context.count++
-        const logPerEntry = context.count < 10 ? 1 : context.count < 100 ? 10 : context.count < 1000 ? 100 : context.count < 10000 ? 1000 : 10000
-        if (context.count % logPerEntry === 0) {
-          debug(`Convo #${context.count} expanded (${expanded.header.name})`)
-        }
         yield expanded
       }
     }
