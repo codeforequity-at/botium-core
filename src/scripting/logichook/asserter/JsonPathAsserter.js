@@ -127,16 +127,14 @@ module.exports = class JsonPathAsserter {
       }
     }
 
+    if (this.globalArgs && this.globalArgs.checkExistanceOnEmptyAssert) {
+      if (!assert) return Promise.resolve()
+    }
+
     if (!_.isNil(assert)) {
       const actual = (_.isArray(jsonPathValues) && jsonPathValues.length === 1) ? jsonPathValues[0] : jsonPathValues
 
-      // '' means here '', but in core matching it is '*'
-      let matchFn = (value, assert) => {
-        if (assert === '') {
-          return value === ''
-        }
-        return this.context.Match(value, assert)
-      }
+      let matchFn = this.context.Match
       if (this.globalArgs && this.globalArgs.matchingMode) {
         matchFn = getMatchFunction(this.globalArgs.matchingMode)
       }
@@ -158,7 +156,7 @@ module.exports = class JsonPathAsserter {
             cause: {
               not: true,
               expected: assert,
-              actual: actual,
+              actual,
               path
             }
           }
@@ -180,7 +178,7 @@ module.exports = class JsonPathAsserter {
             cause: {
               not: false,
               expected: assert,
-              actual: actual,
+              actual,
               path
             }
           }

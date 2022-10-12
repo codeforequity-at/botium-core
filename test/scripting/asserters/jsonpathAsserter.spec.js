@@ -14,13 +14,16 @@ describe('scripting.asserters.jsonPathAsserter', function () {
       this.jsonPathAsserterWildcard = new JsonPathAsserter({
         Match: getMatchFunction('wildcardIgnoreCase')
       }, {})
+      this.jsonPathAsserterEquals = new JsonPathAsserter({
+        Match: getMatchFunction('equals')
+      }, {})
       this.jsonPathAsserterGlobalArgs = new JsonPathAsserter({
         Match: (botresponse, utterance) => botresponse.toLowerCase().indexOf(utterance.toLowerCase()) >= 0
       }, {}, { path: '$.test' })
     })
 
     describe('empty string', function () {
-      it('should succeed if booth is empty', async function () {
+      it('should succeed if both is empty', async function () {
         await this.jsonPathAsserterWildcard.assertConvoStep({
           convoStep: { stepTag: 'test' },
           args: ['$.test', ''],
@@ -32,7 +35,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
         })
       })
       it('should succeed if expected is empty, and asserter is negated', async function () {
-        await this.jsonPathAsserterWildcard.assertNotConvoStep({
+        await this.jsonPathAsserterEquals.assertNotConvoStep({
           convoStep: { stepTag: 'test' },
           args: ['$.test', ''],
           botMsg: {
@@ -55,13 +58,12 @@ describe('scripting.asserters.jsonPathAsserter', function () {
           })
           assert.fail('expected jsonPathAsserter to fail')
         } catch (err) {
-          console.log(err.message)
           assert.isTrue(err.message.includes('Expected: "something but not empty string" in jsonPath $.test, actual: <empty>'))
         }
       })
       it('should fail if real is not empty', async function () {
         try {
-          await this.jsonPathAsserter.assertConvoStep({
+          await this.jsonPathAsserterEquals.assertConvoStep({
             convoStep: { stepTag: 'test' },
             args: ['$.test', ''],
             botMsg: {
@@ -72,7 +74,6 @@ describe('scripting.asserters.jsonPathAsserter', function () {
           })
           assert.fail('expected jsonPathAsserter to fail')
         } catch (err) {
-          console.log(err.message)
           assert.isTrue(err.message.includes('Expected: "<empty>" in jsonPath $.test, actual: something but not empty string'))
         }
       })
@@ -123,7 +124,6 @@ describe('scripting.asserters.jsonPathAsserter', function () {
           }
         })
       } catch (err) {
-        console.log(err.message)
         assert.isTrue(err.message.includes('Expected: "message4" in jsonPath $.messages[*].label, actual: message1,message2,message3'))
       }
     })
@@ -277,7 +277,7 @@ describe('scripting.asserters.jsonPathAsserter', function () {
       })
     })
     it('should succeed on matching jsonpath from globalArgs', async function () {
-      await this.jsonPathAsserter.assertConvoStep({
+      await this.jsonPathAsserterGlobalArgs.assertConvoStep({
         convoStep: { stepTag: 'test' },
         args: ['test'],
         botMsg: {
@@ -436,6 +436,21 @@ describe('scripting.asserters.jsonPathAsserter', function () {
       } catch (err) {
         assert.isTrue(err.message.indexOf('Expected: "value1" in jsonPath $.test') > 0)
       }
+    })
+
+    it('should succeed on empty string if checkExistanceOnEmptyAssert is on in globalArgs', async function () {
+      this.jsonPathAsserterEquals.globalArgs = {
+        checkExistanceOnEmptyAssert: true
+      }
+      await this.jsonPathAsserterEquals.assertConvoStep({
+        convoStep: { stepTag: 'test' },
+        args: ['test', ''],
+        botMsg: {
+          sourceData: {
+            test: 'asdf'
+          }
+        }
+      })
     })
   })
 
