@@ -81,8 +81,12 @@ const equals = (ignoreCase) => (botresponse, utterance) => {
 }
 
 const wer = () => (botresponse, utterance, args) => {
-  botresponse = _normalize(botresponse || '')
-  utterance = toString(utterance || '')
+  const _prepareString = str => {
+    return str.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '').toLowerCase()
+  }
+
+  botresponse = _prepareString(_normalize(botresponse || ''))
+  utterance = _prepareString(toString(utterance || ''))
 
   const threshold = ([',', '.'].find(p => `${args[0]}`.includes(p)) ? parseFloat(args[0]) : parseInt(args[0]) / 100)
   return speechScorer.wordErrorRate(botresponse, utterance) <= threshold

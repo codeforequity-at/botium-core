@@ -31,10 +31,14 @@ module.exports = class WerAsserter {
       ))
     }
 
+    const _prepareString = str => {
+      return str.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '').toLowerCase()
+    }
+
     const utterance = args[0]
     const threshold = ([',', '.'].find(p => `${args[1]}`.includes(p)) ? parseFloat(args[1]) : parseInt(args[1]) / 100).toFixed(2)
 
-    const wer = speechScorer.wordErrorRate(botMsg.messageText, utterance).toFixed(2)
+    const wer = speechScorer.wordErrorRate(_prepareString(botMsg.messageText), _prepareString(utterance)).toFixed(2)
     if (wer > threshold) {
       const _toPercent = (s) => `${(s * 100).toFixed(0)}%`
 
