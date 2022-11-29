@@ -1,0 +1,7 @@
+sub2
+
+#me
+attila
+
+#bot
+JSON_PATH $.request|$customer

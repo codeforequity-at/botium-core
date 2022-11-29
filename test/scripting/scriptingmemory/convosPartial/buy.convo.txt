@@ -1,0 +1,7 @@
+buy
+
+#begin
+INCLUDE sub1
+
+#include sub2
+
