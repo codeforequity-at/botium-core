@@ -44,7 +44,7 @@ module.exports = class SetScriptingMemoryLogicHook {
     // args[0] cant have the whole name of the variable, because the variable names are replaced
     const name = '$' + params.name
     const value = params.value
-    debug(`Set scripting memory variable "${name}" from "${scriptingMemory[name]}" to "${value}, isGlobal: ${isGlobal}, type: ${type}"`)
+    debug(`Set scripting memory variable "${name}" from "${scriptingMemory[name]}" to "${value}", isGlobal: ${isGlobal}, type: ${type}"`)
     scriptingMemory[name] = value
 
     return Promise.resolve()
