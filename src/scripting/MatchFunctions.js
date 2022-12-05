@@ -1,7 +1,6 @@
 const _ = require('lodash')
-const speechScorer = require('word-error-rate')
 
-const { toString, quoteRegexpString } = require('./helper')
+const { toString, quoteRegexpString, calculateWer } = require('./helper')
 
 const _normalize = (botresponse) => {
   if (_.isUndefined(botresponse)) return ''
@@ -81,15 +80,11 @@ const equals = (ignoreCase) => (botresponse, utterance) => {
 }
 
 const wer = () => (botresponse, utterance, args) => {
-  const _prepareString = str => {
-    return str.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '').toLowerCase()
-  }
-
-  botresponse = _prepareString(_normalize(botresponse || ''))
-  utterance = _prepareString(toString(utterance || ''))
+  botresponse = _normalize(botresponse || '')
+  utterance = toString(utterance || '')
 
   const threshold = ([',', '.'].find(p => `${args[0]}`.includes(p)) ? parseFloat(args[0]) : parseInt(args[0]) / 100)
-  return speechScorer.wordErrorRate(botresponse, utterance) <= threshold
+  return calculateWer(botresponse, utterance) <= threshold
 }
 
 const getMatchFunction = (matchingMode) => {
