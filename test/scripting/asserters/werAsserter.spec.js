@@ -68,4 +68,45 @@ describe('scripting.asserters.werAsserter', function () {
       assert.equal(err.message, 'wer_threshold_nok/Line 2: assertion error - Line 2: Word Error Rate (50%) higher than accepted (10%)')
     }
   })
+
+  it('ok wildcard (percentage)', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_wildcard_ok_percentage.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+    await this.compiler.convos[0].Run(this.container)
+  })
+  it('ok wildcard (float)', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_wildcard_ok_float.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+    await this.compiler.convos[0].Run(this.container)
+  })
+  it('nok wildcard (percentage)', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_wildcard_nok_percentage.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'wer_threshold_wildcard_nok/Line 2: assertion error - Line 2: Word Error Rate (33%) higher than accepted (1%)')
+    }
+  })
+  it('nok wildcard (float)', async function () {
+    this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convos', 'wer_threshold_wildcard_nok_float.yml'))
+
+    this.compiler.ExpandScriptingMemoryToConvos()
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.container)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.equal(err.message, 'wer_threshold_wildcard_nok/Line 2: assertion error - Line 2: Word Error Rate (75%) higher than accepted (40%)')
+    }
+  })
 })
