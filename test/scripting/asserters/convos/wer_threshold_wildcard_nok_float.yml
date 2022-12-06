@@ -1,0 +1,7 @@
+convos:
+  - name: wer_threshold_wildcard_nok
+    steps:
+      - me:
+          - This is an example
+      - bot:
+          - TEXT_WER * that are * hot|0.4

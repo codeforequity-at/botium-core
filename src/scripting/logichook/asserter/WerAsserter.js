@@ -1,6 +1,6 @@
 // const _ = require('lodash')
-const speechScorer = require('word-error-rate')
 const { BotiumError } = require('../../BotiumError')
+const { calculateWer } = require('../../helper')
 
 module.exports = class WerAsserter {
   constructor (context, caps = {}) {
@@ -34,7 +34,8 @@ module.exports = class WerAsserter {
     const utterance = args[0]
     const threshold = ([',', '.'].find(p => `${args[1]}`.includes(p)) ? parseFloat(args[1]) : parseInt(args[1]) / 100).toFixed(2)
 
-    const wer = speechScorer.wordErrorRate(botMsg.messageText, utterance).toFixed(2)
+    const wer = calculateWer(botMsg.messageText, utterance)
+
     if (wer > threshold) {
       const _toPercent = (s) => `${(s * 100).toFixed(0)}%`
 
