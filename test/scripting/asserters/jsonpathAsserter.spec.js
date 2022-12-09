@@ -34,6 +34,17 @@ describe('scripting.asserters.jsonPathAsserter', function () {
           }
         })
       })
+      it('should succeed if null', async function () {
+        await this.jsonPathAsserterEquals.assertConvoStep({
+          convoStep: { stepTag: 'test' },
+          args: ['$.test', ''],
+          botMsg: {
+            sourceData: {
+              test: null
+            }
+          }
+        })
+      })
       it('should succeed if expected is empty, and asserter is negated', async function () {
         await this.jsonPathAsserterEquals.assertNotConvoStep({
           convoStep: { stepTag: 'test' },

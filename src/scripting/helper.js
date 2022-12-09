@@ -62,7 +62,7 @@ const removeBuffers = obj => {
 }
 
 const toString = (value) => {
-  if (_.isUndefined(value)) return undefined
+  if (_.isUndefined(value) || _.isNil(value)) return ''
   if (_.isString(value)) return value
   if (_.isNumber(value)) return value.toString()
   if (_.isArray(value)) return value.map(v => toString(v)).join(',')
