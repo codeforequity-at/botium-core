@@ -163,6 +163,26 @@ describe('convo.fillAndApplyScriptingMemory', function () {
       const transcript = await compiler.convos[0].Run(container)
       assert.isObject(transcript.scriptingMemory)
     })
+    it('should apply scripting memory in begin args', async function () {
+      const myCaps = {
+        [Capabilities.PROJECTNAME]: 'convo.scriptingmemory',
+        [Capabilities.CONTAINERMODE]: echoConnector,
+        [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
+        [Capabilities.CUSTOMHOOK_ONBUILD]: 'module.exports = ({ container }) => { console.log("customhooks called"); container.caps.MYTOKEN = "test1234" }'
+      }
+      const driver = new BotDriver(myCaps)
+      const compiler = driver.BuildCompiler()
+      const container = await driver.Build()
+
+      compiler.ReadScript(path.resolve(__dirname, 'convos'), 'applyscriptingmemoryinbegin.convo.txt')
+      assert.equal(compiler.convos.length, 1)
+
+      const transcript = await compiler.convos[0].Run(container)
+      assert.isObject(transcript.scriptingMemory)
+      assert.equal(transcript.scriptingMemory.$access_token, 'test1234')
+      assert.equal(transcript.steps[0].actual.messageText, 'access token: test1234')
+      assert.equal(transcript.steps[2].actual.messageText, 'access token: test1234')
+    })
   })
 
   describe('api', function () {

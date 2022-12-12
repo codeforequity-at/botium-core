@@ -1,0 +1,7 @@
+sub1
+
+#me
+schnitzel
+
+#bot
+JSON_PATH $.request|$productName

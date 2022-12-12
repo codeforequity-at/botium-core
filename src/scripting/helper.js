@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const isJSON = require('is-json')
+const speechScorer = require('word-error-rate')
 
 const { E_SCRIPTING_MEMORY_COLUMN_MODE } = require('../Enums')
 
@@ -61,7 +62,7 @@ const removeBuffers = obj => {
 }
 
 const toString = (value) => {
-  if (_.isUndefined(value)) return undefined
+  if (_.isUndefined(value) || _.isNil(value)) return ''
   if (_.isString(value)) return value
   if (_.isNumber(value)) return value.toString()
   if (_.isArray(value)) return value.map(v => toString(v)).join(',')
@@ -524,6 +525,63 @@ const linesToScriptingMemories = (lines, columnMode = null) => {
   return scriptingMemories
 }
 
+const calculateWer = (str, pattern) => {
+  const _prepareString = (str, remWildcard = false) => {
+    if (remWildcard) return str.replace(/[.,/#!$%^&;:*{}=\-_`~()]/g, '').toLowerCase()
+    return str.replace(/[.,/#!$%^&;:{}=\-_`~()]/g, '').toLowerCase()
+  }
+
+  const _getSubsets = (array, size) => {
+    const subsets = []
+    for (const index in array) {
+      const end = parseInt(index) + size
+      if (end <= array.length) { subsets.push(array.slice(index, end)) }
+    }
+    return subsets
+  }
+
+  const _getWords = str => str.split(' ').map(w => w.trim())
+
+  const _getErrors = (words1, words2) => words1.map((w, i) => {
+    return w !== words2[i]
+  })
+
+  const utterance = pattern
+
+  const botMessage = _prepareString(str)
+  const botMessageWords = botMessage.split(' ').map(bm => bm.trim())
+  const utt = _prepareString(utterance)
+
+  const errors = []
+  for (let wildcardPart of utt.split('*')) {
+    let wer = 1
+    wildcardPart = wildcardPart.trim()
+    if (wildcardPart.length === 0) {
+      errors.push([false])
+      continue
+    }
+    const wordCount = wildcardPart.split(' ').length
+    const subsetPhrases = _getSubsets(botMessageWords, wordCount).map(subset => subset.join(' ')) // botMessageWordsSubsets.filter(subset => subset.length === wordCount).map(subset => subset.reverse().join(' '))
+    let subsetPhraseFound = null
+    for (const subsetPhrase of subsetPhrases) {
+      const localWer = speechScorer.wordErrorRate(subsetPhrase, wildcardPart).toFixed(2)
+      if (localWer <= wer) {
+        subsetPhraseFound = subsetPhrase
+        wer = localWer
+      }
+    }
+    console.log('lala', subsetPhraseFound)
+    errors.push(_getErrors(_getWords(wildcardPart), _getWords(subsetPhraseFound)))
+  }
+  let errCount = 0
+  let allCount = 0
+  for (const err of errors) {
+    errCount += err.filter(err => err === true).length
+    allCount += err.length
+  }
+  return (errCount / allCount).toFixed(2)
+}
+
 module.exports = {
   normalizeText,
   splitStringInNonEmptyLines,
@@ -537,5 +595,6 @@ module.exports = {
   validSenders,
   validateSender,
   validateConvo,
-  linesToScriptingMemories
+  linesToScriptingMemories,
+  calculateWer
 }

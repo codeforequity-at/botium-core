@@ -9,7 +9,7 @@ const echoConnector = ({ queueBotSays }) => {
       const response = `You said: ${msg.messageText.replace('forcereplace1', 'OUTPUT1').replace('forcereplace2', 'OUTPUT2')}`
       const botMsg = {
         sender: 'bot',
-        sourceData: msg.sourceData,
+        sourceData: msg.sourceData || { request: msg.messageText },
         messageText: response
       }
       queueBotSays(botMsg)
@@ -288,6 +288,15 @@ describe('scripting.scriptingmemory.fillingScriptingMemoryFromFile', function ()
       this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosNoIntersection'))
       this.compiler.ExpandScriptingMemoryToConvos()
       assert.equal(this.compiler.convos.length, 1)
+    })
+
+    it('should replace scripting memory in partial convo', async function () {
+      this.compiler.ReadScriptsFromDirectory(path.resolve(__dirname, 'convosPartial'))
+      this.compiler.ExpandScriptingMemoryToConvos()
+      this.compiler.ExpandConvos()
+      assert.equal(this.compiler.convos.length, 1)
+
+      await this.compiler.convos[0].Run(this.container)
     })
   })
 

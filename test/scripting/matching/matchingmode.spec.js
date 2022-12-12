@@ -387,4 +387,86 @@ describe('scripting.matching.matchingmode', function () {
       assert.isTrue(this.compiler.Match('test 123', 'tast 123'))
     })
   })
+
+  describe('wer.lowthreshold.wildcard (float)', function () {
+    beforeEach(async function () {
+      const myCaps = {
+        [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+        [Capabilities.CONTAINERMODE]: echoConnector,
+        [Capabilities.SCRIPTING_MATCHING_MODE]: 'wer',
+        [Capabilities.SCRIPTING_MATCHING_MODE_ARGS]: [0.4]
+      }
+      const driver = new BotDriver(myCaps)
+      this.compiler = driver.BuildCompiler()
+      this.container = await driver.Build()
+    })
+    afterEach(async function () {
+      this.container && await this.container.Clean()
+    })
+
+    it('should not match because of low threshold', async function () {
+      assert.isFalse(this.compiler.Match('This is an example', '* that are * hot'))
+    })
+  })
+  describe('wer.lowthreshold.wildcard (percentage)', function () {
+    beforeEach(async function () {
+      const myCaps = {
+        [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+        [Capabilities.CONTAINERMODE]: echoConnector,
+        [Capabilities.SCRIPTING_MATCHING_MODE]: 'wer',
+        [Capabilities.SCRIPTING_MATCHING_MODE_ARGS]: [10]
+      }
+      const driver = new BotDriver(myCaps)
+      this.compiler = driver.BuildCompiler()
+      this.container = await driver.Build()
+    })
+    afterEach(async function () {
+      this.container && await this.container.Clean()
+    })
+
+    it('should not match because of low threshold', async function () {
+      assert.isFalse(this.compiler.Match('This is an example', '* is * hot'))
+    })
+  })
+
+  describe('wer.highthreshold.wildcard (float)', function () {
+    beforeEach(async function () {
+      const myCaps = {
+        [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+        [Capabilities.CONTAINERMODE]: echoConnector,
+        [Capabilities.SCRIPTING_MATCHING_MODE]: 'wer',
+        [Capabilities.SCRIPTING_MATCHING_MODE_ARGS]: [0.4]
+      }
+      const driver = new BotDriver(myCaps)
+      this.compiler = driver.BuildCompiler()
+      this.container = await driver.Build()
+    })
+    afterEach(async function () {
+      this.container && await this.container.Clean()
+    })
+
+    it('should match because of high threshold', async function () {
+      assert.isTrue(this.compiler.Match('this is an example', 'this is * sample'))
+    })
+  })
+  describe('wer.highthreshold.wildcard (percentage)', function () {
+    beforeEach(async function () {
+      const myCaps = {
+        [Capabilities.PROJECTNAME]: 'matching.matchingmode',
+        [Capabilities.CONTAINERMODE]: echoConnector,
+        [Capabilities.SCRIPTING_MATCHING_MODE]: 'wer',
+        [Capabilities.SCRIPTING_MATCHING_MODE_ARGS]: [30]
+      }
+      const driver = new BotDriver(myCaps)
+      this.compiler = driver.BuildCompiler()
+      this.container = await driver.Build()
+    })
+    afterEach(async function () {
+      this.container && await this.container.Clean()
+    })
+
+    it('should match because of high threshold', async function () {
+      assert.isTrue(this.compiler.Match('this is an example', 'this is another *'))
+    })
+  })
 })

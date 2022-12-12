@@ -20,6 +20,7 @@ describe('scriptingModificator.assertions', function () {
         ]
       },
       scriptingMemory: {},
+      container: {},
       botMsg: {
         buttons: [
           {
@@ -47,6 +48,7 @@ describe('scriptingModificator.assertions', function () {
           ]
         },
         scriptingMemory: {},
+        container: {},
         botMsg: {
           nlp: {
             intent: { name: 'test1' }
