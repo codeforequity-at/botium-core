@@ -19,7 +19,7 @@
     "test": "cross-env NODE_PATH=\"./test/plugins/plugindir/fromfolder:./test/plugins/plugindir/fromfile:./test/security/resources\" mocha \"./test/**/*.spec.js\"",
     "coverage:report": "nyc report --reporter=lcov npm test",
     "license-checker": "license-checker > LICENSES-3RDPARTY.txt",
-    "update-dependencies": "npm-check-updates --reject globby -u --timeout 120000"
+    "update-dependencies": "npm-check-updates --reject globby,rollup -u --timeout 120000"
   },
   "repository": {
     "type": "git",
@@ -93,7 +93,7 @@
     "nock": "^13.2.9",
     "npm-check-updates": "^16.5.6",
     "nyc": "^15.1.0",
-    "rollup": "^3.7.3",
+    "rollup": "2.79.1",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-json": "^4.0.0",
