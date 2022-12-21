@@ -561,7 +561,7 @@ const calculateWer = (str, pattern) => {
       continue
     }
     const wordCount = wildcardPart.split(' ').length
-    const subsetPhrases = _getSubsets(botMessageWords, wordCount).map(subset => subset.join(' ')) // botMessageWordsSubsets.filter(subset => subset.length === wordCount).map(subset => subset.reverse().join(' '))
+    const subsetPhrases = _getSubsets(botMessageWords, Math.min(wordCount, botMessageWords.length)).map(subset => subset.join(' '))
     let subsetPhraseFound = null
     for (const subsetPhrase of subsetPhrases) {
       const localWer = speechScorer.wordErrorRate(subsetPhrase, wildcardPart).toFixed(2)
@@ -570,7 +570,9 @@ const calculateWer = (str, pattern) => {
         wer = localWer
       }
     }
-    console.log('lala', subsetPhraseFound)
+    if (_.isNil(subsetPhraseFound)) {
+      throw new Error('Word Error Asserter: Something went wrong here, please try to modify your assertion!')
+    }
     errors.push(_getErrors(_getWords(wildcardPart), _getWords(subsetPhraseFound)))
   }
   let errCount = 0
@@ -579,6 +581,7 @@ const calculateWer = (str, pattern) => {
     errCount += err.filter(err => err === true).length
     allCount += err.length
   }
+  console.log(`Word Error Rate Asserter - Compared Bot Message '${botMessage}' / '${utt}': ${(errCount / allCount).toFixed(2)}`)
   return (errCount / allCount).toFixed(2)
 }
 
