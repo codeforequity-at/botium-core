@@ -60,11 +60,11 @@ describe('driver.capabilities', function () {
   describe('capabilities', function () {
     it('should merge boolean caps', function () {
       const myCaps = {
-        [Capabilities.SIMULATE_WRITING_SPEED]: 'YES'
+        [Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]: 'YES'
       }
       const driver = new BotDriver(myCaps)
-      assert.isBoolean(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
-      assert.isTrue(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
+      assert.isBoolean(driver.caps[Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE])
+      assert.isTrue(driver.caps[Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE])
     })
     it('should merge string caps', function () {
       const myCaps = {
@@ -76,11 +76,11 @@ describe('driver.capabilities', function () {
       assert.isString(driver.caps.CAP_STRING_2)
     })
     it('should merge boolean envs', function () {
-      process.env.BOTIUM_SIMULATE_WRITING_SPEED = 'NO'
+      process.env.BOTIUM_SIMPLEREST_PING_PROCESS_RESPONSE = 'NO'
       const driver = new BotDriver()
-      delete process.env.BOTIUM_SIMULATE_WRITING_SPEED
-      assert.isBoolean(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
-      assert.isFalse(driver.caps[Capabilities.SIMULATE_WRITING_SPEED])
+      delete process.env.BOTIUM_SIMPLEREST_PING_PROCESS_RESPONSE
+      assert.isBoolean(driver.caps[Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE])
+      assert.isFalse(driver.caps[Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE])
     })
     it('should parse array caps', function () {
       DefaultCapabilities.MYCAP = []
