@@ -9,7 +9,6 @@ module.exports = {
     [Capabilities.TEMPDIR]: 'botiumwork',
     [Capabilities.CLEANUPTEMPDIR]: true,
     [Capabilities.WAITFORBOTTIMEOUT]: 10000,
-    [Capabilities.SIMULATE_WRITING_SPEED]: false,
     [Capabilities.SIMPLEREST_PING_RETRIES]: 6,
     [Capabilities.SIMPLEREST_PING_TIMEOUT]: 10000,
     [Capabilities.SIMPLEREST_PING_VERB]: 'GET',
