@@ -153,7 +153,7 @@ describe('compiler.compilerxlsx', function () {
   })
   describe('negating', function () {
     it('should read ! as not', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_exclamation.xlsx'))
       const context = buildContext()
 
       const caps = {
@@ -165,7 +165,7 @@ describe('compiler.compilerxlsx', function () {
       assert.equal(context.convos[0].conversation[1].not, true)
     })
     it('should read !! as !', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!!.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_two_exclamation.xlsx'))
       const context = buildContext()
       const caps = {
       }
@@ -176,7 +176,7 @@ describe('compiler.compilerxlsx', function () {
       assert.equal(context.convos[0].conversation[1].not, false)
     })
     it('should read n*! as (n-1)*!', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!!!!.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_four_exclamation.xlsx'))
       const context = buildContext()
 
       const caps = {
@@ -188,7 +188,7 @@ describe('compiler.compilerxlsx', function () {
       assert.equal(context.convos[0].conversation[1].not, false)
     })
     it('should read ! as ! in second line', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!_secline.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_exclamation_secline.xlsx'))
       const context = buildContext()
       const caps = {
       }
@@ -201,7 +201,7 @@ describe('compiler.compilerxlsx', function () {
   })
   describe('optional', function () {
     it('should read ? as optional', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_question.xlsx'))
       const context = buildContext()
 
       const caps = {
@@ -213,7 +213,7 @@ describe('compiler.compilerxlsx', function () {
       assert.equal(context.convos[0].conversation[1].optional, true)
     })
     it('should read ?? as ?', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with??.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_two_question.xlsx'))
       const context = buildContext()
       const caps = {
       }
@@ -224,7 +224,7 @@ describe('compiler.compilerxlsx', function () {
       assert.equal(context.convos[0].conversation[1].optional, false)
     })
     it('should read n*? as (n-1)*?', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with????.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_four_question.xlsx'))
       const context = buildContext()
 
       const caps = {
@@ -236,7 +236,7 @@ describe('compiler.compilerxlsx', function () {
       assert.equal(context.convos[0].conversation[1].optional, false)
     })
     it('should read ? as ? in second line', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?_secline.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_question_secline.xlsx'))
       const context = buildContext()
       const caps = {
       }
@@ -249,7 +249,7 @@ describe('compiler.compilerxlsx', function () {
   })
   describe('optional and negate', function () {
     it('should read ?! as optional and not', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?!.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_question_exclamation.xlsx'))
       const context = buildContext()
 
       const caps = {}
@@ -261,7 +261,7 @@ describe('compiler.compilerxlsx', function () {
       assert.equal(context.convos[0].conversation[1].not, true)
     })
     it('should read ??! as ?!', async function () {
-      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with??!.xlsx'))
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_two_question_exclamation.xlsx'))
       const context = buildContext()
       const caps = {}
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))

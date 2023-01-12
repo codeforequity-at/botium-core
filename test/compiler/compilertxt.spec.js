@@ -42,7 +42,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation.length, 0)
   })
   it('should read ! as not', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_exclamation.convo.txt'))
     const context = buildContext()
 
     const caps = {
@@ -54,7 +54,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].not, true)
   })
   it('should read !! as !', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!!.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_two_exclamation.convo.txt'))
     const context = buildContext()
     const caps = {
     }
@@ -65,7 +65,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].not, false)
   })
   it('should read n*! as (n-1)*!', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!!!!.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_four_exclamation.convo.txt'))
     const context = buildContext()
 
     const caps = {
@@ -77,7 +77,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].not, false)
   })
   it('should read ! as ! in second line', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with!_secline.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_exclamation_secline.convo.txt'))
     const context = buildContext()
     const caps = {
     }
@@ -88,7 +88,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].not, true)
   })
   it('should read ? as optional', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_question.convo.txt'))
     const context = buildContext()
 
     const caps = {
@@ -100,7 +100,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].optional, true)
   })
   it('should read ?? as ?', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with??.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_two_question.convo.txt'))
     const context = buildContext()
     const caps = {
     }
@@ -111,7 +111,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].optional, false)
   })
   it('should read ?! as optional and not', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?!.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_question_exclamation.convo.txt'))
     const context = buildContext()
 
     const caps = {
@@ -124,7 +124,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].optional, true)
   })
   it('should read ??! as ?!', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with??!.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_two_question_exclamation.convo.txt'))
     const context = buildContext()
 
     const caps = {
@@ -137,7 +137,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].optional, false)
   })
   it('should read n*? as (n-1)*?', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with????.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_four_question.convo.txt'))
     const context = buildContext()
 
     const caps = {
@@ -149,7 +149,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].optional, false)
   })
   it('should read ? as ? in second line', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with?_secline.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_question_secline.convo.txt'))
     const context = buildContext()
     const caps = {
     }
@@ -160,7 +160,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(context.convos[0].conversation[1].optional, true)
   })
   it('should allow text starting with ##', async function () {
-    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_#.convo.txt'))
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_with_hashmark.convo.txt'))
     const context = buildContext()
     const caps = {
     }
