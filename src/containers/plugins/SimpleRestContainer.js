@@ -589,13 +589,17 @@ module.exports = class SimpleRestContainer {
       }))
       if (err) {
         debug(`_waitForUrlResponse error on url check ${pingConfig.uri}: ${err}`)
-        await timeout(pingConfig.timeout)
+        if (tries <= retries) {
+          await timeout(pingConfig.timeout)
+        }
       } else if (response.statusCode >= 400) {
         debug(`_waitForUrlResponse on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
         if (debug.enabled && body) {
           debug(botiumUtils.shortenJsonString(body))
         }
-        await timeout(pingConfig.timeout)
+        if (tries <= retries) {
+          await timeout(pingConfig.timeout)
+        }
       } else {
         debug(`_waitForUrlResponse success on url check ${pingConfig.uri}: ${response.statusCode}/${response.statusMessage}`)
         this._storeCookiesFromResponse(response)
