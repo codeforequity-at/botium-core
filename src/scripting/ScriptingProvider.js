@@ -781,6 +781,7 @@ module.exports = class ScriptingProvider {
     debug(`ExpandScriptingMemoryToConvos - ${convosExpandedAll.length} convo expanded, added to convos (${this.convos.length}). Result ${convosExpandedAll.length + this.convos.length} convo`)
     this.convos = this.convos.concat(convosExpandedAll)
     this._sortConvos()
+    this._updateConvos()
   }
 
   ExpandUtterancesToConvos ({ useNameAsIntent, incomprehensionIntents, incomprehensionUtts, incomprehensionUtt } = {}) {
@@ -879,6 +880,7 @@ module.exports = class ScriptingProvider {
     })
     this.convos = this.convos.concat(expandedConvos)
     this._sortConvos()
+    this._updateConvos()
   }
 
   ExpandConvos (options = {}) {
@@ -886,46 +888,74 @@ module.exports = class ScriptingProvider {
       // use skip and keep, or justHeader
       justHeader: false,
       // drop unwanted convos
-      convoFilter: null
+      convoFilter: null,
+      // This function is doing many things, not just convo expansion.
+      // And sometimes convo expansion is turned off,
+      // but the other things are required
+      doConvoExpansion: true
     }, options)
-    const expandedConvos = []
-    debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
+    // 1 Partial convos
     this.convos.forEach((convo) => {
       convo.expandPartialConvos()
-      for (const expanded of this._expandConvo(convo, options, {})) {
-        expanded.header.assertionCount = this.GetAssertionCount(expanded)
-        if (options.justHeader) {
-          const ConvoWithOnlyHeader = {
-            header: {
-              name: expanded.header.name,
-              assertionCount: expanded.header.assertionCount
-            }
-          }
-          expandedConvos.push(ConvoWithOnlyHeader)
-        } else {
-          expandedConvos.push(expanded)
-        }
-      }
     })
-    this.convos = expandedConvos
+
+    // 2 convo expansion && filtering
+    if (options.doConvoExpansion) {
+      const expandedConvos = []
+      debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
+      this.convos.forEach((convo) => {
+        for (const expanded of this._expandConvo(convo, { convoFilter: options.convoFilter }, {})) {
+          if (options.justHeader) {
+            const ConvoWithOnlyHeader = {
+              header: {
+                name: expanded.header.name,
+                assertionCount: expanded.header.assertionCount
+              }
+            }
+            expandedConvos.push(ConvoWithOnlyHeader)
+          } else {
+            expandedConvos.push(expanded)
+          }
+        }
+      })
+      this.convos = expandedConvos
+    }
+
+    // 3 filtering if convo expansion is turned off:
+    if (!options.doConvoExpansion && options.convoFilter) {
+      this.convos = this.convos.filter(convo => options.convoFilter(convo))
+    }
+
+    // 4 update
     if (!options.justHeader) {
       this._sortConvos()
-    } else {
-      this._updateConvos()
     }
+    this._updateConvos()
   }
 
+  // If you need ExpandConvo with doConvoExpansion turned off then use ExpandConvos.
+  // It is more rich (it has sorting, updateConvos)
+  // This function does not support doConvoExpansion at all
   ExpandConvosIterable (options = {}) {
     options = Object.assign({
       // drop unwanted convos
       convoFilter: null
     }, options)
-    debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
+    if (!_.isNil(options.doConvoExpansion)) {
+      debug(`ExpandConvosIterable - doConvoExpansion parameter is not supported`)
+    }
+    debug(`ExpandConvosIterable - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     // creating a nested generator, calling the other.
     // We hope this.convos does not changes while this iterator is used
     const _convosIterable = function * (options) {
       for (const convo of this.convos) {
         convo.expandPartialConvos()
+        // updateConvos is not called for ExpandConvosIterable.
+        // But this way we will got assertion count for every convo?
+        // It might be not important, because ExpandConvosIterable is limited
+        // now to regression test, and we might not need assertionCount there
+        // But to be consistent we fill it here too.
+        convo.header.assertionCount = this.GetAssertionCount(convo)
         yield * this._expandConvo(convo, options, {})
       }
     }.bind(this)
@@ -1130,7 +1160,6 @@ module.exports = class ScriptingProvider {
 
   _sortConvos () {
     this.convos = _.sortBy(this.convos, [(convo) => convo.header.sort || convo.header.name])
-    this._updateConvos()
   }
 
   _updateConvos () {
@@ -1138,6 +1167,13 @@ module.exports = class ScriptingProvider {
     this.convos.forEach((convo) => {
       if (convo) {
         convo.header.order = ++i
+        // conversation can missing to spare memory. But we have to set assertionCount before dropping it.
+        // So it is not neccessary (and possible) to calculate it again.
+        if (convo.conversation && !_.isNil(convo.header.assertionCount)) {
+          // Maybe this is called sometimes early.
+          // After injecting partial convos, this has to be re-calculated.
+          convo.header.assertionCount = this.GetAssertionCount(convo)
+        }
         if (!convo.header.projectname) {
           convo.header.projectname = this.caps[Capabilities.PROJECTNAME]
         }
@@ -1154,11 +1190,10 @@ module.exports = class ScriptingProvider {
     } else if (convos) {
       this.convos.push(convos)
     }
-    if (this.convos.filter(c => _.isNil(c))) {
-      this._updateConvos()
-    } else {
+    if (!this.convos.filter(c => _.isNil(c))) {
       this._sortConvos()
     }
+    this._updateConvos()
   }
 
   AddUtterances (utterances) {
