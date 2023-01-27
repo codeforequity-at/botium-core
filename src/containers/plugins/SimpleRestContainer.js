@@ -228,6 +228,7 @@ module.exports = class SimpleRestContainer {
     await this._unsubscribeInbound()
     await this._stopPolling()
     this.view = {}
+    this.cookies = {}
   }
 
   Clean () {
