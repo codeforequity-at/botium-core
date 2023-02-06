@@ -295,18 +295,24 @@ module.exports = class SimpleRestContainer {
 
     const result = []
     if (isFromUser) {
+      const _extractFrom = (root, jsonPaths) => {
+        const flattened = []
+        for (const jsonPath of jsonPaths) {
+          const rb = jp.query(root, jsonPath)
+          if (_.isArray(rb)) {
+            _.flattenDeep(rb).forEach(r => flattened.push(r))
+          } else if (rb) {
+            flattened.push(rb)
+          }
+        }
+        return flattened
+      }
+
       const jsonPathRoots = []
 
       const jsonPathsBody = getAllCapValues(Capabilities.SIMPLEREST_BODY_JSONPATH, this.caps)
       if (jsonPathsBody.length > 0) {
-        for (const jsonPathBody of jsonPathsBody) {
-          const rb = jp.query(body, jsonPathBody)
-          if (_.isArray(rb)) {
-            rb.forEach(r => jsonPathRoots.push(r))
-          } else if (rb) {
-            jsonPathRoots.push(rb)
-          }
-        }
+        jsonPathRoots.push(..._extractFrom(body, jsonPathsBody))
       } else {
         jsonPathRoots.push(body)
       }
@@ -328,18 +334,35 @@ module.exports = class SimpleRestContainer {
           return retrievedMedia
         }
 
-        const _retrieveButtons = (jsonPathButtonRoot, jsonPathsButtons) => {
+        const _retrieveButtons = (jsonPathButtonRoot, capPrefix) => {
+          const jsonPathsButtons = getAllCapValues(`${capPrefix}_JSONPATH`, this.caps)
+          const jsonPathsButtonsText = getAllCapValues(`${capPrefix}_TEXT_SUBJSONPATH`, this.caps)
+          const jsonPathsButtonsPayload = getAllCapValues(`${capPrefix}_PAYLOAD_SUBJSONPATH`, this.caps)
+
           const retrievedButtons = []
-          jsonPathsButtons.forEach(jsonPath => {
-            const responseButtons = jp.query(jsonPathButtonRoot, jsonPath)
-            if (responseButtons) {
-              (_.isArray(responseButtons) ? _.flattenDeep(responseButtons) : [responseButtons]).forEach(b =>
-                retrievedButtons.push({
-                  text: b
-                })
-              )
+
+          const responseButtons = _extractFrom(jsonPathButtonRoot, jsonPathsButtons)
+          for (const responseButton of responseButtons) {
+            const retrievedButton = {}
+            if (_.isString(responseButton)) {
+              retrievedButton.text = responseButton
+            } else {
+              if (jsonPathsButtonsText.length > 0) {
+                const possibleTexts = _extractFrom(responseButton, jsonPathsButtonsText)
+                if (possibleTexts.length > 0) retrievedButton.text = possibleTexts[0]
+              }
+              if (jsonPathsButtonsPayload.length > 0) {
+                const possiblePayloads = _extractFrom(responseButton, jsonPathsButtonsPayload)
+                if (possiblePayloads.length > 0) retrievedButton.payload = possiblePayloads[0]
+              }
             }
-          })
+            if (Object.keys(retrievedButton).length === 0 && responseButton) {
+              retrievedButton.text = JSON.stringify(responseButton)
+            }
+            if (Object.keys(retrievedButton).length > 0) {
+              retrievedButtons.push(retrievedButton)
+            }
+          }
           return retrievedButtons
         }
 
@@ -357,7 +380,7 @@ module.exports = class SimpleRestContainer {
 
         const media = _retrieveMedia(jsonPathRoot, getAllCapValues(Capabilities.SIMPLEREST_MEDIA_JSONPATH, this.caps))
         debug(`found response media: ${util.inspect(media)}`)
-        const buttons = _retrieveButtons(jsonPathRoot, getAllCapValues(Capabilities.SIMPLEREST_BUTTONS_JSONPATH, this.caps))
+        const buttons = _retrieveButtons(jsonPathRoot, 'SIMPLEREST_BUTTONS')
         debug(`found response buttons: ${util.inspect(buttons)}`)
         const cards = []
 
@@ -378,7 +401,7 @@ module.exports = class SimpleRestContainer {
                 card.subtext = _getCardText(jp.query(c, jsonPath))
               })
 
-              card.buttons = _retrieveButtons(c, getAllCapValues(Capabilities.SIMPLEREST_CARD_BUTTONS_JSONPATH, this.caps))
+              card.buttons = _retrieveButtons(c, 'SIMPLEREST_CARD_BUTTONS')
               card.media = _retrieveMedia(c, getAllCapValues(Capabilities.SIMPLEREST_CARD_ATTACHMENTS_JSONPATH, this.caps))
 
               if (_.keys(card).length > 0) {
