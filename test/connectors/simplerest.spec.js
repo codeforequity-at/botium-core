@@ -852,7 +852,9 @@ describe('connectors.simplerest', function () {
         [Capabilities.SIMPLEREST_CARD_TEXT_JSONPATH]: '$.title',
         [Capabilities.SIMPLEREST_CARD_SUBTEXT_JSONPATH]: '$.subTitle',
         [Capabilities.SIMPLEREST_CARD_ATTACHMENTS_JSONPATH]: '$.media',
-        [Capabilities.SIMPLEREST_CARD_BUTTONS_JSONPATH]: '$.buttons[*].text'
+        [Capabilities.SIMPLEREST_CARD_BUTTONS_JSONPATH]: '$.buttons[*]',
+        [Capabilities.SIMPLEREST_CARD_BUTTONS_TEXT_SUBJSONPATH]: '$.text',
+        [Capabilities.SIMPLEREST_CARD_BUTTONS_PAYLOAD_SUBJSONPATH]: ['$.postback', '$.value']
       })
       const driver = new BotDriver(myCaps)
       const container = await driver.Build()
@@ -867,10 +869,12 @@ describe('connectors.simplerest', function () {
             media: 'http://botium.at/1.jpg',
             buttons: [
               {
-                text: 'c1b1'
+                text: 'c1b1',
+                postback: 'c1b1'
               },
               {
-                text: 'c1b2'
+                text: 'c1b2',
+                postback: 'c1b2'
               }
             ]
           },
@@ -880,7 +884,8 @@ describe('connectors.simplerest', function () {
             media: 'http://botium.at/2.jpg',
             buttons: [
               {
-                text: 'c2b1'
+                text: 'c2b1',
+                value: 'c2b1'
               }
             ]
           }
@@ -897,7 +902,9 @@ describe('connectors.simplerest', function () {
       assert.equal(msgs[0].cards[0].media[0].mimeType, 'image/jpeg')
       assert.equal(msgs[0].cards[0].buttons.length, 2)
       assert.equal(msgs[0].cards[0].buttons[0].text, 'c1b1')
+      assert.equal(msgs[0].cards[0].buttons[0].payload, 'c1b1')
       assert.equal(msgs[0].cards[0].buttons[1].text, 'c1b2')
+      assert.equal(msgs[0].cards[0].buttons[1].payload, 'c1b2')
 
       assert.equal(msgs[0].cards[1].text, 'card2')
       assert.equal(msgs[0].cards[1].subtext, 'card2 sub')
@@ -906,6 +913,48 @@ describe('connectors.simplerest', function () {
       assert.equal(msgs[0].cards[1].media[0].mimeType, 'image/jpeg')
       assert.equal(msgs[0].cards[1].buttons.length, 1)
       assert.equal(msgs[0].cards[1].buttons[0].text, 'c2b1')
+      assert.equal(msgs[0].cards[1].buttons[0].payload, 'c2b1')
+
+      await container.Clean()
+    })
+    it('should process button responses', async function () {
+      const myCaps = Object.assign({}, myCapsGet, {
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+        [Capabilities.SIMPLEREST_BUTTONS_JSONPATH]: '$.buttons[*]',
+        [Capabilities.SIMPLEREST_BUTTONS_TEXT_SUBJSONPATH]: '$.text',
+        [Capabilities.SIMPLEREST_BUTTONS_PAYLOAD_SUBJSONPATH]: ['$.postback', '$.value']
+      })
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+      assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+      await container.Start()
+      const msgs = await container.pluginInstance._processBodyAsyncImpl({
+        buttons: [
+          {
+            text: 'b1',
+            postback: 'b1'
+          },
+          {
+            text: 'b2',
+            postback: 'b2'
+          },
+          {
+            text: 'b3',
+            value: 'b3'
+          }
+        ]
+      }, {}, true)
+
+      assert.exists(msgs)
+      assert.equal(msgs.length, 1)
+      assert.equal(msgs[0].buttons.length, 3)
+      assert.equal(msgs[0].buttons[0].text, 'b1')
+      assert.equal(msgs[0].buttons[0].payload, 'b1')
+      assert.equal(msgs[0].buttons[1].text, 'b2')
+      assert.equal(msgs[0].buttons[1].payload, 'b2')
+      assert.equal(msgs[0].buttons[2].text, 'b3')
+      assert.equal(msgs[0].buttons[2].payload, 'b3')
 
       await container.Clean()
     })
