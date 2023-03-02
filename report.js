@@ -3,7 +3,7 @@ const os = require('os')
 const localDevPort = process.env.BOTIUM_ANALYTICS_LOCAL_PORT
 const https = localDevPort ? require('http') : require('https')
 
-const botiumAnalyticsHost = localDevPort ? 'localhost' : 'registration.botiumbox.com'
+const botiumAnalyticsHost = localDevPort ? 'localhost' : (process.env.BOTIUM_ANALYTICS_HOST || 'v1.license.botium.cyaraportal.us')
 const execTimeout = 10000
 
 function logIfVerbose (toLog, stream) {
@@ -31,7 +31,7 @@ async function reportPostInstall () {
     host: botiumAnalyticsHost,
     port: localDevPort || 443,
     method: 'POST',
-    path: '/install',
+    path: '/metrics/installation/core',
     headers: {
       'Content-Type': 'application/json',
       'Content-Length': data.length
