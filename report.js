@@ -1,9 +1,10 @@
 const path = require('path')
 const os = require('os')
-const localDevPort = process.env.BOTIUM_ANALYTICS_LOCAL_PORT
-const https = localDevPort ? require('http') : require('https')
 
-const botiumAnalyticsHost = localDevPort ? 'localhost' : 'registration.botiumbox.com'
+const botiumAnalyticsHost = process.env.BOTIUM_ANALYTICS_HOST || 'v1.license.botium.cyaraportal.us'
+const botiumAnalyticsPort = process.env.BOTIUM_ANALYTICS_PORT || 443
+const https = botiumAnalyticsPort === 443 ? require('https') : require('http')
+
 const execTimeout = 10000
 
 function logIfVerbose (toLog, stream) {
@@ -29,9 +30,9 @@ async function reportPostInstall () {
 
   const reqOptions = {
     host: botiumAnalyticsHost,
-    port: localDevPort || 443,
+    port: botiumAnalyticsPort,
     method: 'POST',
-    path: '/install',
+    path: '/metrics/installation/core',
     headers: {
       'Content-Type': 'application/json',
       'Content-Length': data.length
