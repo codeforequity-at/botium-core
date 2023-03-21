@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const isJSON = require('is-json')
 const speechScorer = require('word-error-rate')
+const debug = require('debug')('botium-core-scripting-helper')
 
 const { E_SCRIPTING_MEMORY_COLUMN_MODE } = require('../Enums')
 
@@ -62,7 +63,7 @@ const removeBuffers = obj => {
 }
 
 const toString = (value) => {
-  if (_.isUndefined(value)) return undefined
+  if (_.isUndefined(value) || _.isNil(value)) return ''
   if (_.isString(value)) return value
   if (_.isNumber(value)) return value.toString()
   if (_.isArray(value)) return value.map(v => toString(v)).join(',')
@@ -581,7 +582,7 @@ const calculateWer = (str, pattern) => {
     errCount += err.filter(err => err === true).length
     allCount += err.length
   }
-  console.log(`Word Error Rate Asserter - Compared Bot Message '${botMessage}' / '${utt}': ${(errCount / allCount).toFixed(2)}`)
+  debug(`Word Error Rate Asserter - Compared Bot Message '${botMessage}' / '${utt}': ${(errCount / allCount).toFixed(2)}`)
   return (errCount / allCount).toFixed(2)
 }
 

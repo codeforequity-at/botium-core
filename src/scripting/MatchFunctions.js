@@ -3,7 +3,7 @@ const _ = require('lodash')
 const { toString, quoteRegexpString, calculateWer } = require('./helper')
 
 const _normalize = (botresponse) => {
-  if (_.isUndefined(botresponse)) return ''
+  if (_.isUndefined(botresponse) || _.isNil(botresponse)) return ''
   if (_.isObject(botresponse) && _.has(botresponse, 'messageText')) {
     return toString(botresponse.messageText) || ''
   }

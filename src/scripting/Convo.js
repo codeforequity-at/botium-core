@@ -598,26 +598,53 @@ class Convo {
   }
 
   GetScriptingMemoryAllVariables (container) {
-    const resultOuter = this.conversation.reduce((acc, convoStep) => {
-      let result = acc
-      result = result.concat(this.GetScriptingMemoryVariables(container, convoStep.messageText))
-      const extractFromArgs = (convoStepItems) => {
-        let resultInner = []
-        for (const item of (convoStepItems || [])) {
-          for (const arg of (item.args || [])) {
-            resultInner = resultInner.concat(this.GetScriptingMemoryVariables(container, arg))
+    const partialConvos = this.context.GetPartialConvos()
+
+    const variableNames = this.conversation.reduce((acc, convoStep) => {
+      if (convoStep.sender === 'include') {
+        if (convoStep.channel) {
+          const partialConvo = partialConvos[convoStep.channel]
+          if (partialConvo) {
+            acc = [...acc, ...partialConvo.GetScriptingMemoryAllVariables(container)]
           }
         }
-        return resultInner
-      }
-      result = result.concat(extractFromArgs(convoStep.asserters))
-      result = result.concat(extractFromArgs(convoStep.logicHooks))
-      result = result.concat(extractFromArgs(convoStep.userInputs))
+        if (convoStep.messageText) {
+          for (const partialConvoName of splitStringInNonEmptyLines(convoStep.messageText)) {
+            const partialConvo = partialConvos[partialConvoName]
+            if (partialConvo) {
+              acc = [...acc, ...partialConvo.GetScriptingMemoryAllVariables(container)]
+            }
+          }
+        }
+      } else {
+        acc = [...acc, ...this.GetScriptingMemoryVariables(container, convoStep.messageText)]
 
-      return result
+        const __extractFromArgs = (convoStepItems) => {
+          let resultInner = []
+          for (const item of (convoStepItems || [])) {
+            for (const arg of (item.args || [])) {
+              resultInner = resultInner.concat(this.GetScriptingMemoryVariables(container, arg))
+            }
+          }
+          return resultInner
+        }
+        acc = [...acc, ...__extractFromArgs(convoStep.asserters)]
+        acc = [...acc, ...__extractFromArgs(convoStep.logicHooks)]
+        acc = [...acc, ...__extractFromArgs(convoStep.userInputs)]
+
+        convoStep.logicHooks.forEach((logicHook) => {
+          if (logicHook.name === LOGIC_HOOK_INCLUDE) {
+            const partialConvo = partialConvos[logicHook.args[0]]
+            if (partialConvo) {
+              acc = [...acc, ...partialConvo.GetScriptingMemoryAllVariables(container)]
+            }
+          }
+        })
+      }
+      return acc
     }, [])
 
-    return [...new Set(resultOuter)]
+    return _.uniq(variableNames)
   }
 
   GetScriptingMemoryVariables (container, utterance) {

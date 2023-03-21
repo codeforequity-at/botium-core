@@ -209,7 +209,7 @@ module.exports = class ScriptingProvider {
     this.retryHelperUserInput = new RetryHelper(this.caps, 'USERINPUT')
   }
 
-  _createAsserterPromises ({ asserterType, asserters, convo, convoStep, scriptingMemory, ...rest }) {
+  _createAsserterPromises ({ asserterType, asserters, convo, convoStep, scriptingMemory, container, ...rest }) {
     if (!this._isValidAsserterType(asserterType)) {
       throw Error(`Unknown asserterType ${asserterType}`)
     }
@@ -254,13 +254,14 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, this.caps, rest.botMsg),
+        container,
+        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, container.caps, rest.botMsg),
         isGlobal: false,
         ...rest
       }))
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
-      .map(a => p(this.retryHelperAsserter, () => a[asserterType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
+      .map(a => p(this.retryHelperAsserter, () => a[asserterType]({ convo, convoStep, scriptingMemory, container, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoAsserter, ...globalAsserter]
     if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
@@ -276,7 +277,7 @@ module.exports = class ScriptingProvider {
     return Promise.resolve(false)
   }
 
-  _createLogicHookPromises ({ hookType, logicHooks, convo, convoStep, scriptingMemory, ...rest }) {
+  _createLogicHookPromises ({ hookType, logicHooks, convo, convoStep, scriptingMemory, container, ...rest }) {
     if (hookType !== 'onMeStart' && hookType !== 'onMePrepare' && hookType !== 'onMeEnd' && hookType !== 'onBotStart' && hookType !== 'onBotPrepare' && hookType !== 'onBotEnd' &&
       hookType !== 'onConvoBegin' && hookType !== 'onConvoEnd'
     ) {
@@ -289,28 +290,30 @@ module.exports = class ScriptingProvider {
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory, this.caps, rest.botMsg),
+        container,
+        args: ScriptingMemory.applyToArgs(l.args, scriptingMemory, container.caps, rest.botMsg),
         isGlobal: false,
         ...rest
       })))
 
     const globalPromises = Object.values(this.globalLogicHook)
       .filter(l => l[hookType])
-      .map(l => p(this.retryHelperLogicHook, () => l[hookType]({ convo, convoStep, scriptingMemory, args: [], isGlobal: true, ...rest })))
+      .map(l => p(this.retryHelperLogicHook, () => l[hookType]({ convo, convoStep, scriptingMemory, container, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
     if (allPromises.length > 0) return Promise.all(allPromises).then(() => true)
     return Promise.resolve(false)
   }
 
-  _createUserInputPromises ({ convo, convoStep, scriptingMemory, ...rest }) {
+  _createUserInputPromises ({ convo, convoStep, scriptingMemory, container, ...rest }) {
     const convoStepPromises = (convoStep.userInputs || [])
       .filter(ui => this.userInputs[ui.name])
       .map(ui => p(this.retryHelperUserInput, () => this.userInputs[ui.name].setUserInput({
         convo,
         convoStep,
         scriptingMemory,
-        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory, this.caps, rest.meMsg),
+        container,
+        args: ScriptingMemory.applyToArgs(ui.args, scriptingMemory, container.caps, rest.meMsg),
         ...rest
       })))
 

@@ -1,0 +1,14 @@
+applyscriptingmemoryinbegin
+
+#begin
+SET_SCRIPTING_MEMORY access_token|$cap(MYTOKEN)
+
+#me
+access token: $cap(MYTOKEN)
+
+#bot
+
+#me
+access token: $access_token
+
+#bot

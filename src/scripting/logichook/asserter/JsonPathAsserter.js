@@ -139,7 +139,7 @@ module.exports = class JsonPathAsserter {
         matchFn = getMatchFunction(this.globalArgs.matchingMode)
       }
 
-      const match = !_.isNil(jsonPathValues.find(a => matchFn(a, assert)))
+      const match = jsonPathValues.findIndex(a => matchFn(a, assert)) >= 0
 
       if (not && match) {
         return Promise.reject(new BotiumError(`${convoStep.stepTag}: Not expected: "${actual === '' ? '<empty>' : toString(actual)}" in jsonPath ${path}"`,
