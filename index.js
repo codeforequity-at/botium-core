@@ -17,5 +17,6 @@ module.exports = {
     SimpleRestContainer: require('./src/containers/plugins/SimpleRestContainer')
   },
   InboundProxy: require('./src/grid/inbound/proxy'),
-  BotiumMockRichMessageTypes: require('./src/mocks/BotiumMockRichMessageTypes')
+  BotiumMockRichMessageTypes: require('./src/mocks/BotiumMockRichMessageTypes'),
+  RetryHelper: require('./src/helpers/RetryHelper')
 }
