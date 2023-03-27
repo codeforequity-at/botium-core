@@ -11,12 +11,16 @@ const RetryHelper = require('../helpers/RetryHelper')
 module.exports = class PluginConnectorContainer extends BaseContainer {
   async Validate () {
     await super.Validate()
+    const setAsync = (isAsync) => {
+      this.caps.RETRY_CONVO_ASYNC = isAsync
+    }
     this.pluginInstance = tryLoadPlugin(
       this.caps[Capabilities.CONTAINERMODE],
       this.caps[Capabilities.PLUGINMODULEPATH],
       {
         container: this,
         queueBotSays: (msg) => this._QueueBotSays(msg),
+        setAsync: (isAsync) => setAsync(isAsync),
         bottleneck: this.bottleneck,
         eventEmitter: this.eventEmitter,
         caps: this.caps,
