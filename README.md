@@ -50,3 +50,4 @@ This module is sending anonymous installation information to our server (operati
 
 ## Contributions
 Contributions are welcome! Please read our [Contribution Guide](https://github.com/codeforequity-at/botium-core/blob/master/CONTRIBUTING.md)!
+ 
