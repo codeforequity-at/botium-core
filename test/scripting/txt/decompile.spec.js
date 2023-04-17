@@ -370,6 +370,33 @@ botText
 `
     )
   })
+  it('should decompile button asserter with numeric text', async function () {
+    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
+    await scriptingProvider.Build()
+
+    const convo = {
+      header: {
+        name: 'test convo'
+      },
+      conversation: [
+        {
+          sender: 'bot',
+          buttons: [
+            { text: 123, payload: 'buttonpayload1' },
+            { text: 456, payload: 'buttonpayload2' }
+          ]
+        }
+      ]
+    }
+
+    const script = scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
+    assert.equal(script, `test convo
+
+#bot
+BUTTONS 123|456
+`
+    )
+  })
   it('should decompile media asserter', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()

@@ -76,11 +76,11 @@ const toString = (value) => {
 }
 
 const flatString = (str) => {
-  return str ? str.split('\n').map(s => s.trim()).join(' ') : ''
+  return toString(str).split('\n').map(s => s.trim()).join(' ') || ''
 }
 
 const _formatAppendArgs = (args) => {
-  return args ? ` ${args.map(a => _.isString(a) ? a.replace(/\|/g, '\\|') : `${a}`).join('|')}` : ''
+  return (args && args.length > 0 && _.isArray(args) && ` ${args.map(a => _.isString(a) ? a.replace(/\|/g, '\\|') : `${a}`).join('|')}`) || ''
 }
 const _parseArgs = (str) => {
   return (str && str.length > 0 && str.replace(/\\\|/g, '###ESCAPESPLIT###').split('|').map(s => s.replace(/###ESCAPESPLIT###/g, '|').trim())) || []
