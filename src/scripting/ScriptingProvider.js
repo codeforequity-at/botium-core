@@ -19,6 +19,7 @@ const { BotiumError, botiumErrorFromList, botiumErrorFromErr } = require('./Boti
 const RetryHelper = require('../helpers/RetryHelper')
 const { getMatchFunction } = require('./MatchFunctions')
 const precompilers = require('./precompilers')
+const { calculateWer, toPercent } = require('./helper')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.xlsm|*.convo.csv|*.pconvo.csv|*.utterances.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
 const skipPattern = /^skip[.\-_]/i
@@ -137,32 +138,57 @@ module.exports = class ScriptingProvider {
         const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
         const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (_.isNil(found)) {
-          let message = `${stepTag}: Bot response `
-          message += meMsg ? `(on ${meMsg}) ` : ''
-          message += botresponse ? ('"' + botresponse + '"') : '<no response>'
-          message += ' expected to match '
-          message += tomatch && tomatch.length > 1 ? 'one of ' : ''
-          message += `${tomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
-          throw new BotiumError(
-            message,
-            {
-              type: 'asserter',
-              source: asserterType,
-              params: {
-                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
-                args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
-              },
-              context: {
-                stepTag
-              },
-              cause: {
-                expected: tomatch,
-                actual: botresponse,
-                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
-                args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+          if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer') {
+            const wer = calculateWer(botresponse, tomatch[0])
+            const werArgs = this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]
+            const threshold = ([',', '.'].find(p => `${werArgs[0]}`.includes(p)) ? parseFloat(werArgs[0]) : parseInt(werArgs[0]) / 100)
+            const message = `${stepTag}: Word Error Rate (${toPercent(wer)}) higher than accepted (${toPercent(threshold)})`
+            throw new BotiumError(
+              message,
+              {
+                type: 'asserter',
+                source: asserterType,
+                params: {
+                  matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                  args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+                },
+                context: {
+                  stepTag
+                },
+                cause: {
+                  expected: `<=${toPercent(threshold)} (${tomatch})`,
+                  actual: `${toPercent(wer)} (${botresponse})`
+                }
               }
-            }
-          )
+            )
+          } else {
+            let message = `${stepTag}: Bot response `
+            message += meMsg ? `(on ${meMsg}) ` : ''
+            message += botresponse ? ('"' + botresponse + '"') : '<no response>'
+            message += ' expected to match '
+            message += tomatch && tomatch.length > 1 ? 'one of ' : ''
+            message += `${tomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
+            throw new BotiumError(
+              message,
+              {
+                type: 'asserter',
+                source: asserterType,
+                params: {
+                  matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                  args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+                },
+                context: {
+                  stepTag
+                },
+                cause: {
+                  expected: tomatch,
+                  actual: botresponse,
+                  matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                  args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+                }
+              }
+            )
+          }
         }
       },
       assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg) => {
@@ -173,33 +199,58 @@ module.exports = class ScriptingProvider {
         const found = _.find(nottomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
         const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (!_.isNil(found)) {
-          let message = `${stepTag}: Bot response `
-          message += meMsg ? `(on ${meMsg}) ` : ''
-          message += botresponse ? ('"' + botresponse + '"') : '<no response>'
-          message += ' expected NOT to match '
-          message += nottomatch && nottomatch.length > 1 ? 'one of ' : ''
-          message += `${nottomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
-          throw new BotiumError(
-            message,
-            {
-              type: 'asserter',
-              source: asserterType,
-              params: {
-                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
-                args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
-              },
-              context: {
-                stepTag
-              },
-              cause: {
-                not: true,
-                expected: nottomatch,
-                actual: botresponse,
-                matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
-                args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+          if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer') {
+            const wer = calculateWer(botresponse, nottomatch[0])
+            const werArgs = this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]
+            const threshold = ([',', '.'].find(p => `${werArgs[0]}`.includes(p)) ? parseFloat(werArgs[0]) : parseInt(werArgs[0]) / 100)
+            const message = `${stepTag}: Word Error Rate (${toPercent(wer)}) lower than accepted (${toPercent(threshold)})`
+            throw new BotiumError(
+              message,
+              {
+                type: 'asserter',
+                source: asserterType,
+                params: {
+                  matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                  args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+                },
+                context: {
+                  stepTag
+                },
+                cause: {
+                  expected: `>=${toPercent(threshold)} (${nottomatch})`,
+                  actual: `${toPercent(wer)} (${botresponse})`
+                }
               }
-            }
-          )
+            )
+          } else {
+            let message = `${stepTag}: Bot response `
+            message += meMsg ? `(on ${meMsg}) ` : ''
+            message += botresponse ? ('"' + botresponse + '"') : '<no response>'
+            message += ' expected NOT to match '
+            message += nottomatch && nottomatch.length > 1 ? 'one of ' : ''
+            message += `${nottomatch.map(e => e ? '"' + e + '"' : '<any response>').join(', ')}`
+            throw new BotiumError(
+              message,
+              {
+                type: 'asserter',
+                source: asserterType,
+                params: {
+                  matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                  args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+                },
+                context: {
+                  stepTag
+                },
+                cause: {
+                  not: true,
+                  expected: nottomatch,
+                  actual: botresponse,
+                  matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                  args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
+                }
+              }
+            )
+          }
         }
       },
       fail: null

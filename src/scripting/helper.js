@@ -586,6 +586,8 @@ const calculateWer = (str, pattern) => {
   return (errCount / allCount).toFixed(2)
 }
 
+const toPercent = (s) => `${(s * 100).toFixed(0)}%`
+
 module.exports = {
   normalizeText,
   splitStringInNonEmptyLines,
@@ -600,5 +602,6 @@ module.exports = {
   validateSender,
   validateConvo,
   linesToScriptingMemories,
-  calculateWer
+  calculateWer,
+  toPercent
 }
