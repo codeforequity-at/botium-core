@@ -12,6 +12,8 @@ module.exports = {
   HookUtils: require('./src/helpers/HookUtils'),
   TranscriptUtils: require('./src/helpers/TranscriptUtils'),
 
+  RetryHelper: require('./src/helpers/RetryHelper'),
+
   BotiumMockRichMessageTypes: require('./src/mocks/BotiumMockRichMessageTypes'),
 
   BotiumError: require('./src/scripting/BotiumError').BotiumError,
