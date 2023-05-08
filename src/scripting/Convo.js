@@ -298,6 +298,7 @@ class Convo {
       for (let i = 0; i < this.conversation.length; i++) {
         const convoStep = this.conversation[i]
         const currentStepIndex = i
+        container.eventEmitter.emit(Events.CONVO_STEP_NEXT, container, convoStep, i)
         skipTranscriptStep = false
         const transcriptStep = new TranscriptStep({
           expected: new BotiumMockMessage(convoStep),
