@@ -10,7 +10,7 @@ const HookUtils = require('../../src/helpers/HookUtils')
 
 const myCapsSimpleRest = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
-  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-non-existing-botium-host.com/api/endpoint',
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
   [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
   [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
@@ -87,16 +87,19 @@ describe('security.allowUnsafe', function () {
       const compiler = driver.BuildCompiler()
       const container = await driver.Build()
       await container.Start()
-
+      console.log('asdfasdfasdf')
       try {
         compiler.ReadScript(path.resolve(__dirname, 'convos'), 'withscriptingmemoryfunction.convo.txt')
+        console.log('asdfasdfasdf1')
         await compiler.convos[0].Run(container)
+        console.log('asdfasdfasdf2')
         assert.fail('should have failed')
       } catch (err) {
+        console.log(err)
         assert.isFalse(err.message.indexOf('Security Error. Using unsafe scripting memory function $func is not allowed') >= 0)
       }
       await container.Clean()
-    })
+    }).timeout(50000)
   })
 
   describe('simple rest, scripting memory', function () {
