@@ -2,3 +2,4 @@
 result: $func(1+1)
 
 #bot
+you said: "result: 2"

@@ -10,11 +10,26 @@ const HookUtils = require('../../src/helpers/HookUtils')
 
 const myCapsSimpleRest = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
-  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-non-existing-botium-host.com/api/endpoint',
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
   [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
   [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
+}
+
+const echoConnector = ({ queueBotSays }) => {
+  return {
+    UserSays (msg) {
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: `You said: "${msg.messageText}"` }
+      queueBotSays(botMsg)
+    }
+  }
+}
+
+const myCapsEcho = {
+  [Capabilities.CONTAINERMODE]: echoConnector,
+  [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
+  [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
 }
 
 const _getSimpleRestCaps = (caps) => {
@@ -83,20 +98,15 @@ describe('security.allowUnsafe', function () {
 
   describe('scripting memory', function () {
     it('should not throw security error for using inline function', async function () {
-      const driver = new BotDriver(myCapsSimpleRest)
+      const driver = new BotDriver(myCapsEcho)
       const compiler = driver.BuildCompiler()
       const container = await driver.Build()
       await container.Start()
 
-      try {
-        compiler.ReadScript(path.resolve(__dirname, 'convos'), 'withscriptingmemoryfunction.convo.txt')
-        await compiler.convos[0].Run(container)
-        assert.fail('should have failed')
-      } catch (err) {
-        assert.isFalse(err.message.indexOf('Security Error. Using unsafe scripting memory function $func is not allowed') >= 0)
-      }
+      compiler.ReadScript(path.resolve(__dirname, 'convos'), 'withscriptingmemoryfunction.convo.txt')
+      await compiler.convos[0].Run(container)
       await container.Clean()
-    })
+    }).timeout(50000)
   })
 
   describe('simple rest, scripting memory', function () {

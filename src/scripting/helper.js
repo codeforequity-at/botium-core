@@ -553,6 +553,10 @@ const calculateWer = (str, pattern) => {
   const botMessageWords = botMessage.split(' ').map(bm => bm.trim())
   const utt = _prepareString(utterance)
 
+  // if no wildcards, just calculate WER
+  if (utt.indexOf('*') === -1) return speechScorer.wordErrorRate(botMessage, utt).toFixed(2)
+
+  // if there are wildcards, calculate WER for each wildcard part
   const errors = []
   for (let wildcardPart of utt.split('*')) {
     let wer = 1
@@ -572,7 +576,7 @@ const calculateWer = (str, pattern) => {
       }
     }
     if (_.isNil(subsetPhraseFound)) {
-      throw new Error('Word Error Asserter: Something went wrong here, please try to modify your assertion!')
+      throw new Error('Word Error Asserter: When using wild cards, please make sure that the length of the asserter text is smaller than the bot message!')
     }
     errors.push(_getErrors(_getWords(wildcardPart), _getWords(subsetPhraseFound)))
   }
@@ -585,6 +589,8 @@ const calculateWer = (str, pattern) => {
   debug(`Word Error Rate Asserter - Compared Bot Message '${botMessage}' / '${utt}': ${(errCount / allCount).toFixed(2)}`)
   return (errCount / allCount).toFixed(2)
 }
+
+const toPercent = (s) => `${(s * 100).toFixed(0)}%`
 
 module.exports = {
   normalizeText,
@@ -600,5 +606,6 @@ module.exports = {
   validateSender,
   validateConvo,
   linesToScriptingMemories,
-  calculateWer
+  calculateWer,
+  toPercent
 }

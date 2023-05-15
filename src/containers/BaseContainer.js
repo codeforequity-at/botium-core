@@ -1,6 +1,6 @@
 const util = require('util')
 const async = require('async')
-const rimraf = require('rimraf')
+const { rimraf } = require('rimraf')
 const Bottleneck = require('bottleneck')
 const _ = require('lodash')
 const request = require('request')
@@ -173,10 +173,9 @@ module.exports = class BaseContainer {
         (rimraffed) => {
           if (this.caps[Capabilities.CLEANUPTEMPDIR]) {
             debug(`Cleanup rimrafing temp dir ${this.tempDirectory}`)
-            rimraf(this.tempDirectory, (err) => {
-              if (err) debug(`Cleanup temp dir ${this.tempDirectory} failed: ${util.inspect(err)}`)
-              rimraffed()
-            })
+            rimraf(this.tempDirectory)
+              .catch((err) => debug(`Cleanup temp dir ${this.tempDirectory} failed: ${util.inspect(err)}`))
+              .finally(() => rimraffed())
           } else {
             rimraffed()
           }

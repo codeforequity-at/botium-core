@@ -2,8 +2,8 @@ const util = require('util')
 const fs = require('fs')
 const path = require('path')
 const async = require('async')
-const rimraf = require('rimraf')
-const mkdirp = require('mkdirp')
+const { rimraf } = require('rimraf')
+const { mkdirpSync } = require('mkdirp')
 const sanitize = require('sanitize-filename')
 const moment = require('moment')
 const randomize = require('randomatic')
@@ -130,7 +130,7 @@ module.exports = class BotDriver {
         (tempDirectoryCreated) => {
           tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], sanitize(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
           try {
-            mkdirp.sync(tempDirectory)
+            mkdirpSync(tempDirectory)
             tempDirectoryCreated()
           } catch (err) {
             tempDirectoryCreated(new Error(`Unable to create temp directory ${tempDirectory}: ${err.message}`))
@@ -168,9 +168,7 @@ module.exports = class BotDriver {
           debug(`BotDriver Build error: ${err}`)
           this.eventEmitter.emit(Events.CONTAINER_BUILD_ERROR, err)
           if (tempDirectory) {
-            rimraf(tempDirectory, (err) => {
-              if (err) debug(`Cleanup temp dir ${tempDirectory} failed: ${util.inspect(err)}`)
-            })
+            rimraf(tempDirectory).catch((err) => debug(`Cleanup temp dir ${tempDirectory} failed: ${util.inspect(err)}`))
           }
           return reject(err)
         }
