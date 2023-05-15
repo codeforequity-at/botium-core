@@ -10,7 +10,7 @@ const HookUtils = require('../../src/helpers/HookUtils')
 
 const myCapsSimpleRest = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
-  [Capabilities.SIMPLEREST_URL]: 'http://my-host.com/api/endpoint',
+  [Capabilities.SIMPLEREST_URL]: 'http://my-non-existing-botium-host.com/api/endpoint',
   [Capabilities.SIMPLEREST_METHOD]: 'POST',
   [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
   [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
@@ -106,7 +106,7 @@ describe('security.allowUnsafe', function () {
       compiler.ReadScript(path.resolve(__dirname, 'convos'), 'withscriptingmemoryfunction.convo.txt')
       await compiler.convos[0].Run(container)
       await container.Clean()
-    })
+    }).timeout(50000)
   })
 
   describe('simple rest, scripting memory', function () {
