@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const { SCRIPTING_NORMALIZE_TEXT } = require('../../../Capabilities')
 const { BotiumError } = require('../../BotiumError')
 const { buttonsFromMsg } = require('../helpers')
@@ -11,17 +12,29 @@ module.exports = class ButtonsAsserter {
   }
 
   _evalButtons (args, botMsg) {
-    const allButtons = buttonsFromMsg(botMsg, true).map(b => b.text).filter(b => b).map(b => normalizeText(b, !!this.caps[SCRIPTING_NORMALIZE_TEXT]))
+    const allButtons = buttonsFromMsg(botMsg, true).map(b => ({ text: b.text, payload: b.payload })).filter(b => b).map(b => ({ text: normalizeText(b.text, !!this.caps[SCRIPTING_NORMALIZE_TEXT]), payload: b.payload }))
     if (!args || args.length === 0) {
-      return { allButtons, buttonsNotFound: [], buttonsFound: allButtons }
+      return { allButtons, buttonsNotFound: [], buttonsFound: allButtons.map(b => b.text) }
     }
     const buttonsNotFound = []
     const buttonsFound = []
+    const parsePayload = (payload) => {
+      if (_.isNil(payload)) {
+        return undefined
+      }
+      try {
+        return JSON.parse(payload)
+      } catch (e) {
+        return payload
+      }
+    }
     for (let i = 0; i < (args || []).length; i++) {
-      if (allButtons.findIndex(b => this.context.Match(b, normalizeText(args[i], !!this.caps[SCRIPTING_NORMALIZE_TEXT]))) < 0) {
-        buttonsNotFound.push(args[i])
-      } else {
+      const matchByText = allButtons.some(b => this.context.Match(b.text, normalizeText(args[i], !!this.caps[SCRIPTING_NORMALIZE_TEXT])))
+      const matchByPayload = allButtons.some(b => _.isEqual(parsePayload(b.payload), parsePayload(args[i])))
+      if (matchByText || matchByPayload) {
         buttonsFound.push(args[i])
+      } else {
+        buttonsNotFound.push(args[i])
       }
     }
     return { allButtons, buttonsNotFound, buttonsFound }
@@ -42,7 +55,7 @@ module.exports = class ButtonsAsserter {
           cause: {
             not: true,
             expected: args,
-            actual: allButtons,
+            actual: JSON.stringify(allButtons, null, 2),
             diff: buttonsFound
           }
         }
@@ -67,7 +80,7 @@ module.exports = class ButtonsAsserter {
             cause: {
               not: false,
               expected: args,
-              actual: allButtons,
+              actual: JSON.stringify(allButtons, null, 2),
               diff: buttonsNotFound
             }
           }
@@ -85,7 +98,7 @@ module.exports = class ButtonsAsserter {
             cause: {
               not: false,
               expected: args,
-              actual: allButtons,
+              actual: JSON.stringify(allButtons, null, 2),
               diff: buttonsNotFound
             }
           }
