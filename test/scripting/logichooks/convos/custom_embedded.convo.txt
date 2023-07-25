@@ -6,6 +6,3 @@ MY-LOGICHOOK-NAME
 
 #bot
 hello from logichook
-
-#me
-hello
