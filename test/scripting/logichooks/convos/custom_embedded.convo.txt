@@ -9,10 +9,3 @@ hello from logichook
 
 #me
 hello
-
-#bot
-hello fail
-MY-LOGICHOOK-SKIP
-
-#bot
-hello
