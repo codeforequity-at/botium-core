@@ -9,6 +9,16 @@
       "args": {
         "my-arg-1": "something"
       }
+    },
+    {
+      "ref": "MY-LOGICHOOK-SKIP",
+      "src": {
+        "onBotPrepare": "convoStep.skip = true"
+      },
+      "global": false,
+      "args": {
+        "my-arg-1": "something"
+      }
     }
   ]
 }
