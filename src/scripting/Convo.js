@@ -404,6 +404,10 @@ class Convo {
               throw failErr
             }
 
+            if (convoStep.skip === true) {
+              continue
+            }
+
             if (!botMsg || (!botMsg.messageText && !botMsg.media && !botMsg.buttons && !botMsg.cards && !botMsg.sourceData && !botMsg.nlp)) {
               const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
               debug(failErr)
