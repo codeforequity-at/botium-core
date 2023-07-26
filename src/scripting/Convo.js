@@ -405,6 +405,11 @@ class Convo {
             }
 
             if (convoStep.skip === true) {
+              skipTranscriptStep = true
+              const nextConvoStep = this.conversation[i + 1]
+              if (nextConvoStep && nextConvoStep.sender === 'bot') {
+                waitForBotSays = false
+              }
               continue
             }
 

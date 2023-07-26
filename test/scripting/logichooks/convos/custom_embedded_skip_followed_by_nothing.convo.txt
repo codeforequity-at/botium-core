@@ -1,0 +1,8 @@
+custom embedded
+
+#me
+hello
+
+#bot
+hello fail
+MY-LOGICHOOK-SKIP
