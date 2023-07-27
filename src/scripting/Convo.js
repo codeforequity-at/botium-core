@@ -404,6 +404,15 @@ class Convo {
               throw failErr
             }
 
+            if (convoStep.skip === true) {
+              skipTranscriptStep = true
+              const nextConvoStep = this.conversation[i + 1]
+              if (nextConvoStep && nextConvoStep.sender === 'bot') {
+                waitForBotSays = false
+              }
+              continue
+            }
+
             if (!botMsg || (!botMsg.messageText && !botMsg.media && !botMsg.buttons && !botMsg.cards && !botMsg.sourceData && !botMsg.nlp)) {
               const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot says nothing`)
               debug(failErr)
