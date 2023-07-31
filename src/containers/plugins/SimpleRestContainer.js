@@ -293,6 +293,47 @@ module.exports = class SimpleRestContainer {
       debug(`current session context: ${util.inspect(this.view.context)}`)
     }
 
+    const _isAnyContextJsonPathMatch = (capName, capNameMatch) => {
+      const jsonPaths = getAllCapValues(capName, this.caps)
+      if (jsonPaths.length > 0) {
+        const jsonPathsMatch = getAllCapValues(capNameMatch, this.caps)
+        for (const [index, jsonPath] of jsonPaths.entries()) {
+          const contextNodes = jp.query(this.view.context, jsonPath)
+          if (_.isArray(contextNodes) && contextNodes.length > 0) {
+            if (jsonPathsMatch[index]) {
+              if (contextNodes[0] === jsonPathsMatch[index]) {
+                return {
+                  jsonPath,
+                  match: contextNodes[0]
+                }
+              }
+            } else {
+              return {
+                jsonPath
+              }
+            }
+          }
+        }
+      }
+      return null
+    }
+
+    const ignoreMatch = _isAnyContextJsonPathMatch(Capabilities.SIMPLEREST_CONTEXT_IGNORE_JSONPATH, Capabilities.SIMPLEREST_CONTEXT_IGNORE_MATCH)
+    if (ignoreMatch) {
+      if (ignoreMatch.match) debug(`ignoring response for context match: ${ignoreMatch.jsonPath} = ${ignoreMatch.match}`)
+      else debug(`ignoring response for context: ${ignoreMatch.jsonPath}`)
+      return
+    }
+
+    const skipMatch = _isAnyContextJsonPathMatch(Capabilities.SIMPLEREST_CONTEXT_SKIP_JSONPATH, Capabilities.SIMPLEREST_CONTEXT_SKIP_MATCH)
+    if (skipMatch) {
+      if (skipMatch.match) debug(`skipping response for context match: ${skipMatch.jsonPath} = ${skipMatch.match}`)
+      else debug(`skipping response for context: ${skipMatch.jsonPath}`)
+
+      setTimeout(() => this._doRequest({ messageText: '' }, true, true), 0)
+      return
+    }
+
     const result = []
     if (isFromUser) {
       const _extractFrom = (root, jsonPaths) => {
@@ -441,6 +482,14 @@ module.exports = class SimpleRestContainer {
           }
         }
       }
+    }
+
+    const continueMatch = _isAnyContextJsonPathMatch(Capabilities.SIMPLEREST_CONTEXT_CONTINUE_JSONPATH, Capabilities.SIMPLEREST_CONTEXT_CONTINUE_MATCH)
+    if (continueMatch) {
+      if (continueMatch.match) debug(`continue with next response for context match: ${continueMatch.jsonPath} = ${continueMatch.match}`)
+      else debug(`continue with next response for context: ${continueMatch.jsonPath}`)
+
+      setTimeout(() => this._doRequest({ messageText: '' }, true, true), 0)
     }
     return result
   }
