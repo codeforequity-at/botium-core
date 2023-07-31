@@ -1,4 +1,3 @@
-
 module.exports = class ClearQueueLogicHook {
   constructor (context, caps = {}) {
     this.context = context
