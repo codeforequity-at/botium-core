@@ -319,7 +319,6 @@ describe('connectors.simplerest', function () {
       scope2.persist(false)
     })
   })
-
   describe('build', function () {
     it('should build JSON GET url', async function () {
       const myCaps = Object.assign({}, myCapsGet)
@@ -997,7 +996,6 @@ describe('connectors.simplerest', function () {
       assert.deepEqual(values, ['$.1', '$.2', '$.3', '$.4'])
     })
   })
-
   describe('useresponse', function () {
     beforeEach(async function () {
       this.init = async (caps) => {
@@ -1151,7 +1149,6 @@ describe('connectors.simplerest', function () {
       }
     })
   })
-
   describe('inbound', function () {
     it('should accept inbound message with matching jsonpath', async function () {
       const myCaps = Object.assign({}, myCapsGet)
@@ -1249,7 +1246,6 @@ describe('connectors.simplerest', function () {
       return result
     })
   })
-
   describe('polling', function () {
     it('should poll HTTP url', async function () {
       const caps = {
@@ -1312,5 +1308,84 @@ describe('connectors.simplerest', function () {
       await container.Clean()
       scope.persist(false)
     }).timeout(5000)
+  })
+  describe('flow', function () {
+    it('should ignore matching message', async function () {
+      const caps = {
+        [Capabilities.CONTAINERMODE]: 'simplerest',
+        [Capabilities.WAITFORBOTTIMEOUT]: 1000,
+        [Capabilities.SIMPLEREST_URL]: 'https://mock.com/flowignore',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
+        [Capabilities.SIMPLEREST_CONTEXT_IGNORE_JSONPATH]: '$.ignore',
+        [Capabilities.SIMPLEREST_CONTEXT_IGNORE_MATCH]: 'Y'
+      }
+      const scope = nock('https://mock.com')
+        .get('/flowignore').reply(200, { text: 'ignore it', ignore: 'Y' })
+
+      const driver = new BotDriver(caps)
+      const container = await driver.Build()
+      await container.Start()
+
+      await container.UserSays({ text: 'hallo' })
+      try {
+        await container.WaitBotSays()
+        assert.fail('expected response to be ignored')
+      } catch (err) {
+        assert.equal(err.message, 'Bot did not respond within 1s')
+      }
+      await container.Stop()
+      await container.Clean()
+      scope.persist(false)
+    })
+    it('should skip matching message', async function () {
+      const caps = {
+        [Capabilities.CONTAINERMODE]: 'simplerest',
+        [Capabilities.SIMPLEREST_URL]: 'https://mock.com/flowskip',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
+        [Capabilities.SIMPLEREST_CONTEXT_SKIP_JSONPATH]: '$.skip',
+        [Capabilities.SIMPLEREST_CONTEXT_SKIP_MATCH]: 'Y'
+      }
+      const scope = nock('https://mock.com')
+        .get('/flowskip').reply(200, { text: 'skip it', skip: 'Y' })
+        .get('/flowskip').reply(200, { text: 'not skip it', skip: 'N' })
+
+      const driver = new BotDriver(caps)
+      const container = await driver.Build()
+      await container.Start()
+
+      await container.UserSays({ text: 'hello' })
+      const botMsg = await container.WaitBotSays()
+      assert.equal(botMsg.messageText, 'not skip it')
+
+      await container.Stop()
+      await container.Clean()
+      scope.persist(false)
+    })
+    it('should continue on matching message', async function () {
+      const caps = {
+        [Capabilities.CONTAINERMODE]: 'simplerest',
+        [Capabilities.SIMPLEREST_URL]: 'https://mock.com/flowcontinue',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
+        [Capabilities.SIMPLEREST_CONTEXT_CONTINUE_JSONPATH]: '$.continue',
+        [Capabilities.SIMPLEREST_CONTEXT_CONTINUE_MATCH]: 'Y'
+      }
+      const scope = nock('https://mock.com')
+        .get('/flowcontinue').reply(200, { text: 'continue it', continue: 'Y' })
+        .get('/flowcontinue').reply(200, { text: 'not continue it', continue: 'N' })
+
+      const driver = new BotDriver(caps)
+      const container = await driver.Build()
+      await container.Start()
+
+      await container.UserSays({ text: 'hello' })
+      const botMsg1 = await container.WaitBotSays()
+      assert.equal(botMsg1.messageText, 'continue it')
+      const botMsg2 = await container.WaitBotSays()
+      assert.equal(botMsg2.messageText, 'not continue it')
+
+      await container.Stop()
+      await container.Clean()
+      scope.persist(false)
+    })
   })
 })
