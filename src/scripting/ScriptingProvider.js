@@ -940,10 +940,16 @@ module.exports = class ScriptingProvider {
       convoFilter: null
     }, options)
     const expandedConvos = []
+    // The globalContext is going to keep the data even if the Object.assign which happening to create the myContext in _expandConvo function
+    const context = {
+      globalContext: {
+        totalConvoCount: 0
+      }
+    }
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     this.convos.forEach((convo) => {
       convo.expandPartialConvos()
-      for (const expanded of this._expandConvo(convo, options, {})) {
+      for (const expanded of this._expandConvo(convo, options, context)) {
         expanded.header.assertionCount = this.GetAssertionCount(expanded)
         if (options.justHeader) {
           const ConvoWithOnlyHeader = {
@@ -959,6 +965,7 @@ module.exports = class ScriptingProvider {
       }
     })
     this.convos = expandedConvos
+    this.totalConvoCount = context.globalContext.totalConvoCount
     if (!options.justHeader) {
       this._sortConvos()
     } else {
@@ -971,17 +978,24 @@ module.exports = class ScriptingProvider {
       // drop unwanted convos
       convoFilter: null
     }, options)
+    // The globalContext is going to keep the data even if the Object.assign which happening to create the myContext in _expandConvo function
+    const context = {
+      globalContext: {
+        totalConvoCount: 0
+      }
+    }
     debug(`ExpandConvos - Using utterances expansion mode: ${this.caps[Capabilities.SCRIPTING_UTTEXPANSION_MODE]}`)
     // creating a nested generator, calling the other.
     // We hope this.convos does not changes while this iterator is used
     const _convosIterable = function * (options) {
       for (const convo of this.convos) {
         convo.expandPartialConvos()
-        yield * this._expandConvo(convo, options, {})
+        yield * this._expandConvo(convo, options, context)
       }
     }.bind(this)
 
     this.convosIterable = _convosIterable(options)
+    this.totalConvoCount = context.globalContext.totalConvoCount
   }
 
   /**
@@ -1173,6 +1187,9 @@ module.exports = class ScriptingProvider {
       }
     } else {
       const expanded = Object.assign(_.cloneDeep(currentConvo), { conversation: _.cloneDeep(convoStepsStack) })
+      if (!_.isNil(_.get(context, 'globalContext.totalConvoCount'))) {
+        context.globalContext.totalConvoCount++
+      }
       if (!options.convoFilter || options.convoFilter(expanded)) {
         yield expanded
       }
