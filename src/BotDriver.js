@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const async = require('async')
 const { rimraf } = require('rimraf')
-const { mkdirpSync } = require('mkdirp')
+const mkdirp = require('mkdirp')
 const sanitize = require('sanitize-filename')
 const moment = require('moment')
 const randomize = require('randomatic')
@@ -130,7 +130,7 @@ module.exports = class BotDriver {
         (tempDirectoryCreated) => {
           tempDirectory = path.resolve(process.cwd(), this.caps[Capabilities.TEMPDIR], sanitize(`${this.caps[Capabilities.PROJECTNAME]} ${moment().format('YYYYMMDD HHmmss')} ${randomize('Aa0', 5)}`))
           try {
-            mkdirpSync(tempDirectory)
+            mkdirp.sync(tempDirectory)
             tempDirectoryCreated()
           } catch (err) {
             tempDirectoryCreated(new Error(`Unable to create temp directory ${tempDirectory}: ${err.message}`))
