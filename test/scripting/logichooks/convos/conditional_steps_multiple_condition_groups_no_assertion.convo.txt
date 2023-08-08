@@ -1,0 +1,20 @@
+custom embedded
+
+#me
+hello
+
+#bot
+hello should not assert
+CONDITIONAL_STEP_LOGIC_HOOK { "skip":true }
+
+#bot
+hello should not assert
+CONDITIONAL_STEP_LOGIC_HOOK { "skip":true, "conditionGroupEnd": true }
+
+#bot
+hello should not assert
+CONDITIONAL_STEP_LOGIC_HOOK { "skip":true }
+
+#bot
+hello should not assert
+CONDITIONAL_STEP_LOGIC_HOOK { "skip":true, "conditionGroupEnd": true }

@@ -404,6 +404,17 @@ class Convo {
               throw failErr
             }
 
+            if (convoStep.conditional) {
+              const nextConvoStep = this.conversation[i + 1]
+              waitForBotSays = !!(convoStep.conditional.conditionGroupEnd ||
+                (nextConvoStep && (nextConvoStep.sender !== 'bot' || !nextConvoStep.logicHooks.some(lh => lh.name.toUpperCase().startsWith('CONDITIONAL_STEP')))))
+
+              if (convoStep.conditional.skip) {
+                skipTranscriptStep = true
+                continue
+              }
+            }
+
             if (convoStep.skip === true) {
               skipTranscriptStep = true
               const nextConvoStep = this.conversation[i + 1]
