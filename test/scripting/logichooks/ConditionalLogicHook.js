@@ -6,9 +6,15 @@ module.exports = class ConditionalLogicHook {
   }
 
   onBotPrepare ({ convo, convoStep, args }) {
-    const params = JSON.parse(args[0])
+    const conditionGroupId = args.length === 2 && args[0]
+    let params
+    try {
+      params = args[1] ? JSON.parse(args[1]) : JSON.parse(args[0])
+    } catch (e) {
+      throw new Error(`ConditionalCapabilityValueLogicHook: No parsable JSON object found in params: ${e}`)
+    }
     convoStep.conditional = {
-      conditionGroupEnd: params.conditionGroupEnd
+      conditionGroupId
     }
     convoStep.conditional.skip = params.skip
   }

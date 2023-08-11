@@ -99,7 +99,7 @@ describe('convo with conditional logichook', function () {
     it('should success with multiple condition groups no assertion', async function () {
       this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'conditional_steps_multiple_condition_groups_no_assertion.convo.txt')
       const transript = await this.compiler.convos[0].Run(this.container)
-      assert.equal(transript.steps.length, 1)
+      assert.equal(transript.steps.length, 3)
     })
   })
 })

@@ -5,16 +5,16 @@ hello
 
 #bot
 hello should not assert
-CONDITIONAL_STEP_LOGIC_HOOK { "skip":true }
+CONDITIONAL_STEP_LOGIC_HOOK G1|{ "skip":true }
 
 #bot
 hello should not assert
-CONDITIONAL_STEP_LOGIC_HOOK { "skip":true, "conditionGroupEnd": true }
+CONDITIONAL_STEP_LOGIC_HOOK G1|{ "skip":true }
 
 #bot
 hello should not assert
-CONDITIONAL_STEP_LOGIC_HOOK { "skip":true }
+CONDITIONAL_STEP_LOGIC_HOOK G2|{ "skip":true }
 
 #bot
 hello should not assert
-CONDITIONAL_STEP_LOGIC_HOOK { "skip":true, "conditionGroupEnd": true }
+CONDITIONAL_STEP_LOGIC_HOOK G2|{ "skip":true }
