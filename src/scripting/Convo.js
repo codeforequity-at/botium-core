@@ -417,7 +417,7 @@ class Convo {
               } else {
                 const conditionalLogicHook = convoStep.logicHooks.find(lh => lh.name.startsWith('CONDITIONAL_STEP'))
                 const nextConditionalLogicHook = nextConvoStep.logicHooks.find(lh => lh.name.startsWith('CONDITIONAL_STEP'))
-                waitForBotSays = conditionalLogicHook.args[0] !== nextConditionalLogicHook.args[0]
+                waitForBotSays = conditionalLogicHook.args[1] !== nextConditionalLogicHook.args[1]
               }
 
               if (convoStep.conditional.skip) {

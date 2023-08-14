@@ -5,11 +5,11 @@ hello
 
 #bot
 hello should not assert
-CONDITIONAL_STEP_LOGIC_HOOK G1|{ "skip":true }
+CONDITIONAL_STEP_LOGIC_HOOK { "skip":true }|G1
 
 #bot
 hello
-CONDITIONAL_STEP_LOGIC_HOOK G1|{ "skip":false }
+CONDITIONAL_STEP_LOGIC_HOOK { "skip":false }|G1
 
 #me
 hello
