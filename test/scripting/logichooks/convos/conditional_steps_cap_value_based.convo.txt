@@ -1,0 +1,12 @@
+conditional_steps_time_based
+
+#me
+hello
+
+#bot
+hello
+CONDITIONAL_STEP_CAPABILITY_VALUE_BASED { "capabilityName":"SIMPLE_TEXT", "value": "echo1" }
+
+#bot
+fail
+CONDITIONAL_STEP_CAPABILITY_VALUE_BASED { "capabilityName":"SIMPLE_TEXT", "value": "echo2" }

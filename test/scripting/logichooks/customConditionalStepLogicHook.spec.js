@@ -2,12 +2,12 @@ const path = require('path')
 const assert = require('chai').assert
 const BotDriver = require('../../..').BotDriver
 const Capabilities = require('../../..').Capabilities
-const ConditionalLogicHook = require('./ConditionalLogicHook')
+const CustomConditionalLogicHook = require('./CustomConditionalLogicHook')
 const myCaps = {
   LOGIC_HOOKS: [
     {
       ref: 'CONDITIONAL_STEP_LOGIC_HOOK',
-      src: ConditionalLogicHook,
+      src: CustomConditionalLogicHook,
       global: false
     }
   ]
@@ -46,7 +46,7 @@ const buildDriver = async (mergeCaps, duplicateBotMsg) => {
   return result
 }
 
-describe('convo with conditional logichook', function () {
+describe('convo with custom conditional logichook', function () {
   describe('simple bot messages', function () {
     beforeEach(async function () {
       const { compiler, container } = await buildDriver(myCaps)
