@@ -1,0 +1,12 @@
+conditional_steps_time_based
+
+#me
+hello
+
+#bot
+hello, we are open
+CONDITIONAL_STEP_TIME_BASED { "start":"8:00", "end": "16:30" }
+
+#bot
+hello, we are closed
+CONDITIONAL_STEP_TIME_BASED { "start":"16:31", "end": "7:59" }
