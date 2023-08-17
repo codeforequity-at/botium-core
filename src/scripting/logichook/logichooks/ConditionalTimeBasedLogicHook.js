@@ -9,13 +9,17 @@ module.exports = class ConditionalTimeBasedLogicHook {
     this.globalArgs = globalArgs
   }
 
-  _isBetween (startTime, endTime) {
-    const start = moment(startTime, [moment.ISO_8601, 'HH:mm'])
-    const end = moment(endTime, [moment.ISO_8601, 'HH:mm'])
-    if (start.isSameOrAfter(end)) {
-      end.add(1, 'days')
+  _isBetween (start, end) {
+    const startTime = moment(start, [moment.ISO_8601, 'HH:mm'])
+    const endTime = moment(end, [moment.ISO_8601, 'HH:mm'])
+    if (startTime.isSameOrAfter(endTime)) {
+      if (moment().isSameOrAfter(startTime)) {
+        endTime.add(1, 'days')
+      } else {
+        startTime.add(-1, 'days')
+      }
     }
-    return moment().isBetween(start, end, 'minutes', '[]')
+    return moment().isBetween(startTime, endTime, 'minutes', '[]')
   }
 
   onBotPrepare ({ convo, convoStep, args }) {
