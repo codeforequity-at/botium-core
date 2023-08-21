@@ -1,5 +1,5 @@
 const util = require('util')
-const moment = require('moment')
+const moment = require('moment-timezone')
 const debug = require('debug')('botium-core-ConditionalTimeBasedLogicHook')
 
 module.exports = class ConditionalBusinessHoursLogicHook {
