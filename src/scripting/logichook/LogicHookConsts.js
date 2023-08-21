@@ -59,6 +59,7 @@ module.exports = {
     { name: 'SKIP_BOT_UNCONSUMED', className: 'ClearQueueLogicHook' },
     { name: LOGIC_HOOK_INCLUDE, className: 'IncludeLogicHook' },
     { name: 'CONDITIONAL_STEP_TIME_BASED', className: 'ConditionalTimeBasedLogicHook' },
+    { name: 'CONDITIONAL_STEP_BUSINESS_HOURS', className: 'ConditionalBusinessHoursLogicHook' },
     { name: 'CONDITIONAL_STEP_CAPABILITY_VALUE_BASED', className: 'ConditionalCapabilityValueBasedLogicHook' },
     { name: 'CONDITIONAL_STEP_JSON_PATH_BASED', className: 'ConditionalJsonPathBasedLogicHook.js' }
   ],
