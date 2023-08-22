@@ -18,19 +18,19 @@ module.exports = class ButtonsAsserter {
     }
     const buttonsNotFound = []
     const buttonsFound = []
-    const parsePayload = (payload) => {
+    const stringifyPayload = (payload) => {
       if (_.isNil(payload)) {
-        return undefined
+        return ''
       }
       try {
-        return JSON.parse(payload)
+        return JSON.stringify(JSON.parse(payload))
       } catch (e) {
-        return payload
+        return JSON.stringify(payload)
       }
     }
     for (let i = 0; i < (args || []).length; i++) {
       const matchByText = allButtons.some(b => this.context.Match(b.text, normalizeText(args[i], !!this.caps[SCRIPTING_NORMALIZE_TEXT])))
-      const matchByPayload = allButtons.some(b => _.isEqual(parsePayload(b.payload), parsePayload(args[i])))
+      const matchByPayload = allButtons.some(b => this.context.Match(stringifyPayload(b.payload), normalizeText(args[i], !!this.caps[SCRIPTING_NORMALIZE_TEXT])))
       if (matchByText || matchByPayload) {
         buttonsFound.push(args[i])
       } else {
