@@ -3,7 +3,7 @@ const moment = require('moment/moment')
 const assert = require('chai').assert
 const BotDriver = require('../../../index').BotDriver
 const Capabilities = require('../../../index').Capabilities
-const ConditionalTimeBasedLogicHook = require('../../../src/scripting/logichook/logichooks/ConditionalTimeBasedLogicHook')
+const ConditionalBusinessHoursLogicHook = require('../../../src/scripting/logichook/logichooks/ConditionalBusinessHoursLogicHook')
 
 const echoConnector = ({ queueBotSays }) => {
   return {
@@ -18,14 +18,18 @@ const echoConnector = ({ queueBotSays }) => {
           start.add(-1, 'days')
         }
       }
-      const businessHoursText = now.isBetween(start, end, 'minutes', '[]') ? 'we are open' : 'we are closed'
+      const businessHoursText = ['Saturday', 'Sunday'].includes(now.format('dddd'))
+        ? 'it\'s non-business hours'
+        : now.isBetween(start, end, 'minutes', '[]')
+          ? 'it\'s business hours'
+          : 'it\'s non-business hours'
       const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: `Hello, ${businessHoursText}` }
       queueBotSays(botMsg)
     }
   }
 }
 
-describe('convo with time based conditional logichook', function () {
+describe('convo with business hours conditional logichook', function () {
   beforeEach(async function () {
     const myCaps = {
       [Capabilities.PROJECTNAME]: 'scripting.logichooks',
@@ -42,13 +46,14 @@ describe('convo with time based conditional logichook', function () {
   })
 
   it('should success', async function () {
-    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'conditional_steps_time_based.convo.txt')
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'conditional_steps_business_hours.convo.txt')
     await this.compiler.convos[0].Run(this.container)
   })
 
-  it('is between 8:00-16:00', async function () {
-    const clh = new ConditionalTimeBasedLogicHook()
+  it('is between Monday-Friday 8:00-16:00', async function () {
+    const clh = new ConditionalBusinessHoursLogicHook()
     const params = {
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
       start: '8:00',
       end: '16:00'
     }
@@ -64,14 +69,22 @@ describe('convo with time based conditional logichook', function () {
     // Monday 16:01
     params.now = moment('2023-08-21T16:01:00')
     assert.isFalse(clh._isBetween(params))
+    // Sunday 10:00
+    params.now = moment('2023-08-20T10:00:00')
+    assert.isFalse(clh._isBetween(params))
+    // Friday 16:01
+    params.now = moment('2023-08-25T16:01:00')
+    assert.isFalse(clh._isBetween(params))
   })
 
-  it('is between 16:01-7:59', async function () {
-    const clh = new ConditionalTimeBasedLogicHook()
+  it('is between Monday-Friday 16:01-7:59', async function () {
+    const clh = new ConditionalBusinessHoursLogicHook()
     const params = {
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
       start: '16:01',
       end: '7:59'
     }
+
     // Monday 17:00
     params.now = moment('2023-08-21T17:00:00')
     assert.isTrue(clh._isBetween(params))
@@ -84,8 +97,34 @@ describe('convo with time based conditional logichook', function () {
     // Monday 07:59
     params.now = moment('2023-08-21T07:59:00')
     assert.isTrue(clh._isBetween(params))
+    // Friday 23:00
+    params.now = moment('2023-08-25T23:00:00')
+    assert.isTrue(clh._isBetween(params))
     // Monday 16:00
     params.now = moment('2023-08-21T16:00:00')
+    assert.isFalse(clh._isBetween(params))
+    // Sunday 23:00
+    params.now = moment('2023-08-20T23:00:00')
+    assert.isFalse(clh._isBetween(params))
+  })
+
+  it('is on Saturday or Sunday', async function () {
+    const clh = new ConditionalBusinessHoursLogicHook()
+    const params = {
+      days: ['Saturday', 'Sunday']
+    }
+
+    // Sunday 17:00
+    params.now = moment('2023-08-20T17:00:00')
+    assert.isTrue(clh._isBetween(params))
+    // Saturday 05:00
+    params.now = moment('2023-08-19T05:00:00')
+    assert.isTrue(clh._isBetween(params))
+    // Monday 16:01
+    params.now = moment('2023-08-21T16:01:00')
+    assert.isFalse(clh._isBetween(params))
+    // Friday 23:00
+    params.now = moment('2023-08-25T23:00:00')
     assert.isFalse(clh._isBetween(params))
   })
 })
