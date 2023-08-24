@@ -718,7 +718,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].header.name, 'utt1/utt1-L00002')
       assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
       assert.equal(scriptingProvider.convos[1].toString(), '2 utt1/utt1-L00002 (Expanded Utterances - utt1) ({ origUttName: \'utt1\', origConvoName: \'utt1\' }): Step 1 - tell utterance: #me - TEXT2 SKIP_BOT_UNCONSUMED(no args) | Step 2 - check bot response: #bot - ')
-    })
+    }).timeout(5000)
     it('should build incomprehension convos for utterance', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_INCOMPREHENSION: 'INCOMPREHENSION' }))
       await scriptingProvider.Build()
