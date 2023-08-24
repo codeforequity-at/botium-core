@@ -356,6 +356,7 @@ class Convo {
               throw failErr
             }
           } else if (convoStep.sender === 'bot') {
+            const previousWaitForBotSays = waitForBotSays
             if (waitForBotSays) {
               botMsg = null
             } else {
@@ -404,13 +405,24 @@ class Convo {
               throw failErr
             }
 
-            if (convoStep.skip === true) {
-              skipTranscriptStep = true
+            if (convoStep.conditional) {
               const nextConvoStep = this.conversation[i + 1]
-              if (nextConvoStep && nextConvoStep.sender === 'bot') {
-                waitForBotSays = false
+
+              if (!previousWaitForBotSays) {
+                skipTranscriptStep = true
               }
-              continue
+              waitForBotSays = false
+              if (!nextConvoStep || nextConvoStep.sender !== 'bot' || !nextConvoStep.logicHooks || !nextConvoStep.logicHooks.some(lh => lh.name.toUpperCase().startsWith('CONDITIONAL_STEP'))) {
+                waitForBotSays = true
+              } else {
+                const conditionalLogicHook = convoStep.logicHooks.find(lh => lh.name.startsWith('CONDITIONAL_STEP'))
+                const nextConditionalLogicHook = nextConvoStep.logicHooks.find(lh => lh.name.startsWith('CONDITIONAL_STEP'))
+                waitForBotSays = conditionalLogicHook.args[1] !== nextConditionalLogicHook.args[1]
+              }
+
+              if (convoStep.conditional.skip) {
+                continue
+              }
             }
 
             if (!botMsg || (!botMsg.messageText && !botMsg.media && !botMsg.buttons && !botMsg.cards && !botMsg.sourceData && !botMsg.nlp)) {

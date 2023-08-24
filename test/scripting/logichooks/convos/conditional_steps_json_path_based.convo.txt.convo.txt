@@ -1,0 +1,12 @@
+conditional_steps_time_based
+
+#me
+hello
+
+#bot
+hello
+CONDITIONAL_STEP_JSON_PATH_BASED { "jsonPath":"$.messageText", "value": "hello" }
+
+#bot
+fail
+CONDITIONAL_STEP_JSON_PATH_BASED { "jsonPath":"$.messageText", "value": "fail" }

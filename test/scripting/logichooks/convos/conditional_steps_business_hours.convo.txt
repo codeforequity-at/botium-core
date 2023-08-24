@@ -1,0 +1,16 @@
+conditional_steps_time_based
+
+#me
+hello
+
+#bot
+hello, it's business hours
+CONDITIONAL_STEP_BUSINESS_HOURS { "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "start":"8:00", "end": "16:30" }
+
+#bot
+hello, it's non-business hours
+CONDITIONAL_STEP_BUSINESS_HOURS { "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "start":"16:31", "end": "7:59" }
+
+#bot
+hello, it's non-business hours
+CONDITIONAL_STEP_BUSINESS_HOURS { "days": ["Saturday", "Sunday"] }
