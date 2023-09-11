@@ -17,21 +17,6 @@ const myCapsSimpleRest = {
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 
-const echoConnector = ({ queueBotSays }) => {
-  return {
-    UserSays (msg) {
-      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: `You said: "${msg.messageText}"` }
-      queueBotSays(botMsg)
-    }
-  }
-}
-
-const myCapsEcho = {
-  [Capabilities.CONTAINERMODE]: echoConnector,
-  [Capabilities.SECURITY_ALLOW_UNSAFE]: false,
-  [Capabilities.SCRIPTING_ENABLE_MEMORY]: true
-}
-
 const _getSimpleRestCaps = (caps) => {
   return Object.assign(
     {},
@@ -57,11 +42,6 @@ const functionConnector = ({ queueBotSays }) => {
 
 describe('security.allowUnsafe', function () {
   describe('hook utils', function () {
-    it('should accept string hook in safe mode', async function () {
-      HookUtils.getHook({
-        [Capabilities.SECURITY_ALLOW_UNSAFE]: false
-      }, '1+1')
-    })
     it('should accept javascript hook in safe mode', async function () {
       HookUtils.getHook({
         [Capabilities.SECURITY_ALLOW_UNSAFE]: false
@@ -94,19 +74,6 @@ describe('security.allowUnsafe', function () {
         [Capabilities.SECURITY_ALLOW_UNSAFE]: true
       }, 'hook-as-file')
     })
-  })
-
-  describe('scripting memory', function () {
-    it('should not throw security error for using inline function', async function () {
-      const driver = new BotDriver(myCapsEcho)
-      const compiler = driver.BuildCompiler()
-      const container = await driver.Build()
-      await container.Start()
-
-      compiler.ReadScript(path.resolve(__dirname, 'convos'), 'withscriptingmemoryfunction.convo.txt')
-      await compiler.convos[0].Run(container)
-      await container.Clean()
-    }).timeout(50000)
   })
 
   describe('simple rest, scripting memory', function () {
@@ -145,19 +112,6 @@ describe('security.allowUnsafe', function () {
   })
 
   describe('simple rest, hooks', function () {
-    it('should create and use simplerest with javascript hook', async function () {
-      const driver = new BotDriver(_getSimpleRestCaps(
-        {
-          [Capabilities.SIMPLEREST_REQUEST_HOOK]: '1+1'
-        }
-      ))
-
-      const compiler = driver.BuildCompiler()
-      const container = await driver.Build()
-      await container.Start()
-
-      compiler.ReadScript(path.resolve(__dirname, 'convos'), 'dummy.convo.txt')
-    })
     it('should create and use simplerest with function hooks', async function () {
       const driver = new BotDriver(_getSimpleRestCaps(
         {
@@ -173,35 +127,6 @@ describe('security.allowUnsafe', function () {
     })
   })
 
-  describe('precompilers', function () {
-    it('should not throw security error for inline script type', async function () {
-      const driver = new BotDriver(_getSimpleRestCaps(
-        {
-          [Capabilities.PRECOMPILERS]: {
-            NAME: 'SCRIPT',
-            SCRIPT: '1+1'
-          }
-        }
-      ))
-
-      const compiler = driver.BuildCompiler()
-      const container = await driver.Build()
-      const fileName = 'dummy.convo.txt'
-      compiler.ReadScript(path.resolve(__dirname, 'convos'), fileName)
-      assert.equal(compiler.convos.length, 1)
-      await container.Clean()
-    })
-  })
-
-  describe('base container, hooks', function () {
-    it('should not throw security error for using inline hook', async function () {
-      const driver = new BotDriver(_getSimpleRestCaps(
-        { [Capabilities.CUSTOMHOOK_ONUSERSAYS]: '1+1' }
-      ))
-      await driver.Build()
-    })
-  })
-
   describe('logic hook, asserter', function () {
     it('should load asserter from file', async function () {
       const driver = new BotDriver(_getSimpleRestCaps(
@@ -214,45 +139,6 @@ describe('security.allowUnsafe', function () {
         }
       ))
 
-      driver.BuildCompiler()
-    })
-    it('should not throw security error for logic hook with inline src', async function () {
-      const driver = new BotDriver(_getSimpleRestCaps(
-        {
-          [Capabilities.LOGIC_HOOKS]: [
-            {
-              ref: 'MY-LOGICHOOK-NAME',
-              src: {
-                onMeStart: '1+1'
-              },
-              global: false,
-              args: {
-                'my-arg-1': 'something'
-              }
-            }
-          ]
-        }
-      ))
-
-      driver.BuildCompiler()
-    })
-    it('should not throw security error for global logic hook with inline src', async function () {
-      const driver = new BotDriver(_getSimpleRestCaps(
-        {
-          [Capabilities.LOGIC_HOOKS]: [
-            {
-              ref: 'MY-LOGICHOOK-NAME',
-              src: {
-                onMeStart: '1+1'
-              },
-              global: true,
-              args: {
-                'my-arg-1': 'something'
-              }
-            }
-          ]
-        }
-      ))
       driver.BuildCompiler()
     })
   })

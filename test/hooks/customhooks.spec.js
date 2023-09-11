@@ -65,28 +65,6 @@ describe('customhooks.hookfromsrc', function () {
     assert.isTrue(onStopCalled)
     assert.isTrue(onCleanCalled)
   })
-  it('should call hooks from string function', async function () {
-    const { container } = await buildDriver({
-      [Capabilities.CUSTOMHOOK_ONBUILD]: 'module.exports = ({ container }) => { container.onBuildCalled = true }',
-      [Capabilities.CUSTOMHOOK_ONSTART]: 'module.exports = ({ container }) => { container.onStartCalled = true }',
-      [Capabilities.CUSTOMHOOK_ONUSERSAYS]: 'module.exports = ({ container }) => { container.onUserSaysCalled = true }',
-      [Capabilities.CUSTOMHOOK_ONBOTRESPONSE]: 'module.exports = ({ container }) => { container.onBotResponseCalled = true }',
-      [Capabilities.CUSTOMHOOK_ONSTOP]: 'module.exports = ({ container }) => { container.onStopCalled = true }',
-      [Capabilities.CUSTOMHOOK_ONCLEAN]: 'module.exports = ({ container }) => { container.onCleanCalled = true }'
-    })
-    await container.Start()
-    await container.UserSaysText('hallo')
-    await container.WaitBotSays()
-    await container.Stop()
-    await container.Clean()
-
-    assert.isTrue(container.onBuildCalled)
-    assert.isTrue(container.onStartCalled)
-    assert.isTrue(container.onUserSaysCalled)
-    assert.isTrue(container.onBotResponseCalled)
-    assert.isTrue(container.onStopCalled)
-    assert.isTrue(container.onCleanCalled)
-  })
   it('should change meMsg from hook', async function () {
     const { container } = await buildDriver({
       [Capabilities.CUSTOMHOOK_ONUSERSAYS]: ({ meMsg }) => {
@@ -115,7 +93,7 @@ describe('customhooks.hookfromsrc', function () {
 
     assert.equal(botMsg.fromHook, 1)
   })
-  it('should call http api from string function', async function () {
+  it('should call http api from function', async function () {
     const scope = nock('https://gettoken.com')
       .get('/get')
       .reply(200, {
@@ -124,7 +102,7 @@ describe('customhooks.hookfromsrc', function () {
       .persist()
 
     const { container } = await buildDriver({
-      [Capabilities.CUSTOMHOOK_ONSTART]: `module.exports = async ({ container, request }) => {
+      [Capabilities.CUSTOMHOOK_ONSTART]: async ({ container, request }) => {
         return new Promise((resolve, reject) => {
           request({ method: 'get', uri: 'https://gettoken.com/get', json: true }, (err, response, body) => {
             if (err) return reject(err)
@@ -132,7 +110,7 @@ describe('customhooks.hookfromsrc', function () {
             resolve()
           })
         })
-      }`
+      }
     })
     await container.Start()
     assert.equal(container.caps.MYTOKEN, 'thisisausertoken')

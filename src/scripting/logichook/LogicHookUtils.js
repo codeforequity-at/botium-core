@@ -1,4 +1,3 @@
-const { NodeVM } = require('vm2')
 const path = require('path')
 const fs = require('fs')
 const isClass = require('is-class')
@@ -183,19 +182,8 @@ module.exports = class LogicHookUtils {
             const script = src[key]
             if (_.isFunction(script)) {
               return script(args)
-            } else if (_.isString(script)) {
-              try {
-                const vm = new NodeVM({
-                  eval: false,
-                  require: false,
-                  sandbox: args
-                })
-                return vm.run(script)
-              } catch (err) {
-                throw new Error(`Script ${key} is not valid - ${err.message || err}`)
-              }
             } else {
-              throw new Error(`Script "${key}" is not valid - only functions and javascript code accepted`)
+              throw new Error(`Script ${key} is not valid - only functions accepted`)
             }
           }
           return result
