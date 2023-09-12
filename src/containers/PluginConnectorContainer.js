@@ -162,4 +162,12 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return Promise.reject(new Error(`Clean - Botium plugin failed: ${util.inspect(err)}`))
     }
   }
+
+  GetMetaData () {
+    try {
+      return (this.pluginInstance.GetMetaData ? (this.pluginInstance.GetMetaData() || Promise.resolve()) : Promise.resolve())
+    } catch (err) {
+      return Promise.reject(new Error(`GetMetaData - Botium plugin failed: ${util.inspect(err)}`))
+    }
+  }
 }
