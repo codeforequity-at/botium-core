@@ -107,7 +107,8 @@ const myCapsRequestHookFromFunction = Object.assign({
   }
 }, myCapsHookBase)
 const myCapsRequestHookFromModule = Object.assign({
-  [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'test/connectors/logicHook.js'
+  [Capabilities.SAFEDIR]: './test/connectors/',
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'logicHook.js'
 }, myCapsHookBase)
 const myCapsResponseHook = Object.assign({
   [Capabilities.SIMPLEREST_RESPONSE_HOOK]: ({ botMsg }) => {

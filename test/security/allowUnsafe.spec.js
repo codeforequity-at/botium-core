@@ -5,7 +5,6 @@ chai.use(chaiAsPromised)
 const assert = chai.assert
 const BotDriver = require('../../').BotDriver
 const Capabilities = require('../../').Capabilities
-const { BotiumError } = require('../../src/scripting/BotiumError')
 const HookUtils = require('../../src/helpers/HookUtils')
 
 const myCapsSimpleRest = {
@@ -54,20 +53,25 @@ describe('security.allowUnsafe', function () {
         }, 'test/security/resources/hook-as-file.js')
         assert.fail('should have failed')
       } catch (err) {
-        assert.isTrue(err instanceof BotiumError)
-        assert.exists(err.context)
-        assert.equal(err.context.message, 'Security Error. Using unsafe custom hook with require is not allowed')
-        assert.equal(err.context.source, 'HookUtils.js')
-        assert.equal(err.context.type, 'security')
-        assert.equal(err.context.subtype, 'allow unsafe')
-        assert.exists(err.context.cause)
-        assert.equal(err.context.cause.hookData, 'test/security/resources/hook-as-file.js')
+        assert.isTrue(err.message.indexOf('Not valid hook') >= 0)
       }
     })
-    it('should accept file hook in unsafe mode', async function () {
+    it('should accept file hook from safe dir in unsafe mode', async function () {
       HookUtils.getHook({
-        [Capabilities.SECURITY_ALLOW_UNSAFE]: true
-      }, 'test/security/resources/hook-as-file.js')
+        [Capabilities.SECURITY_ALLOW_UNSAFE]: true,
+        [Capabilities.SAFEDIR]: 'test/security/'
+      }, 'resources/hook-as-file.js')
+    })
+    it('should not accept file hook from outside safe dir', async function () {
+      try {
+        HookUtils.getHook({
+          [Capabilities.SECURITY_ALLOW_UNSAFE]: true,
+          [Capabilities.SAFEDIR]: 'test/security/'
+        }, '../hook-as-file.js')
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('Not valid hook') >= 0)
+      }
     })
     it('should accept require hook in unsafe mode', async function () {
       HookUtils.getHook({
@@ -156,10 +160,10 @@ describe('security.allowUnsafe', function () {
       })
       await driver.Build()
     })
-
-    it('should create any connector from file/dir, if its starts with botium-connector prefix', async function () {
+    it('should create any connector from safedir', async function () {
       const driver = new BotDriver({
-        [Capabilities.CONTAINERMODE]: 'botium-connector-as-file',
+        [Capabilities.SAFEDIR]: 'test/security/',
+        [Capabilities.CONTAINERMODE]: 'resources/botium-connector-as-file.js',
         [Capabilities.SECURITY_ALLOW_UNSAFE]: false
       })
       await driver.Build()

@@ -5,7 +5,6 @@ const _ = require('lodash')
 const debug = require('debug')('botium-core-HookUtils')
 
 const Capabilities = require('../Capabilities')
-const { BotiumError } = require('../scripting/BotiumError')
 
 const executeHook = async (caps, hook, args) => {
   return executeHookSync(caps, hook, args)
@@ -39,37 +38,29 @@ const getHook = (caps, data) => {
   }
 
   if (_.isString(data)) {
-    let resultWithRequire
-    let tryLoadFile = path.resolve(process.cwd(), data)
-    if (fs.existsSync(tryLoadFile)) {
-      try {
-        resultWithRequire = require(tryLoadFile)
-      } catch (err) {
+    let tryLoadFile = null
+    let resultWithRequire = null
+
+    if (caps.SAFEDIR) {
+      tryLoadFile = path.resolve(caps.SAFEDIR, data)
+      if (tryLoadFile.startsWith(path.resolve(caps.SAFEDIR))) {
+        if (fs.existsSync(tryLoadFile)) {
+          try {
+            resultWithRequire = require(tryLoadFile)
+          } catch (err) {
+          }
+        }
       }
-    } else {
+    }
+    if (!resultWithRequire && allowUnsafe) {
       tryLoadFile = data
       try {
-        resultWithRequire = require(data)
+        resultWithRequire = require(tryLoadFile)
       } catch (err) {
       }
     }
 
     if (resultWithRequire) {
-      if (!allowUnsafe) {
-        throw new BotiumError(
-          'Security Error. Using unsafe custom hook with require is not allowed',
-          {
-            type: 'security',
-            subtype: 'allow unsafe',
-            source: path.basename(__filename),
-            cause: {
-              SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
-              hookData: data
-            }
-          }
-        )
-      }
-
       if (_.isFunction(resultWithRequire)) {
         debug(`found hook, type: require, in ${tryLoadFile}`)
         return resultWithRequire
