@@ -38,34 +38,36 @@ const getHook = (caps, data) => {
   }
 
   if (_.isString(data)) {
-    let tryLoadFile = null
-    let resultWithRequire = null
-
     if (caps.SAFEDIR) {
-      tryLoadFile = path.resolve(caps.SAFEDIR, data)
+      const tryLoadFile = path.resolve(caps.SAFEDIR, data)
       if (tryLoadFile.startsWith(path.resolve(caps.SAFEDIR))) {
         if (fs.existsSync(tryLoadFile)) {
           try {
-            resultWithRequire = require(tryLoadFile)
+            const resultWithRequire = require(tryLoadFile)
+            if (_.isFunction(resultWithRequire)) {
+              debug(`found hook, type: safedir, in ${tryLoadFile}`)
+              return resultWithRequire
+            } else {
+              throw new Error(`Not a function: ${util.inspect(resultWithRequire)}`)
+            }
           } catch (err) {
+            debug(`Failed loading hook, type: safedir, from ${tryLoadFile} failed: ${err.message || err}`)
           }
         }
       }
     }
-    if (!resultWithRequire && allowUnsafe) {
-      tryLoadFile = data
+    if (allowUnsafe) {
+      const tryLoadFile = data
       try {
-        resultWithRequire = require(tryLoadFile)
+        const resultWithRequire = require(tryLoadFile)
+        if (_.isFunction(resultWithRequire)) {
+          debug(`found hook, type: require, in ${tryLoadFile}`)
+          return resultWithRequire
+        } else {
+          throw new Error(`Not a function: ${util.inspect(resultWithRequire)}`)
+        }
       } catch (err) {
-      }
-    }
-
-    if (resultWithRequire) {
-      if (_.isFunction(resultWithRequire)) {
-        debug(`found hook, type: require, in ${tryLoadFile}`)
-        return resultWithRequire
-      } else {
-        throw new Error(`Cant load hook ${tryLoadFile} because it is not a function`)
+        debug(`Failed loading hook, type: require, from ${tryLoadFile} failed: ${err.message || err}`)
       }
     }
   }
