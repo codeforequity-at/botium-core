@@ -7,6 +7,7 @@
       "WATSON_PASSWORD": "ZWDE5xo02sby",
       "WATSON_WORKSPACE_ID": "97513bc0-c581-4bec-ac9f-ea6a8ec308a9",
       "SCRIPTING_ENABLE_MEMORY": true,
+      "SAFEDIR": ".",
       "ASSERTERS": [
         {
           "ref": "DUMMY",

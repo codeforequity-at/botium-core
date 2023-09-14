@@ -6,17 +6,17 @@ module.exports = class MyAsserter {
     this.caps = caps
   }
 
-  assertConvoBegin ({convo, container, args}) {
+  assertConvoBegin ({ convo, container, args }) {
     console.log(`MyAsserter assertConvoBegin: ${convo.header.name}`)
     return Promise.resolve()
   }
 
-  assertConvoStep ({convo, convoStep, args, botMsg}) {
+  assertConvoStep ({ convo, convoStep, args, botMsg }) {
     console.log(`MyAsserter assertConvoStep, botMessage: ${utils.inspect(botMsg)} ...`)
     return Promise.resolve()
   }
 
-  assertConvoEnd ({convo, container, transcript, args}) {
+  assertConvoEnd ({ convo, container, transcript, args }) {
     console.log(`MyAsserter assertConvoEnd ${convo.header.name}, transcript: ${utils.inspect(transcript)} ...`)
     return Promise.resolve()
   }
