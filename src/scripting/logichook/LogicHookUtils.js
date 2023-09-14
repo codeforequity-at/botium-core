@@ -1,10 +1,7 @@
-const { NodeVM } = require('vm2')
 const path = require('path')
 const fs = require('fs')
 const isClass = require('is-class')
 const debug = require('debug')('botium-core-asserterUtils')
-
-const { BotiumError } = require('../BotiumError')
 
 const { DEFAULT_ASSERTERS, DEFAULT_LOGIC_HOOKS, DEFAULT_USER_INPUTS } = require('./LogicHookConsts')
 
@@ -129,19 +126,7 @@ module.exports = class LogicHookUtils {
       }
     }
 
-    const _checkUnsafe = () => {
-      if (!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
-        throw new BotiumError(
-          'Security Error. Using unsafe component is not allowed',
-          {
-            type: 'security',
-            subtype: 'allow unsafe',
-            source: path.basename(__filename),
-            cause: { src: !!src, ref, args, hookType }
-          }
-        )
-      }
-    }
+    const allowUnsafe = !!this.caps[Capabilities.SECURITY_ALLOW_UNSAFE]
 
     if (!src) {
       const packageName = `botium-${hookType}-${ref}`
@@ -183,19 +168,8 @@ module.exports = class LogicHookUtils {
             const script = src[key]
             if (_.isFunction(script)) {
               return script(args)
-            } else if (_.isString(script)) {
-              try {
-                const vm = new NodeVM({
-                  eval: false,
-                  require: false,
-                  sandbox: args
-                })
-                return vm.run(script)
-              } catch (err) {
-                throw new Error(`Script ${key} is not valid - ${err.message || err}`)
-              }
             } else {
-              throw new Error(`Script "${key}" is not valid - only functions and javascript code accepted`)
+              throw new Error(`Script ${key} is not valid - only functions accepted`)
             }
           }
           return result
@@ -215,8 +189,8 @@ module.exports = class LogicHookUtils {
       }]
       if (src.indexOf('/') >= 0) {
         tryLoads.push({
-          tryLoadPackageName: src.substr(0, src.lastIndexOf('/')),
-          tryLoadAsserterByName: src.substr(src.lastIndexOf('/') + 1)
+          tryLoadPackageName: src.substring(0, src.lastIndexOf('/')),
+          tryLoadAsserterByName: src.substring(src.lastIndexOf('/') + 1)
         })
       }
 
@@ -248,19 +222,24 @@ module.exports = class LogicHookUtils {
       }
 
       for (const tryLoad of tryLoads) {
-        const tryLoadFile = path.resolve(process.cwd(), tryLoad.tryLoadPackageName)
-        if (fs.existsSync(tryLoadFile)) {
-          _checkUnsafe()
+        if (this.caps.SAFEDIR) {
+          const tryLoadFile = path.resolve(this.caps.SAFEDIR, tryLoad.tryLoadPackageName)
+          if (tryLoadFile.startsWith(path.resolve(this.caps.SAFEDIR))) {
+            if (fs.existsSync(tryLoadFile)) {
+              try {
+                return tryLoadFromSource(tryLoadFile, tryLoad.tryLoadAsserterByName)
+              } catch (err) {
+                loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
+              }
+            }
+          }
+        }
+        if (allowUnsafe) {
           try {
-            return tryLoadFromSource(tryLoadFile, tryLoad.tryLoadAsserterByName)
+            return tryLoadFromSource(tryLoad.tryLoadPackageName, tryLoad.tryLoadAsserterByName)
           } catch (err) {
             loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
           }
-        }
-        try {
-          return tryLoadFromSource(tryLoad.tryLoadPackageName, tryLoad.tryLoadAsserterByName)
-        } catch (err) {
-          loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
         }
       }
 

@@ -50,7 +50,6 @@ const myCapsScriptingMemory = {
     FUNCTION_WITHOUT_PARAM: '{{fnc.year}}',
     FUNCTION_WITH_PARAM: '{{#fnc.random}}5{{/fnc.random}}',
     FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY: '{{#fnc.random}}{{msg.scriptingMemory.functionArgument}}{{/fnc.random}}',
-    USING_CODE: '{{#fnc.func}}1 + 2{{/fnc.func}}',
     SAMPLE_ENV: '{{#fnc.env}}SAMPLE_ENV{{/fnc.env}}',
     VARIABLE: '{{msg.scriptingMemory.variable}}',
     PROJECTNAME: '{{fnc.projectname}}',
@@ -91,11 +90,11 @@ const myCapsHookBase = {
   [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$']
 }
 const myCapsRequestHookFromString = Object.assign({
-  [Capabilities.SIMPLEREST_REQUEST_HOOK]: `
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: ({ requestOptions, context }) => {
     let counter = 1
-    requestOptions.body = {bodyFieldRequestHook: counter++}
+    requestOptions.body = { bodyFieldRequestHook: counter++ }
     context.contextFieldRequestHook = counter
-  `
+  }
 }, myCapsHookBase)
 const myCapsRequestHookFromStringInvalid = Object.assign({
   [Capabilities.SIMPLEREST_REQUEST_HOOK]: '!'
@@ -108,12 +107,13 @@ const myCapsRequestHookFromFunction = Object.assign({
   }
 }, myCapsHookBase)
 const myCapsRequestHookFromModule = Object.assign({
-  [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'test/connectors/logicHook.js'
+  [Capabilities.SAFEDIR]: './test/connectors/',
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'logicHook.js'
 }, myCapsHookBase)
 const myCapsResponseHook = Object.assign({
-  [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
-    botMsg.messageText = 'message text from hook'  
-  `
+  [Capabilities.SIMPLEREST_RESPONSE_HOOK]: ({ botMsg }) => {
+    botMsg.messageText = 'message text from hook'
+  }
 }, myCapsHookBase)
 
 const msg = {
@@ -460,9 +460,6 @@ describe('connectors.simplerest', function () {
       assert.exists(request.body.SAMPLE_ENV)
       assert.equal(request.body.SAMPLE_ENV, 'SAMPLE_ENV')
 
-      assert.exists(request.body.USING_CODE)
-      assert.equal(request.body.USING_CODE, 3)
-
       assert.exists(request.body.VARIABLE)
       assert.equal(request.body.VARIABLE, 'varvalue')
 
@@ -519,13 +516,13 @@ describe('connectors.simplerest', function () {
     it('should use request hook, from module', async function () {
       await _assertHook(Object.assign({}, myCapsRequestHookFromModule))
     })
-    it('should use request hook, from invalid string', async function () {
+    it('should reject request hook, from invalid string', async function () {
       const driver = new BotDriver(myCapsRequestHookFromStringInvalid)
       try {
         await driver.Build()
         assert.fail('it should have failed')
       } catch (err) {
-        assert.isTrue(err.message.includes('Cant load hook, syntax is not valid'))
+        assert.isTrue(err.message.includes('Not valid hook \'!\''))
       }
     })
     it('should add query params from UPDATE_CUSTOM (without "?")', async function () {
@@ -741,9 +738,9 @@ describe('connectors.simplerest', function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
         [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media',
-        [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
-        botMsg.nlp = { intent: { name: 'hugo' } }
-      `,
+        [Capabilities.SIMPLEREST_RESPONSE_HOOK]: ({ botMsg }) => {
+          botMsg.nlp = { intent: { name: 'hugo' } }
+        },
         [Capabilities.SIMPLEREST_IGNORE_EMPTY]: true
       })
       const driver = new BotDriver(myCaps)
@@ -764,9 +761,9 @@ describe('connectors.simplerest', function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
         [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media',
-        [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
-        botMsg.someextradata = 'message text from hook'
-      `,
+        [Capabilities.SIMPLEREST_RESPONSE_HOOK]: ({ botMsg }) => {
+          botMsg.someextradata = 'message text from hook'
+        },
         [Capabilities.SIMPLEREST_IGNORE_EMPTY]: true
       })
       const driver = new BotDriver(myCaps)
@@ -787,9 +784,9 @@ describe('connectors.simplerest', function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
         [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media',
-        [Capabilities.SIMPLEREST_RESPONSE_HOOK]: `
-        botMsg.messageText = 'message text from hook'
-      `,
+        [Capabilities.SIMPLEREST_RESPONSE_HOOK]: ({ botMsg }) => {
+          botMsg.messageText = 'message text from hook'
+        },
         [Capabilities.SIMPLEREST_IGNORE_EMPTY]: true
       })
       const driver = new BotDriver(myCaps)
@@ -1061,7 +1058,7 @@ describe('connectors.simplerest', function () {
       await this.init({
         [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingencoded',
         [Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]: true,
-        [Capabilities.SIMPLEREST_PARSER_HOOK]: 'body.text = JSON.parse(body.text).prop'
+        [Capabilities.SIMPLEREST_PARSER_HOOK]: ({ body }) => { body.text = JSON.parse(body.text).prop }
       })
 
       this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromping.convo.txt')
@@ -1074,7 +1071,7 @@ describe('connectors.simplerest', function () {
       await this.init({
         [Capabilities.SIMPLEREST_PING_URL]: 'https://mock.com/pingstring',
         [Capabilities.SIMPLEREST_PING_PROCESS_RESPONSE]: true,
-        [Capabilities.SIMPLEREST_PARSER_HOOK]: 'changeBody({ text: body })'
+        [Capabilities.SIMPLEREST_PARSER_HOOK]: ({ changeBody, body }) => changeBody({ text: body })
       })
 
       this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromping.convo.txt')
@@ -1114,7 +1111,7 @@ describe('connectors.simplerest', function () {
       await this.init({
         [Capabilities.SIMPLEREST_START_URL]: 'https://mock.com/startencoded',
         [Capabilities.SIMPLEREST_START_PROCESS_RESPONSE]: true,
-        [Capabilities.SIMPLEREST_PARSER_HOOK]: 'body.text = JSON.parse(body.text).prop'
+        [Capabilities.SIMPLEREST_PARSER_HOOK]: ({ body }) => { body.text = JSON.parse(body.text).prop }
       })
 
       this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromstart.convo.txt')
@@ -1127,7 +1124,7 @@ describe('connectors.simplerest', function () {
       await this.init({
         [Capabilities.SIMPLEREST_START_URL]: 'https://mock.com/startstring',
         [Capabilities.SIMPLEREST_START_PROCESS_RESPONSE]: true,
-        [Capabilities.SIMPLEREST_PARSER_HOOK]: 'changeBody({ text: body })'
+        [Capabilities.SIMPLEREST_PARSER_HOOK]: ({ changeBody, body }) => changeBody({ text: body })
       })
 
       this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'responsefromstart.convo.txt')
@@ -1283,7 +1280,7 @@ describe('connectors.simplerest', function () {
         [Capabilities.SIMPLEREST_URL]: () => 'https://mock.com/endpoint',
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: () => ['$.text'],
         [Capabilities.SIMPLEREST_POLL_URL]: () => 'https://mock.com/poll',
-        [Capabilities.SIMPLEREST_POLL_REQUEST_HOOK]: 'requestOptions.uri = "https://mock.com/_from_hook"'
+        [Capabilities.SIMPLEREST_POLL_REQUEST_HOOK]: ({ requestOptions }) => { requestOptions.uri = 'https://mock.com/_from_hook' }
       }
       const scope = nock('https://mock.com')
         .get('/endpoint')

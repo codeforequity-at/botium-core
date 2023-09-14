@@ -3,6 +3,7 @@
     "Capabilities": {
       "PROJECTNAME": "Botium Logichooks Sample",
       "CONTAINERMODE": "echo",
+      "SAFEDIR": ".",
       "ASSERTERS": [
         {
           "ref": "MYASSERTER",

@@ -27,7 +27,7 @@ describe('plugins.plugins', function () {
   })
 
   describe('load', function () {
-    it('should map simple function to class', async function () {
+    it('should map simple function from module to class', async function () {
       const myCaps = {
         [Capabilities.PROJECTNAME]: 'plugins.load',
         [Capabilities.CONTAINERMODE]: 'fromfile1'
@@ -39,10 +39,37 @@ describe('plugins.plugins', function () {
       const response = await container.WaitBotSays()
       assert.equal(response.messageText, 'TEST')
     })
-    it('should use UserSays function as class', async function () {
+    it('should map simple function from file to class', async function () {
+      const myCaps = {
+        [Capabilities.PROJECTNAME]: 'plugins.load',
+        [Capabilities.SAFEDIR]: './test/plugins/plugindir',
+        [Capabilities.CONTAINERMODE]: 'fromfile/botium-connector-fromfile1.js'
+      }
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+
+      await container.UserSays({ messageText: 'TEST' })
+      const response = await container.WaitBotSays()
+      assert.equal(response.messageText, 'TEST')
+    })
+    it('should use UserSays function from module as class', async function () {
       const myCaps = {
         [Capabilities.PROJECTNAME]: 'plugins.load',
         [Capabilities.CONTAINERMODE]: 'fromfile2',
+        cap1: 'MYPREFIX'
+      }
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+
+      await container.UserSays({ messageText: 'TEST' })
+      const response = await container.WaitBotSays()
+      assert.equal(response.messageText, 'MYPREFIX:TEST')
+    })
+    it('should use UserSays function from file as class', async function () {
+      const myCaps = {
+        [Capabilities.PROJECTNAME]: 'plugins.load',
+        [Capabilities.SAFEDIR]: './test/plugins/plugindir',
+        [Capabilities.CONTAINERMODE]: 'fromfile/botium-connector-fromfile2.js',
         cap1: 'MYPREFIX'
       }
       const driver = new BotDriver(myCaps)

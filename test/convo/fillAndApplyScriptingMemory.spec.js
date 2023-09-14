@@ -168,7 +168,7 @@ describe('convo.fillAndApplyScriptingMemory', function () {
         [Capabilities.PROJECTNAME]: 'convo.scriptingmemory',
         [Capabilities.CONTAINERMODE]: echoConnector,
         [Capabilities.SCRIPTING_ENABLE_MEMORY]: true,
-        [Capabilities.CUSTOMHOOK_ONBUILD]: 'module.exports = ({ container }) => { console.log("customhooks called"); container.caps.MYTOKEN = "test1234" }'
+        [Capabilities.CUSTOMHOOK_ONBUILD]: ({ container }) => { console.log('customhooks called'); container.caps.MYTOKEN = 'test1234' }
       }
       const driver = new BotDriver(myCaps)
       const compiler = driver.BuildCompiler()
@@ -847,52 +847,6 @@ describe('convo.fillAndApplyScriptingMemory', function () {
         assert(result.length === 36, '$uniqid invalid')
       })
 
-      it('func', async function () {
-        const result = ScriptingMemory.apply(
-          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
-          {},
-          '$func(3*5)'
-        )
-
-        assert(result === '15', 'func invalid')
-      })
-      it('func with caps', async function () {
-        const result = ScriptingMemory.apply(
-          { caps: Object.assign({}, CAPS_ENABLE_SCRIPTING_MEMORY, { mycap: 'botium' }) },
-          {},
-          '$func(caps.mycap)'
-        )
-        assert.equal(result, 'botium')
-      })
-      it('func invalid code', async function () {
-        try {
-          ScriptingMemory.apply(
-            { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
-            {},
-            '$func(hugo123)'
-          )
-          assert.fail('should have failed')
-        } catch (err) {
-          assert.isTrue(err.message.indexOf('func function execution failed') >= 0)
-        }
-      })
-      it('func environment variable', async function () {
-        process.env.MY_VAR_VALUE = 'botium'
-        const result = ScriptingMemory.apply(
-          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
-          {},
-          '$func(process.env.MY_VAR_VALUE)'
-        )
-        assert.equal(result, 'botium')
-      })
-      it('func with moment', async function () {
-        const result = ScriptingMemory.apply(
-          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
-          {},
-          '$func(moment(\\).subtract(1, "month"\\).startOf("month"\\).format("DD.MM.YYYY"\\))'
-        )
-        assert.equal(result, moment().subtract(1, 'month').startOf('month').format('DD.MM.YYYY'))
-      })
       it('environment variable', async function () {
         process.env.MY_VAR_VALUE = 'botium'
         const result = ScriptingMemory.apply(

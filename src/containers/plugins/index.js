@@ -5,7 +5,6 @@ const debug = require('debug')('botium-connector-PluginConnectorContainer-helper
 
 const SimpleRestContainer = require('./SimpleRestContainer')
 const Capabilities = require('../../Capabilities')
-const { BotiumError } = require('../../scripting/BotiumError')
 
 const pluginResolver = (containermode) => {
   if (containermode === 'simplerest') {
@@ -59,23 +58,6 @@ const loadConnectorModule = (PluginClass, args) => {
 
 const tryLoadPlugin = (containermode, modulepath, args) => {
   const pluginLoaderSpec = modulepath || containermode
-  const _checkUnsafe = (caps, mode, cause) => {
-    if (!caps[Capabilities.SECURITY_ALLOW_UNSAFE]) {
-      throw new BotiumError(
-        `Security Error. Using unsafe connector mode "${mode}" is not allowed`,
-        {
-          type: 'security',
-          subtype: 'allow unsafe',
-          source: 'src/containers/plugins/index.js',
-          cause: {
-            SECURITY_ALLOW_UNSAFE: caps[Capabilities.SECURITY_ALLOW_UNSAFE],
-            mode,
-            ...cause
-          }
-        }
-      )
-    }
-  }
 
   if (pluginResolver(pluginLoaderSpec)) {
     const pluginInstance = new (pluginResolver(pluginLoaderSpec))(args)
@@ -88,42 +70,48 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
     return pluginInstance
   }
   const loadErr = []
+  const allowUnsafe = !!args.caps[Capabilities.SECURITY_ALLOW_UNSAFE]
 
   if (_.isString(pluginLoaderSpec)) {
-    const tryLoadFile = path.resolve(process.cwd(), pluginLoaderSpec)
-    if (fs.existsSync(tryLoadFile)) {
-      _checkUnsafe(args.caps, 'Using work dir', { modulepath, containermode })
+    if (args.caps.SAFEDIR) {
+      const tryLoadFile = path.resolve(args.caps.SAFEDIR, pluginLoaderSpec)
+      if (tryLoadFile.startsWith(path.resolve(args.caps.SAFEDIR))) {
+        if (fs.existsSync(tryLoadFile)) {
+          try {
+            let plugin = require(tryLoadFile)
+            if (plugin.default) {
+              plugin = plugin.default
+            }
+            if (!plugin.PluginVersion || !plugin.PluginClass) {
+              loadErr.push(`Invalid Botium plugin loaded from ${tryLoadFile}, expected PluginVersion, PluginClass fields`)
+            } else {
+              const pluginInstance = loadConnectorModule(plugin.PluginClass, args)
+              debug(`Botium plugin loaded from ${tryLoadFile}`)
+              return pluginInstance
+            }
+          } catch (err) {
+            loadErr.push(`Loading Botium plugin from ${tryLoadFile} failed - ${err.message}`)
+          }
+        }
+      }
+    }
+
+    if (allowUnsafe) {
       try {
-        let plugin = require(tryLoadFile)
+        let plugin = require(pluginLoaderSpec)
         if (plugin.default) {
           plugin = plugin.default
         }
         if (!plugin.PluginVersion || !plugin.PluginClass) {
-          loadErr.push(`Invalid Botium plugin loaded from ${tryLoadFile}, expected PluginVersion, PluginClass fields`)
+          loadErr.push(`Invalid Botium plugin loaded from ${pluginLoaderSpec}, expected PluginVersion, PluginClass fields`)
         } else {
           const pluginInstance = loadConnectorModule(plugin.PluginClass, args)
-          debug(`Botium plugin loaded from ${tryLoadFile}`)
+          debug(`Botium plugin loaded from ${pluginLoaderSpec}. Plugin version is ${getModuleVersionSafe(pluginLoaderSpec)}`)
           return pluginInstance
         }
       } catch (err) {
-        loadErr.push(`Loading Botium plugin from ${tryLoadFile} failed - ${err.message}`)
+        loadErr.push(`Loading Botium plugin from ${pluginLoaderSpec} failed - ${err.message}`)
       }
-    }
-
-    try {
-      let plugin = require(pluginLoaderSpec)
-      if (plugin.default) {
-        plugin = plugin.default
-      }
-      if (!plugin.PluginVersion || !plugin.PluginClass) {
-        loadErr.push(`Invalid Botium plugin loaded from ${pluginLoaderSpec}, expected PluginVersion, PluginClass fields`)
-      } else {
-        const pluginInstance = loadConnectorModule(plugin.PluginClass, args)
-        debug(`Botium plugin loaded from ${pluginLoaderSpec}. Plugin version is ${getModuleVersionSafe(pluginLoaderSpec)}`)
-        return pluginInstance
-      }
-    } catch (err) {
-      loadErr.push(`Loading Botium plugin from ${pluginLoaderSpec} failed - ${err.message}`)
     }
 
     const tryLoadPackage = `botium-connector-${pluginLoaderSpec}`
