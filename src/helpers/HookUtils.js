@@ -6,18 +6,18 @@ const debug = require('debug')('botium-core-HookUtils')
 
 const Capabilities = require('../Capabilities')
 
-const executeHook = async (caps, hook, args) => {
-  return executeHookSync(caps, hook, args)
+const executeHook = async (caps, hook, ...args) => {
+  return executeHookSync(caps, hook, ...args)
 }
 
-const executeHookSync = (caps, hook, args) => {
+const executeHookSync = (caps, hook, ...args) => {
   if (!hook) {
     return
   }
 
   if (_.isFunction(hook)) {
     try {
-      return hook(args)
+      return hook(...args)
     } catch (err) {
       throw new Error(`Calling Hook function failed: ${err.message}`)
     }
