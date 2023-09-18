@@ -56,7 +56,7 @@ const getHook = (caps, data) => {
         }
       }
     }
-    if (allowUnsafe) {
+    if (allowUnsafe || data.startsWith('botium-')) {
       const tryLoadFile = data
       try {
         const resultWithRequire = require(tryLoadFile)

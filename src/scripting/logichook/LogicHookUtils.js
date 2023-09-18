@@ -234,7 +234,7 @@ module.exports = class LogicHookUtils {
             }
           }
         }
-        if (allowUnsafe) {
+        if (allowUnsafe || tryLoad.tryLoadPackageName.startsWith('botium-')) {
           try {
             return tryLoadFromSource(tryLoad.tryLoadPackageName, tryLoad.tryLoadAsserterByName)
           } catch (err) {
