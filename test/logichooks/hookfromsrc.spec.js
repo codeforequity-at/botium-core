@@ -36,7 +36,13 @@ describe('logichooks.hookfromsrc', function () {
         [Capabilities.ASSERTERS]: [{
           ref: 'CUSTOMASSERTER',
           src: {
-            assertConvoStep: 'if (botMsg.messageText === "Hello") result=Promise.resolve(); else result=Promise.reject(new Error("expected Hello"))'
+            assertConvoStep: ({ botMsg }) => {
+              if (botMsg.messageText === 'Hello') {
+                return Promise.resolve()
+              } else {
+                return Promise.reject(new Error('expected Hello'))
+              }
+            }
           }
         }]
       })
@@ -48,7 +54,10 @@ describe('logichooks.hookfromsrc', function () {
         [Capabilities.ASSERTERS]: [{
           ref: 'CUSTOMASSERTER',
           src: {
-            assertConvoStep: 'if (botMsg.messageText === "Hello1") module.exports=Promise.resolve(); else module.exports=Promise.reject(new Error("expected Hello1"))'
+            assertConvoStep: ({ botMsg }) => {
+              if (botMsg.messageText === 'Hello1') return Promise.resolve()
+              else return Promise.reject(new Error('expected Hello1'))
+            }
           }
         }]
       })
@@ -74,7 +83,8 @@ describe('logichooks.hookfromsrc', function () {
         await compiler.convos[0].Run(container)
         assert.fail('it should have failed')
       } catch (err) {
-        assert.isTrue(err.message.includes('Line 6: assertion error - Script assertConvoStep is not valid'))
+        console.log(err.message)
+        assert.isTrue(err.message.includes('Line 6: assertion error - Script assertConvoStep is not valid - only functions accepted'))
       }
     })
   })

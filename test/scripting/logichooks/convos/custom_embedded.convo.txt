@@ -1,8 +1,0 @@
-custom embedded
-
-#me
-hello
-MY-LOGICHOOK-NAME
-
-#bot
-hello from logichook

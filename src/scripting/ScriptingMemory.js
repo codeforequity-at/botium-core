@@ -3,7 +3,6 @@ const debug = require('debug')('botium-core-ScriptingMemory')
 const randomize = require('randomatic')
 const { v1: uuidv1 } = require('uuid')
 const moment = require('moment')
-const { NodeVM } = require('vm2')
 const _ = require('lodash')
 const path = require('path')
 const jp = require('jsonpath')
@@ -179,29 +178,6 @@ const SCRIPTING_FUNCTIONS_RAW = {
       const root = jp.query(mockMsg, jsonPath)
       if (root && root.length > 0) return root[0]
       else return ''
-    },
-    numberOfArguments: 1
-  },
-
-  $func: {
-    handler: (caps, code) => {
-      if (code == null) {
-        throw Error('func function used without args!')
-      }
-      try {
-        const vm = new NodeVM({
-          eval: false,
-          require: false,
-          env: caps[Capabilities.SECURITY_ALLOW_UNSAFE] ? process.env : {},
-          sandbox: {
-            caps,
-            moment
-          }
-        })
-        return vm.run(`module.exports = (${code})`)
-      } catch (err) {
-        throw Error(`func function execution failed - ${err}`)
-      }
     },
     numberOfArguments: 1
   }

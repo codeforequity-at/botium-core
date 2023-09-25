@@ -33,13 +33,13 @@ const afterCustom = async (thisParam) => {
 
 describe('compiler.precompiler.script', function () {
   it('should execute non-standard json', async function () {
-    await beforeCustom(this, `
+    await beforeCustom(this, ({ scriptData }) => {
       const utterances = {}
       for (const entry of scriptData) {
         utterances[entry.intent] = entry.sentences
       }
-      module.exports = {utterances}
-    `)
+      return { utterances }
+    })
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()
@@ -54,15 +54,15 @@ describe('compiler.precompiler.script', function () {
   })
 
   it('should filter by extension, accepted', async function () {
-    await beforeCustom(this, `
-    if (filename.endsWith('.json')) {
+    await beforeCustom(this, ({ filename, scriptData }) => {
+      if (filename.endsWith('.json')) {
         const utterances = {}
         for (const entry of scriptData) {
           utterances[entry.intent] = entry.sentences
         }
-        module.exports = {utterances}
+        return { utterances }
       }
-    `)
+    })
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()
@@ -71,15 +71,15 @@ describe('compiler.precompiler.script', function () {
   })
 
   it('should filter by extension, rejected', async function () {
-    await beforeCustom(this, `
-    if (filename.endsWith('.xxx')) {
+    await beforeCustom(this, ({ filename, scriptData }) => {
+      if (filename.endsWith('.xxx')) {
         const utterances = {}
         for (const entry of scriptData) {
           utterances[entry.intent] = entry.sentences
         }
-        module.exports = {utterances}
+        return { utterances }
       }
-    `)
+    })
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()
@@ -88,15 +88,15 @@ describe('compiler.precompiler.script', function () {
   })
 
   it('should filter by content, accepted', async function () {
-    await beforeCustom(this, `
+    await beforeCustom(this, ({ scriptData }) => {
       if (scriptData) {
         const utterances = {}
         for (const entry of scriptData) {
           utterances[entry.intent] = entry.sentences
         }
-        module.exports = {utterances}
+        return { utterances }
       }
-    `)
+    })
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()
@@ -105,15 +105,15 @@ describe('compiler.precompiler.script', function () {
   })
 
   it('should filter by content, rejected', async function () {
-    await beforeCustom(this, `
+    await beforeCustom(this, ({ scriptData }) => {
       if (scriptData.utterances) {
         const utterances = {}
         for (const entry of scriptData.utterances) {
           utterances[entry.intent] = entry.sentences
         }
-        module.exports = {utterances}
+        return { utterances }
       }
-  `)
+    })
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()
@@ -122,13 +122,13 @@ describe('compiler.precompiler.script', function () {
   })
 
   it('should change extension', async function () {
-    await beforeCustom(this, `
+    await beforeCustom(this, ({ filename, scriptData }) => {
       const utterances = {}
       for (const entry of scriptData) {
         utterances[entry.intent] = entry.sentences
       }
-      module.exports = { scriptBuffer:{utterances}, filename: filename + ".json" }
-  `)
+      return { scriptBuffer: { utterances }, filename: filename + '.json' }
+    })
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json.txt')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()
@@ -137,13 +137,13 @@ describe('compiler.precompiler.script', function () {
   })
 
   it('should not read anything without extension change', async function () {
-    await beforeCustom(this, `
+    await beforeCustom(this, ({ scriptData }) => {
       const utterances = {}
       for (const entry of scriptData) {
         utterances[entry.intent] = entry.sentences
       }
-      module.exports = { scriptBuffer:{utterances} }
-  `)
+      return { scriptBuffer: { utterances } }
+    })
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script.json.txt')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()
@@ -152,9 +152,7 @@ describe('compiler.precompiler.script', function () {
   })
 
   it('should be able to precompile text to text', async function () {
-    await beforeCustom(this, `
-      module.exports = scriptData.replace("Hi!", "Hi Bot!")
-  `)
+    await beforeCustom(this, ({ scriptData }) => scriptData.replace('Hi!', 'Hi Bot!'))
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convos_precompiler_script_text_to_text.convo.txt')
     this.compiler.ExpandUtterancesToConvos()
     this.compiler.ExpandConvos()

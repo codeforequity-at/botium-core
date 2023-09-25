@@ -336,24 +336,33 @@ module.exports = class SimpleRestContainer {
 
     const result = []
     if (isFromUser) {
-      const _extractFrom = (root, jsonPaths) => {
-        const flattened = []
+      const _extractFrom = (root, jsonPaths, acceptFn = null) => {
+        const result = []
         for (const jsonPath of jsonPaths) {
+          const jsonPathRes = []
           const rb = jp.query(root, jsonPath)
           if (_.isArray(rb)) {
-            _.flattenDeep(rb).forEach(r => flattened.push(r))
-          } else if (rb) {
-            flattened.push(rb)
+            _.flattenDeep(rb).forEach(r => jsonPathRes.push(r))
+          } else {
+            jsonPathRes.push(rb)
+          }
+          if (acceptFn) {
+            result.push(...jsonPathRes.filter(r => acceptFn(root, jsonPath, r)))
+          } else {
+            result.push(...jsonPathRes)
           }
         }
-        return flattened
+        return result
       }
 
       const jsonPathRoots = []
-
       const jsonPathsBody = getAllCapValues(Capabilities.SIMPLEREST_BODY_JSONPATH, this.caps)
       if (jsonPathsBody.length > 0) {
-        jsonPathRoots.push(..._extractFrom(body, jsonPathsBody))
+        jsonPathRoots.push(..._extractFrom(body, jsonPathsBody, (root, jsonPath, r) => {
+          if (r && _.isObject(r)) return true
+          debug(`Ignoring result body from ${jsonPath} - not a querieable object (${util.inspect(r)})`)
+          return false
+        }))
       } else {
         jsonPathRoots.push(body)
       }
@@ -381,7 +390,6 @@ module.exports = class SimpleRestContainer {
           const jsonPathsButtonsPayload = getAllCapValues(`${capPrefix}_PAYLOAD_SUBJSONPATH`, this.caps)
 
           const retrievedButtons = []
-
           const responseButtons = _extractFrom(jsonPathButtonRoot, jsonPathsButtons)
           for (const responseButton of responseButtons) {
             const retrievedButton = {}
