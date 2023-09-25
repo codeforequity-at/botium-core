@@ -53,7 +53,8 @@ describe('security.allowUnsafe', function () {
         }, 'test/security/resources/hook-as-file.js')
         assert.fail('should have failed')
       } catch (err) {
-        assert.isTrue(err.message.indexOf('Not valid hook') >= 0)
+        console.log(err.message)
+        assert.isTrue(err.message.indexOf('invalid') >= 0)
       }
     })
     it('should accept file hook from safe dir in unsafe mode', async function () {
@@ -70,7 +71,7 @@ describe('security.allowUnsafe', function () {
         }, '../hook-as-file.js')
         assert.fail('should have failed')
       } catch (err) {
-        assert.isTrue(err.message.indexOf('Not valid hook') >= 0)
+        assert.isTrue(err.message.indexOf('invalid') >= 0)
       }
     })
     it('should accept require hook in unsafe mode', async function () {

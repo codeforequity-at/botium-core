@@ -522,7 +522,7 @@ describe('connectors.simplerest', function () {
         await driver.Build()
         assert.fail('it should have failed')
       } catch (err) {
-        assert.isTrue(err.message.includes('Not valid hook \'!\''))
+        assert.isTrue(err.message.includes('Hook specification "\'!\'" invalid'))
       }
     })
     it('should add query params from UPDATE_CUSTOM (without "?")', async function () {

@@ -1,3 +1,4 @@
+const util = require('util')
 const path = require('path')
 const fs = require('fs')
 const isClass = require('is-class')
@@ -139,10 +140,10 @@ module.exports = class LogicHookUtils {
         } else if (isClass(CheckClass.PluginClass)) {
           return new CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else {
-          throw new Error(`${packageName} class or function or PluginClass field expected`)
+          throw new Error('Either class or function or PluginClass field expected')
         }
       } catch (err) {
-        throw new Error(`Failed to fetch hook ${ref} ${hookType} from guessed package ${packageName} - ${err.message}`)
+        throw new Error(`Logic Hook specification ${ref} ${hookType} (${packageName}) invalid: ${err.message}`)
       }
     }
 
@@ -151,14 +152,14 @@ module.exports = class LogicHookUtils {
         const CheckClass = src
         return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
       } catch (err) {
-        throw new Error(`Failed to load package ${ref} from provided class - ${err.message}`)
+        throw new Error(`Logic Hook specification ${ref} from class invalid: ${err.message}`)
       }
     }
     if (_.isFunction(src)) {
       try {
         return src({ ref, ...this.buildScriptContext }, this.caps, args)
       } catch (err) {
-        throw new Error(`Failed to load package ${ref} from provided function - ${err.message}`)
+        throw new Error(`Logic Hook specification ${ref} from function invalid: ${err.message}`)
       }
     }
     if (_.isObject(src) && !_.isString(src)) {
@@ -176,7 +177,7 @@ module.exports = class LogicHookUtils {
         }, {})
         return hookObject
       } catch (err) {
-        throw new Error(`Failed to load package ${ref} ${hookType} from provided src function - ${err.message}`)
+        throw new Error(`Logic Hook specification ${ref} ${hookType} from provided src (${util.inspect(src)}) invalid: ${err.message}`)
       }
     }
 
@@ -217,7 +218,7 @@ module.exports = class LogicHookUtils {
         } else if (_.isFunction(CheckClass.PluginClass)) {
           return CheckClass.PluginClass({ ref, ...this.buildScriptContext }, this.caps, args)
         } else {
-          throw new Error(`${src} class or function expected`)
+          throw new Error('Expected class or function')
         }
       }
 
@@ -229,7 +230,7 @@ module.exports = class LogicHookUtils {
               try {
                 return tryLoadFromSource(tryLoadFile, tryLoad.tryLoadAsserterByName)
               } catch (err) {
-                loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
+                loadErr.push(`Logic Hook specification ${ref} ${hookType} from "${src}" invalid: ${err.message} `)
               }
             }
           }
@@ -238,13 +239,13 @@ module.exports = class LogicHookUtils {
           try {
             return tryLoadFromSource(tryLoad.tryLoadPackageName, tryLoad.tryLoadAsserterByName)
           } catch (err) {
-            loadErr.push(`Failed to fetch ${ref} ${hookType} from ${src} - ${err.message} `)
+            loadErr.push(`Logic Hook specification ${ref} ${hookType} from "${src}" invalid: ${err.message} `)
           }
         }
       }
 
       loadErr.forEach(debug)
     }
-    throw new Error(`Failed to fetch ${ref} ${hookType}, no idea how to load ...`)
+    throw new Error(`Logic Hook specification ${ref} ${hookType} from "${util.inspect(src)}" invalid : no loader available`)
   }
 }

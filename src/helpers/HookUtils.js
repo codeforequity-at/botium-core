@@ -48,7 +48,7 @@ const getHook = (caps, data) => {
               debug(`found hook, type: safedir, in ${tryLoadFile}`)
               return resultWithRequire
             } else {
-              throw new Error(`Not a function: ${util.inspect(resultWithRequire)}`)
+              throw new Error(`Expected function from hook specification "${util.inspect(data)}", got: "${util.inspect(resultWithRequire)}"`)
             }
           } catch (err) {
             debug(`Failed loading hook, type: safedir, from ${tryLoadFile} failed: ${err.message || err}`)
@@ -64,14 +64,14 @@ const getHook = (caps, data) => {
           debug(`found hook, type: require, in ${tryLoadFile}`)
           return resultWithRequire
         } else {
-          throw new Error(`Not a function: ${util.inspect(resultWithRequire)}`)
+          throw new Error(`Expected function from hook specification "${util.inspect(data)}", got: "${util.inspect(resultWithRequire)}"`)
         }
       } catch (err) {
         debug(`Failed loading hook, type: require, from ${tryLoadFile} failed: ${err.message || err}`)
       }
     }
   }
-  throw new Error(`Not valid hook ${util.inspect(data)}`)
+  throw new Error(`Hook specification "${util.inspect(data)}" invalid: no loader available`)
 }
 
 module.exports = {
