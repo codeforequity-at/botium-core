@@ -101,5 +101,21 @@ describe('convo with custom conditional logichook', function () {
       const transript = await this.compiler.convos[0].Run(this.container)
       assert.equal(transript.steps.length, 3)
     })
+
+    it('should fail mandatory condition group if no condition met', async function () {
+      try {
+        this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'conditional_steps_multiple_mandatory_condition_groups.convo.txt')
+        await this.compiler.convos[0].Run(this.container)
+        assert.fail('it should have failed')
+      } catch (e) {
+        assert.equal(e.message, 'custom embedded/Line 18: Non of the conditions are met in \'G2\' condition group')
+      }
+    })
+
+    it('should not fail optional condition group if no condition met', async function () {
+      this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'conditional_steps_multiple_optional_condition_groups.convo.txt')
+      const transript = await this.compiler.convos[0].Run(this.container)
+      assert.equal(transript.steps.length, 2)
+    })
   })
 })
