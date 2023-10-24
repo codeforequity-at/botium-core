@@ -1,0 +1,6 @@
+TEXT_GOOD
+#me
+Hello1
+
+#bot
+TEXT You said Hello1

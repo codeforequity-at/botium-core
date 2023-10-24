@@ -275,8 +275,12 @@ class Convo {
       let botMsg = null
       let waitForBotSays = true
       let skipTranscriptStep = false
-      for (let i = 0; i < this.conversation.length; i++) {
+      for (let i = 0; i < this.conversation.length; i = this.conversation[i].retry ? i : (i + 1)) {
         const convoStep = this.conversation[i]
+        if (convoStep.retry) {
+          debug(`Retrying convostep "${convoStep.stepTag}" because is marked for retry`)
+          convoStep.retry = false
+        }
         const currentStepIndex = i
         container.eventEmitter.emit(Events.CONVO_STEP_NEXT, container, convoStep, i)
         skipTranscriptStep = false
@@ -483,7 +487,16 @@ class Convo {
             }
             Object.assign(scriptingMemory, scriptingMemoryUpdate)
             try {
-              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
+              await this.scriptingEvents.assertConvoStep({
+                convo: this,
+                convoStep,
+                container,
+                scriptingMemory,
+                botMsg,
+                transcript,
+                transcriptStep
+              })
+
               await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
             } catch (err) {
               const nextConvoStep = this.conversation[i + 1]

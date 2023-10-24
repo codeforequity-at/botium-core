@@ -1,0 +1,15 @@
+Retry assert text, 2 hellos
+
+#me
+Hello1
+Hello2
+
+#bot
+TEXT You said Hello2|BOTIUM_RETRY_FAILED:200
+
+#me
+Hello1
+Hello2
+
+#bot
+TEXT You said Hello2|BOTIUM_RETRY_FAILED:200

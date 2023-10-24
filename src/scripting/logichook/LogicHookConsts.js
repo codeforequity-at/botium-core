@@ -46,6 +46,7 @@ module.exports = {
     { name: 'TEXT', className: 'TextEqualsAnyAsserter' },
     { name: 'TEXT_IC', className: 'TextEqualsAnyICAsserter' },
     { name: 'TEXT_WER', className: 'WerAsserter' },
+    { name: 'TEXT_ASSERTER', className: 'TextAsserter' },
     { name: 'BOT_CONSUMED', className: 'BotRepliesConsumedAsserter' },
     { name: 'BOT_UNCONSUMED_COUNT', className: 'BotRepliesUnconsumedCountAsserter' }
   ],

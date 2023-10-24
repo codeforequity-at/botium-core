@@ -1,0 +1,23 @@
+TEXT_ASSERTER_EVERYTHING
+
+#me
+Hello1
+Hello2
+
+#bot
+TEXT_ASSERTER You|said|Hello3|BOTIUM_RETRY_FAILED:200|BOTIUM_TEXT_MODE:any|BOTIUM_TEXT_MATCHING_MODE:includeIgnoreCase
+
+#me
+Hello1
+Hello2
+Hello3
+Hello4
+Hello5
+Hello6
+Hello7
+Hello8
+Hello9
+Hello10
+
+#bot
+TEXT_ASSERTER You|said|Hello10|BOTIUM_RETRY_FAILED:200|BOTIUM_TEXT_MODE:all|BOTIUM_TEXT_MATCHING_MODE:includeIgnoreCase

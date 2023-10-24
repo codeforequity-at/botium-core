@@ -1,0 +1,13 @@
+TEXT_ASSERTER_MATCHMODE
+
+#me
+Hey
+
+#bot
+TEXT_ASSERTER You said He
+
+#me
+Hey
+
+#bot
+TEXT_ASSERTER You said|BOTIUM_TEXT_MATCHING_MODE:equals
