@@ -1,20 +1,38 @@
+const _ = require('lodash')
 const { BotiumError } = require('../../BotiumError')
+const { extractArgs, BOTIUM_RETRY_FAILED, BOTIUM_TEXT_MATCHING_MODE, BOTIUM_TEXT_MODE } = require('./Helper')
+const RetryConvoStepHelper = require('./RetryConvoStepHelper')
+const { getMatchFunction } = require('../../MatchFunctions')
+const debug = require('debug')('botium-core-BaseTextAsserter')
 
 module.exports = class BaseTextAsserter {
-  constructor (context, caps = {}, matchFn = null, mode = null, noArgIsJoker = false) {
+  constructor (context, caps = {}, matchFn, mode, noArgIsJoker) {
     this.context = context
     this.caps = caps
     this.matchFn = matchFn
-    if (mode !== 'all' && mode !== 'any') {
-      throw new Error(`Mode must be "any" or "all" but it is ${mode}`)
-    }
     this.mode = mode
     this.noArgIsJoker = noArgIsJoker
+    this.retryConvoStepHelper = new RetryConvoStepHelper()
   }
 
-  _evalText (convo, args, botMsg) {
+  _extractAll (args) {
+    const { statArgs, dynArgs } = extractArgs(args, [BOTIUM_RETRY_FAILED, BOTIUM_TEXT_MATCHING_MODE, BOTIUM_TEXT_MODE])
+
+    const matchingMode = dynArgs.BOTIUM_TEXT_MATCHING_MODE || this.globalArgs?.matchingMode
+    const matchFn = matchingMode ? getMatchFunction(matchingMode) : this.context.Match
+
+    let noArgIsJoker = this.noArgIsJoker
+    if (_.isNil(noArgIsJoker) && matchingMode) {
+      noArgIsJoker = matchingMode === 'equals' || matchingMode === 'equalsIgnoreCase'
+    }
+
+    const mode = dynArgs.BOTIUM_TEXT_MODE || this.globalArgs?.mode || this.mode
+    return { statArgs, dynArgs, matchingMode, matchFn, noArgIsJoker, mode }
+  }
+
+  _evalText (convo, args, botMsg, noArgIsJoker, matchFn, mode) {
     let allUtterances = []
-    if (this.noArgIsJoker && (!args || args.length === 0)) {
+    if (noArgIsJoker && (!args || args.length === 0)) {
       return { found: (botMsg.messageText.length > 0), allUtterances: [], founds: [], notFounds: [] }
     }
     for (const arg of args) {
@@ -24,18 +42,24 @@ module.exports = class BaseTextAsserter {
     const founds = []
     const notFounds = []
     for (const utterance of allUtterances) {
-      (this.matchFn(botMsg, utterance) ? founds : notFounds).push(utterance)
+      (matchFn(botMsg, utterance) ? founds : notFounds).push(utterance)
     }
-    return { found: (this.mode === 'all' ? notFounds.length === 0 : founds.length > 0), allUtterances, founds, notFounds }
+    return { found: (mode === 'all' ? notFounds.length === 0 : founds.length > 0), allUtterances, founds, notFounds }
   }
 
-  assertNotConvoStep ({ convo, convoStep, args, botMsg }) {
-    if ((args && args.length > 0) || this.noArgIsJoker) {
-      const { found, allUtterances, founds } = this._evalText(convo, args, botMsg)
+  assertNotConvoStep ({ convo, convoStep, args, botMsg, transcriptStep }) {
+    const { statArgs, dynArgs, matchFn, noArgIsJoker, mode } = this._extractAll(args)
+
+    if ((statArgs && statArgs.length > 0) || noArgIsJoker) {
+      const { found, allUtterances, founds } = this._evalText(convo, statArgs, botMsg, noArgIsJoker, matchFn, mode)
       if (found) {
-        if (!args || args.length === 0) {
+        const { timeoutRemaining, timeout } = this.retryConvoStepHelper.check({ dynArgs, convoStep, transcriptStep })
+        if (timeoutRemaining) {
+          debug(`Retrying failed convostep "${convoStep.stepTag}" because assertation error. Timeout remaining: ${timeoutRemaining}. Expected not: ${JSON.stringify(allUtterances)}`)
+          return Promise.resolve()
+        } else if (!statArgs || statArgs.length === 0) {
           return Promise.reject(new BotiumError(
-            `${convoStep.stepTag}: Expected empty response`,
+            `${convoStep.stepTag}: Expected empty text in response ${timeout ? (' using retries with ' + timeout + 'ms timeout') : ''}`,
             {
               type: 'asserter',
               source: this.name,
@@ -51,7 +75,7 @@ module.exports = class BaseTextAsserter {
           ))
         }
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Not expected ${this.mode === 'all' ? 'text(s)' : 'any text'} in response "${founds}"`,
+          `${convoStep.stepTag}: Not expected ${mode === 'all' ? 'text(s)' : 'any text'} "${founds}" in response containing message "${botMsg.messageText || 'N/A'}"${timeout ? (' using retries with ' + timeout + 'ms timeout') : ''}`,
           {
             type: 'asserter',
             source: this.name,
@@ -70,13 +94,19 @@ module.exports = class BaseTextAsserter {
     return Promise.resolve()
   }
 
-  assertConvoStep ({ convo, convoStep, args, botMsg }) {
-    if ((args && args.length > 0) || this.noArgIsJoker) {
-      const { found, allUtterances, notFounds } = this._evalText(convo, args, botMsg)
+  assertConvoStep ({ convo, convoStep, args, botMsg, transcriptStep }) {
+    const { statArgs, dynArgs, matchFn, noArgIsJoker, mode } = this._extractAll(args)
+
+    if ((statArgs && statArgs.length > 0) || noArgIsJoker) {
+      const { found, allUtterances, notFounds } = this._evalText(convo, statArgs, botMsg, noArgIsJoker, matchFn, mode)
       if (!found) {
-        if (!args || args.length === 0) {
+        const { timeoutRemaining, timeout } = this.retryConvoStepHelper.check({ dynArgs, convoStep, transcriptStep })
+        if (timeoutRemaining) {
+          debug(`Retrying failed convostep "${convoStep.stepTag}" because assertation error. Timeout remaining: ${timeoutRemaining}. Expected: ${JSON.stringify(allUtterances)}`)
+          return Promise.resolve()
+        } else if (!statArgs || statArgs.length === 0) {
           return Promise.reject(new BotiumError(
-            `${convoStep.stepTag}: Expected not empty response`,
+            `${convoStep.stepTag}: Expected not empty text in response ${timeout ? (' using retries with ' + timeout + 'ms timeout') : ''}`,
             {
               type: 'asserter',
               source: this.name,
@@ -92,7 +122,7 @@ module.exports = class BaseTextAsserter {
           ))
         }
         return Promise.reject(new BotiumError(
-          `${convoStep.stepTag}: Expected ${this.mode === 'all' ? 'text(s)' : 'any text'} in response "${notFounds}"`,
+          `${convoStep.stepTag}: Expected ${mode === 'all' ? 'text(s)' : 'any text'} "${notFounds}" in response containing message "${botMsg.messageText || 'N/A'}"${timeout ? (' using retries with ' + timeout + 'ms timeout') : ''}`,
           {
             type: 'asserter',
             source: this.name,
