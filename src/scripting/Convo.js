@@ -275,8 +275,53 @@ class Convo {
       let botMsg = null
       let waitForBotSays = true
       let skipTranscriptStep = false
-      for (let i = 0; i < this.conversation.length; i++) {
+      let dropBotResponseAndRetry = false
+      let globalConvoStepParameters = {}
+      for (let i = 0; i < this.conversation.length; i = (dropBotResponseAndRetry ? i : i + 1)) {
+        dropBotResponseAndRetry = false
         const convoStep = this.conversation[i]
+        const rawConvoStepParameters = convoStep.logicHooks.find(lh => lh.name === 'CONVO_STEP_PARAMETERS')?.args
+        let convoStepParameters = {}
+        if (rawConvoStepParameters && rawConvoStepParameters.length) {
+          let params
+          if (rawConvoStepParameters[0].trim().startsWith('{')) {
+            try {
+              params = JSON.parse(rawConvoStepParameters[0])
+            } catch (e) {
+              debug(`${this.header.name}/${convoStep.stepTag}: Failed to parse convo step parameters from JSON ${rawConvoStepParameters[0]}`)
+            }
+          }
+          if (!params || Object.keys(params).length) {
+            params = {}
+            for (const param of rawConvoStepParameters) {
+              const semicolon = param.indexOf(':')
+              if (semicolon) {
+                try {
+                  const name = param.substring(0, semicolon)
+                  const value = param.substring(semicolon + 1)
+                  params[name] = value
+                } catch (e) {
+                  debug(`${this.header.name}/${convoStep.stepTag}: Failed to parse convo step parameter from arg ${param}`)
+                }
+              }
+            }
+          }
+
+          if (convoStep.sender === 'begin') {
+            globalConvoStepParameters = params
+          } else {
+            convoStepParameters = Object.assign({}, params, globalConvoStepParameters || {})
+          }
+        } else {
+          if (convoStep.sender !== 'begin') {
+            convoStepParameters = globalConvoStepParameters
+          }
+        }
+
+        if (Object.keys(convoStepParameters).length) {
+          debug(`${this.header.name}: using convo step parameters ${JSON.stringify(convoStepParameters)}`)
+        }
+
         const currentStepIndex = i
         container.eventEmitter.emit(Events.CONVO_STEP_NEXT, container, convoStep, i)
         skipTranscriptStep = false
@@ -437,10 +482,18 @@ class Convo {
             const isErrorHandledWithOptionConvoStep = (err) => {
               const nextConvoStep = this.conversation[i + 1]
               if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
+                if (convoStepParameters?.ignoreNotMatchedBotResponses?.mainAsserter) {
+                  debug(`${this.header.name}/${convoStep.stepTag}: Ignore not matched bot responses is ignored on optional convo`)
+                }
                 waitForBotSays = false
                 skipTranscriptStep = true
                 return true
+              } else if (convoStepParameters?.ignoreNotMatchedBotResponses?.mainAsserter) {
+                debug(`${this.header.name}/${convoStep.stepTag}: Ignore not matched bot responses is ignored on optional convo`)
+                dropBotResponseAndRetry = true
+                return false
               }
+
               if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
                 assertErrors.push(err)
                 return false
@@ -457,7 +510,7 @@ class Convo {
               const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText, botMsg)
               if (convoStep.not) {
                 try {
-                  this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
+                  this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep, convoStepParameters)
                 } catch (err) {
                   if (isErrorHandledWithOptionConvoStep(err)) {
                     continue
@@ -465,7 +518,7 @@ class Convo {
                 }
               } else {
                 try {
-                  this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
+                  this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep, convoStepParameters)
                 } catch (err) {
                   if (isErrorHandledWithOptionConvoStep(err)) {
                     continue
@@ -474,7 +527,7 @@ class Convo {
               }
             } else if (convoStep.sourceData) {
               try {
-                this._compareObject(container, scriptingMemory, convoStep, botMsg.sourceData, convoStep.sourceData, botMsg)
+                this._compareObject(container, scriptingMemory, convoStep, botMsg.sourceData, convoStep.sourceData, botMsg, convoStepParameters)
               } catch (err) {
                 if (isErrorHandledWithOptionConvoStep(err)) {
                   continue
@@ -486,6 +539,7 @@ class Convo {
               await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
               await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
             } catch (err) {
+
               const nextConvoStep = this.conversation[i + 1]
               if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
                 waitForBotSays = false
@@ -563,7 +617,7 @@ class Convo {
     }
   }
 
-  _compareObject (container, scriptingMemory, convoStep, result, expected, botMsg) {
+  _compareObject (container, scriptingMemory, convoStep, result, expected, botMsg, convoStepParameters) {
     if (expected === null || expected === undefined) return
 
     if (_.isArray(expected)) {
@@ -574,12 +628,12 @@ class Convo {
         throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
       }
       for (let i = 0; i < expected.length; i++) {
-        this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i])
+        this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i], convoStepParameters)
       }
     } else if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
         if (Object.prototype.hasOwnProperty.call(result, key)) {
-          this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key])
+          this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key], convoStepParameters)
         } else {
           throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
         }
@@ -588,7 +642,7 @@ class Convo {
       ScriptingMemory.fill(container, scriptingMemory, result, expected, this.scriptingEvents)
       const response = this._checkNormalizeText(container, result)
       const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, expected, botMsg)
-      this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
+      this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, null, convoStepParameters)
     }
   }
 

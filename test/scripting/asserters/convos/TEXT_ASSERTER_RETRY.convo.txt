@@ -1,0 +1,15 @@
+TEXT_ASSERTER_RETRY
+
+#me
+Hello1
+Hello2
+
+#bot
+TEXT_ASSERTER You said Hello2|BOTIUM_RETRY_FAILED:200
+
+#me
+Hello1
+Hello2
+
+#bot
+TEXT_ASSERTER You said Hello2|BOTIUM_RETRY_FAILED:200

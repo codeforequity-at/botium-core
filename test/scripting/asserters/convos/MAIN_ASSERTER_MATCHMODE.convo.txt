@@ -1,0 +1,14 @@
+main_asserter_matchmode
+
+#me
+Hey
+
+#bot
+You said
+
+#me
+Hey
+
+#bot
+You
+CONVO_STEP_PARAMETERS matchingMode:equals

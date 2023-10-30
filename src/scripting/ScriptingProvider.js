@@ -130,12 +130,13 @@ module.exports = class ScriptingProvider {
       resolveUtterance: ({ utterance, resolveEmptyIfUnknown }) => {
         return this._resolveUtterance({ utterance, resolveEmptyIfUnknown })
       },
-      assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
+      assertBotResponse: (botresponse, tomatch, stepTag, meMsg, convoStepParameters) => {
         if (!_.isArray(tomatch)) {
           tomatch = [tomatch]
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
-        const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
+        const matchFn = convoStepParameters.matchingMode ? (getMatchFunction(convoStepParameters.matchingMode) || this.matchFn) : this.matchFn
+        const found = _.find(tomatch, (utt) => matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
         const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (_.isNil(found)) {
           if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer') {
@@ -191,12 +192,13 @@ module.exports = class ScriptingProvider {
           }
         }
       },
-      assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg) => {
+      assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg, convoStepParameters) => {
         if (!_.isArray(nottomatch)) {
           nottomatch = [nottomatch]
         }
         debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
-        const found = _.find(nottomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
+        const matchFn = convoStepParameters.matchingMode ? (getMatchFunction(convoStepParameters.matchingMode) || this.matchFn) : this.matchFn
+        const found = _.find(nottomatch, (utt) => matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
         const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (!_.isNil(found)) {
           if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer') {
