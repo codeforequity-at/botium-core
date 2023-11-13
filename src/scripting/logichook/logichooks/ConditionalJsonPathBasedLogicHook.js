@@ -26,6 +26,6 @@ module.exports = class ConditionalJsonPathBasedLogicHook {
       skip = !(values && values.length > 0 && values.includes(params.value))
     }
     convoStep.conditional.skip = skip
-    debug(`ConditionalJsonPathBasedLogicHook onBotPrepare ${convo.header.name}/${convoStep.stepTag}, args: ${util.inspect(args)}, convoStep.conditional: ${convoStep.conditional}`)
+    debug(`ConditionalJsonPathBasedLogicHook onBotPrepare ${convo.header.name}/${convoStep.stepTag}, args: ${util.inspect(args)}, convoStep.conditional: ${util.inspect(convoStep.conditional)}`)
   }
 }

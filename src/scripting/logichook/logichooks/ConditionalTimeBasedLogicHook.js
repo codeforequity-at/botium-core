@@ -41,6 +41,6 @@ module.exports = class ConditionalTimeBasedLogicHook {
     }
     params.now = moment()
     convoStep.conditional.skip = !this._isBetween(params)
-    debug(`ConditionalTimeBasedLogicHook onBotPrepare ${convo.header.name}/${convoStep.stepTag}, args: ${util.inspect(args)}, convoStep.conditional: ${convoStep.conditional}`)
+    debug(`ConditionalTimeBasedLogicHook onBotPrepare ${convo.header.name}/${convoStep.stepTag}, args: ${util.inspect(args)}, convoStep.conditional: ${util.inspect(convoStep.conditional)}`)
   }
 }

@@ -275,6 +275,8 @@ class Convo {
       let botMsg = null
       let waitForBotSays = true
       let skipTranscriptStep = false
+      let conditionalGroupId = null
+      let conditionMetInGroup = false
       for (let i = 0; i < this.conversation.length; i++) {
         const convoStep = this.conversation[i]
         const currentStepIndex = i
@@ -356,7 +358,6 @@ class Convo {
               throw failErr
             }
           } else if (convoStep.sender === 'bot') {
-            const previousWaitForBotSays = waitForBotSays
             if (waitForBotSays) {
               botMsg = null
             } else {
@@ -406,22 +407,38 @@ class Convo {
             }
 
             if (convoStep.conditional) {
+              waitForBotSays = false
+              let endOfConditionalGroup = false
+              conditionalGroupId = convoStep.logicHooks.find(lh => lh.name.startsWith('CONDITIONAL_STEP')).args[1]
               const nextConvoStep = this.conversation[i + 1]
 
-              if (!previousWaitForBotSays) {
-                skipTranscriptStep = true
-              }
-              waitForBotSays = false
               if (!nextConvoStep || nextConvoStep.sender !== 'bot' || !nextConvoStep.logicHooks || !nextConvoStep.logicHooks.some(lh => lh.name.toUpperCase().startsWith('CONDITIONAL_STEP'))) {
-                waitForBotSays = true
+                endOfConditionalGroup = true
               } else {
-                const conditionalLogicHook = convoStep.logicHooks.find(lh => lh.name.startsWith('CONDITIONAL_STEP'))
                 const nextConditionalLogicHook = nextConvoStep.logicHooks.find(lh => lh.name.startsWith('CONDITIONAL_STEP'))
-                waitForBotSays = conditionalLogicHook.args[1] !== nextConditionalLogicHook.args[1]
+                endOfConditionalGroup = conditionalGroupId !== nextConditionalLogicHook.args[1]
               }
 
-              if (convoStep.conditional.skip) {
+              if (convoStep.conditional.skip || conditionMetInGroup) {
+                skipTranscriptStep = true
+                if (endOfConditionalGroup && !conditionMetInGroup && !convoStep.optional) {
+                  const failErr = new BotiumError(`${this.header.name}/${convoStep.stepTag}: Non of the conditions are met in ${conditionalGroupId ? `'${conditionalGroupId}' ` : ''}condition group`)
+                  debug(failErr)
+                  throw failErr
+                }
+                if (endOfConditionalGroup) {
+                  waitForBotSays = !convoStep.optional
+                  conditionalGroupId = undefined
+                  conditionMetInGroup = false
+                }
                 continue
+              } else {
+                conditionMetInGroup = true
+                if (endOfConditionalGroup) {
+                  waitForBotSays = !convoStep.optional
+                  conditionalGroupId = undefined
+                  conditionMetInGroup = false
+                }
               }
             }
 

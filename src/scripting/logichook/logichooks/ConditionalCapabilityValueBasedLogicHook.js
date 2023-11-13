@@ -32,6 +32,6 @@ module.exports = class ConditionalCapabilityValueBasedLogicHook {
       conditionGroupId
     }
     convoStep.conditional.skip = !this._isCapabilityValueEqual(params)
-    debug(`ConditionalCapabilityValueBasedLogicHook onBotPrepare ${convo.header.name}/${convoStep.stepTag}, args: ${util.inspect(args)}, convoStep.conditional: ${convoStep.conditional}`)
+    debug(`ConditionalCapabilityValueBasedLogicHook onBotPrepare ${convo.header.name}/${convoStep.stepTag}, args: ${util.inspect(args)}, convoStep.conditional: ${util.inspect(convoStep.conditional)}`)
   }
 }
