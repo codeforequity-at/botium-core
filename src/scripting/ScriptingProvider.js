@@ -283,7 +283,7 @@ module.exports = class ScriptingProvider {
 
           throw err
         } else {
-          throw botiumErrorFromErr(_.isString(err)? err : err.message, err, { asserter: asserter.name })
+          throw botiumErrorFromErr(_.isString(err) ? err : err.message, err, { asserter: asserter.name })
         }
       }
       return promise.catch(err => updateError(err))
