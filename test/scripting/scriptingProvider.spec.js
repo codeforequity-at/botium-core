@@ -945,7 +945,7 @@ describe('scripting.scriptingProvider', function () {
       await scriptingProvider.Build()
       const scriptingContext = scriptingProvider._buildScriptContext()
       try {
-        scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', ['Keine Antwort gefunden'], 'test1')
+        scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', ['Keine Antwort gefunden'], 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response "Keine Antwort gefunden!" expected NOT to match "Keine Antwort gefunden"')
@@ -956,7 +956,7 @@ describe('scripting.scriptingProvider', function () {
       await scriptingProvider.Build()
       const scriptingContext = scriptingProvider._buildScriptContext()
       try {
-        scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', [''], 'test1')
+        scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', [''], 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response "Keine Antwort gefunden!" expected NOT to match <any response>')
@@ -967,7 +967,7 @@ describe('scripting.scriptingProvider', function () {
       await scriptingProvider.Build()
       const scriptingContext = scriptingProvider._buildScriptContext()
       try {
-        scriptingContext.scriptingEvents.assertBotNotResponse('', [''], 'test1')
+        scriptingContext.scriptingEvents.assertBotNotResponse('', [''], 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response <no response> expected NOT to match <any response>')

@@ -1,7 +1,0 @@
-TEXT_ASSERTER_DEFAULT_NO_MATCH
-
-#me
-Hey
-
-#bot
-TEXT_ASSERTER You said Hello

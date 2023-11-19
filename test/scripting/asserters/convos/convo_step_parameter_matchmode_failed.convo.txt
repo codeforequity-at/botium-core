@@ -5,4 +5,4 @@ Hello
 
 #bot
 Hello
-CONVO_STEP_PARAMETERS {"matchingMode":"include"}
+CONVO_STEP_PARAMETERS {"matchingMode":"equals"}

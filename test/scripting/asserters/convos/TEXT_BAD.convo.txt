@@ -1,6 +1,0 @@
-TEXT_BAD
-#me
-Hey
-
-#bot
-TEXT You said Hello1

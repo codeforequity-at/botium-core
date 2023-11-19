@@ -1,7 +1,0 @@
-TEXT_ASSERTER_DEFAULT
-
-#me
-Hey
-
-#bot
-TEXT_ASSERTER You said Hey

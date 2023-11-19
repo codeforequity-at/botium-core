@@ -277,7 +277,6 @@ class Convo {
       let skipTranscriptStep = false
       let conditionalGroupId = null
       let conditionMetInGroup = false
-      for (let i = 0; i < this.conversation.length; i++) {
       let globalConvoStepParameters = container.caps[Capabilities.SCRIPTING_CONVO_STEP_PARAMETERS] || {}
       let retryBotMessageTimeoutEnd = null
       let retryBotMessageConvoId = null
@@ -313,9 +312,9 @@ class Convo {
           }
 
           if (convoStep.sender === 'begin') {
-            globalConvoStepParameters = Object.assign({},  globalConvoStepParameters || {}, params)
+            globalConvoStepParameters = Object.assign({}, globalConvoStepParameters || {}, params)
           } else {
-            convoStepParameters = Object.assign({},globalConvoStepParameters || {}, params)
+            convoStepParameters = Object.assign({}, globalConvoStepParameters || {}, params)
           }
         } else {
           if (convoStep.sender !== 'begin') {
@@ -686,12 +685,12 @@ class Convo {
         throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
       }
       for (let i = 0; i < expected.length; i++) {
-        this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i], convoStepParameters)
+        this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i], null, convoStepParameters)
       }
     } else if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
         if (Object.prototype.hasOwnProperty.call(result, key)) {
-          this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key], convoStepParameters)
+          this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key], null, convoStepParameters)
         } else {
           throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
         }
