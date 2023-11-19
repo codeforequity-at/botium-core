@@ -208,9 +208,9 @@ describe('scripting.matching.matchingmode', function () {
         'interesting',
         'really?'
       ],
-        'test',
-        null,
-        {})
+      'test',
+      null,
+      {})
     })
   })
 
