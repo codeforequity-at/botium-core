@@ -272,6 +272,22 @@ module.exports = class ScriptingProvider {
       assertConvoStep: 'assertNotConvoStep',
       assertConvoEnd: 'assertNotConvoEnd'
     }
+    const updateExceptionContext = (promise, asserter) => {
+      const updateError = (err) => {
+        if (err instanceof BotiumError) {
+          if (!err.context) {
+            err.context = {}
+          }
+
+          err.context.asserter = asserter.name
+
+          throw err
+        } else {
+          throw BotiumError.botiumErrorFromErr(err.message, err, { asserter: asserter.name })
+        }
+      }
+      return promise.catch(err => updateError(err))
+    }
     const callAsserter = (asserterSpec, asserter, params) => {
       if (asserterSpec.not) {
         const notAsserterType = mapNot[asserterType]
@@ -303,18 +319,35 @@ module.exports = class ScriptingProvider {
 
     const convoAsserter = asserters
       .filter(a => this.asserters[a.name][asserterType])
-      .map(a => callAsserter(a, this.asserters[a.name], {
-        convo,
-        convoStep,
-        scriptingMemory,
-        container,
-        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, container.caps, rest.botMsg),
-        isGlobal: false,
-        ...rest
+      .map(a => ({
+        asserter: a,
+        promise: callAsserter(a, this.asserters[a.name], {
+          convo,
+          convoStep,
+          scriptingMemory,
+          container,
+          args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, container.caps, rest.botMsg),
+          isGlobal: false,
+          ...rest
+        })
       }))
+      .map(({ promise, asserter }) => updateExceptionContext(promise, asserter))
+
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
-      .map(a => p(this.retryHelperAsserter, () => a[asserterType]({ convo, convoStep, scriptingMemory, container, args: [], isGlobal: true, ...rest })))
+      .map(a => ({
+        asserter: a,
+        promise: p(this.retryHelperAsserter, () => a[asserterType]({
+          convo,
+          convoStep,
+          scriptingMemory,
+          container,
+          args: [],
+          isGlobal: true,
+          ...rest
+        }))
+      }))
+      .map(({ promise, asserter }) => updateExceptionContext(promise, asserter))
 
     const allPromises = [...convoAsserter, ...globalAsserter]
     if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {

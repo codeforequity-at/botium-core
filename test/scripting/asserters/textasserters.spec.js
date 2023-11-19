@@ -62,7 +62,7 @@ describe('asserters.text', function () {
         }
       }).timeout(3000)
       it('should not accept bad chatbot response if matching mode is exact', async function () {
-        this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'MAIN_ASSERTER_MATCHMODE.convo.txt')
+        this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convo_step_parameter_matchmode_failed.convo.txt')
         assert.equal(this.compiler.convos.length, 1)
 
         try {

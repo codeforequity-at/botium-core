@@ -68,6 +68,8 @@ const include = (ignoreCase) => (botresponse, utterance) => {
 }
 
 const equals = (ignoreCase) => (botresponse, utterance) => {
+  // TODO testlog
+  console.log(`equals ===> ${JSON.stringify({botresponse, utterance})}`)
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
   botresponse = _normalize(botresponse)
