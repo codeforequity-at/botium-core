@@ -4,17 +4,17 @@ custom embedded
 hello
 
 #bot
-hello
+?hello
 CONDITIONAL_STEP_LOGIC_HOOK { "skip":false }|G1
 
 #bot
-hello should not assert
+?hello should not assert
 CONDITIONAL_STEP_LOGIC_HOOK { "skip":false }|G1
 
 #bot
-hello
+?hello 2
 CONDITIONAL_STEP_LOGIC_HOOK { "skip":false }|G2
 
 #bot
-hello should not assert
-CONDITIONAL_STEP_LOGIC_HOOK { "skip":false }|G2
+?hello should not assert
+CONDITIONAL_STEP_LOGIC_HOOK { "skip":true }|G2

@@ -817,6 +817,17 @@ describe('convo.fillAndApplyScriptingMemory', function () {
 
         assert.equal(result, moment().subtract(1, 'month').format('YYYY.MM.DD'))
       })
+      it('date_add_dynamic', async function () {
+        const result = ScriptingMemory.apply(
+          { caps: CAPS_ENABLE_SCRIPTING_MEMORY },
+          {
+            days: 2
+          },
+          '$date_add($days, "day", YYYY.MM.DD)'
+        )
+
+        assert.equal(result, moment().add(2, 'day').format('YYYY.MM.DD'))
+      })
 
       it('random', async function () {
         const result = ScriptingMemory.apply(
