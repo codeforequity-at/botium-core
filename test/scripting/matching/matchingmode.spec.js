@@ -207,7 +207,10 @@ describe('scripting.matching.matchingmode', function () {
         'umm',
         'interesting',
         'really?'
-      ], 'test')
+      ],
+        'test',
+        null,
+        {})
     })
   })
 
