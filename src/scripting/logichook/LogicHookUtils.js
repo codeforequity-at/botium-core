@@ -147,19 +147,21 @@ module.exports = class LogicHookUtils {
       }
     }
 
+    const typeAsText = hookType === 'asserter' ? 'Asserter' : hookType === 'logichook' ? 'Logic Hook' : hookType === 'userinput' ? 'User Input' : 'Unknown'
+
     if (isClass(src)) {
       try {
         const CheckClass = src
         return new CheckClass({ ref, ...this.buildScriptContext }, this.caps, args)
       } catch (err) {
-        throw new Error(`Logic Hook specification ${ref} from class invalid: ${err.message}`)
+        throw new Error(`${typeAsText} specification ${ref} from class invalid: ${err.message}`)
       }
     }
     if (_.isFunction(src)) {
       try {
         return src({ ref, ...this.buildScriptContext }, this.caps, args)
       } catch (err) {
-        throw new Error(`Logic Hook specification ${ref} from function invalid: ${err.message}`)
+        throw new Error(`${typeAsText} specification ${ref} from function invalid: ${err.message}`)
       }
     }
     if (_.isObject(src) && !_.isString(src)) {
@@ -177,7 +179,7 @@ module.exports = class LogicHookUtils {
         }, {})
         return hookObject
       } catch (err) {
-        throw new Error(`Logic Hook specification ${ref} ${hookType} from provided src (${util.inspect(src)}) invalid: ${err.message}`)
+        throw new Error(`${typeAsText} specification ${ref} ${hookType} from provided src (${util.inspect(src)}) invalid: ${err.message}`)
       }
     }
 
@@ -230,7 +232,7 @@ module.exports = class LogicHookUtils {
               try {
                 return tryLoadFromSource(tryLoadFile, tryLoad.tryLoadAsserterByName)
               } catch (err) {
-                loadErr.push(`Logic Hook specification ${ref} ${hookType} from "${src}" invalid: ${err.message} `)
+                loadErr.push(`${typeAsText} specification ${ref} ${hookType} from "${src}" invalid: ${err.message} `)
               }
             }
           }
@@ -239,13 +241,13 @@ module.exports = class LogicHookUtils {
           try {
             return tryLoadFromSource(tryLoad.tryLoadPackageName, tryLoad.tryLoadAsserterByName)
           } catch (err) {
-            loadErr.push(`Logic Hook specification ${ref} ${hookType} from "${src}" invalid: ${err.message} `)
+            loadErr.push(`${typeAsText} specification ${ref} ${hookType} from "${src}" invalid: ${err.message} `)
           }
         }
       }
 
       loadErr.forEach(debug)
     }
-    throw new Error(`Logic Hook specification ${ref} ${hookType} from "${util.inspect(src)}" invalid : no loader available`)
+    throw new Error(`${typeAsText} specification ${ref} ${hookType} from "${util.inspect(src)}" invalid : no loader available`)
   }
 }
