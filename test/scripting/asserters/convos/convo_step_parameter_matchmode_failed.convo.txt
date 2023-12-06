@@ -1,0 +1,8 @@
+convo_step_parameter_matchmode_failed
+
+#me
+Hello
+
+#bot
+Hello
+CONVO_STEP_PARAMETERS {"matchingMode":"equals"}

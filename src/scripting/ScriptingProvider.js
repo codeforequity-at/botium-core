@@ -130,12 +130,13 @@ module.exports = class ScriptingProvider {
       resolveUtterance: ({ utterance, resolveEmptyIfUnknown }) => {
         return this._resolveUtterance({ utterance, resolveEmptyIfUnknown })
       },
-      assertBotResponse: (botresponse, tomatch, stepTag, meMsg) => {
+      assertBotResponse: (botresponse, tomatch, stepTag, meMsg, convoStepParameters) => {
         if (!_.isArray(tomatch)) {
           tomatch = [tomatch]
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
-        const found = _.find(tomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
+        const matchFn = convoStepParameters.matchingMode ? (getMatchFunction(convoStepParameters.matchingMode) || this.matchFn) : this.matchFn
+        const found = _.find(tomatch, (utt) => matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
         const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (_.isNil(found)) {
           if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer') {
@@ -191,12 +192,13 @@ module.exports = class ScriptingProvider {
           }
         }
       },
-      assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg) => {
+      assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg, convoStepParameters) => {
         if (!_.isArray(nottomatch)) {
           nottomatch = [nottomatch]
         }
         debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
-        const found = _.find(nottomatch, (utt) => this.matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
+        const matchFn = convoStepParameters.matchingMode ? (getMatchFunction(convoStepParameters.matchingMode) || this.matchFn) : this.matchFn
+        const found = _.find(nottomatch, (utt) => matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
         const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (!_.isNil(found)) {
           if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer') {
@@ -270,6 +272,22 @@ module.exports = class ScriptingProvider {
       assertConvoStep: 'assertNotConvoStep',
       assertConvoEnd: 'assertNotConvoEnd'
     }
+    const updateExceptionContext = (promise, asserter) => {
+      const updateError = (err) => {
+        if (err instanceof BotiumError) {
+          if (!err.context) {
+            err.context = {}
+          }
+
+          err.context.asserter = asserter.name
+
+          throw err
+        } else {
+          throw botiumErrorFromErr(_.isString(err) ? err : err.message, err, { asserter: asserter.name })
+        }
+      }
+      return promise.catch(err => updateError(err))
+    }
     const callAsserter = (asserterSpec, asserter, params) => {
       if (asserterSpec.not) {
         const notAsserterType = mapNot[asserterType]
@@ -301,18 +319,35 @@ module.exports = class ScriptingProvider {
 
     const convoAsserter = asserters
       .filter(a => this.asserters[a.name][asserterType])
-      .map(a => callAsserter(a, this.asserters[a.name], {
-        convo,
-        convoStep,
-        scriptingMemory,
-        container,
-        args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, container.caps, rest.botMsg),
-        isGlobal: false,
-        ...rest
+      .map(a => ({
+        asserter: a,
+        promise: callAsserter(a, this.asserters[a.name], {
+          convo,
+          convoStep,
+          scriptingMemory,
+          container,
+          args: ScriptingMemory.applyToArgs(a.args, scriptingMemory, container.caps, rest.botMsg),
+          isGlobal: false,
+          ...rest
+        })
       }))
+      .map(({ promise, asserter }) => updateExceptionContext(promise, asserter))
+
     const globalAsserter = Object.values(this.globalAsserter)
       .filter(a => a[asserterType])
-      .map(a => p(this.retryHelperAsserter, () => a[asserterType]({ convo, convoStep, scriptingMemory, container, args: [], isGlobal: true, ...rest })))
+      .map(a => ({
+        asserter: a,
+        promise: p(this.retryHelperAsserter, () => a[asserterType]({
+          convo,
+          convoStep,
+          scriptingMemory,
+          container,
+          args: [],
+          isGlobal: true,
+          ...rest
+        }))
+      }))
+      .map(({ promise, asserter }) => updateExceptionContext(promise, asserter))
 
     const allPromises = [...convoAsserter, ...globalAsserter]
     if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {

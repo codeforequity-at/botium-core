@@ -90,6 +90,43 @@ const BotiumError = class BotiumError extends Error {
       return null
     }
   }
+
+  hasError ({ type, source }) {
+    if (this.context) {
+      const errArr = _.isArray(this.context) ? this.context : [this.context]
+      for (const err of errArr) {
+        if (err.type === 'list') {
+          for (const internal of err.errors) {
+            if ((!type || internal.type === type) && (!source || internal.source === source)) {
+              return true
+            }
+          }
+        }
+        if ((!type || err.type === type) && (!source || err.source === source)) {
+          return true
+        }
+      }
+    } else {
+      return false
+    }
+  }
+
+  toArray () {
+    if (this.context) {
+      let result = []
+      const errArr = _.isArray(this.context) ? this.context : [this.context]
+      for (const err of errArr) {
+        if (err.type === 'list') {
+          result = result.concat(err.errors)
+        } else {
+          result.push(err)
+        }
+      }
+      return result
+    } else {
+      return []
+    }
+  }
 }
 
 const _getChildErrorsFromContext = (context) => {
@@ -99,11 +136,11 @@ const _getChildErrorsFromContext = (context) => {
   return false
 }
 
-const botiumErrorFromErr = (message, err) => {
+const botiumErrorFromErr = (message, err, context = {}) => {
   if (err instanceof BotiumError) {
-    return new BotiumError(message, err.context, true)
+    return new BotiumError(message, { ...err.context, ...context }, true)
   } else {
-    return new BotiumError(message, { err }, true)
+    return new BotiumError(message, { err, ...context }, true)
   }
 }
 
