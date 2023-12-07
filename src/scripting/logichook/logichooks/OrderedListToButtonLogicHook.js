@@ -30,7 +30,6 @@ module.exports = class OrderedListToButtonLogicHook {
       debug(`ConditionalBusinessHoursLogicHook onBotPrepare, msg has no messageText to check ${JSON.stringify(botMsg)}`)
     }
 
-
     if (buttons.length) {
       botMsg.buttons = [...(botMsg.buttons || []), ...buttons]
     }

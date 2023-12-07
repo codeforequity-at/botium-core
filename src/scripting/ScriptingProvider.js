@@ -336,7 +336,7 @@ module.exports = class ScriptingProvider {
     }
 
     const localHooks = (logicHooks || [])
-        .filter(l => this.logicHooks[l.name][hookType])
+      .filter(l => this.logicHooks[l.name][hookType])
 
     const convoStepPromises = localHooks
       .map(l => p(this.retryHelperLogicHook, () => this.logicHooks[l.name][hookType]({
@@ -354,11 +354,13 @@ module.exports = class ScriptingProvider {
 
     const allPromises = [...convoStepPromises, ...globalPromises]
 
-    if (allPromises.length > 0) return Promise.all(allPromises).then(() => {
-      return {
-        hooks: [...localHooks, ...globalHooks].map(h => h.context.ref || h)
-      }
-    })
+    if (allPromises.length > 0) {
+      return Promise.all(allPromises).then(() => {
+        return {
+          hooks: [...localHooks, ...globalHooks].map(h => h.context.ref || h)
+        }
+      })
+    }
     return Promise.resolve(false)
   }
 
@@ -431,9 +433,10 @@ module.exports = class ScriptingProvider {
   }
 
   // Livechat, and crawler using logichooks too. So they need script context
-  BuildScriptContext() {
+  BuildScriptContext () {
     return this._buildScriptContext()
   }
+
   Build () {
     const CompilerXlsx = require('./CompilerXlsx')
     this.compilers[Constants.SCRIPTING_FORMAT_XSLX] = new CompilerXlsx(this._buildScriptContext(), this.caps)

@@ -976,7 +976,7 @@ describe('scripting.scriptingProvider', function () {
     })
   })
 
-  describe('should call logichooks and userinputs even if there is no convo (logichook from livechat, and crawler)', async function () {
+  describe('should call logichooks and userinputs even if there is no convo (logichook from livechat, and crawler)', function () {
     LOGIC_HOOK_EVENTS.forEach(async (eventName) => {
       it(`Logichook, event: ${eventName}`, async function () {
         const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, {
@@ -999,7 +999,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(someobject.testAttribute, 'testAttributeValue')
       })
     })
-    it(`User input`, async function () {
+    it('User input', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, {
         [Capabilities.USER_INPUTS]: [{
           ref: 'SomeUserInput',
