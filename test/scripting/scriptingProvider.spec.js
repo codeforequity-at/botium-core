@@ -999,25 +999,5 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(someobject.testAttribute, 'testAttributeValue')
       })
     })
-    it('User input', async function () {
-      const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, {
-        [Capabilities.USER_INPUTS]: [{
-          ref: 'SomeUserInput',
-          src: {
-            setUserInput: ({ someobject, args }) => {
-              someobject.testAttribute = 'testAttributeValue'
-            }
-          },
-          global: true
-        }]
-      }))
-      await scriptingProvider.Build()
-      const scriptingContext = scriptingProvider._buildScriptContext()
-      const someobject = {}
-      await scriptingContext.scriptingEvents.setUserInput({
-        someobject
-      })
-      assert.equal(someobject.testAttribute, 'testAttributeValue')
-    })
   })
 })

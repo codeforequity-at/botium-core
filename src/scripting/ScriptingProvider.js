@@ -357,7 +357,8 @@ module.exports = class ScriptingProvider {
     if (allPromises.length > 0) {
       return Promise.all(allPromises).then(() => {
         return {
-          hooks: [...localHooks, ...globalHooks].map(h => h.context.ref || h)
+          // just returning some humanreadable
+          hooks: [...localHooks, ...globalHooks].map(h => h.name || h.context?.ref || JSON.stringify(h))
         }
       })
     }
