@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const PATTERN = '^\\s*(\\d+)\\.'
+const debug = require('debug')('botium-core-OrderedListToButtonLogicHook')
 
 module.exports = class OrderedListToButtonLogicHook {
   constructor (context, caps = {}, globalArgs = {}) {
@@ -25,7 +26,11 @@ module.exports = class OrderedListToButtonLogicHook {
           buttons.push({ text: match[1], payload: match[1] })
         }
       }
+    } else {
+      debug(`ConditionalBusinessHoursLogicHook onBotPrepare, msg has no messageText to check ${JSON.stringify(botMsg)}`)
     }
+
+
     if (buttons.length) {
       botMsg.buttons = [...(botMsg.buttons || []), ...buttons]
     }
