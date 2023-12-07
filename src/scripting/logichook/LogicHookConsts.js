@@ -69,5 +69,6 @@ module.exports = {
     { name: 'BUTTON', className: 'ButtonInput' },
     { name: 'MEDIA', className: 'MediaInput' },
     { name: 'FORM', className: 'FormInput' }
-  ]
+  ],
+  LOGIC_HOOK_EVENTS: ['onConvoBegin', 'onMeStart', 'onMePrepare', 'onMeEnd', 'onBotStart', 'onBotEnd', 'onBotPrepare', 'onConvoEnd']
 }
