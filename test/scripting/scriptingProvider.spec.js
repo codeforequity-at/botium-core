@@ -5,6 +5,7 @@ const { Convo } = require('../../src/scripting/Convo')
 const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
 const DefaultCapabilities = require('../../src/Defaults').Capabilities
 const Capabilities = require('../../src/Capabilities')
+const { LOGIC_HOOK_EVENTS } = require('../../src/scripting/logichook/LogicHookConsts')
 
 describe('scripting.scriptingProvider', function () {
   describe('ReadScriptsFromDirectory', function () {
@@ -972,6 +973,31 @@ describe('scripting.scriptingProvider', function () {
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response <no response> expected NOT to match <any response>')
       }
+    })
+  })
+
+  describe('should call logichooks and userinputs even if there is no convo (logichook from livechat, and crawler)', function () {
+    LOGIC_HOOK_EVENTS.forEach(async (eventName) => {
+      it(`Logichook, event: ${eventName}`, async function () {
+        const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, {
+          [Capabilities.LOGIC_HOOKS]: [{
+            ref: 'SET_TEXT_FROM_HOOK',
+            src: {
+              [eventName]: ({ someobject, args }) => {
+                someobject.testAttribute = 'testAttributeValue'
+              }
+            },
+            global: true
+          }]
+        }))
+        await scriptingProvider.Build()
+        const scriptingContext = scriptingProvider._buildScriptContext()
+        const someobject = {}
+        await scriptingContext.scriptingEvents[eventName]({
+          someobject
+        })
+        assert.equal(someobject.testAttribute, 'testAttributeValue')
+      })
     })
   })
 })
