@@ -66,7 +66,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(tomatch.length, 2)
       assert.equal(tomatch[0], 'TEXT1')
       assert.equal(tomatch[1], 'TEXT2')
-      scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1')
+      scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1', null, {})
     })
     it('should resolve multiple utterance', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
@@ -86,7 +86,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(tomatchUtt1.length, 2)
       assert.equal(tomatchUtt1[0], 'TEXT1')
       assert.equal(tomatchUtt1[1], 'TEXT2')
-      scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatchUtt1, 'test1')
+      scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatchUtt1, 'test1', null, {})
       const tomatchUtt2 = scriptingContext.scriptingEvents.resolveUtterance({ utterance: 'utt2' })
       assert.isArray(tomatchUtt2)
       assert.equal(tomatchUtt2.length, 2)
@@ -122,7 +122,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(tomatch.length, 1)
       assert.equal(tomatch[0], 'utt2')
       try {
-        scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1')
+        scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.isTrue(err.message.indexOf('Bot response') > 0)
@@ -142,7 +142,7 @@ describe('scripting.scriptingProvider', function () {
         utterances: ['TEXT1', 'TEXT2']
       })
       try {
-        scriptingContext.scriptingEvents.assertBotResponse('TEXT1', 'utt1', 'test1')
+        scriptingContext.scriptingEvents.assertBotResponse('TEXT1', 'utt1', 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.isTrue(err.message.indexOf('Bot response') > 0)
@@ -167,7 +167,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(tomatch.length, 2)
       assert.equal(tomatch[0], 'TEXT1 hello')
       assert.equal(tomatch[1], 'TEXT2 hello')
-      scriptingContext.scriptingEvents.assertBotResponse('TEXT1 hello', tomatch, 'test1')
+      scriptingContext.scriptingEvents.assertBotResponse('TEXT1 hello', tomatch, 'test1', null, {})
     })
     it('should resolve and append utterance args', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
@@ -183,7 +183,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(tomatch.length, 2)
       assert.equal(tomatch[0], 'TEXT1 hello')
       assert.equal(tomatch[1], 'TEXT2 hello')
-      scriptingContext.scriptingEvents.assertBotResponse('TEXT1 hello', tomatch, 'test1')
+      scriptingContext.scriptingEvents.assertBotResponse('TEXT1 hello', tomatch, 'test1', null, {})
     })
 
     describe('should resolve utterance with ambiguous scripting memory variable (with a debug message)', function () {
@@ -910,7 +910,7 @@ describe('scripting.scriptingProvider', function () {
       await scriptingProvider.Build()
       const scriptingContext = scriptingProvider._buildScriptContext()
       try {
-        scriptingContext.scriptingEvents.assertBotResponse('actual', 'expected', 'test1')
+        scriptingContext.scriptingEvents.assertBotResponse('actual', 'expected', 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response "actual" expected to match "expected"')
@@ -921,7 +921,7 @@ describe('scripting.scriptingProvider', function () {
       await scriptingProvider.Build()
       const scriptingContext = scriptingProvider._buildScriptContext()
       try {
-        scriptingContext.scriptingEvents.assertBotResponse(null, 'expected', 'test1')
+        scriptingContext.scriptingEvents.assertBotResponse(null, 'expected', 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response <no response> expected to match "expected"')
@@ -932,7 +932,7 @@ describe('scripting.scriptingProvider', function () {
       await scriptingProvider.Build()
       const scriptingContext = scriptingProvider._buildScriptContext()
       try {
-        scriptingContext.scriptingEvents.assertBotResponse('actual', ['expected1', 'expected2'], 'test1')
+        scriptingContext.scriptingEvents.assertBotResponse('actual', ['expected1', 'expected2'], 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response "actual" expected to match one of "expected1", "expected2"')
@@ -946,7 +946,7 @@ describe('scripting.scriptingProvider', function () {
       await scriptingProvider.Build()
       const scriptingContext = scriptingProvider._buildScriptContext()
       try {
-        scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', ['Keine Antwort gefunden'], 'test1')
+        scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', ['Keine Antwort gefunden'], 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response "Keine Antwort gefunden!" expected NOT to match "Keine Antwort gefunden"')
@@ -957,7 +957,7 @@ describe('scripting.scriptingProvider', function () {
       await scriptingProvider.Build()
       const scriptingContext = scriptingProvider._buildScriptContext()
       try {
-        scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', [''], 'test1')
+        scriptingContext.scriptingEvents.assertBotNotResponse('Keine Antwort gefunden!', [''], 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response "Keine Antwort gefunden!" expected NOT to match <any response>')
@@ -968,7 +968,7 @@ describe('scripting.scriptingProvider', function () {
       await scriptingProvider.Build()
       const scriptingContext = scriptingProvider._buildScriptContext()
       try {
-        scriptingContext.scriptingEvents.assertBotNotResponse('', [''], 'test1')
+        scriptingContext.scriptingEvents.assertBotNotResponse('', [''], 'test1', null, {})
         assert.fail('expected error')
       } catch (err) {
         assert.equal(err.message, 'test1: Bot response <no response> expected NOT to match <any response>')

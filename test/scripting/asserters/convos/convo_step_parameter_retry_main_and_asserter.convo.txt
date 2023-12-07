@@ -1,0 +1,10 @@
+convo_step_parameter_retry_main_and_asserter
+
+#me
+Butt
+Button
+
+#bot
+You said Butt
+BUTTONS button1|button2
+CONVO_STEP_PARAMETERS {"ignoreNotMatchedBotResponses": {"timeout": 200, "mainAsserter": true, "allAsserters": true}}

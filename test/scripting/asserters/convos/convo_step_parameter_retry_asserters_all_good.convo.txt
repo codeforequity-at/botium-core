@@ -1,0 +1,9 @@
+convo_step_parameter_retry_asserters_good
+
+#me
+Hello
+Button
+
+#bot
+BUTTONS button1|button2
+CONVO_STEP_PARAMETERS {"ignoreNotMatchedBotResponses": {"timeout": 200, "allAsserters": true}}

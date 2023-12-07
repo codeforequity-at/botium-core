@@ -1,0 +1,10 @@
+convo_step_parameter_retry_main_but_no_button
+
+#me
+Hello1
+Hello2
+
+#bot
+You said Hello2
+BUTTONS some not existing button
+CONVO_STEP_PARAMETERS {"ignoreNotMatchedBotResponses": {"timeout": 200, "mainAsserter": true}}
