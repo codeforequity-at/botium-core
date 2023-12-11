@@ -277,8 +277,55 @@ class Convo {
       let skipTranscriptStep = false
       let conditionalGroupId = null
       let conditionMetInGroup = false
-      for (let i = 0; i < this.conversation.length; i++) {
+      let globalConvoStepParameters = container.caps[Capabilities.SCRIPTING_CONVO_STEP_PARAMETERS] || {}
+      let retryBotMessageTimeoutEnd = null
+      let retryBotMessageConvoId = null
+      let retryBotMessageDropBotResponse = false
+      for (let i = 0; i < this.conversation.length; i = (retryBotMessageDropBotResponse ? i : i + 1)) {
+        retryBotMessageDropBotResponse = false
         const convoStep = this.conversation[i]
+        const rawConvoStepParameters = convoStep.logicHooks.find(lh => lh.name === 'CONVO_STEP_PARAMETERS')?.args
+        let convoStepParameters = {}
+        if (rawConvoStepParameters && rawConvoStepParameters.length) {
+          let params
+          if (rawConvoStepParameters[0].trim().startsWith('{')) {
+            try {
+              params = JSON.parse(rawConvoStepParameters[0])
+            } catch (e) {
+              debug(`${this.header.name}/${convoStep.stepTag}: Failed to parse convo step parameters from JSON ${rawConvoStepParameters[0]}`)
+            }
+          }
+          if (!params || !Object.keys(params).length) {
+            params = {}
+            for (const param of rawConvoStepParameters) {
+              const semicolon = param.indexOf(':')
+              if (semicolon) {
+                try {
+                  const name = param.substring(0, semicolon)
+                  const value = param.substring(semicolon + 1)
+                  params[name] = value
+                } catch (e) {
+                  debug(`${this.header.name}/${convoStep.stepTag}: Failed to parse convo step parameter from arg ${param}`)
+                }
+              }
+            }
+          }
+
+          if (convoStep.sender === 'begin') {
+            globalConvoStepParameters = Object.assign({}, globalConvoStepParameters || {}, params)
+          } else {
+            convoStepParameters = Object.assign({}, globalConvoStepParameters || {}, params)
+          }
+        } else {
+          if (convoStep.sender !== 'begin') {
+            convoStepParameters = globalConvoStepParameters
+          }
+        }
+
+        if (Object.keys(convoStepParameters).length) {
+          debug(`${this.header.name}: using convo step parameters ${JSON.stringify(convoStepParameters)}`)
+        }
+
         const currentStepIndex = i
         container.eventEmitter.emit(Events.CONVO_STEP_NEXT, container, convoStep, i)
         skipTranscriptStep = false
@@ -319,8 +366,8 @@ class Convo {
               const coreMsg = _.omit(removeBuffers(meMsg), ['sourceData'])
               debug(`${this.header.name}/${convoStep.stepTag}: user says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
               await new Promise(resolve => {
-                if (container.caps.SIMULATE_WRITING_SPEED && meMsg.messageText && meMsg.messageText.length) {
-                  setTimeout(() => resolve(), container.caps.SIMULATE_WRITING_SPEED * meMsg.messageText.length)
+                if (container.caps[Capabilities.SIMULATE_WRITING_SPEED] && meMsg.messageText && meMsg.messageText.length) {
+                  setTimeout(() => resolve(), container.caps[Capabilities.SIMULATE_WRITING_SPEED] * meMsg.messageText.length)
                 } else {
                   resolve()
                 }
@@ -453,11 +500,32 @@ class Convo {
             }
             const isErrorHandledWithOptionConvoStep = (err) => {
               const nextConvoStep = this.conversation[i + 1]
+              const retryConfig = convoStepParameters?.ignoreNotMatchedBotResponses
+              const retryOn = convoStep.sender === 'bot' && retryConfig && retryConfig.timeout && retryConfig.mainAsserter
               if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
+                if (retryOn) {
+                  debug(`${this.header.name}/${convoStep.stepTag}: Retry failed asserter is ignored on optional convo`)
+                }
                 waitForBotSays = false
                 skipTranscriptStep = true
                 return true
+              } else if (retryOn) {
+                if (!retryBotMessageTimeoutEnd || retryBotMessageConvoId !== convoStep.stepTag) {
+                  retryBotMessageTimeoutEnd = transcriptStep.stepBegin.getTime() + +retryConfig.timeout
+                  retryBotMessageConvoId = convoStep.stepTag
+                }
+
+                const now = new Date().getTime()
+                const timeoutRemaining = retryBotMessageTimeoutEnd - now
+                if (timeoutRemaining > 0) {
+                  debug(`${this.header.name}/${convoStep.stepTag}: Convo step retry on, timeout remaining: ${timeoutRemaining}, error: "${err.message}"`)
+                  retryBotMessageDropBotResponse = true
+                  return false
+                } else {
+                  debug(`${this.header.name}/${convoStep.stepTag}: Convo step retry on, but timeout is over. error: "${err.message}"`)
+                }
               }
+
               if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
                 assertErrors.push(err)
                 return false
@@ -474,7 +542,7 @@ class Convo {
               const tomatch = this._resolveUtterancesToMatch(container, Object.assign({}, scriptingMemoryUpdate, scriptingMemory), messageText, botMsg)
               if (convoStep.not) {
                 try {
-                  this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
+                  this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep, convoStepParameters)
                 } catch (err) {
                   if (isErrorHandledWithOptionConvoStep(err)) {
                     continue
@@ -482,7 +550,7 @@ class Convo {
                 }
               } else {
                 try {
-                  this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep)
+                  this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep, convoStepParameters)
                 } catch (err) {
                   if (isErrorHandledWithOptionConvoStep(err)) {
                     continue
@@ -491,7 +559,7 @@ class Convo {
               }
             } else if (convoStep.sourceData) {
               try {
-                this._compareObject(container, scriptingMemory, convoStep, botMsg.sourceData, convoStep.sourceData, botMsg)
+                this._compareObject(container, scriptingMemory, convoStep, botMsg.sourceData, convoStep.sourceData, botMsg, convoStepParameters)
               } catch (err) {
                 if (isErrorHandledWithOptionConvoStep(err)) {
                   continue
@@ -509,20 +577,46 @@ class Convo {
                 skipTranscriptStep = true
                 continue
               }
-              const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message || err}`, err)
-              debug(failErr)
-              try {
-                this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
-              } catch (failErr) {
+
+              const errors = err.toArray ? err.toArray() : []
+              const retryConfig = convoStepParameters?.ignoreNotMatchedBotResponses
+              const retryOn =
+                convoStep.sender === 'bot' &&
+                retryConfig &&
+                retryConfig.timeout &&
+                errors.length &&
+                errors.filter(({ type, source, asserter }) => type === 'asserter' && (retryConfig.allAsserters || (retryConfig.asserters && retryConfig.asserters.includes(asserter)))).length
+              if (retryOn && (!retryBotMessageTimeoutEnd || retryBotMessageConvoId !== convoStep.stepTag)) {
+                retryBotMessageTimeoutEnd = transcriptStep.stepBegin.getTime() + +retryConfig.timeout
+                retryBotMessageConvoId = convoStep.stepTag
               }
-              if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS] && err instanceof BotiumError) {
-                assertErrors.push(err)
+
+              const now = new Date().getTime()
+              const timeoutRemaining = retryOn && (retryBotMessageTimeoutEnd - now)
+              if (retryOn && timeoutRemaining > 0) {
+                debug(`${this.header.name}/${convoStep.stepTag}: Convo step retry on, timeout remaining: ${timeoutRemaining}, error: "${err.message}"`)
+                retryBotMessageDropBotResponse = true
               } else {
-                throw failErr
+                if (retryOn && timeoutRemaining <= 0) {
+                  debug(`${this.header.name}/${convoStep.stepTag}: Convo step retry on, but timeout is over. error: "${err.message}"`)
+                }
+                const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: assertion error - ${err.message || err}`, err)
+                debug(failErr)
+                try {
+                  this.scriptingEvents.fail && this.scriptingEvents.fail(failErr, lastMeConvoStep)
+                } catch (failErr) {
+                }
+                if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS] && err instanceof BotiumError) {
+                  assertErrors.push(err)
+                } else {
+                  throw failErr
+                }
               }
             }
             if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
               if (assertErrors.length > 0) {
+                // this has no effect, but logically it has to be false
+                retryBotMessageDropBotResponse = false
                 throw botiumErrorFromList(assertErrors, {})
               }
             } else {
@@ -580,7 +674,7 @@ class Convo {
     }
   }
 
-  _compareObject (container, scriptingMemory, convoStep, result, expected, botMsg) {
+  _compareObject (container, scriptingMemory, convoStep, result, expected, botMsg, convoStepParameters) {
     if (expected === null || expected === undefined) return
 
     if (_.isArray(expected)) {
@@ -591,12 +685,12 @@ class Convo {
         throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response expected array length ${expected.length}, got ${result.length}`)
       }
       for (let i = 0; i < expected.length; i++) {
-        this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i])
+        this._compareObject(container, scriptingMemory, convoStep, result[i], expected[i], null, convoStepParameters)
       }
     } else if (_.isObject(expected)) {
       _.forOwn(expected, (value, key) => {
         if (Object.prototype.hasOwnProperty.call(result, key)) {
-          this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key])
+          this._compareObject(container, scriptingMemory, convoStep, result[key], expected[key], null, convoStepParameters)
         } else {
           throw new BotiumError(`${this.header.name}/${convoStep.stepTag}: bot response "${result}" missing expected property: ${key}`)
         }
@@ -605,7 +699,7 @@ class Convo {
       ScriptingMemory.fill(container, scriptingMemory, result, expected, this.scriptingEvents)
       const response = this._checkNormalizeText(container, result)
       const tomatch = this._resolveUtterancesToMatch(container, scriptingMemory, expected, botMsg)
-      this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`)
+      this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, null, convoStepParameters)
     }
   }
 
@@ -673,7 +767,7 @@ class Convo {
   }
 
   _checkBotRepliesConsumed (container) {
-    if (container.caps.SCRIPTING_FORCE_BOT_CONSUMED) {
+    if (container.caps[Capabilities.SCRIPTING_FORCE_BOT_CONSUMED]) {
       const queueLength = container._QueueLength()
       if (queueLength === 1) {
         throw new Error('There is an unread bot reply in queue')

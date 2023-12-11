@@ -261,6 +261,13 @@ const _apply = (scriptingMemory, str, caps, mockMsg) => {
                 return arg
               }
             })
+            args = args.map(arg => {
+              const argStr = `${arg}`
+              if (argStr.startsWith('$')) {
+                return scriptingMemory[argStr.substring(1)] || arg
+              }
+              return arg
+            })
             str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps, ...args, mockMsg))
           } else {
             str = str.replace(match, SCRIPTING_FUNCTIONS[key].handler(caps))

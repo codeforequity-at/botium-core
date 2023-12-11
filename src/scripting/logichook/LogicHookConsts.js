@@ -61,11 +61,14 @@ module.exports = {
     { name: 'CONDITIONAL_STEP_TIME_BASED', className: 'ConditionalTimeBasedLogicHook' },
     { name: 'CONDITIONAL_STEP_BUSINESS_HOURS', className: 'ConditionalBusinessHoursLogicHook' },
     { name: 'CONDITIONAL_STEP_CAPABILITY_VALUE_BASED', className: 'ConditionalCapabilityValueBasedLogicHook' },
-    { name: 'CONDITIONAL_STEP_JSON_PATH_BASED', className: 'ConditionalJsonPathBasedLogicHook.js' }
+    { name: 'CONDITIONAL_STEP_JSON_PATH_BASED', className: 'ConditionalJsonPathBasedLogicHook.js' },
+    { name: 'CONVO_STEP_PARAMETERS', className: 'ConvoStepParametersLogicHook.js' },
+    { name: 'ORDERED_LIST_TO_BUTTON', className: 'OrderedListToButtonLogicHook' }
   ],
   DEFAULT_USER_INPUTS: [
     { name: 'BUTTON', className: 'ButtonInput' },
     { name: 'MEDIA', className: 'MediaInput' },
     { name: 'FORM', className: 'FormInput' }
-  ]
+  ],
+  LOGIC_HOOK_EVENTS: ['onConvoBegin', 'onMeStart', 'onMePrepare', 'onMeEnd', 'onBotStart', 'onBotEnd', 'onBotPrepare', 'onConvoEnd']
 }

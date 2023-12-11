@@ -1,0 +1,9 @@
+convo_step_parameter_retry_main_botium_timeout
+
+#me
+Hello1
+Hello2
+
+#bot
+You said Hello3
+CONVO_STEP_PARAMETERS {"ignoreNotMatchedBotResponses": {"timeout": 200, "mainAsserter": true}}
