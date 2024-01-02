@@ -7,7 +7,7 @@ this is a variable: VARVALUE1
 this is a variable: $myvar
 
 #me
-this is a variable: VARVALUE2 
+this is a variable: VARVALUE2
 
 #bot
 this is a variable: $myvar

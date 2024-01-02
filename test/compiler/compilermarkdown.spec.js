@@ -161,7 +161,7 @@ describe('compiler.compilermarkdown', function () {
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
       compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
-      assert.equal(context.convos[0].conversation[1].messageText, 'hello meat bag \n!hello2')
+      assert.equal(context.convos[0].conversation[1].messageText, 'hello meat bag\n!hello2')
       assert.equal(context.convos[0].conversation[1].not, true)
     })
   })
@@ -191,7 +191,7 @@ describe('compiler.compilermarkdown', function () {
         compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
         assert.fail('expected error')
       } catch (err) {
-        assert.equal(err.message, 'Failed to parse conversation. All element in convo step has to be optional or not optional: ["?hello meat bag ","BUTTONS checkbutton|checkbutton2 "]')
+        assert.equal(err.message, 'Failed to parse conversation. All element in convo step has to be optional or not optional: ["?hello meat bag","BUTTONS checkbutton|checkbutton2"]')
       }
     })
     it('should read ?? as ?', async function () {
@@ -225,7 +225,7 @@ describe('compiler.compilermarkdown', function () {
       const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
 
       compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
-      assert.equal(context.convos[0].conversation[1].messageText, 'hello meat bag \n?hello2')
+      assert.equal(context.convos[0].conversation[1].messageText, 'hello meat bag\n?hello2')
       assert.equal(context.convos[0].conversation[1].optional, true)
     })
   })
