@@ -5,7 +5,7 @@ const { toString, quoteRegexpString, calculateWer } = require('./helper')
 
 const _normalize = (botresponse, args, convoStepParameters) => {
   if (!convoStepParameters) {
-    debug(`Convo step parameters might be missing!`)
+    debug('Convo step parameters might be missing!')
   }
   if (_.isUndefined(botresponse) || _.isNil(botresponse)) return ''
   if (_.isObject(botresponse) && _.has(botresponse, 'messageText')) {
@@ -16,7 +16,7 @@ const _normalize = (botresponse, args, convoStepParameters) => {
 
 const regexp = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
   if (!convoStepParameters) {
-    debug(`Convo step parameters might be missing!`)
+    debug('Convo step parameters might be missing!')
   }
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
@@ -28,7 +28,7 @@ const regexp = (ignoreCase) => (botresponse, utterance, args, convoStepParameter
 
 const wildcard = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
   if (!convoStepParameters) {
-    debug(`Convo step parameters might be missing!`)
+    debug('Convo step parameters might be missing!')
   }
   if (_.isUndefined(botresponse)) {
     if (utterance.trim() === '*') return true
@@ -49,7 +49,7 @@ const wildcard = (ignoreCase) => (botresponse, utterance, args, convoStepParamet
 
 const wildcardExact = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
   if (!convoStepParameters) {
-    debug(`Convo step parameters might be missing!`)
+    debug('Convo step parameters might be missing!')
   }
   if (_.isUndefined(botresponse)) {
     if (utterance.trim() === '*') return true
@@ -70,7 +70,7 @@ const wildcardExact = (ignoreCase) => (botresponse, utterance, args, convoStepPa
 
 const include = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
   if (!convoStepParameters) {
-    debug(`Convo step parameters might be missing!`)
+    debug('Convo step parameters might be missing!')
   }
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
@@ -85,7 +85,7 @@ const include = (ignoreCase) => (botresponse, utterance, args, convoStepParamete
 
 const equals = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
   if (!convoStepParameters) {
-    debug(`Convo step parameters might be missing!`)
+    debug('Convo step parameters might be missing!')
   }
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
@@ -100,7 +100,7 @@ const equals = (ignoreCase) => (botresponse, utterance, args, convoStepParameter
 
 const wer = () => (botresponse, utterance, args, convoStepParameters) => {
   if (!convoStepParameters) {
-    debug(`Convo step parameters might be missing!`)
+    debug('Convo step parameters might be missing!')
   }
   botresponse = _normalize(botresponse || '')
   utterance = toString(utterance || '')
