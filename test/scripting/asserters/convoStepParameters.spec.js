@@ -54,7 +54,7 @@ describe('scripting.asserters.convoStepParametersForAssert', function () {
 
   describe('scripting.asserters.convoStepParametersForAssert.matchmode', function () {
     it('should not accept bad chatbot response on exact match defined on step', async function () {
-      this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convo_step_parameter_matchmode_failed.convo.txt')
+      this.compiÍler.ReadScript(path.resolve(__dirname, 'convos'), 'convo_step_parameter_matchmode_failed.convo.txt')
       assert.equal(this.compiler.convos.length, 1)
 
       try {
@@ -62,6 +62,17 @@ describe('scripting.asserters.convoStepParametersForAssert', function () {
         assert.fail('should have failed')
       } catch (err) {
         assert.isTrue(err.message.indexOf('"You said Hello" expected to match "Hello"') >= 0)
+      }
+    })
+    it('should not accept bad chatbot response on exact match defined on step even with WER asserter', async function () {
+      this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convo_step_parameter_matchmode_failed_wer.convo.txt')
+      assert.equal(this.compiler.convos.length, 1)
+
+      try {
+        await this.compiler.convos[0].Run(this.container)
+        assert.fail('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.indexOf('Word Error Rate (50%) higher than accepted (25%)') >= 0)
       }
     })
   })
