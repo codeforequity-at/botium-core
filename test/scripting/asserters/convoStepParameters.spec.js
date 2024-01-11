@@ -54,7 +54,7 @@ describe('scripting.asserters.convoStepParametersForAssert', function () {
 
   describe('scripting.asserters.convoStepParametersForAssert.matchmode', function () {
     it('should not accept bad chatbot response on exact match defined on step', async function () {
-      this.compiÍler.ReadScript(path.resolve(__dirname, 'convos'), 'convo_step_parameter_matchmode_failed.convo.txt')
+      this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convo_step_parameter_matchmode_failed.convo.txt')
       assert.equal(this.compiler.convos.length, 1)
 
       try {
