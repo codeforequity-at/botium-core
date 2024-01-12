@@ -4,6 +4,7 @@ const speechScorer = require('word-error-rate')
 const debug = require('debug')('botium-core-scripting-helper')
 
 const { E_SCRIPTING_MEMORY_COLUMN_MODE } = require('../Enums')
+const WHITE_SPACES_EXCEPT_SPACE_CHAR_AT_THE_END = /[\n\t\r]+$/
 
 const normalizeText = (str, doCleanup) => {
   if (str && _.isArray(str)) {
@@ -247,7 +248,7 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
         if (eol === null) {
           throw new Error('eol cant be null')
         }
-        convoStep.messageText = textLines.join(eol).trim()
+        convoStep.messageText = textLines.join(eol).replace(WHITE_SPACES_EXCEPT_SPACE_CHAR_AT_THE_END, '')
       }
     }
   } else {
@@ -473,7 +474,7 @@ const convoStepToLines = (step) => {
       lines.push(logicHook.name + _formatAppendArgs(logicHook.args))
     })
   }
-  return lines.map(l => l.trim())
+  return lines
 }
 
 const linesToScriptingMemories = (lines, columnMode = null) => {

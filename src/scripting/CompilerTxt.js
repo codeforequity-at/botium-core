@@ -1,5 +1,3 @@
-const _ = require('lodash')
-
 const Capabilities = require('../Capabilities')
 const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
@@ -37,7 +35,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
-    const lines = _.map(scriptData.split(this.eol), (line) => line.trim())
+    const lines = scriptData.split(this.eol)
 
     if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
       return this._compileConvo(lines, false)
@@ -94,7 +92,6 @@ module.exports = class CompilerTxt extends CompilerBase {
 
     lines.forEach((line) => {
       currentLineIndex++
-      line = line.trim()
       if (isValidTagLine(line)) {
         pushPrev()
 
