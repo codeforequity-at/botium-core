@@ -1,8 +1,12 @@
 const _ = require('lodash')
+const debug = require('debug')('botium-core-MatchFunctions')
 
 const { toString, quoteRegexpString, calculateWer } = require('./helper')
 
-const _normalize = (botresponse) => {
+const _normalize = (botresponse, args, convoStepParameters) => {
+  if (!convoStepParameters) {
+    debug('Convo step parameters might be missing!')
+  }
   if (_.isUndefined(botresponse) || _.isNil(botresponse)) return ''
   if (_.isObject(botresponse) && _.has(botresponse, 'messageText')) {
     return toString(botresponse.messageText) || ''
@@ -10,7 +14,10 @@ const _normalize = (botresponse) => {
   return toString(botresponse)
 }
 
-const regexp = (ignoreCase) => (botresponse, utterance) => {
+const regexp = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
+  if (!convoStepParameters) {
+    debug('Convo step parameters might be missing!')
+  }
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
   botresponse = _normalize(botresponse)
@@ -19,7 +26,10 @@ const regexp = (ignoreCase) => (botresponse, utterance) => {
   return regexp.test(botresponse)
 }
 
-const wildcard = (ignoreCase) => (botresponse, utterance) => {
+const wildcard = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
+  if (!convoStepParameters) {
+    debug('Convo step parameters might be missing!')
+  }
   if (_.isUndefined(botresponse)) {
     if (utterance.trim() === '*') return true
     else return false
@@ -37,7 +47,10 @@ const wildcard = (ignoreCase) => (botresponse, utterance) => {
   return regexp.test(botresponse)
 }
 
-const wildcardExact = (ignoreCase) => (botresponse, utterance) => {
+const wildcardExact = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
+  if (!convoStepParameters) {
+    debug('Convo step parameters might be missing!')
+  }
   if (_.isUndefined(botresponse)) {
     if (utterance.trim() === '*') return true
     else return false
@@ -55,7 +68,10 @@ const wildcardExact = (ignoreCase) => (botresponse, utterance) => {
   return regexp.test(botresponse)
 }
 
-const include = (ignoreCase) => (botresponse, utterance) => {
+const include = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
+  if (!convoStepParameters) {
+    debug('Convo step parameters might be missing!')
+  }
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
   botresponse = _normalize(botresponse)
@@ -67,7 +83,10 @@ const include = (ignoreCase) => (botresponse, utterance) => {
   return botresponse.indexOf(utterance) >= 0
 }
 
-const equals = (ignoreCase) => (botresponse, utterance) => {
+const equals = (ignoreCase) => (botresponse, utterance, args, convoStepParameters) => {
+  if (!convoStepParameters) {
+    debug('Convo step parameters might be missing!')
+  }
   if (_.isUndefined(botresponse)) return false
   utterance = toString(utterance)
   botresponse = _normalize(botresponse)
@@ -79,11 +98,14 @@ const equals = (ignoreCase) => (botresponse, utterance) => {
   return botresponse === utterance
 }
 
-const wer = () => (botresponse, utterance, args) => {
+const wer = () => (botresponse, utterance, args, convoStepParameters) => {
+  if (!convoStepParameters) {
+    debug('Convo step parameters might be missing!')
+  }
   botresponse = _normalize(botresponse || '')
   utterance = toString(utterance || '')
 
-  const threshold = ([',', '.'].find(p => `${args[0]}`.includes(p)) ? parseFloat(args[0]) : parseInt(args[0]) / 100)
+  const threshold = !_.isNil(convoStepParameters?.matchingModeWer) ? (convoStepParameters?.matchingModeWer / 100) : ([',', '.'].find(p => `${args[0]}`.includes(p)) ? parseFloat(args[0]) : parseInt(args[0]) / 100)
   return calculateWer(botresponse, utterance) <= threshold
 }
 

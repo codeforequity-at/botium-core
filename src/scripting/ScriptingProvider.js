@@ -130,19 +130,20 @@ module.exports = class ScriptingProvider {
       resolveUtterance: ({ utterance, resolveEmptyIfUnknown }) => {
         return this._resolveUtterance({ utterance, resolveEmptyIfUnknown })
       },
-      assertBotResponse: (botresponse, tomatch, stepTag, meMsg, convoStepParameters) => {
+      assertBotResponse: (botresponse, tomatch, stepTag, meMsg, convoStepParameters = {}) => {
         if (!_.isArray(tomatch)) {
           tomatch = [tomatch]
         }
         debug(`assertBotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} = ${tomatch} ...`)
         const matchFn = convoStepParameters.matchingMode ? (getMatchFunction(convoStepParameters.matchingMode) || this.matchFn) : this.matchFn
-        const found = _.find(tomatch, (utt) => matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
+        const found = _.find(tomatch, (utt) => matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS], convoStepParameters))
         const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (_.isNil(found)) {
-          if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer') {
+          const matchingMode = convoStepParameters.matchingMode || this.caps[Capabilities.SCRIPTING_MATCHING_MODE]
+          if (matchingMode === 'wer') {
             const wer = calculateWer(botresponse, tomatch[0])
             const werArgs = this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]
-            const threshold = ([',', '.'].find(p => `${werArgs[0]}`.includes(p)) ? parseFloat(werArgs[0]) : parseInt(werArgs[0]) / 100)
+            const threshold = !_.isNil(convoStepParameters.matchingModeWer) ? (convoStepParameters.matchingModeWer / 100) : ([',', '.'].find(p => `${werArgs[0]}`.includes(p)) ? parseFloat(werArgs[0]) : parseInt(werArgs[0]) / 100)
             const message = `${stepTag}: Word Error Rate (${toPercent(wer)}) higher than accepted (${toPercent(threshold)})`
             throw new BotiumError(
               message,
@@ -150,7 +151,7 @@ module.exports = class ScriptingProvider {
                 type: 'asserter',
                 source: asserterType,
                 params: {
-                  matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                  matchingMode,
                   args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
                 },
                 context: {
@@ -192,19 +193,20 @@ module.exports = class ScriptingProvider {
           }
         }
       },
-      assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg, convoStepParameters) => {
+      assertBotNotResponse: (botresponse, nottomatch, stepTag, meMsg, convoStepParameters = {}) => {
         if (!_.isArray(nottomatch)) {
           nottomatch = [nottomatch]
         }
         debug(`assertBotNotResponse ${stepTag} ${meMsg ? `(${meMsg}) ` : ''}BOT: ${botresponse} != ${nottomatch} ...`)
         const matchFn = convoStepParameters.matchingMode ? (getMatchFunction(convoStepParameters.matchingMode) || this.matchFn) : this.matchFn
-        const found = _.find(nottomatch, (utt) => matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]))
+        const found = _.find(nottomatch, (utt) => matchFn(botresponse, utt, this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS], convoStepParameters))
         const asserterType = this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer' ? 'Word Error Rate Asserter' : 'Text Match Asserter'
         if (!_.isNil(found)) {
-          if (this.caps[Capabilities.SCRIPTING_MATCHING_MODE] === 'wer') {
+          const matchingMode = convoStepParameters.matchingMode || this.caps[Capabilities.SCRIPTING_MATCHING_MODE]
+          if (matchingMode === 'wer') {
             const wer = calculateWer(botresponse, nottomatch[0])
             const werArgs = this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS]
-            const threshold = ([',', '.'].find(p => `${werArgs[0]}`.includes(p)) ? parseFloat(werArgs[0]) : parseInt(werArgs[0]) / 100)
+            const threshold = !_.isNil(convoStepParameters.matchingModeWer) ? (convoStepParameters.matchingModeWer / 100) : ([',', '.'].find(p => `${werArgs[0]}`.includes(p)) ? parseFloat(werArgs[0]) : parseInt(werArgs[0]) / 100)
             const message = `${stepTag}: Word Error Rate (${toPercent(wer)}) lower than accepted (${toPercent(threshold)})`
             throw new BotiumError(
               message,
@@ -212,7 +214,7 @@ module.exports = class ScriptingProvider {
                 type: 'asserter',
                 source: asserterType,
                 params: {
-                  matchingMode: this.caps[Capabilities.SCRIPTING_MATCHING_MODE],
+                  matchingMode,
                   args: this.caps[Capabilities.SCRIPTING_MATCHING_MODE_ARGS] || null
                 },
                 context: {

@@ -1,0 +1,9 @@
+convo_step_parameter_matchmode_failed_wer
+
+#me
+Hello1
+
+#bot
+You said Hello1 Hello2 Hello3 Hello4
+CONVO_STEP_PARAMETERS {"matchingMode":"wer","matchingModeWer":25}
+
