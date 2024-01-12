@@ -89,7 +89,8 @@ module.exports = class CompilerMarkdown extends CompilerBase {
                   stepTag: 'Line ' + (step.map[0] + 1)
                 },
                 linesToConvoStep(step.children.map(child => child.content +
-                  (child.children ? ' ' + child.children.map(child => child.content).join('|') : '')), sender, this.context, this.eol)
+                  (child.children && child.children.length > 0 ? ' ' + child.children.map(child => child.content).join('|') : '')
+                ), sender, this.context, this.eol)
               ))
             } else {
               debug(`Expected sender ${validSenders.map(s => `'${s}'`).join(' or ')} but found ${sender}`)

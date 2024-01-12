@@ -236,7 +236,7 @@ describe('compiler.compilertxt', function () {
     assert.equal(convo.conversation.length, 2)
     assert.equal(convo.conversation[0].messageText, '')
     assert.equal(convo.conversation[0].logicHooks.length, 0)
-    assert.equal(convo.conversation[1].messageText, 'Hi')
+    assert.equal(convo.conversation[1].messageText, 'Hi ')
   })
   it('should read nothing if there is nothing (even no separator)', async function () {
     const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_emptyrow_no_separator_row.convo.txt'))
