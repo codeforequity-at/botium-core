@@ -3,7 +3,7 @@ const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
 const Utterance = require('./Utterance')
 const { ConvoHeader, Convo } = require('./Convo')
-const { linesToConvoStep, convoStepToLines, validateConvo, validSenders, linesToScriptingMemories } = require('./helper')
+const { linesToConvoStep, convoStepToLines, validateConvo, validSenders, linesToScriptingMemories, trimExceptSpaceEnd } = require('./helper')
 
 module.exports = class CompilerTxt extends CompilerBase {
   constructor (context, caps = {}) {
@@ -120,7 +120,7 @@ module.exports = class CompilerTxt extends CompilerBase {
 
   _compileUtterances (lines) {
     if (lines && lines.length > 0) {
-      const result = [new Utterance({ name: lines[0], utterances: lines.length > 1 ? lines.slice(1) : [] })]
+      const result = [new Utterance({ name: lines[0].trim(), utterances: lines.length > 1 ? lines.slice(1).map(line => trimExceptSpaceEnd(line)) : [] })]
       this.context.AddUtterances(result)
       return result
     }

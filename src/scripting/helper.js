@@ -248,7 +248,7 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
         if (eol === null) {
           throw new Error('eol cant be null')
         }
-        convoStep.messageText = textLines.join(eol).replace(WHITE_SPACES_EXCEPT_SPACE_CHAR_AT_THE_END, '')
+        convoStep.messageText = trimExceptSpaceEnd(textLines.join(eol))
       }
     }
   } else {
@@ -269,6 +269,10 @@ const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) =
   }
 
   return convoStep
+}
+
+const trimExceptSpaceEnd = (string) => {
+  return string?.replace(WHITE_SPACES_EXCEPT_SPACE_CHAR_AT_THE_END, '')
 }
 
 const convoStepToObject = (step) => {
@@ -608,5 +612,6 @@ module.exports = {
   validateConvo,
   linesToScriptingMemories,
   calculateWer,
-  toPercent
+  toPercent,
+  trimExceptSpaceEnd
 }

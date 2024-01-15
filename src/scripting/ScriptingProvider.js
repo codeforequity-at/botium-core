@@ -1307,17 +1307,18 @@ module.exports = class ScriptingProvider {
     }
     if (utterances) {
       _.forEach(utterances, (utt) => {
-        const eu = this.utterances[utt.name]
+        const uttName = utt.name?.trim()
+        const eu = this.utterances[uttName]
         if (eu) {
           eu.utterances = _.uniq(_.concat(eu.utterances, utt.utterances))
         } else {
-          this.utterances[utt.name] = utt
+          this.utterances[uttName] = utt
         }
 
-        const { ambiguous, expected } = findAmbiguous(this.utterances[utt.name].utterances)
+        const { ambiguous, expected } = findAmbiguous(this.utterances[uttName].utterances)
 
         if (ambiguous && ambiguous.length > 0) {
-          debug(`Ambigous utterance "${utt.name}", expecting exact ${expected.length ? ('"' + expected.join(', ') + '"') : '<none>'} scripting memory variables in following user examples: ${ambiguous.map(d => `"${d}"`).join(', ')}`)
+          debug(`Ambigous utterance "${uttName}", expecting exact ${expected.length ? ('"' + expected.join(', ') + '"') : '<none>'} scripting memory variables in following user examples: ${ambiguous.map(d => `"${d}"`).join(', ')}`)
         }
       })
     }
