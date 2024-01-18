@@ -87,7 +87,7 @@ const _parseArgs = (str) => {
   return (str && str.length > 0 && str.replace(/\\\|/g, '###ESCAPESPLIT###').split('|').map(s => s.replace(/###ESCAPESPLIT###/g, '|').trim())) || []
 }
 
-const linesToConvoStep = (lines, sender, context, eol, singleLineMode = false) => {
+const linesToConvoStep = (lines, sender, context, eol = '\n', singleLineMode = false) => {
   if (!validateSender(sender)) throw new Error(`Failed to parse conversation. Section "${sender}" unknown.`)
 
   const convoStep = { asserters: [], logicHooks: [], userInputs: [], not: false, optional: false, sender }

@@ -321,5 +321,18 @@ describe('compiler.compilertxt', function () {
       assert.equal(convo.conversation[0].asserters.length, 1)
       assert.deepEqual(convo.conversation[0].asserters[0], { name: 'BUTTONS', args: ['Test|1', 'Test|2'], not: false, optional: false })
     })
+    it('should read file with mixed new line characters', async function () {
+      const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_mixed_new_line_characters.convo.txt'))
+      const context = buildContext()
+      const caps = {
+      }
+      const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+      compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+      const convo = context.convos[0]
+      assert.equal(convo.header.name, 'mixed new line characters (do not change in text editor!)')
+      assert.equal(convo.conversation[0].messageText, 'n')
+      assert.equal(convo.conversation[1].messageText, 'rn')
+      assert.equal(convo.conversation[2].messageText, 'r')
+    })
   })
 })
