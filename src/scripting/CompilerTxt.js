@@ -1,4 +1,4 @@
-_ = require('lodash')
+const _ = require('lodash')
 
 const Capabilities = require('../Capabilities')
 const Constants = require('./Constants')

@@ -3,7 +3,6 @@ const MarkdownIt = require('markdown-it')
 const util = require('util')
 const md = new MarkdownIt()
 
-const Capabilities = require('../Capabilities')
 const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const { Convo } = require('./Convo')
@@ -19,7 +18,7 @@ module.exports = class CompilerMarkdown extends CompilerBase {
     super.Validate()
   }
 
-   Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
+  Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
     if (Buffer.isBuffer(scriptBuffer)) scriptBuffer = scriptBuffer.toString()
 
     const parsed = md.parse(scriptBuffer, {})
