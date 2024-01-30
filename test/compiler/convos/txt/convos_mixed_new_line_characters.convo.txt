@@ -1,0 +1,10 @@
+mixed new line characters (do not change in text editor!)
+
+#me
+n
+
+#bot
+rn
+
+#bot
+r

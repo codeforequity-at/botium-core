@@ -1,3 +1,5 @@
+const _ = require('lodash')
+
 const Capabilities = require('../Capabilities')
 const Constants = require('./Constants')
 const CompilerBase = require('./CompilerBase')
@@ -9,19 +11,19 @@ module.exports = class CompilerTxt extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
 
-    this.eol = caps[Capabilities.SCRIPTING_TXT_EOL]
+    this.eolRead = caps[Capabilities.SCRIPTING_TXT_EOL] || /\r\n|\r|\n/
+    this.eolWrite = (caps[Capabilities.SCRIPTING_TXT_EOL] && !_.isRegExp(caps[Capabilities.SCRIPTING_TXT_EOL])) ? caps[Capabilities.SCRIPTING_TXT_EOL] : '\n'
   }
 
   Validate () {
     super.Validate()
-    this._AssertCapabilityExists(Capabilities.SCRIPTING_TXT_EOL)
   }
 
   GetHeaders (scriptBuffer) {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
-    const lines = scriptData.split(this.eol)
+    const lines = scriptData.split(this.eolRead)
 
     const header = { }
 
@@ -35,7 +37,7 @@ module.exports = class CompilerTxt extends CompilerBase {
     let scriptData = scriptBuffer
     if (Buffer.isBuffer(scriptBuffer)) scriptData = scriptData.toString()
 
-    const lines = scriptData.split(this.eol)
+    const lines = scriptData.split(this.eolRead)
 
     if (scriptType === Constants.SCRIPTING_TYPE_CONVO) {
       return this._compileConvo(lines, false)
@@ -64,7 +66,7 @@ module.exports = class CompilerTxt extends CompilerBase {
 
     const parseMsg = (lines) => {
       lines = lines || []
-      return linesToConvoStep(lines, convoStepSender, this.context, this.eol)
+      return linesToConvoStep(lines, convoStepSender, this.context)
     }
 
     const pushPrev = () => {
@@ -79,7 +81,7 @@ module.exports = class CompilerTxt extends CompilerBase {
       } else if (!convoStepSender && currentLines) {
         convo.header.name = currentLines[0]
         if (currentLines.length > 1) {
-          convo.header.description = currentLines.slice(1).join(this.eol)
+          convo.header.description = currentLines.slice(1).join(this.eolWrite)
         }
       }
     }
@@ -151,23 +153,23 @@ module.exports = class CompilerTxt extends CompilerBase {
     let script = ''
 
     if (convo.header.name) {
-      script += convo.header.name + this.eol
+      script += convo.header.name + this.eolWrite
     }
     if (convo.header.description) {
-      script += convo.header.description + this.eol
+      script += convo.header.description + this.eolWrite
     }
 
     convo.conversation.forEach((step) => {
-      script += this.eol
+      script += this.eolWrite
 
       script += '#' + step.sender
       if (step.channel && step.channel !== 'default') {
         script += ' ' + step.channel
       }
-      script += this.eol
+      script += this.eolWrite
 
       const stepLines = convoStepToLines(step)
-      if (stepLines && stepLines.length > 0) script += stepLines.join(this.eol) + this.eol
+      if (stepLines && stepLines.length > 0) script += stepLines.join(this.eolWrite) + this.eolWrite
     })
     return script
   }
