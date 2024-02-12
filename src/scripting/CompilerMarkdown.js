@@ -3,7 +3,6 @@ const MarkdownIt = require('markdown-it')
 const util = require('util')
 const md = new MarkdownIt()
 
-const Capabilities = require('../Capabilities')
 const CompilerBase = require('./CompilerBase')
 const Constants = require('./Constants')
 const { Convo } = require('./Convo')
@@ -13,13 +12,10 @@ const { linesToConvoStep, validSenders, validateSender } = require('./helper')
 module.exports = class CompilerMarkdown extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
-
-    this.eol = caps[Capabilities.SCRIPTING_TXT_EOL]
   }
 
   Validate () {
     super.Validate()
-    this._AssertCapabilityExists(Capabilities.SCRIPTING_TXT_EOL)
   }
 
   Compile (scriptBuffer, scriptType = Constants.SCRIPTING_TYPE_CONVO) {
@@ -90,7 +86,7 @@ module.exports = class CompilerMarkdown extends CompilerBase {
                 },
                 linesToConvoStep(step.children.map(child => child.content +
                   (child.children && child.children.length > 0 ? ' ' + child.children.map(child => child.content).join('|') : '')
-                ), sender, this.context, this.eol)
+                ), sender, this.context)
               ))
             } else {
               debug(`Expected sender ${validSenders.map(s => `'${s}'`).join(' or ')} but found ${sender}`)

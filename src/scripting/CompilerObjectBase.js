@@ -11,13 +11,10 @@ const { linesToConvoStep, validSenders, linesToScriptingMemories } = require('./
 module.exports = class CompilerObjectBase extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
-
-    this.eol = caps[Capabilities.SCRIPTING_TXT_EOL]
   }
 
   Validate () {
     super.Validate()
-    this._AssertCapabilityExists(Capabilities.SCRIPTING_TXT_EOL)
   }
 
   GetHeaders (scriptBuffer) {
@@ -69,7 +66,7 @@ module.exports = class CompilerObjectBase extends CompilerBase {
             sender: convoStepSender,
             stepTag: 'Line ' + lineTag
           },
-          linesToConvoStep(convoStepObject, convoStepSender, this.context, this.eol)
+          linesToConvoStep(convoStepObject, convoStepSender, this.context)
         ))
       }
 
