@@ -44,7 +44,7 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return super.Build().then(() => promiseRetry((retry, number) => {
         return (this.pluginInstance.Build ? (this.pluginInstance.Build() || Promise.resolve()) : Promise.resolve())
           .catch((err) => {
-            if (this.retryHelperBuild.shouldRetry(err)) {
+            if (this.retryHelperBuild.shouldRetry(err, number)) {
               debug(`Build trial #${number} failed, retry activated`)
               retry(err)
             } else {
@@ -65,7 +65,7 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return super.Start().then(() => promiseRetry((retry, number) => {
         return (this.pluginInstance.Start ? (this.pluginInstance.Start() || Promise.resolve()) : Promise.resolve())
           .catch((err) => {
-            if (this.retryHelperStart.shouldRetry(err)) {
+            if (this.retryHelperStart.shouldRetry(err, number)) {
               debug(`Start trial #${number} failed, retry activated`)
               retry(err)
             } else {
@@ -91,7 +91,7 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return promiseRetry((retry, number) => {
         return (this.pluginInstance.UserSays(mockMsg) || Promise.resolve())
           .catch((err) => {
-            if (this.retryHelperUserSays.shouldRetry(err)) {
+            if (this.retryHelperUserSays.shouldRetry(err, number)) {
               debug(`UserSays trial #${number} failed, retry activated`)
               retry(err)
             } else {
@@ -115,7 +115,7 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return super.Stop().then(() => promiseRetry((retry, number) => {
         return (this.pluginInstance.Stop ? (this.pluginInstance.Stop() || Promise.resolve()) : Promise.resolve())
           .catch((err) => {
-            if (this.retryHelperStop.shouldRetry(err)) {
+            if (this.retryHelperStop.shouldRetry(err, number)) {
               debug(`Stop trial #${number} failed, retry activated`)
               retry(err)
             } else {
@@ -142,7 +142,7 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return promiseRetry((retry, number) => {
         return (this.pluginInstance.Clean ? (this.pluginInstance.Clean() || Promise.resolve()) : Promise.resolve())
           .catch((err) => {
-            if (this.retryHelperClean.shouldRetry(err)) {
+            if (this.retryHelperClean.shouldRetry(err, number)) {
               debug(`Clean trial #${number} failed, retry activated`)
               retry(err)
             } else {
