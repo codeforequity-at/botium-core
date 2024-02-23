@@ -30,8 +30,10 @@ module.exports = class RetryHelper {
     }
   }
 
-  shouldRetry (err) {
+  shouldRetry (err, currentRetryCount) {
     if (!err) return false
+    if (!this.retrySettings.retries) return false
+    if (this.retrySettings.retries < currentRetryCount) return false
     if (this.retryErrorPatterns.length === 0) return true
     const errString = util.inspect(err)
     for (const re of this.retryErrorPatterns) {

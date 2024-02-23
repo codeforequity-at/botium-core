@@ -36,7 +36,7 @@ const p = (retryHelper, fn) => {
   if (retryHelper) {
     return promiseRetry((retry, number) => {
       return promise().catch(err => {
-        if (retryHelper.shouldRetry(err)) {
+        if (retryHelper.shouldRetry(err, number)) {
           debug(`Asserter trial #${number} failed, retry activated`)
           retry(err)
         } else {
@@ -62,7 +62,7 @@ const pnot = (retryHelper, fn, errTemplate) => {
   if (retryHelper) {
     return promiseRetry((retry, number) => {
       return promise().catch(() => {
-        if (retryHelper.shouldRetry(errTemplate)) {
+        if (retryHelper.shouldRetry(errTemplate, number)) {
           debug(`Asserter trial #${number} failed, !retry activated`)
           retry(errTemplate)
         } else {
