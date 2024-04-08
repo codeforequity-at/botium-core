@@ -1,4 +1,7 @@
+const Capabilities = require('../../../Capabilities')
 const { BotiumError } = require('../../BotiumError')
+const { normalizeText, toString } = require('../../helper')
+const _ = require('lodash')
 
 module.exports = class BaseTextAsserter {
   constructor (context, caps = {}, matchFn = null, mode = null, noArgIsJoker = false) {
@@ -10,6 +13,18 @@ module.exports = class BaseTextAsserter {
     }
     this.mode = mode
     this.noArgIsJoker = noArgIsJoker
+  }
+
+  _checkNormalizeText (str) {
+    return normalizeText(str, !!this.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT])
+  }
+
+  _normalize (botresponse) {
+    if (_.isUndefined(botresponse) || _.isNil(botresponse)) return ''
+    if (_.isObject(botresponse) && _.has(botresponse, 'messageText')) {
+      return toString(botresponse.messageText) || ''
+    }
+    return toString(botresponse)
   }
 
   _evalText (convo, args, botMsg) {
@@ -24,7 +39,7 @@ module.exports = class BaseTextAsserter {
     const founds = []
     const notFounds = []
     for (const utterance of allUtterances) {
-      (this.matchFn(botMsg, utterance) ? founds : notFounds).push(utterance)
+      (this.matchFn(this._checkNormalizeText(this._normalize(botMsg)), this._checkNormalizeText(utterance)) ? founds : notFounds).push(utterance)
     }
     return { found: (this.mode === 'all' ? notFounds.length === 0 : founds.length > 0), allUtterances, founds, notFounds }
   }
