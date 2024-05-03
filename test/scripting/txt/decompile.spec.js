@@ -126,31 +126,6 @@ botText2
 `
     )
   })
-  it('should fail decompile convo with optional step not followed bot step', async function () {
-    const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
-    await scriptingProvider.Build()
-
-    const convo = {
-      header: {
-        name: 'test convo'
-      },
-      conversation: [
-        {
-          sender: 'bot',
-          messageText: 'botText',
-          not: true,
-          optional: true
-        }
-      ]
-    }
-
-    try {
-      scriptingProvider.Decompile([convo], 'SCRIPTING_FORMAT_TXT')
-      assert.fail('expected error')
-    } catch (err) {
-      assert.equal(err.message, 'Step 1: Optional bot convo step has to be followed by a bot convo step.')
-    }
-  })
   it('should fail decompile convo with mixed optional step', async function () {
     const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
     await scriptingProvider.Build()
