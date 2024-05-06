@@ -1,0 +1,22 @@
+welcome multiple botsteps opt
+
+#me
+Welcome
+
+#bot
+Welcome
+
+#bot
+?Select an option:
+CONVO_STEP_PARAMETERS {"stepTimeout": 300}
+
+#bot
+?
+?BUTTONS First Button|Second Button
+CONVO_STEP_PARAMETERS {"stepTimeout": 300}
+
+#me
+Thanks
+
+#bot
+Thanks

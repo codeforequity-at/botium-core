@@ -1,0 +1,16 @@
+convo_step_parameter_retry_main_good
+
+#me
+Hello
+
+#bot
+You said Hello
+
+#bot
+?Wrong answer
+
+#me
+Hello2
+
+#bot
+You said Hello2

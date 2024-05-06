@@ -84,6 +84,12 @@ describe('scripting.asserters.convoStepParametersForAssert', function () {
 
       await this.compiler.convos[0].Run(this.container)
     })
+    it('should skip optional bot message', async function () {
+      this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convo_step_parameter_optional_with_timeout.convo.txt')
+      assert.equal(this.compiler.convos.length, 1)
+
+      await this.compiler.convos[0].Run(this.container)
+    })
     it('should retry until succesful asserters', async function () {
       this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'convo_step_parameter_retry_asserters_good.convo.txt')
       assert.equal(this.compiler.convos.length, 1)

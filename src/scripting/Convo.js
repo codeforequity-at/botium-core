@@ -416,7 +416,7 @@ class Convo {
               await this.scriptingEvents.onBotStart({ convo: this, convoStep, container, scriptingMemory, transcript, transcriptStep })
               transcriptStep.botBegin = new Date()
               if (!botMsg) {
-                botMsg = await container.WaitBotSays(convoStep.channel)
+                botMsg = await container.WaitBotSays(convoStep.channel, convoStepParameters?.stepTimeout)
               }
               transcriptStep.botEnd = new Date()
               transcriptStep.actual = new BotiumMockMessage(botMsg)
@@ -425,6 +425,10 @@ class Convo {
               debug(`${this.header.name}: bot says (cleaned by binary and base64 data and sourceData) ${JSON.stringify(coreMsg, null, 2)}`)
             } catch (err) {
               transcriptStep.botEnd = new Date()
+
+              if (convoStep.optional) {
+                continue
+              }
 
               const failErr = botiumErrorFromErr(`${this.header.name}/${convoStep.stepTag}: error waiting for bot - ${err.message}`, err)
               debug(failErr)
