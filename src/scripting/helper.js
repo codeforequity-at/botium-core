@@ -404,13 +404,6 @@ const validateConvo = (convo) => {
       if (optionalSet.size > 1) {
         validationResult.errors.push(new Error(`Step ${i + 1}: Failed to decompile conversation. Mixed optional flag is not allowed inside one step.`))
       }
-
-      if (optionalSet.size === 1 && optionalSet.has(true)) {
-        const nextStep = convo.conversation[i + 1]
-        if (!nextStep || nextStep.sender !== 'bot') {
-          validationResult.errors.push(new Error(`Step ${i + 1}: Optional bot convo step has to be followed by a bot convo step.`))
-        }
-      }
     }
     if (!validateSender(step.sender)) {
       validationResult.errors.push(new Error(`Step ${i + 1}: Sender #${step.sender} is invalid.`))
@@ -456,6 +449,10 @@ const convoStepToLines = (step) => {
   } else {
     if (step.messageText) {
       lines.push((step.optional ? '?' : '') + (step.not ? '!' : '') + step.messageText)
+    } else {
+      if (step.optional) {
+        lines.push('?')
+      }
     }
     if (step.buttons && step.buttons.length > 0) lines.push('BUTTONS' + _formatAppendArgs(step.buttons.filter(b => b.text).map(b => flatString(b.text))))
     if (step.media && step.media.length > 0) lines.push('MEDIA' + _formatAppendArgs(step.media.filter(m => !m.buffer && m.mediaUri).map(m => m.mediaUri)))
