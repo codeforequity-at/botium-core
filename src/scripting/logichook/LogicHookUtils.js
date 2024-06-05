@@ -24,9 +24,9 @@ const _ = require('lodash')
 module.exports = class LogicHookUtils {
   constructor ({ buildScriptContext, caps }) {
     this.asserters = {}
-    this.globalAsserters = []
+    this.globalAsserterNames = []
     this.logicHooks = {}
-    this.globalLogicHooks = []
+    this.globalLogicHookNames = []
     this.userInputs = {}
     this.buildScriptContext = buildScriptContext
     this.caps = caps
@@ -64,7 +64,7 @@ module.exports = class LogicHookUtils {
         }
         this.asserters[asserter.ref] = this._loadClass(asserter, 'asserter')
         if (asserter.global) {
-          this.globalAsserters.push(asserter.ref)
+          this.globalAsserterNames.push(asserter.ref)
         }
       })
   }
@@ -77,7 +77,7 @@ module.exports = class LogicHookUtils {
         }
         this.logicHooks[logicHook.ref] = this._loadClass(logicHook, 'logichook')
         if (logicHook.global) {
-          this.globalLogicHooks.push(logicHook.ref)
+          this.globalLogicHookNames.push(logicHook.ref)
         }
       })
   }
@@ -92,14 +92,12 @@ module.exports = class LogicHookUtils {
       })
   }
 
-  getGlobalAsserter () {
-    return this.globalAsserters
-      .map(name => this.asserters[name])
+  getGlobalAsserters () {
+    return this.globalAsserterNames.reduce((agg, name) => ({ ...agg, [name]: this.asserters[name] }), {})
   }
 
-  getGlobalLogicHook () {
-    return this.globalLogicHooks
-      .map(name => this.logicHooks[name])
+  getGlobalLogicHooks () {
+    return this.globalLogicHookNames.reduce((agg, name) => ({ ...agg, [name]: this.logicHooks[name] }), {})
   }
 
   _loadClass ({ src, ref, args }, hookType) {
