@@ -1,4 +1,3 @@
-const path = require('path')
 const Constants = require('../../../src/scripting/Constants')
 const assert = require('chai').assert
 const BotDriver = require('../../..').BotDriver
