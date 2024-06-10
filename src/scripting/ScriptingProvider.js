@@ -83,9 +83,9 @@ module.exports = class ScriptingProvider {
     this.utterances = {}
     this.matchFn = null
     this.asserters = {}
-    this.globalAsserter = {}
+    this.globalAsserters = {}
     this.logicHooks = {}
-    this.globalLogicHook = {}
+    this.globalLogicHooks = {}
     this.userInputs = {}
     this.partialConvos = {}
     this.scriptingMemories = []
@@ -319,8 +319,9 @@ module.exports = class ScriptingProvider {
       }
     }
 
-    const convoAsserter = asserters
-      .filter(a => this.asserters[a.name][asserterType])
+    const localAsserters = (asserters || []).filter(a => this.asserters[a.name][asserterType])
+
+    const convoStepPromises = localAsserters
       .map(a => ({
         asserter: a,
         promise: callAsserter(a, this.asserters[a.name], {
@@ -335,8 +336,12 @@ module.exports = class ScriptingProvider {
       }))
       .map(({ promise, asserter }) => updateExceptionContext(promise, asserter))
 
-    const globalAsserter = Object.values(this.globalAsserter)
+    const globalAsserters = Object.keys(this.globalAsserters)
+      .filter(name => localAsserters.map(a => a.name).indexOf(name) < 0)
+      .reduce((agg, name) => [...agg, this.globalAsserters[name]], [])
       .filter(a => a[asserterType])
+
+    const globalPromises = globalAsserters
       .map(a => ({
         asserter: a,
         promise: p(this.retryHelperAsserter, () => a[asserterType]({
@@ -351,7 +356,7 @@ module.exports = class ScriptingProvider {
       }))
       .map(({ promise, asserter }) => updateExceptionContext(promise, asserter))
 
-    const allPromises = [...convoAsserter, ...globalAsserter]
+    const allPromises = [...convoStepPromises, ...globalPromises]
     if (this.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
       return Promise.allSettled(allPromises).then((results) => {
         const rejected = results.filter(result => result.status === 'rejected').map(result => result.reason)
@@ -372,8 +377,7 @@ module.exports = class ScriptingProvider {
       throw Error(`Unknown hookType ${hookType}`)
     }
 
-    const localHooks = (logicHooks || [])
-      .filter(l => this.logicHooks[l.name][hookType])
+    const localHooks = (logicHooks || []).filter(l => this.logicHooks[l.name][hookType])
 
     const convoStepPromises = localHooks
       .map(l => p(this.retryHelperLogicHook, () => this.logicHooks[l.name][hookType]({
@@ -386,7 +390,10 @@ module.exports = class ScriptingProvider {
         ...rest
       })))
 
-    const globalHooks = Object.values(this.globalLogicHook).filter(l => l[hookType])
+    const globalHooks = Object.keys(this.globalLogicHooks)
+      .filter(name => localHooks.map(l => l.name).indexOf(name) < 0)
+      .reduce((agg, name) => [...agg, this.globalLogicHooks[name]], [])
+      .filter(l => l[hookType])
     const globalPromises = globalHooks.map(l => p(this.retryHelperLogicHook, () => l[hookType]({ convo, convoStep, scriptingMemory, container, args: [], isGlobal: true, ...rest })))
 
     const allPromises = [...convoStepPromises, ...globalPromises]
@@ -499,9 +506,9 @@ module.exports = class ScriptingProvider {
 
     const logicHookUtils = new LogicHookUtils({ buildScriptContext: this._buildScriptContext(), caps: this.caps })
     this.asserters = logicHookUtils.asserters
-    this.globalAsserter = logicHookUtils.getGlobalAsserter()
+    this.globalAsserters = logicHookUtils.getGlobalAsserters()
     this.logicHooks = logicHookUtils.logicHooks
-    this.globalLogicHook = logicHookUtils.getGlobalLogicHook()
+    this.globalLogicHooks = logicHookUtils.getGlobalLogicHooks()
     this.userInputs = logicHookUtils.userInputs
   }
 
