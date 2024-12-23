@@ -277,6 +277,10 @@ class Convo {
       let skipTranscriptStep = false
       let conditionalGroupId = null
       let conditionMetInGroup = false
+      let skipOptionalStep = false
+      // If there are optional step(s) in the conversation, and the message from the bot fails on each optional bot step(s) and/or mandatory bot step, then we have an unexpected message.
+      // So in this case an unexpected error should be shown instead of the latest assertion error.
+      let optionalStepAssertionError = false
       let globalConvoStepParameters = container.caps[Capabilities.SCRIPTING_CONVO_STEP_PARAMETERS] || {}
       let retryBotMessageTimeoutEnd = null
       let retryBotMessageConvoId = null
@@ -284,6 +288,13 @@ class Convo {
       for (let i = 0; i < this.conversation.length; i = (retryBotMessageDropBotResponse ? i : i + 1)) {
         retryBotMessageDropBotResponse = false
         const convoStep = this.conversation[i]
+        if (!convoStep.optional) {
+          skipOptionalStep = false
+        }
+        if (convoStep.optional && skipOptionalStep) {
+          // If there are multiple optional steps, and the previous optional step was timeout, then the next optional step should be skipped to prevent too long convo run with multiple timeout.
+          continue
+        }
         const rawConvoStepParameters = convoStep.logicHooks.find(lh => lh.name === 'CONVO_STEP_PARAMETERS')?.args
         let convoStepParameters = {}
         if (rawConvoStepParameters && rawConvoStepParameters.length) {
@@ -426,7 +437,8 @@ class Convo {
             } catch (err) {
               transcriptStep.botEnd = new Date()
 
-              if (convoStep.optional) {
+              if (!(err.message.indexOf('Bot did not respond within') < 0) && convoStep.optional) {
+                skipOptionalStep = true
                 continue
               }
 
@@ -512,6 +524,7 @@ class Convo {
                 }
                 waitForBotSays = false
                 skipTranscriptStep = true
+                optionalStepAssertionError = true
                 return true
               } else if (retryOn) {
                 if (!retryBotMessageTimeoutEnd || retryBotMessageConvoId !== convoStep.stepTag) {
@@ -531,9 +544,18 @@ class Convo {
               }
 
               if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS]) {
-                assertErrors.push(err)
+                if (optionalStepAssertionError) {
+                  optionalStepAssertionError = false
+                  assertErrors.push(new BotiumError(`${this.header.name}: Unexpected message.`))
+                } else {
+                  assertErrors.push(err)
+                }
                 return false
               } else {
+                if (optionalStepAssertionError) {
+                  optionalStepAssertionError = false
+                  throw new BotiumError(`${this.header.name}: Unexpected message.`)
+                }
                 throw err
               }
             }
@@ -547,6 +569,7 @@ class Convo {
               if (convoStep.not) {
                 try {
                   this.scriptingEvents.assertBotNotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep, convoStepParameters)
+                  optionalStepAssertionError = false
                 } catch (err) {
                   if (isErrorHandledWithOptionConvoStep(err)) {
                     continue
@@ -555,6 +578,7 @@ class Convo {
               } else {
                 try {
                   this.scriptingEvents.assertBotResponse(response, tomatch, `${this.header.name}/${convoStep.stepTag}`, lastMeConvoStep, convoStepParameters)
+                  optionalStepAssertionError = false
                 } catch (err) {
                   if (isErrorHandledWithOptionConvoStep(err)) {
                     continue
@@ -564,6 +588,7 @@ class Convo {
             } else if (convoStep.sourceData) {
               try {
                 this._compareObject(container, scriptingMemory, convoStep, botMsg.sourceData, convoStep.sourceData, botMsg, convoStepParameters)
+                optionalStepAssertionError = false
               } catch (err) {
                 if (isErrorHandledWithOptionConvoStep(err)) {
                   continue
@@ -574,11 +599,13 @@ class Convo {
             try {
               await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
               await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
+              optionalStepAssertionError = false
             } catch (err) {
               const nextConvoStep = this.conversation[i + 1]
               if (convoStep.optional && nextConvoStep && nextConvoStep.sender === 'bot') {
                 waitForBotSays = false
                 skipTranscriptStep = true
+                optionalStepAssertionError = true
                 continue
               }
 
@@ -611,8 +638,17 @@ class Convo {
                 } catch (failErr) {
                 }
                 if (container.caps[Capabilities.SCRIPTING_ENABLE_MULTIPLE_ASSERT_ERRORS] && err instanceof BotiumError) {
-                  assertErrors.push(err)
+                  if (optionalStepAssertionError) {
+                    optionalStepAssertionError = false
+                    assertErrors.push(new BotiumError(`${this.header.name}: Unexpected message.`))
+                  } else {
+                    assertErrors.push(err)
+                  }
                 } else {
+                  if (optionalStepAssertionError) {
+                    optionalStepAssertionError = false
+                    throw new BotiumError(`${this.header.name}: Unexpected message.`)
+                  }
                   throw failErr
                 }
               }

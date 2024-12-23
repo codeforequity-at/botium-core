@@ -49,6 +49,57 @@ const echoConnectorMultipleBotMessages = ({ queueBotSays }) => {
   }
 }
 
+const echoConnectorMultipleBotMessagesSkipAnOptional = ({ queueBotSays }) => {
+  return {
+    UserSays (msg) {
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: msg.messageText }
+      if (msg.messageText === 'Welcome') {
+        botMsg.messageText = 'Welcome'
+        queueBotSays(botMsg)
+
+        setTimeout(() => {
+          botMsg.messageText = ''
+          botMsg.buttons = [
+            { text: 'First Button' },
+            { text: 'Second Button' }
+          ]
+          queueBotSays(botMsg)
+        }, 200)
+      } else {
+        queueBotSays(botMsg)
+      }
+    }
+  }
+}
+
+const echoConnectorMultipleBotMessagesAssertionFailOnOptional = ({ queueBotSays }) => {
+  return {
+    UserSays (msg) {
+      const botMsg = { sender: 'bot', sourceData: msg.sourceData, messageText: msg.messageText }
+      if (msg.messageText === 'Welcome') {
+        botMsg.messageText = 'Welcome'
+        queueBotSays(botMsg)
+
+        setTimeout(() => {
+          botMsg.messageText = 'Fail on this:'
+          queueBotSays(botMsg)
+        }, 200)
+
+        setTimeout(() => {
+          botMsg.messageText = ''
+          botMsg.buttons = [
+            { text: 'First Button' },
+            { text: 'Second Button' }
+          ]
+          queueBotSays(botMsg)
+        }, 200)
+      } else {
+        queueBotSays(botMsg)
+      }
+    }
+  }
+}
+
 describe('convo.transcript', function () {
   beforeEach(async function () {
     const myCaps = {
@@ -92,6 +143,26 @@ describe('convo.transcript', function () {
     this.compilerMultipleBotmessages = this.driverMultipleBotmessages.BuildCompiler()
     this.containerMultipleBotmessages = await this.driverMultipleBotmessages.Build()
     await this.containerMultipleBotmessages.Start()
+
+    const myCapsMultipleBotMessagesSkipAnOptional = {
+      [Capabilities.PROJECTNAME]: 'convo.transcript',
+      [Capabilities.CONTAINERMODE]: echoConnectorMultipleBotMessagesSkipAnOptional,
+      [Capabilities.SCRIPTING_FORCE_BOT_CONSUMED]: true
+    }
+    this.driverMultipleBotmessagesSkipAnOptional = new BotDriver(myCapsMultipleBotMessagesSkipAnOptional)
+    this.compilerMultipleBotmessagesSkipAnOptional = this.driverMultipleBotmessagesSkipAnOptional.BuildCompiler()
+    this.containerMultipleBotmessagesSkipAnOptional = await this.driverMultipleBotmessagesSkipAnOptional.Build()
+    await this.containerMultipleBotmessagesSkipAnOptional.Start()
+
+    const myCapsMultipleBotMessagesAssertionFailOnOptional = {
+      [Capabilities.PROJECTNAME]: 'convo.transcript',
+      [Capabilities.CONTAINERMODE]: echoConnectorMultipleBotMessagesAssertionFailOnOptional,
+      [Capabilities.SCRIPTING_FORCE_BOT_CONSUMED]: true
+    }
+    this.driverMultipleBotmessagesAssertionFailOnOptional = new BotDriver(myCapsMultipleBotMessagesAssertionFailOnOptional)
+    this.compilerMultipleBotmessagesAssertionFailOnOptional = this.driverMultipleBotmessagesAssertionFailOnOptional.BuildCompiler()
+    this.containerMultipleBotmessagesAssertionFailOnOptional = await this.driverMultipleBotmessagesAssertionFailOnOptional.Build()
+    await this.containerMultipleBotmessagesAssertionFailOnOptional.Start()
   })
   afterEach(async function () {
     await this.container.Stop()
@@ -189,13 +260,34 @@ describe('convo.transcript', function () {
     assert.isDefined(transcript)
     assert.equal(transcript.steps.length, 6)
   })
+  it('should provide transcript optional multiple bot steps on skip an optional bot messages', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'welcome_multiple_botsteps_opt.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    const transcript = await this.compiler.convos[0].Run(this.containerMultipleBotmessagesSkipAnOptional)
+    assert.isDefined(transcript)
+    assert.equal(transcript.steps.length, 5)
+  })
+  it('should provide transcript optional multiple bot steps assertion fail on optional bot messages', async function () {
+    this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'welcome_multiple_botsteps_opt.convo.txt')
+    assert.equal(this.compiler.convos.length, 1)
+
+    try {
+      await this.compiler.convos[0].Run(this.containerMultipleBotmessagesAssertionFailOnOptional)
+      assert.fail('expected error')
+    } catch (err) {
+      assert.isDefined(err.transcript)
+      assert.equal(err.transcript.steps.length, 3)
+      assert.isTrue(err.message.includes('Unexpected message'))
+    }
+  })
   it('should provide transcript optional multiple bot steps on not getting all bot messages', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'welcome_multiple_botsteps_opt.convo.txt')
     assert.equal(this.compiler.convos.length, 1)
 
     const transcript = await this.compiler.convos[0].Run(this.container)
     assert.isDefined(transcript)
-    assert.equal(transcript.steps.length, 6)
+    assert.equal(transcript.steps.length, 5)
   })
   it('should include pause in transcript steps', async function () {
     this.compiler.ReadScript(path.resolve(__dirname, 'convos'), '2stepsWithPause.convo.txt')
