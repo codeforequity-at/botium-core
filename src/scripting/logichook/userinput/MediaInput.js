@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const globby = require('globby')
+const globSync = require('tinyglobby').globSync
 const request = require('request')
 const mime = require('mime-types')
 const url = require('url')
@@ -161,7 +161,7 @@ module.exports = class MediaInput {
       const baseDir = this._getBaseDir(convo)
       return args.reduce((e, arg) => {
         if (this._isWildcard(arg)) {
-          const mediaFiles = globby.sync(arg, { cwd: baseDir, gitignore: true })
+          const mediaFiles = globSync(arg, { cwd: baseDir })
           mediaFiles.forEach(mf => {
             e.push({
               name: 'MEDIA',

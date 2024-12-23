@@ -63,6 +63,7 @@
     "socketio-auth": "^0.1.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
+    "tinyglobby": "^0.2.10",
     "uuid": "^9.0.1",
     "word-error-rate": "0.0.7",
     "write-yaml": "^1.0.0",
