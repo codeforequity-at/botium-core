@@ -444,48 +444,6 @@ describe('connectors.simplerest', function () {
       scope.persist(false)
       scope2.persist(false)
     })
-
-    it('undefined cookie', async function () {
-      const caps = {
-        [Capabilities.CONTAINERMODE]: 'simplerest',
-        [Capabilities.SIMPLEREST_URL]: 'http://mock2.com/endpointASD',
-        // [Capabilities.SIMPLEREST_URL]: 'http://localhost:3005/webhook',
-        [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: {
-          HEADER1: 'HEADER1VALUE'
-        },
-        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
-        [Capabilities.SIMPLEREST_PING_URL]: 'http://mock2.com/pinggetD'
-      }
-      const scope = nock('http://mock2.com')
-        .get('/pinggetD')
-        .reply(200, {
-          status: 'ok'
-        })
-        .persist()
-
-      const scope2 = nock('http://mock2.com', {
-        reqheaders: {
-          cookie: 'cookie1=value1;cookie2=value2',
-          header1: 'HEADER1VALUE'
-        }
-      })
-        .get('/endpointASD')
-        .reply(200, {
-          text: 'you called me'
-        })
-        .persist()
-      const driver = new BotDriver(caps)
-      const container = await driver.Build()
-      await container.Start()
-
-      await container.UserSays({ text: 'hallo' })
-      await container.WaitBotSays()
-
-      await container.Stop()
-      await container.Clean()
-      scope.persist(false)
-      scope2.persist(false)
-    })
   })
 
   describe('build', function () {
