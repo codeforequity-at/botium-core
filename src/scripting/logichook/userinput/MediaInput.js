@@ -1,7 +1,6 @@
 const fs = require('fs')
 const path = require('path')
 const globby = require('globby')
-const request = require('request')
 const mime = require('mime-types')
 const url = require('url')
 const _ = require('lodash')
@@ -119,24 +118,22 @@ module.exports = class MediaInput {
           throw new Error(`downloadMedia failed: ${err.message}`)
         }
       } else if (uri.protocol === 'http:' || uri.protocol === 'https:') {
-        return new Promise((resolve, reject) => {
-          request({
-            uri: uri.toString(),
+        try {
+          const response = await fetch(uri.toString(), {
             method: 'GET',
-            followAllRedirects: true,
-            encoding: null,
-            timeout: this.globalArgs.downloadTimeout || 10000
-          }, (err, response, body) => {
-            if (err) {
-              reject(new Error(`downloadMedia failed: ${err.message}`))
-            } else {
-              if (response.statusCode >= 400) {
-                return reject(new Error(`downloadMedia failed: ${response.statusCode}/${response.statusMessage}`))
-              }
-              resolve(body)
-            }
+            redirect: 'follow', // Follows all redirects
+            timeout: this.globalArgs?.downloadTimeout || 10000
           })
-        })
+
+          if (!response.ok) {
+            throw new Error(`downloadMedia failed: ${response.status}/${response.statusText}`)
+          }
+
+          const arrayBuffer = await response.arrayBuffer()
+          return Buffer.from(arrayBuffer)
+        } catch (err) {
+          throw new Error(`downloadMedia failed: ${err.message}`)
+        }
       } else if (uri.protocol === 'data:') {
         return Buffer.from(uri.href.split(',')[1], 'base64')
       }

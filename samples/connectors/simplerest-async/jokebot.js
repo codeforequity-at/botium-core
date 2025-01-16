@@ -1,4 +1,3 @@
-const request = require('request')
 const express = require('express')
 const bodyParser = require('body-parser')
 const _ = require('lodash')
@@ -13,32 +12,39 @@ const jokes = [
   'A blonde was bragging about her knowledge of state capitals. She proudly says, Go ahead, ask me, I know all of them. A friend says, OK, what\'s the capital of Wisconsin? The blonde replies, Oh, that\'s easy: W.'
 ]
 
-sendAsyncText = async (req, res, text) => {
+const sendAsyncText = async (req, res, text) => {
   const callbackUri = req.body.callbackUri
 
-  return new Promise((resolve, reject) => {
-    request({
+  try {
+    const response = await fetch(callbackUri, {
       method: 'POST',
-      uri: callbackUri,
-      body: {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
         conversationId: req.body.conversationId,
         responses: [
           {
             text
           }
         ]
-      },
-      json: true
-    }, (err, response, body) => {
-      if (err) {
-        console.log('failed async response: ' + err)
-        reject(err)
-      } else {
-        console.log('async response got response ' + response.statusCode)
-        resolve()
-      }
+      })
     })
-  })
+
+    if (!response.ok) {
+      const error = `Failed async response: ${response.status} ${response.statusText}`
+      console.log(error)
+      // just backward compatibility. Currently I get 401 error, but the chat itself is working.
+      // If I activate this, then the chat will not work at all.
+      // I suppose api key is not good,
+      // throw new Error(error);
+    } else {
+      console.log('Async response got response ' + response.status)
+    }
+  } catch (err) {
+    console.error('Error in sendAsyncText:', err.message)
+    throw err
+  }
 }
 
 app.post('/joke', async (req, res) => {
@@ -55,7 +61,7 @@ app.post('/joke', async (req, res) => {
     responses: [
       {
         text: 'ok, not funny'
-      },
+      }
     ]
   })
 })
