@@ -3,7 +3,6 @@ const async = require('async')
 const rimraf = require('rimraf')
 const Bottleneck = require('bottleneck')
 const _ = require('lodash')
-const request = require('request')
 const debug = require('debug')('botium-connector-BaseContainer')
 
 const Events = require('../Events')
@@ -239,7 +238,7 @@ module.exports = class BaseContainer {
 
   async _RunCustomHook (name, hook, args) {
     try {
-      await executeHook(this.caps, hook, Object.assign({ container: this, request }, args))
+      await executeHook(this.caps, hook, Object.assign({ container: this, fetch }, args))
     } catch (err) {
       debug(`_RunCustomHook ${name} finished with error: ${err.message || util.inspect(err)}`)
     }

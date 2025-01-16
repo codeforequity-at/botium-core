@@ -172,17 +172,16 @@ describe('connectors.simplerest', function () {
         .persist()
       const driver = new BotDriver(caps)
       const container = await driver.Build()
-      const body = JSON.stringify({})
       const pingConfig = {
         method: 'GET',
         uri: 'https://mock.com/pingget',
-        body,
         timeout: 10000
       }
       const response = await container.pluginInstance._waitForUrlResponse(pingConfig, 2)
       assert.equal(response.body, '{"status":"ok"}')
       scope.persist(false)
     })
+
     it('post ping endpoint', async function () {
       const caps = {
         [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -215,6 +214,7 @@ describe('connectors.simplerest', function () {
       assert.equal(response.body, '{"status":"ok"}')
       scope.persist(false)
     })
+
     it('post stop endpoint', async function () {
       const caps = {
         [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -242,6 +242,7 @@ describe('connectors.simplerest', function () {
       assert.equal(response.body.status, 'ok')
       scope.persist(false)
     })
+
     it('error case can\'t connect', async function () {
       const caps = {
         [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -277,28 +278,153 @@ describe('connectors.simplerest', function () {
       }
       scope.persist(false)
     })
-    it('should store cookies from ping and use for user says request', async function () {
+
+    it('error case no chat endpoint', async function () {
       const caps = {
         [Capabilities.CONTAINERMODE]: 'simplerest',
         [Capabilities.SIMPLEREST_URL]: 'https://mock2.com/endpoint',
-        [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: {
-          HEADER1: 'HEADER1VALUE',
-          HEADER2: '{{msg.token}}'
-        },
-        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
-        [Capabilities.SIMPLEREST_PING_URL]: 'https://mock2.com/pingget'
+        // [Capabilities.SIMPLEREST_URL]: 'https://jsonplaceholder.typicode.com/posts/123456',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text']
       }
       const scope = nock('https://mock2.com')
+        .get('/endpoint')
+        .reply(404, {
+          error: 'notOk'
+        })
+        .persist()
+      const driver = new BotDriver(caps)
+      const container = await driver.Build()
+      await container.Start()
+
+      try {
+        await container.UserSays({ text: 'hallo' })
+        await container.WaitBotSays()
+        throw new Error('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.includes('notOk'))
+      }
+
+      await container.Stop()
+      await container.Clean()
+      scope.persist(false)
+    })
+
+    it('error case chat endpoint timeout', async function () {
+      const caps = {
+        [Capabilities.CONTAINERMODE]: 'simplerest',
+        [Capabilities.SIMPLEREST_TIMEOUT]: 100,
+        [Capabilities.SIMPLEREST_URL]: 'https://mock2.com/endpointTimeout',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text']
+      }
+      const scope = nock('https://mock2.com')
+        .get('/endpointTimeout')
+        .delayConnection(200)
+        .reply(200, {
+          status: 'ok'
+        })
+        .persist()
+      const driver = new BotDriver(caps)
+      const container = await driver.Build()
+      await container.Start()
+
+      try {
+        await container.UserSays({ text: 'hallo' })
+        await container.WaitBotSays()
+        throw new Error('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.includes('The operation was aborted due to timeout'))
+      }
+
+      await container.Stop()
+      await container.Clean()
+      scope.persist(false)
+    })
+
+    it('should follow redirect', async function () {
+      const caps = {
+        [Capabilities.CONTAINERMODE]: 'simplerest',
+        [Capabilities.SIMPLEREST_URL]: 'https://mock2.com/endpoint1',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text']
+      }
+      const scope = nock('https://mock2.com')
+        .get('/endpoint1')
+        .reply(301, undefined, { location: '/endpoint2' })
+        .get('/endpoint2')
+        .reply(404, {
+          error: 'redirectedToNotExisting'
+        }).persist()
+      const driver = new BotDriver(caps)
+      const container = await driver.Build()
+      await container.Start()
+
+      try {
+        await container.UserSays({ text: 'hallo' })
+        await container.WaitBotSays()
+        throw new Error('should have failed')
+      } catch (err) {
+        assert.isTrue(err.message.includes('redirectedToNotExisting'))
+      }
+
+      await container.Stop()
+      await container.Clean()
+      assert.isTrue(scope.isDone())
+      scope.persist(false)
+    })
+
+    it('should send form parameters', async function () {
+      const FORMPARAM = {
+        formparam1: 'valueparam1+-%'
+      }
+      const caps = {
+        [Capabilities.CONTAINERMODE]: 'simplerest',
+        [Capabilities.SIMPLEREST_METHOD]: 'POST',
+        [Capabilities.SIMPLEREST_URL]: 'https://mock2.com/endpointForm',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.status']
+      }
+      const scope = nock('https://mock2.com')
+        .post('/endpointForm', (body) => {
+          return body === 'formparam1=valueparam1%2B-%25'
+        })
+        .reply(200, {
+          status: 'ok'
+        })
+        .persist()
+      const driver = new BotDriver(caps)
+      const container = await driver.Build()
+      await container.Start()
+
+      const msg = {
+        ADD_FORM_PARAM: FORMPARAM
+      }
+      await container.UserSays(msg)
+      await container.WaitBotSays()
+
+      await container.Clean()
+      scope.persist(false)
+    })
+
+    it('should store cookies from ping and use for user says request', async function () {
+      const caps = {
+        [Capabilities.CONTAINERMODE]: 'simplerest',
+        [Capabilities.SIMPLEREST_URL]: 'http://mock2.com/endpoint',
+        [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: {
+          HEADER1: 'HEADER1VALUE'
+        },
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
+        [Capabilities.SIMPLEREST_PING_URL]: 'http://mock2.com/pingget'
+      }
+      const scope = nock('http://mock2.com')
         .get('/pingget')
         .reply(200, {
           status: 'ok'
         }, {
-          'set-cookie': 'botium=test-cookie'
+          'Set-Cookie': 'cookie1=value1;cookie2=value2'
         }).persist()
 
-      const scope2 = nock('https://mock2.com', {
+      const scope2 = nock('http://mock2.com', {
         reqheaders: {
-          cookie: 'botium=test-cookie'
+          cookie: 'cookie1=value1;cookie2=value2',
+          header1: 'HEADER1VALUE'
         }
       })
         .get('/endpoint')
@@ -318,7 +444,50 @@ describe('connectors.simplerest', function () {
       scope.persist(false)
       scope2.persist(false)
     })
+
+    it('undefined cookie', async function () {
+      const caps = {
+        [Capabilities.CONTAINERMODE]: 'simplerest',
+        [Capabilities.SIMPLEREST_URL]: 'http://mock2.com/endpointASD',
+        // [Capabilities.SIMPLEREST_URL]: 'http://localhost:3005/webhook',
+        [Capabilities.SIMPLEREST_HEADERS_TEMPLATE]: {
+          HEADER1: 'HEADER1VALUE'
+        },
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.text'],
+        [Capabilities.SIMPLEREST_PING_URL]: 'http://mock2.com/pinggetD'
+      }
+      const scope = nock('http://mock2.com')
+        .get('/pinggetD')
+        .reply(200, {
+          status: 'ok'
+        })
+        .persist()
+
+      const scope2 = nock('http://mock2.com', {
+        reqheaders: {
+          cookie: 'cookie1=value1;cookie2=value2',
+          header1: 'HEADER1VALUE'
+        }
+      })
+        .get('/endpointASD')
+        .reply(200, {
+          text: 'you called me'
+        })
+        .persist()
+      const driver = new BotDriver(caps)
+      const container = await driver.Build()
+      await container.Start()
+
+      await container.UserSays({ text: 'hallo' })
+      await container.WaitBotSays()
+
+      await container.Stop()
+      await container.Clean()
+      scope.persist(false)
+      scope2.persist(false)
+    })
   })
+
   describe('build', function () {
     it('should build JSON GET url', async function () {
       const myCaps = Object.assign({}, myCapsGet)
@@ -337,6 +506,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should build JSON GET url from encoded characters', async function () {
       const myCaps = Object.assign({}, myCapsGet)
       myCaps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE] = { ORIG: '{{{msg.messageText}}}' }
@@ -370,12 +540,15 @@ describe('connectors.simplerest', function () {
 
       assert.isTrue(request.json)
       assert.isObject(request.headers)
-      assert.isObject(request.body)
+      assert.isString(request.body)
+      const body = JSON.parse(request.body)
+      assert.isObject(body)
       assert.equal(request.headers.HEADER2, msg.token)
-      assert.equal(request.body.BODY2, msg.messageText)
+      assert.equal(body.BODY2, msg.messageText)
 
       await container.Clean()
     })
+
     it('should build JSON POST request body with special chars', async function () {
       const myCaps = Object.assign({}, myCapsPost)
       myCaps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE] = {
@@ -391,12 +564,15 @@ describe('connectors.simplerest', function () {
       const request = await container.pluginInstance._buildRequest(msgSpecial)
       assert.isTrue(request.json)
       assert.isObject(request.headers)
-      assert.isObject(request.body)
+      assert.isString(request.body)
+      const body = JSON.parse(request.body)
+      assert.isObject(body)
       assert.equal(request.headers.HEADER2, msgSpecial.token)
-      assert.equal(request.body.BODY2, msgSpecial.messageText)
+      assert.equal(body.BODY2, msgSpecial.messageText)
 
       await container.Clean()
     })
+
     it('should build JSON POST request body from strings', async function () {
       const myCaps = Object.assign({}, myCapsPost)
       myCaps[Capabilities.SIMPLEREST_BODY_TEMPLATE] = JSON.stringify(myCaps[Capabilities.SIMPLEREST_BODY_TEMPLATE])
@@ -411,12 +587,15 @@ describe('connectors.simplerest', function () {
 
       assert.isTrue(request.json)
       assert.isObject(request.headers)
-      assert.isObject(request.body)
+      assert.isString(request.body)
+      const body = JSON.parse(request.body)
+      assert.isObject(body)
       assert.equal(request.headers.HEADER2, msg.token)
-      assert.equal(request.body.BODY2, msg.messageText)
+      assert.equal(body.BODY2, msg.messageText)
 
       await container.Clean()
     })
+
     it('should build url-form-encoded POST request body', async function () {
       const myCaps = Object.assign({}, myCapsPost)
       myCaps[Capabilities.SIMPLEREST_BODY_RAW] = true
@@ -435,6 +614,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should use scriptingMemory variables', async function () {
       process.env.SAMPLE_ENV = 'SAMPLE_ENV'
 
@@ -446,30 +626,32 @@ describe('connectors.simplerest', function () {
       const request = await container.pluginInstance._buildRequest(msg)
 
       assert.isTrue(request.json)
-      assert.exists(request.body)
+      assert.isString(request.body)
 
-      assert.exists(request.body.FUNCTION_WITHOUT_PARAM)
-      assert.equal(request.body.FUNCTION_WITHOUT_PARAM.length, 4)
+      const body = JSON.parse(request.body)
+      assert.exists(body.FUNCTION_WITHOUT_PARAM)
+      assert.equal(body.FUNCTION_WITHOUT_PARAM.length, 4)
 
-      assert.exists(request.body.FUNCTION_WITH_PARAM)
-      assert.equal(request.body.FUNCTION_WITH_PARAM.length, 5)
+      assert.exists(body.FUNCTION_WITH_PARAM)
+      assert.equal(body.FUNCTION_WITH_PARAM.length, 5)
 
-      assert.exists(request.body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY)
-      assert.equal(request.body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY.length, 7)
+      assert.exists(body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY)
+      assert.equal(body.FUNCTION_WITH_PARAM_FROM_SCRIPTING_MEMORY.length, 7)
 
-      assert.exists(request.body.SAMPLE_ENV)
-      assert.equal(request.body.SAMPLE_ENV, 'SAMPLE_ENV')
+      assert.exists(body.SAMPLE_ENV)
+      assert.equal(body.SAMPLE_ENV, 'SAMPLE_ENV')
 
-      assert.exists(request.body.VARIABLE)
-      assert.equal(request.body.VARIABLE, 'varvalue')
+      assert.exists(body.VARIABLE)
+      assert.equal(body.VARIABLE, 'varvalue')
 
-      assert.equal(request.body.PROJECTNAME, 'MYPROJECTNAME')
-      assert.equal(request.body.TESTSESSIONNAME, 'MYTESTSESSIONNAME')
-      assert.equal(request.body.TESTCASENAME, 'MYTESTCASENAME')
-      assert.equal(request.body.CUSTOMCAPABILITY, 'MYCUSTOMCAPABILITY')
+      assert.equal(body.PROJECTNAME, 'MYPROJECTNAME')
+      assert.equal(body.TESTSESSIONNAME, 'MYTESTSESSIONNAME')
+      assert.equal(body.TESTCASENAME, 'MYTESTCASENAME')
+      assert.equal(body.CUSTOMCAPABILITY, 'MYCUSTOMCAPABILITY')
 
       await container.Clean()
     })
+
     it('should parse string template', async function () {
       const myCaps = Object.assign({}, myCapsStringTemplate)
       const driver = new BotDriver(myCaps)
@@ -479,12 +661,13 @@ describe('connectors.simplerest', function () {
       const request = await container.pluginInstance._buildRequest(msg)
 
       assert.isTrue(request.json)
-      assert.exists(request.body)
+      assert.isString(request.body)
 
-      assert.exists(request.body.timestamp)
+      assert.exists(JSON.parse(request.body).timestamp)
 
       await container.Clean()
     })
+
     it('should use scriptingMemory variables for step, and conversation id if template is set', async function () {
       const myCaps = Object.assign({}, myCapsConvAndStepId)
       const driver = new BotDriver(myCaps)
@@ -494,28 +677,34 @@ describe('connectors.simplerest', function () {
       const request = await container.pluginInstance._buildRequest(msg)
 
       assert.isTrue(request.json)
-      assert.exists(request.body)
+      assert.isString(request.body)
 
-      assert.exists(request.body.SESSION_ID)
-      assert.equal(request.body.SESSION_ID.length, 13)
+      const body = JSON.parse(request.body)
+      assert.exists(body.SESSION_ID)
+      assert.equal(body.SESSION_ID.length, 13)
 
-      assert.exists(request.body.MESSAGE_ID)
-      assert.equal(request.body.MESSAGE_ID.length, 7)
+      assert.exists(body.MESSAGE_ID)
+      assert.equal(body.MESSAGE_ID.length, 7)
 
       await container.Clean()
     })
+
     it('should use request hook, from string', async function () {
       await _assertHook(Object.assign({}, myCapsRequestHookFromString))
     })
+
     it('should use request hook, from function', async function () {
       await _assertHook(Object.assign({}, myCapsRequestHookFromFunction))
     })
+
     it('should use request hook, from function2', async function () {
       await _assertHook(Object.assign({}, myCapsRequestHookFromFunction))
     })
+
     it('should use request hook, from module', async function () {
       await _assertHook(Object.assign({}, myCapsRequestHookFromModule))
     })
+
     it('should reject request hook, from invalid string', async function () {
       const driver = new BotDriver(myCapsRequestHookFromStringInvalid)
       try {
@@ -525,6 +714,7 @@ describe('connectors.simplerest', function () {
         assert.isTrue(err.message.includes('Hook specification "\'!\'" invalid'))
       }
     })
+
     it('should add query params from UPDATE_CUSTOM (without "?")', async function () {
       const myCaps = Object.assign({}, myCapsGet)
       const myMsg = Object.assign({}, msg)
@@ -544,6 +734,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should add query params from UPDATE_CUSTOM (with "?")', async function () {
       const myCaps = Object.assign({}, myCapsGet)
       myCaps.SIMPLEREST_URL = 'http://my-host.com/api/endpoint/messageText?const1=const1'
@@ -564,6 +755,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should handle non string query params from UPDATE_CUSTOM', async function () {
       const myCaps = Object.assign({}, myCapsGet)
       const myMsg = Object.assign({}, msg)
@@ -591,6 +783,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should add form params from UPDATE_CUSTOM (without "?")', async function () {
       const myCaps = Object.assign({}, myCapsFormPost)
       const myMsg = Object.assign({}, msg)
@@ -605,12 +798,12 @@ describe('connectors.simplerest', function () {
 
       await container.Start()
       const request = await container.pluginInstance._buildRequest(myMsg)
-      assert.isObject(request.form)
-      assert.equal(request.form.formparam1, 'valueparam1')
-      assert.equal(request.form.formparam2, 'messageText')
+      assert.isString(request.body)
+      assert.equal(request.body, 'formparam1=valueparam1&formparam2=messageText')
 
       await container.Clean()
     })
+
     it('should add header from UPDATE_CUSTOM', async function () {
       const myCaps = Object.assign({}, myCapsGet)
       const myMsg = Object.assign({}, msg)
@@ -631,6 +824,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should handle and add non string header from UPDATE_CUSTOM', async function () {
       const myCaps = Object.assign({}, myCapsGet)
       const myMsg = Object.assign({}, msg)
@@ -659,6 +853,7 @@ describe('connectors.simplerest', function () {
       await container.Clean()
     })
   })
+
   describe('processBody', function () {
     it('should process simple response from hook', async function () {
       const myCaps = Object.assign({}, myCapsResponseHook)
@@ -675,6 +870,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should ignore empty response', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',
@@ -694,6 +890,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should not ignore empty response', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
@@ -713,6 +910,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should not ignore empty response with media', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
@@ -734,6 +932,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should not ignore empty response with hook NLP data', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
@@ -757,6 +956,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should not ignore empty response with custom hook data', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
@@ -780,6 +980,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should not ignore empty response with messageText filled in response hook', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
@@ -802,6 +1003,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should process multiple responses', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',
@@ -841,6 +1043,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should process card responses', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
@@ -913,6 +1116,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should process button responses', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
@@ -955,6 +1159,7 @@ describe('connectors.simplerest', function () {
       await container.Clean()
     })
   })
+
   describe('parseCapabilities', function () {
     it('should get multiple cap values from array', async function () {
       const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
@@ -966,6 +1171,7 @@ describe('connectors.simplerest', function () {
       assert.lengthOf(values, 2)
       assert.deepEqual(values, ['$.1', '$.2'])
     })
+
     it('should get multiple cap values from splitted string', async function () {
       const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: () => '$.1,$.2'
@@ -973,6 +1179,7 @@ describe('connectors.simplerest', function () {
       assert.lengthOf(values, 2)
       assert.deepEqual(values, ['$.1', '$.2'])
     })
+
     it('should get multiple cap values from multiple string keys', async function () {
       const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
         SIMPLEREST_RESPONSE_JSONPATH_0: '$.1,$.2',
@@ -981,6 +1188,7 @@ describe('connectors.simplerest', function () {
       assert.lengthOf(values, 4)
       assert.deepEqual(values, ['$.1', '$.2', '$.3', '$.4'])
     })
+
     it('should get multiple cap values from mixed keys', async function () {
       const values = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, {
         SIMPLEREST_RESPONSE_JSONPATH_0: [
@@ -993,7 +1201,8 @@ describe('connectors.simplerest', function () {
       assert.deepEqual(values, ['$.1', '$.2', '$.3', '$.4'])
     })
   })
-  describe('useresponse', function () {
+
+  describe('userresponse', function () {
     beforeEach(async function () {
       this.init = async (caps) => {
         this.scope = nock('https://mock.com')
@@ -1021,6 +1230,7 @@ describe('connectors.simplerest', function () {
         await this.container.Start()
       }
     })
+
     afterEach(async function () {
       await this.container.Stop()
       await this.container.Clean()
@@ -1146,6 +1356,7 @@ describe('connectors.simplerest', function () {
       }
     })
   })
+
   describe('inbound', function () {
     it('should accept inbound message with matching jsonpath', async function () {
       const myCaps = Object.assign({}, myCapsGet)
@@ -1183,6 +1394,7 @@ describe('connectors.simplerest', function () {
 
       return result
     })
+
     it('should reorder multiple inbound message with order jsonpath', async function () {
       const myCaps = Object.assign({}, myCapsGet)
       myCaps[Capabilities.SIMPLEREST_RESPONSE_JSONPATH] = '$.text'
@@ -1243,6 +1455,7 @@ describe('connectors.simplerest', function () {
       return result
     })
   })
+
   describe('polling', function () {
     it('should poll HTTP url', async function () {
       const caps = {
@@ -1306,6 +1519,7 @@ describe('connectors.simplerest', function () {
       scope.persist(false)
     }).timeout(5000)
   })
+
   describe('flow', function () {
     it('should ignore matching message', async function () {
       const caps = {
@@ -1334,6 +1548,7 @@ describe('connectors.simplerest', function () {
       await container.Clean()
       scope.persist(false)
     })
+
     it('should skip matching message', async function () {
       const caps = {
         [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -1358,6 +1573,7 @@ describe('connectors.simplerest', function () {
       await container.Clean()
       scope.persist(false)
     })
+
     it('should continue on matching message', async function () {
       const caps = {
         [Capabilities.CONTAINERMODE]: 'simplerest',
