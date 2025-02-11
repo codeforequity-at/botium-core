@@ -810,6 +810,80 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+    it('should parse jsonmessage from sourcedata if it enabled', async function () {
+      const msgJSON = {
+        sourceData: {
+          key: 'value'
+        }
+      }
+
+      const myCaps = Object.assign({}, myCapsPost)
+      myCaps[Capabilities.SIMPLEREST_BODY_FROM_JSON] = true
+      myCaps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE] = undefined
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+      assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+      await container.Start()
+      const request = await container.pluginInstance._buildRequest(msgJSON)
+
+      assert.isTrue(request.json)
+      assert.isString(request.body)
+      const body = JSON.parse(request.body)
+      assert.exists(body.key)
+      assert.exists(msgJSON.sourceData)
+      assert.exists(msgJSON.sourceData.key)
+      assert.equal(body.key, msgJSON.sourceData.key)
+
+      await container.Clean()
+    })
+    it('should fall back to text message if using jsonmessage from sourcedata is enabled, but sourcedata is not set', async function () {
+      const myCaps = Object.assign({}, myCapsPost)
+      myCaps[Capabilities.SIMPLEREST_BODY_FROM_JSON] = true
+      myCaps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE] = undefined
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+      assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+      await container.Start()
+      const request = await container.pluginInstance._buildRequest(msg)
+
+      assert.isTrue(request.json)
+      assert.isString(request.body)
+      const body = JSON.parse(request.body)
+      assert.equal(body.BODY2, msg.messageText)
+
+      await container.Clean()
+    })
+    it('should handle somehow if jsonmessage from sourcedata is enabled, and booth json, and text are set in the user message (impossible state)', async function () {
+      // this is not a valid state. In case there is a json as message in a convo.txt, text parser parses it into the sourceData field, and keeps messageText empty
+      const msgTextAndJSONIllegal = {
+        messageText: 'some user message',
+        sourceData: {
+          key: 'value'
+        }
+      }
+      const myCaps = Object.assign({}, myCapsPost)
+      myCaps[Capabilities.SIMPLEREST_BODY_FROM_JSON] = true
+      myCaps[Capabilities.SIMPLEREST_HEADERS_TEMPLATE] = undefined
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+      assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+      await container.Start()
+      const request = await container.pluginInstance._buildRequest(msgTextAndJSONIllegal)
+
+      // json message from sourcedata wins, but we dont really care wich one. Just no error should be thrown.
+      assert.isTrue(request.json)
+      assert.isString(request.body)
+      const body = JSON.parse(request.body)
+      assert.exists(body.key)
+      assert.exists(msgTextAndJSONIllegal.sourceData)
+      assert.exists(msgTextAndJSONIllegal.sourceData.key)
+      assert.equal(body.key, msgTextAndJSONIllegal.sourceData.key)
+
+      await container.Clean()
+    })
   })
 
   describe('processBody', function () {

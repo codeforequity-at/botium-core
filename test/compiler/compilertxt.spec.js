@@ -252,6 +252,24 @@ describe('compiler.compilertxt', function () {
     assert.equal(convo.conversation[0].logicHooks.length, 0)
     assert.equal(convo.conversation[1].messageText, 'Hi')
   })
+  // connectors might handle json format differently
+  it('should read json as message', async function () {
+    const scriptBuffer = fs.readFileSync(path.resolve(__dirname, CONVOS_DIR, 'convos_jsonmessage.convo.txt'))
+    const context = buildContext()
+
+    const caps = {}
+    const compiler = new Compiler(context, Object.assign({}, DefaultCapabilities, caps))
+
+    compiler.Compile(scriptBuffer, 'SCRIPTING_TYPE_CONVO')
+    assert.deepEqual(context.convos[0].conversation[0].sourceData, {
+      sessionId: '1234567890876543',
+      text: 'Text message',
+      data: {
+        key: 'value'
+      }
+    })
+    assert.equal(!!context.convos[0].conversation[0].messageText, false)
+  })
 
   describe('compiler.compilertxt.logichooks', function () {
     it('should read logicHook if there is just logicHook', async function () {
