@@ -551,7 +551,16 @@ module.exports = class SimpleRestContainer {
           fetch(requestOptions.uri, requestOptions).then(async (bodyRaw) => {
             let body
             try {
-              body = await (requestOptions.json ? bodyRaw.json() : bodyRaw.text())
+              if (bodyRaw.headers.get('content-type').includes('application/json')) {
+                try {
+                  body = await bodyRaw.json()
+                } catch (err) {
+                  body = await bodyRaw.text()
+                  debug(`failed to parse body as text, using text instead: ${body}`)
+                }
+              } else {
+                body = await bodyRaw.text()
+              }
             } catch (err) {
               return reject(new Error(`cant parse body: ${err.message}`))
             }
@@ -636,7 +645,14 @@ module.exports = class SimpleRestContainer {
         throw new Error(`composing headers from SIMPLEREST_HEADERS_TEMPLATE failed (${err.message})`)
       }
     }
-    if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
+    // It is possible to mix json, and non-json request messages. So it can happen that both
+    // SIMPLEREST_BODY_FROM_JSON and SIMPLEREST_BODY_TEMPLATE are set
+    if (this.caps[Capabilities.SIMPLEREST_BODY_FROM_JSON] && msg.sourceData && Object.keys(msg.sourceData).length > 0) {
+      requestOptions.body = msg.sourceData
+      requestOptions.json = true
+      if (!requestOptions.headers) requestOptions.headers = {}
+      requestOptions.headers['Content-Type'] = 'application/json'
+    } else if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
       const bodyRaw = this._getCapValue(Capabilities.SIMPLEREST_BODY_RAW)
       if (bodyRaw) {
         this.view.msg.messageText = nonEncodedMessage

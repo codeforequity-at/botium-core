@@ -1,0 +1,10 @@
+JSON
+
+#me
+{
+  "sessionId": "1234567890876543",
+  "text": "Text message",
+  "data": {
+    "key": "value"
+  }
+}
