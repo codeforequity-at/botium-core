@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const { SCRIPTING_NORMALIZE_TEXT } = require('../../../Capabilities')
 const { BotiumError } = require('../../BotiumError')
 const { buttonsFromMsg } = require('../helpers')
 const { normalizeText } = require('../../helper')
@@ -12,7 +11,7 @@ module.exports = class ButtonsAsserter {
   }
 
   _evalButtons (args, botMsg) {
-    const allButtons = buttonsFromMsg(botMsg, true).map(b => ({ text: b.text, payload: b.payload })).filter(b => b).map(b => ({ text: normalizeText(b.text, !!this.caps[SCRIPTING_NORMALIZE_TEXT]), payload: b.payload }))
+    const allButtons = buttonsFromMsg(botMsg, true).map(b => ({ text: b.text, payload: b.payload })).filter(b => b).map(b => ({ text: normalizeText(b.text, this.caps), payload: b.payload }))
     if (!args || args.length === 0) {
       return { allButtons, buttonsNotFound: [], buttonsFound: allButtons.map(b => b.text) }
     }
@@ -29,8 +28,8 @@ module.exports = class ButtonsAsserter {
       }
     }
     for (let i = 0; i < (args || []).length; i++) {
-      const matchByText = allButtons.some(b => this.context.Match(b.text, normalizeText(args[i], !!this.caps[SCRIPTING_NORMALIZE_TEXT])))
-      const matchByPayload = allButtons.some(b => this.context.Match(stringifyPayload(b.payload), normalizeText(args[i], !!this.caps[SCRIPTING_NORMALIZE_TEXT])))
+      const matchByText = allButtons.some(b => this.context.Match(b.text, normalizeText(args[i], this.caps)))
+      const matchByPayload = allButtons.some(b => this.context.Match(stringifyPayload(b.payload), normalizeText(args[i], this.caps)))
       if (matchByText || matchByPayload) {
         buttonsFound.push(args[i])
       } else {
