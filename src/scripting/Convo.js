@@ -825,7 +825,7 @@ class Convo {
   }
 
   _checkNormalizeText (container, str) {
-    return normalizeText(str, !!container.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT])
+    return normalizeText(str, container.caps)
   }
 
   expandPartialConvos () {

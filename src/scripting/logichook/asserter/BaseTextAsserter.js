@@ -1,4 +1,3 @@
-const Capabilities = require('../../../Capabilities')
 const { BotiumError } = require('../../BotiumError')
 const { normalizeText, toString } = require('../../helper')
 const _ = require('lodash')
@@ -16,7 +15,7 @@ module.exports = class BaseTextAsserter {
   }
 
   _checkNormalizeText (str) {
-    return normalizeText(str, !!this.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT])
+    return normalizeText(str, this.caps)
   }
 
   _normalize (botresponse) {

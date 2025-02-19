@@ -17,6 +17,7 @@ describe('scripting.scriptingProvider', function () {
       assert.isArray(convos)
       assert.equal(convos.length, 2)
     })
+
     it('should read multiple files from dir with globFilter', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -25,6 +26,7 @@ describe('scripting.scriptingProvider', function () {
       assert.isArray(convos)
       assert.equal(convos.length, 2)
     })
+
     it('should ignore files from dir with globFilter', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -33,6 +35,7 @@ describe('scripting.scriptingProvider', function () {
       assert.isArray(convos)
       assert.equal(convos.length, 0)
     })
+
     it('should read single file from file path', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -41,6 +44,7 @@ describe('scripting.scriptingProvider', function () {
       assert.isArray(convos)
       assert.equal(convos.length, 1)
     })
+
     it('should skip convos', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -68,6 +72,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(tomatch[1], 'TEXT2')
       scriptingContext.scriptingEvents.assertBotResponse('TEXT1', tomatch, 'test1', null, {})
     })
+
     it('should resolve multiple utterance', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -93,6 +98,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(tomatchUtt2[0], 'TEXT3')
       assert.equal(tomatchUtt2[1], 'TEXT4')
     })
+
     it('should resolve null on invalid utterance', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -108,6 +114,7 @@ describe('scripting.scriptingProvider', function () {
       })
       assert.isNull(tomatch)
     })
+
     it('should fail on invalid utterance', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -133,6 +140,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(err.context.cause.actual, 'TEXT1')
       }
     })
+
     it('should fail on unresolved utterance', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -153,6 +161,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(err.context.cause.actual, 'TEXT1')
       }
     })
+
     it('should resolve and format utterance args', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -169,6 +178,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(tomatch[1], 'TEXT2 hello')
       scriptingContext.scriptingEvents.assertBotResponse('TEXT1 hello', tomatch, 'test1', null, {})
     })
+
     it('should resolve and append utterance args', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -246,6 +256,7 @@ describe('scripting.scriptingProvider', function () {
       const scriptingProvider = new ScriptingProvider()
       assert.equal(scriptingProvider._isValidAsserterType('assertConvoStep'), true)
     })
+
     it('invalid asserterType', async function () {
       const scriptingProvider = new ScriptingProvider()
       assert.equal(scriptingProvider._isValidAsserterType('assertStep'), false)
@@ -294,6 +305,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt1-L2')
       assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
     })
+
     it('should build convos for utterance using iterator', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -336,6 +348,7 @@ describe('scripting.scriptingProvider', function () {
       //   assert.deepEqual(iteratedConvo, expected[index])
       // })
     })
+
     it('should build convos for utterance with parameters', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -364,6 +377,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt1-L2')
       assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2 arg0 1')
     })
+
     it('should build convos for utterance with whitespace', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -392,6 +406,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].header.name, 'test convo/utt with some whitespace-L2')
       assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
     })
+
     describe('should build convos for SCRIPTING_UTTEXPANSION_NAMING_MODE', function () {
       const utterances = [
         {
@@ -442,6 +457,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[0].header.name, 'test convo/uttText-L1-TEXT1 0123456...')
         assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
       })
+
       it('SCRIPTING_UTTEXPANSION_NAMING_MODE=utterance len=1', async function () {
         const scriptingProvider = new ScriptingProvider(Object.assign(
           {},
@@ -474,6 +490,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[0].conversation.length, 1)
         assert.equal(scriptingProvider.convos[0].header.name, 'test convo')
       })
+
       it('SCRIPTING_UTTEXPANSION_NAMING_MODE=utterance, turn length off', async function () {
         const scriptingProvider = new ScriptingProvider(Object.assign(
           {},
@@ -513,6 +530,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[0].header.name, 'test convo/uttText-L1-TEXT1 0...')
         assert.equal(scriptingProvider.convos[1].header.name, 'test convo/uttText-L2-TEXT2 0...')
       })
+
       it('SCRIPTING_UTTEXPANSION_NAMING_MODE=utterance userinputs', async function () {
         const scriptingProvider = new ScriptingProvider(Object.assign(
           {},
@@ -551,6 +569,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[1].header.name, 'test convo/MEDIA-L2-test2 0123456...')
         assert.equal(scriptingProvider.convos[2].header.name, 'test convo/MEDIA-L3-test3.jpg')
       })
+
       it('SCRIPTING_UTTEXPANSION_NAMING_MODE=utterance userinputs len=1', async function () {
         const scriptingProvider = new ScriptingProvider(Object.assign(
           {},
@@ -587,6 +606,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[0].conversation.length, 1)
         assert.equal(scriptingProvider.convos[0].header.name, 'test convo')
       })
+
       it('SCRIPTING_UTTEXPANSION_NAMING_MODE=utterance userinputs and utterances', async function () {
         const scriptingProvider = new ScriptingProvider(Object.assign(
           {},
@@ -630,6 +650,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(scriptingProvider.convos[4].header.name, 'test convo/uttText-L2-TEXT2 0123456...')
       })
     })
+
     describe('should have be possible to generate / store convos partially', function () {
       const _createConvos = async () => {
         const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
@@ -720,6 +741,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].conversation[0].messageText, 'TEXT2')
       assert.equal(scriptingProvider.convos[1].toString(), '2 utt1/utt1-L00002 (Expanded Utterances - utt1) ({ origUttName: \'utt1\', origConvoName: \'utt1\' }): Step 1 - tell utterance: #me - TEXT2 SKIP_BOT_UNCONSUMED(no args) | Step 2 - check bot response: #bot - ')
     }).timeout(5000)
+
     it('should build incomprehension convos for utterance', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_INCOMPREHENSION: 'INCOMPREHENSION' }))
       await scriptingProvider.Build()
@@ -750,6 +772,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].conversation[1].messageText, 'INCOMPREHENSION')
       assert.equal(scriptingProvider.convos[1].conversation[1].not, true)
     })
+
     it('should build intent check convos for utterance', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_USENAMEASINTENT: true }))
       await scriptingProvider.Build()
@@ -779,6 +802,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].name, 'INTENT')
       assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].args[0], 'utt1')
     })
+
     it('should build intent check convos for utterance (with arg)', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
       await scriptingProvider.Build()
@@ -808,6 +832,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].name, 'INTENT')
       assert.equal(scriptingProvider.convos[1].conversation[1].asserters[0].args[0], 'utt1')
     })
+
     it('should build check-only convos for utterance', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
       await scriptingProvider.Build()
@@ -834,6 +859,7 @@ describe('scripting.scriptingProvider', function () {
       assert.equal(scriptingProvider.convos[1].conversation[1].messageText, '')
       assert.isFalse(scriptingProvider.convos[1].conversation[1].not)
     })
+
     it('should fail incomprehension convos for utterance without incomprehension utt', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities, { SCRIPTING_UTTEXPANSION_INCOMPREHENSION: 'INCOMPREHENSION' }))
       await scriptingProvider.Build()
@@ -845,6 +871,7 @@ describe('scripting.scriptingProvider', function () {
         assert.isTrue(err.message.indexOf('incomprehension utterance \'INCOMPREHENSION\' undefined') > 0)
       }
     })
+
     it('should add incomprehension utterances to new utterance list', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
       await scriptingProvider.Build()
@@ -856,6 +883,7 @@ describe('scripting.scriptingProvider', function () {
       scriptingProvider.ExpandUtterancesToConvos({ incomprehensionUtt: 'INCOMPREHENSION', incomprehensionUtts: ['INCOMPREHENSION3', 'INCOMPREHENSION4'] })
       assert.lengthOf(scriptingProvider.utterances.INCOMPREHENSION.utterances, 2)
     })
+
     it('should add incomprehension utterances to new default utterance list', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
       await scriptingProvider.Build()
@@ -867,6 +895,7 @@ describe('scripting.scriptingProvider', function () {
       scriptingProvider.ExpandUtterancesToConvos({ incomprehensionUtts: ['INCOMPREHENSION3', 'INCOMPREHENSION4'] })
       assert.lengthOf(scriptingProvider.utterances.UTT_INCOMPREHENSION.utterances, 2)
     })
+
     it('should add incomprehension utterances to existing utterance list', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
       await scriptingProvider.Build()
@@ -882,6 +911,7 @@ describe('scripting.scriptingProvider', function () {
       scriptingProvider.ExpandUtterancesToConvos({ incomprehensionUtt: 'INCOMPREHENSION', incomprehensionUtts: ['INCOMPREHENSION3', 'INCOMPREHENSION4'] })
       assert.lengthOf(scriptingProvider.utterances.INCOMPREHENSION.utterances, 4)
     })
+
     it('should add incomprehension intent to asserter list', async function () {
       const scriptingProvider = new ScriptingProvider(Object.assign({}, DefaultCapabilities))
       await scriptingProvider.Build()
@@ -916,6 +946,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(err.message, 'test1: Bot response "actual" expected to match "expected"')
       }
     })
+
     it('should fail with correct error message on empty bot message', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -927,6 +958,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(err.message, 'test1: Bot response <no response> expected to match "expected"')
       }
     })
+
     it('should fail with correct error message on multiple tomatch', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -952,6 +984,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(err.message, 'test1: Bot response "Keine Antwort gefunden!" expected NOT to match "Keine Antwort gefunden"')
       }
     })
+
     it('should fail with correct error message on by empty asserter', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
@@ -963,6 +996,7 @@ describe('scripting.scriptingProvider', function () {
         assert.equal(err.message, 'test1: Bot response "Keine Antwort gefunden!" expected NOT to match <any response>')
       }
     })
+
     it('should fail with correct error message on by empty asserter, and empty bot response', async function () {
       const scriptingProvider = new ScriptingProvider(DefaultCapabilities)
       await scriptingProvider.Build()
