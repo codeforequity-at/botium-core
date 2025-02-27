@@ -4,9 +4,35 @@ const speechScorer = require('word-error-rate')
 const debug = require('debug')('botium-core-scripting-helper')
 
 const { E_SCRIPTING_MEMORY_COLUMN_MODE } = require('../Enums')
+const Capabilities = require('../Capabilities')
 const WHITE_SPACES_EXCEPT_SPACE_CHAR_AT_THE_END = /[\n\t\r]+$/
 
-const normalizeText = (str, doCleanup) => {
+const normalizeText = (str, doCleanupOrCaps) => {
+  // TODO testlog
+  debug('yxc1', doCleanupOrCaps)
+  let basic
+  let charactersRemove = false
+  let regexpRemove = false
+  if (_.isBoolean(doCleanupOrCaps) || _.isNil(doCleanupOrCaps)) {
+    debug('Normalize text: backward compatibility mode. Use caps instead of boolean flag')
+    basic = !!doCleanupOrCaps
+  } else {
+    const caps = doCleanupOrCaps
+    basic = !!caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]
+    if (caps[Capabilities.SCRIPTING_NORMALIZE_TEXT_REMOVE_CHARACTERES]) {
+      charactersRemove = caps[Capabilities.SCRIPTING_NORMALIZE_TEXT_REMOVE_CHARACTERES]
+      if (_.isString(charactersRemove)) {
+        const splitted = charactersRemove.split(/(?<!\/),/).map(e => e.trim()).map(e => e.split('/,').join(',').split('//').join('/')).filter(c => c.length > 0)
+        charactersRemove = splitted.length ? splitted : [charactersRemove]
+      } else if (!_.isArray(charactersRemove)) {
+        charactersRemove = false
+      }
+    }
+    if (caps[Capabilities.SCRIPTING_NORMALIZE_TEXT_REMOVE_REGEXP]) {
+      regexpRemove = new RegExp(caps[Capabilities.SCRIPTING_NORMALIZE_TEXT_REMOVE_REGEXP], 'ug')
+    }
+  }
+
   if (str && _.isArray(str)) {
     str = str.join(' ')
   } else if (str && !_.isString(str)) {
@@ -16,27 +42,38 @@ const normalizeText = (str, doCleanup) => {
       str = `${str}`
     }
   }
-  if (str && doCleanup) {
-    // remove html tags
-    str = str.replace(/<p[^>]*>/g, ' ')
-    str = str.replace(/<\/p>/g, ' ')
-    str = str.replace(/<br[^>]*>/g, ' ')
-    str = str.replace(/<[^>]*>/g, '')
-    /* eslint-disable no-control-regex */
-    // remove not printable characters
-    str = str.replace(/[\x00-\x1F\x7F]/g, ' ')
-    /* eslint-enable no-control-regex */
-    // replace html entities
-    str = str
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&#39;/g, '\'')
-      .replace(/&quot;/g, '"')
-    // replace two spaces with one
-    str = str.replace(/\s+/g, ' ')
 
-    str = str.split('\n').map(s => s.trim()).join('\n').trim()
+  if (str) {
+    if (basic) {
+      // remove html tags
+      str = str.replace(/<p[^>]*>/g, ' ')
+      str = str.replace(/<\/p>/g, ' ')
+      str = str.replace(/<br[^>]*>/g, ' ')
+      str = str.replace(/<[^>]*>/g, '')
+      /* eslint-disable no-control-regex */
+      // remove not printable characters
+      str = str.replace(/[\x00-\x1F\x7F]/g, ' ')
+      /* eslint-enable no-control-regex */
+      // replace html entities
+      str = str
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&#39;/g, '\'')
+        .replace(/&quot;/g, '"')
+      // replace two spaces with one
+      str = str.replace(/\s+/g, ' ')
+
+      str = str.split('\n').map(s => s.trim()).join('\n').trim()
+    }
+    if (charactersRemove) {
+      for (const character of charactersRemove) {
+        str = str.split(character).join('')
+      }
+    }
+    if (regexpRemove) {
+      str = str.replace(regexpRemove, '')
+    }
   }
   return str
 }

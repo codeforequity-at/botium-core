@@ -103,13 +103,11 @@ describe('customhooks.hookfromsrc', function () {
 
     const { container } = await buildDriver({
       [Capabilities.CUSTOMHOOK_ONSTART]: async ({ container, request }) => {
-        return new Promise((resolve, reject) => {
-          request({ method: 'get', uri: 'https://gettoken.com/get', json: true }, (err, response, body) => {
-            if (err) return reject(err)
+        return fetch('https://gettoken.com/get')
+          .then(response => response.json())
+          .then(body => {
             container.caps.MYTOKEN = body.token
-            resolve()
           })
-        })
       }
     })
     await container.Start()

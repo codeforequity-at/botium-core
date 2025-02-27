@@ -1,6 +1,5 @@
 const util = require('util')
 const async = require('async')
-const request = require('request')
 const Mustache = require('mustache')
 const jp = require('jsonpath')
 const mime = require('mime-types')
@@ -8,6 +7,7 @@ const { v4: uuidv4 } = require('uuid')
 const Redis = require('ioredis')
 const _ = require('lodash')
 const debug = require('debug')('botium-connector-simplerest')
+const { ProxyAgent, Agent } = require('undici')
 
 const { startProxy } = require('../../grid/inbound/proxy')
 const botiumUtils = require('../../helpers/Utils')
@@ -77,6 +77,17 @@ module.exports = class SimpleRestContainer {
   }
 
   Build () {
+    const agentOptions = {
+      connect: {
+        rejectUnauthorized: !!this.caps[Capabilities.SIMPLEREST_STRICT_SSL] // Equivalent to strictSSL of request module
+      }
+    }
+    if (this.caps[Capabilities.SIMPLEREST_PROXY_URL]) {
+      this.dispatcher = new ProxyAgent(this.caps[Capabilities.SIMPLEREST_PROXY_URL], agentOptions)
+    } else {
+      this.dispatcher = new Agent(agentOptions)
+    }
+
     return this._buildInbound()
   }
 
@@ -233,6 +244,31 @@ module.exports = class SimpleRestContainer {
 
   Clean () {
     return this._cleanInbound()
+  }
+
+  _fetchify (requestOptions) {
+    requestOptions.signal = AbortSignal.timeout(requestOptions.timeout)
+    delete requestOptions.timeout
+
+    if (requestOptions.body && !_.isString(requestOptions.body)) {
+      requestOptions.body = JSON.stringify(requestOptions.body)
+      if (!requestOptions.headers) requestOptions.headers = {}
+      if (!requestOptions.headers['Content-Type'] && !requestOptions.headers['content-type']) {
+        requestOptions.headers['Content-Type'] = 'application/json'
+      }
+    }
+
+    if (requestOptions.form) {
+      if (requestOptions.body) {
+        debug('Request.form and request.body are mutually exclusive')
+      }
+      requestOptions.body = new URLSearchParams(requestOptions.form).toString()
+      // it is set automatically by fetch
+      // requestOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+      delete requestOptions.form
+    }
+
+    return requestOptions
   }
 
   // Separated just for better module testing
@@ -511,12 +547,25 @@ module.exports = class SimpleRestContainer {
 
         this.waitProcessQueue = []
 
-        request(requestOptions, async (err, response, body) => {
-          if (err) {
-            return reject(new Error(`rest request failed: ${err.message}`))
-          } else {
-            if (response.statusCode >= 400) {
-              debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
+        try {
+          fetch(requestOptions.uri, requestOptions).then(async (bodyRaw) => {
+            let body
+            try {
+              if (bodyRaw.headers.get('content-type').includes('application/json')) {
+                try {
+                  body = await bodyRaw.json()
+                } catch (err) {
+                  body = await bodyRaw.text()
+                  debug(`failed to parse body as text, using text instead: ${body}`)
+                }
+              } else {
+                body = await bodyRaw.text()
+              }
+            } catch (err) {
+              return reject(new Error(`cant parse body: ${err.message}`))
+            }
+            if (!bodyRaw.ok) {
+              debug(`got error response: ${bodyRaw.status}/${bodyRaw.statusText}`)
               if (debug.enabled && body) {
                 debug(botiumUtils.shortenJsonString(body))
               }
@@ -524,40 +573,45 @@ module.exports = class SimpleRestContainer {
                 const jsonBody = botiumUtils.toJsonWeak(body)
                 const errKey = Object.keys(jsonBody).find(k => k.startsWith('err') || k.startsWith('fail'))
                 if (errKey) {
-                  return reject(new BotiumError(`got error response: ${response.statusCode}/${response.statusMessage} - ${jsonBody[errKey]}`, {
+                  return reject(new BotiumError(`got error response: ${bodyRaw.status}/${bodyRaw.statusText} - ${jsonBody[errKey]}`, {
                     message: botiumUtils.shortenJsonString(body)
                   }))
                 }
               }
-              return reject(new Error(`got error response: ${response.statusCode}/${response.statusMessage}`))
+              return reject(new Error(`got error response: ${bodyRaw.status}/${bodyRaw.statusText}`))
             }
-
             if (body) {
-              debug(`got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}, headers: ${botiumUtils.shortenJsonString(response.headers)}`)
-              this._storeCookiesFromResponse(response)
-              try {
-                body = await this._parseResponseBody(body)
-              } catch (err) {
-                debug(`ignoring not JSON formatted response body: ${err.message}`)
-                resolve(this)
-                this._emptyWaitProcessQueue()
-                return
-              }
+              debug(`got response code: ${bodyRaw.status}/${bodyRaw.statusText}, body: ${botiumUtils.shortenJsonString(body)}, headers: ${botiumUtils.shortenJsonString(bodyRaw.headers)}`)
+              this._storeCookiesFromResponse(bodyRaw)
 
-              if (body) {
-                this._processBodyAsync(body, response.headers, isFromUser, updateContext).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
-              } else {
-                debug('ignoring response body (no string and no JSON object)')
-                resolve(this)
-                this._emptyWaitProcessQueue()
-              }
+              this._parseResponseBody(body)
+                .then((parsedBody) => {
+                  body = parsedBody
+                  if (body) {
+                    this._processBodyAsync(body, bodyRaw.headers, isFromUser, updateContext).then(() => resolve(this)).then(() => this._emptyWaitProcessQueue())
+                  } else {
+                    debug('ignoring response body (no string and no JSON object)')
+                    resolve(this)
+                    this._emptyWaitProcessQueue()
+                  }
+                })
+                .catch((err) => {
+                  debug(`ignoring not JSON formatted response body: ${err.message}`)
+                  resolve(this)
+                  this._emptyWaitProcessQueue()
+                })
             } else {
-              debug(`got response code: ${response.statusCode}, empty body`)
+              debug(`got response code: ${bodyRaw.status}/${bodyRaw.statusText}, empty body`)
               resolve(this)
               this._emptyWaitProcessQueue()
             }
-          }
-        })
+          }).catch((err) => {
+            // rest request failed: fetch failed - Cause code: ECONNREFUSED - Cause message: connect ECONNREFUSED 127.0.0.1:3006
+            return reject(new Error(`rest request failed: ${err.message}${err.cause && err.cause.code ? ' - Cause code: ' + err.cause.code : ''}${err.cause && err.cause.message ? ' - Cause message: ' + err.cause.message : ''}`))
+          })
+        } catch (err) {
+          return reject(new Error(`rest request failed: ${err.message}`))
+        }
       }))
   }
 
@@ -580,7 +634,6 @@ module.exports = class SimpleRestContainer {
     const requestOptions = {
       uri,
       method: this._getCapValue(Capabilities.SIMPLEREST_VERB) || this._getCapValue(Capabilities.SIMPLEREST_METHOD),
-      followAllRedirects: true,
       timeout
     }
 
@@ -592,7 +645,14 @@ module.exports = class SimpleRestContainer {
         throw new Error(`composing headers from SIMPLEREST_HEADERS_TEMPLATE failed (${err.message})`)
       }
     }
-    if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
+    // It is possible to mix json, and non-json request messages. So it can happen that both
+    // SIMPLEREST_BODY_FROM_JSON and SIMPLEREST_BODY_TEMPLATE are set
+    if (this.caps[Capabilities.SIMPLEREST_BODY_FROM_JSON] && msg.sourceData && Object.keys(msg.sourceData).length > 0) {
+      requestOptions.body = msg.sourceData
+      requestOptions.json = true
+      if (!requestOptions.headers) requestOptions.headers = {}
+      requestOptions.headers['Content-Type'] = 'application/json'
+    } else if (this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]) {
       const bodyRaw = this._getCapValue(Capabilities.SIMPLEREST_BODY_RAW)
       if (bodyRaw) {
         this.view.msg.messageText = nonEncodedMessage
@@ -604,6 +664,10 @@ module.exports = class SimpleRestContainer {
         requestOptions.json = !bodyRaw
         if (requestOptions.json && (!requestOptions.body || Object.keys(requestOptions.body).length === 0)) {
           debug(`warning: requestOptions.body content seems to be empty - ${requestOptions.body} - capability: "${this.caps[Capabilities.SIMPLEREST_BODY_TEMPLATE]}"`)
+        }
+        if (!bodyRaw) {
+          if (!requestOptions.headers) requestOptions.headers = {}
+          requestOptions.headers['Content-Type'] = 'application/json'
         }
       } catch (err) {
         throw new Error(`composing body from SIMPLEREST_BODY_TEMPLATE failed (${err.message})`)
@@ -646,48 +710,53 @@ module.exports = class SimpleRestContainer {
       }
     }
     this._addRequestOptions(requestOptions)
+    this._fetchify(requestOptions)
     await executeHook(this.caps, this.requestHook, Object.assign({ requestOptions }, this.view))
     this._addRequestCookies(requestOptions)
 
     return requestOptions
   }
 
-  async _waitForUrlResponse (pingConfig, retries) {
+  async _waitForUrlResponse (httpConfig, retries) {
     const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
 
     let tries = 0
 
     while (true) {
-      debug(`_waitForUrlResponse checking url ${pingConfig.uri} before proceed`)
+      debug(`_waitForUrlResponse checking url ${httpConfig.uri} before proceed`)
       if (tries > retries) {
         throw new Error(`Failed to ping bot after ${retries} retries`)
       }
       tries++
-      const { err, response, body } = await this.bottleneck(() => new Promise((resolve) => {
-        request(pingConfig, (err, response, body) => {
-          resolve({ err, response, body })
-        })
-      }))
+      let bodyRaw
+      let body
+      let err
+      try {
+        bodyRaw = await this.bottleneck(() => fetch(httpConfig.uri, httpConfig))
+        body = await ((httpConfig.json) ? bodyRaw.json() : bodyRaw.text())
+      } catch (e) {
+        err = e
+      }
       if (err) {
-        debug(`_waitForUrlResponse error on url check ${pingConfig.uri}: ${err}`)
+        debug(`_waitForUrlResponse error on url check ${httpConfig.uri}: ${err}`)
         if (tries <= retries) {
-          await timeout(pingConfig.timeout)
+          await timeout(httpConfig.timeout)
         }
-      } else if (response.statusCode >= 400) {
-        debug(`_waitForUrlResponse on url check ${pingConfig.uri} got error response: ${response.statusCode}/${response.statusMessage}`)
+      } else if (!bodyRaw.ok) {
+        debug(`_waitForUrlResponse on url check ${httpConfig.uri} got error response: ${bodyRaw.status}/${bodyRaw.statusText}`)
         if (debug.enabled && body) {
           debug(botiumUtils.shortenJsonString(body))
         }
         if (tries <= retries) {
-          await timeout(pingConfig.timeout)
+          await timeout(httpConfig.timeout)
         }
       } else {
-        debug(`_waitForUrlResponse success on url check ${pingConfig.uri}: ${response.statusCode}/${response.statusMessage}`)
-        this._storeCookiesFromResponse(response)
+        debug(`_waitForUrlResponse success on url check ${httpConfig.uri}: ${bodyRaw.status}/${bodyRaw.statusText}`)
+        this._storeCookiesFromResponse(bodyRaw)
         if (debug.enabled && body) {
-          debug(`body: ${botiumUtils.shortenJsonString(body)}, headers: ${botiumUtils.shortenJsonString(response.headers)}`)
+          debug(`body: ${botiumUtils.shortenJsonString(body)}, headers: ${botiumUtils.shortenJsonString(bodyRaw.headers)}`)
         }
-        return { body, headers: response.headers }
+        return { body, headers: bodyRaw.headers }
       }
     }
   }
@@ -848,7 +917,6 @@ module.exports = class SimpleRestContainer {
       const pollConfig = {
         method: verb,
         uri,
-        followAllRedirects: true,
         timeout
       }
       if (this.caps[Capabilities.SIMPLEREST_POLL_HEADERS]) {
@@ -864,13 +932,17 @@ module.exports = class SimpleRestContainer {
         try {
           pollConfig.body = this._getMustachedCap(Capabilities.SIMPLEREST_POLL_BODY, !bodyRaw)
           pollConfig.json = !bodyRaw
+          if (!bodyRaw) {
+            if (!pollConfig.headers) pollConfig.headers = {}
+            pollConfig.headers['Content-Type'] = 'application/json'
+          }
         } catch (err) {
           debug(`_runPolling: composing body from SIMPLEREST_POLL_BODY failed (${err.message})`)
           return
         }
       }
       this._addRequestOptions(pollConfig)
-
+      this._fetchify(pollConfig)
       try {
         await executeHook(this.caps, this.pollRequestHook, Object.assign({ requestOptions: pollConfig }, this.view))
       } catch (err) {
@@ -879,34 +951,34 @@ module.exports = class SimpleRestContainer {
       }
       this._addRequestCookies(pollConfig)
 
-      request(pollConfig, async (err, response, body) => {
-        if (err) {
-          debug(`_runPolling: rest request failed: ${err.message}, request: ${JSON.stringify(pollConfig)}`)
-        } else {
-          if (response.statusCode >= 400) {
-            debug(`_runPolling: got error response: ${response.statusCode}/${response.statusMessage}, request: ${JSON.stringify(pollConfig)}`)
-            if (debug.enabled && body) {
-              debug(botiumUtils.shortenJsonString(body))
-            }
-          } else if (body) {
-            debug(`_runPolling: got response code: ${response.statusCode}, body: ${botiumUtils.shortenJsonString(body)}, headers: ${botiumUtils.shortenJsonString(response.headers)}`)
-            this._storeCookiesFromResponse(response)
-            try {
-              body = await this._parseResponseBody(body)
-            } catch (err) {
-              debug(`_runPolling: ignoring not JSON formatted response body: ${err.message}`)
-              return
-            }
-            if (body) {
-              setTimeout(() => this._processBodyAsync(body, response.headers, true, !!this.caps[Capabilities.SIMPLEREST_POLL_UPDATE_CONTEXT]), 0)
-            } else {
-              debug('_runPolling: ignoring response body (no string and no JSON object)')
-            }
-          } else {
-            debug(`_runPolling: got response code: ${response.statusCode}, empty body`)
+      try {
+        const bodyRaw = await fetch(pollConfig.uri, pollConfig)
+        let body = await ((pollConfig.json) ? bodyRaw.json() : bodyRaw.text())
+        if (!bodyRaw.ok) {
+          debug(`_runPolling: got error response: ${bodyRaw.status}/${bodyRaw.statusText}, request: ${JSON.stringify(pollConfig)}`)
+          if (debug.enabled && body) {
+            debug(botiumUtils.shortenJsonString(body))
           }
+        } else if (body) {
+          debug(`_runPolling: got response code: ${bodyRaw.status}/${bodyRaw.statusText}, body: ${botiumUtils.shortenJsonString(body)}, headers: ${botiumUtils.shortenJsonString(bodyRaw.headers)}`)
+          this._storeCookiesFromResponse(bodyRaw)
+          try {
+            body = await this._parseResponseBody(body)
+          } catch (err) {
+            debug(`_runPolling: ignoring not JSON formatted response body: ${err.message}`)
+            return
+          }
+          if (body) {
+            setTimeout(() => this._processBodyAsync(body, bodyRaw.headers, true, !!this.caps[Capabilities.SIMPLEREST_POLL_UPDATE_CONTEXT]), 0)
+          } else {
+            debug('_runPolling: ignoring response body (no string and no JSON object)')
+          }
+        } else {
+          debug(`_runPolling: got response code: ${bodyRaw.status}/${bodyRaw.statusText}, empty body`)
         }
-      })
+      } catch (err) {
+        debug(`_runPolling: rest request failed: ${err.message}, request: ${JSON.stringify(pollConfig)}`)
+      }
     }
   }
 
@@ -932,7 +1004,6 @@ module.exports = class SimpleRestContainer {
     const httpConfig = {
       method: verb,
       uri,
-      followAllRedirects: true,
       timeout
     }
     if (this.caps[`${capPrefix}_HEADERS`]) {
@@ -952,6 +1023,7 @@ module.exports = class SimpleRestContainer {
       }
     }
     this._addRequestOptions(httpConfig)
+    this._fetchify(httpConfig)
     await executeHook(this.caps, this.requestHooks[capPrefix], Object.assign({ requestOptions: httpConfig }, this.view))
     this._addRequestCookies(httpConfig)
 
@@ -962,9 +1034,8 @@ module.exports = class SimpleRestContainer {
   }
 
   _addRequestOptions (httpConfig) {
-    httpConfig.strictSSL = !!this.caps[Capabilities.SIMPLEREST_STRICT_SSL]
-    if (this.caps[Capabilities.SIMPLEREST_PROXY_URL]) {
-      httpConfig.proxy = this.caps[Capabilities.SIMPLEREST_PROXY_URL]
+    if (this.dispatcher) {
+      httpConfig.dispatcher = this.dispatcher
     }
     if (this.caps[Capabilities.SIMPLEREST_EXTRA_OPTIONS]) {
       _.merge(httpConfig, this.caps[Capabilities.SIMPLEREST_EXTRA_OPTIONS])
@@ -979,25 +1050,23 @@ module.exports = class SimpleRestContainer {
     if (!requestOptions.headers) {
       requestOptions.headers = {}
     }
-    requestOptions.headers.Cookie = requestOptions.headers.Cookie ? `${requestOptions.headers.Cookie}; ${this.cookies[url.host]}` : this.cookies[url.host]
+    if (this.cookies[url.host]) {
+      requestOptions.headers.Cookie = requestOptions.headers.Cookie ? `${requestOptions.headers.Cookie}; ${this.cookies[url.host]}` : this.cookies[url.host]
+    }
   }
 
   _storeCookiesFromResponse (response) {
     if (!this.caps[Capabilities.SIMPLEREST_COOKIE_REPLICATION] || !response) {
       return
     }
-    const responseCookies = response.headers['set-cookie']
+    const responseCookies = response.headers.get('set-cookie')
     if (!responseCookies) {
       return
     }
-    const host = _.get(response, 'request.uri.host')
-    let cookie
-    responseCookies.forEach(cookieString => {
-      cookie = cookie ? `${cookie}; ${cookieString}` : cookieString
-    })
+    const host = response?.url ? new URL(response.url).host : null
 
-    if (cookie) {
-      this.cookies[host] = cookie
+    if (host) {
+      this.cookies[host] = responseCookies
     }
   }
 }
