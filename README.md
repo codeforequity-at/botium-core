@@ -4,7 +4,6 @@
 
 [![NPM](https://nodei.co/npm/botium-core.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/botium-core/)
 
-[ ![Codeship Status for codeforequity-at/botium-core](https://app.codeship.com/projects/0389ad40-cecc-0135-2ddc-161d5c3cc5fd/status?branch=master)](https://app.codeship.com/projects/262204)
 [![npm version](https://badge.fury.io/js/botium-core.svg)](https://badge.fury.io/js/botium-core)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
 [![Discourse users](https://img.shields.io/discourse/users?server=https%3A%2F%2Fforum.botium.ai%2F)](https://forum.botium.ai)
@@ -13,10 +12,6 @@
 [![awesome](https://img.shields.io/badge/Awesome-for%20sure!-green.svg)]()
 
 **_IF YOU LIKE WHAT YOU SEE, PLEASE CONSIDER GIVING US A STAR ON GITHUB!_**
-
-**UPDATE 2020/11/05:** Botium has a FREE, hosted plan available! The new Botium Box Mini is our ❤️ to the community. [Take it for a test drive 🚗 ...](https://www.botium.ai/pricing/)
-
-[![](http://img.youtube.com/vi/ciVxojvRfng/0.jpg)](https://www.youtube.com/watch?v=ciVxojvRfng "Botium Box Mini")
 
 ## Getting Help
 
