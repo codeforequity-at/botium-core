@@ -597,7 +597,7 @@ class Convo {
             }
             Object.assign(scriptingMemory, scriptingMemoryUpdate)
             try {
-              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
+              await this.scriptingEvents.assertConvoStep({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep, transcriptSteps })
               await this.scriptingEvents.onBotEnd({ convo: this, convoStep, container, scriptingMemory, botMsg, transcript, transcriptStep })
               optionalStepAssertionError = false
             } catch (err) {
