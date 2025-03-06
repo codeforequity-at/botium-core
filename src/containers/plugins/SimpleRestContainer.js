@@ -262,9 +262,8 @@ module.exports = class SimpleRestContainer {
       if (requestOptions.body) {
         debug('Request.form and request.body are mutually exclusive')
       }
+      requestOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded'
       requestOptions.body = new URLSearchParams(requestOptions.form).toString()
-      // it is set automatically by fetch
-      // requestOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded'
       delete requestOptions.form
     }
 
@@ -710,9 +709,9 @@ module.exports = class SimpleRestContainer {
       }
     }
     this._addRequestOptions(requestOptions)
-    this._fetchify(requestOptions)
     await executeHook(this.caps, this.requestHook, Object.assign({ requestOptions }, this.view))
     this._addRequestCookies(requestOptions)
+    this._fetchify(requestOptions)
 
     return requestOptions
   }
