@@ -139,8 +139,9 @@ const _assertHook = async (myCaps) => {
   const request = await container.pluginInstance._buildRequest(msg)
 
   assert.exists(request.body)
-  assert.exists(request.body.bodyFieldRequestHook)
-  assert.equal(request.body.bodyFieldRequestHook, 1)
+  const body = JSON.parse(request.body)
+  assert.exists(body.bodyFieldRequestHook)
+  assert.equal(body.bodyFieldRequestHook, 1)
 
   assert.exists(container.pluginInstance.view)
   assert.exists(container.pluginInstance.view.context)
@@ -382,9 +383,8 @@ describe('connectors.simplerest', function () {
         [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: ['$.status']
       }
       const scope = nock('https://mock2.com')
-        .post('/endpointForm', (body) => {
-          return body === 'formparam1=valueparam1%2B-%25'
-        })
+        .post('/endpointForm', 'formparam1=valueparam1%2B-%25')
+        .matchHeader('Content-Type', 'application/x-www-form-urlencoded')
         .reply(200, {
           status: 'ok'
         })
