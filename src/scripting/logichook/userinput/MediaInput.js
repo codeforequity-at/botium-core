@@ -158,7 +158,7 @@ module.exports = class MediaInput {
       const baseDir = this._getBaseDir(convo)
       return args.reduce((e, arg) => {
         if (this._isWildcard(arg)) {
-          const mediaFiles = globSync(arg.replace(/[\(\)\[\]\{\}]/g, '\\$&'), { cwd: baseDir })
+          const mediaFiles = globSync(arg.replace(/[()[\]{}]/g, '\\$&'), { cwd: baseDir })
           mediaFiles.forEach(mf => {
             e.push({
               name: 'MEDIA',
