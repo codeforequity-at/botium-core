@@ -158,6 +158,7 @@ module.exports = class MediaInput {
       const baseDir = this._getBaseDir(convo)
       return args.reduce((e, arg) => {
         if (this._isWildcard(arg)) {
+          // we need to escape brackets to find files
           const mediaFiles = globSync(arg.replace(/[()[\]{}]/g, '\\$&'), { cwd: baseDir })
           mediaFiles.forEach(mf => {
             e.push({
