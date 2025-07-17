@@ -550,7 +550,8 @@ module.exports = class SimpleRestContainer {
           fetch(requestOptions.uri, requestOptions).then(async (bodyRaw) => {
             let body
             try {
-              if (bodyRaw.headers.get('content-type').includes('application/json')) {
+              const contentType = bodyRaw.headers.get('content-type')
+              if (contentType && contentType.includes('application/json')) {
                 try {
                   body = await bodyRaw.json()
                 } catch (err) {
