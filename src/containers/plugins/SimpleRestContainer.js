@@ -496,6 +496,76 @@ module.exports = class SimpleRestContainer {
         })
         debug(`found response cards: ${util.inspect(cards)}`)
 
+        let nlp = { intent: {} }
+        const _normalizeIntent = (intent) => {
+          if ('name' in intent) {
+            if (!intent.name) {
+              intent.name = 'None'
+            }
+            const fallbackIntents = this.caps[Capabilities.SIMPLEREST_NLP_FALLBACK_INTENTS]
+            if (fallbackIntents) {
+              intent.incomprehension = this.caps[Capabilities.SIMPLEREST_NLP_FALLBACK_INTENTS].includes(intent.name) ? true : undefined
+            } else {
+              intent.incomprehension = intent.name.toLowerCase() === 'none' ? true : undefined
+            }
+          }
+
+          if (!_.isNil(intent.confidence)) {
+            if (typeof intent.confidence === 'string') {
+              intent.confidence = Number(intent.confidence)
+            }
+            if (_.isNil(this.caps[Capabilities.SIMPLEREST_NLP_CONFIDENCE_DIVIDEBY100]) ? intent.confidence > 1 : _.isNil(this.caps[Capabilities.SIMPLEREST_NLP_CONFIDENCE_DIVIDEBY100])) {
+              intent.confidence /= 100
+            }
+          }
+
+          return intent
+        }
+        const jsonPathIntent = this.caps[Capabilities.SIMPLEREST_NLP_INTENT_JSONPATH]
+        if (jsonPathIntent) {
+          const name = jp.query(jsonPathRoot, jsonPathIntent)
+          nlp.intent.name = name?.length ? name[0] : null
+        }
+        const jsonPathConfidence = this.caps[Capabilities.SIMPLEREST_NLP_CONFIDENCE_JSONPATH]
+        if (jsonPathConfidence) {
+          const confidence = jp.query(jsonPathRoot, jsonPathConfidence)
+          nlp.intent.confidence = confidence?.length ? confidence[0] : null
+        }
+        _normalizeIntent(nlp.intent)
+        const jsonPathList = this.caps[Capabilities.SIMPLEREST_NLP_LIST_JSONPATH]
+        const jsonPathListIntent = this.caps[Capabilities.SIMPLEREST_NLP_LIST_INTENT_JSONPATH]
+        const jsonPathListConfidence = this.caps[Capabilities.SIMPLEREST_NLP_LIST_CONFIDENCE_JSONPATH]
+        if (jsonPathList) {
+          const list = jp.query(jsonPathRoot, jsonPathList)
+          if (list?.length) {
+            const intentList = list[0].map(e => {
+              const name = jp.query(e, jsonPathListIntent)
+              const res = { name: name?.length ? name[0] : null }
+              if (jsonPathListConfidence) {
+                const confidence = jp.query(e, jsonPathListConfidence)
+                res.confidence = confidence?.length ? confidence[0] : null
+              }
+              _normalizeIntent(res)
+              return res
+            })
+            if (intentList.length > 0 && !nlp.intent.name) {
+              nlp.intent.name = intentList[0].name
+              nlp.intent.confidence = intentList[0].confidence
+            }
+
+            if (nlp.intent.name === intentList[0].name) {
+              intentList.shift()
+            }
+
+            nlp.intent.intents = intentList
+          }
+        }
+        if (Object.keys(nlp.intent).length > 0) {
+          debug(`found response nlp: ${util.inspect(nlp)}`)
+        } else {
+          nlp = null
+        }
+
         let hasMessageText = false
         const jsonPathsTexts = getAllCapValues(Capabilities.SIMPLEREST_RESPONSE_JSONPATH, this.caps)
         for (const jsonPath of jsonPathsTexts) {
@@ -509,18 +579,18 @@ module.exports = class SimpleRestContainer {
             if (!messageText) continue
 
             hasMessageText = true
-            const botMsg = { sourceData: body, messageText, media, buttons, cards }
+            const botMsg = { sourceData: body, messageText, media, buttons, nlp }
             await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot, messageTextIndex }, this.view))
             result.push(botMsg)
           }
         }
 
         if (!hasMessageText) {
-          const botMsg = { messageText: '', sourceData: body, media, buttons, cards }
+          const botMsg = { messageText: '', sourceData: body, media, buttons, cards, nlp }
           const beforeHookKeys = Object.keys(botMsg)
           await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
           const afterHookKeys = Object.keys(botMsg)
-          if (beforeHookKeys.length !== afterHookKeys.length || !!(botMsg.messageText && botMsg.messageText.length > 0) || botMsg.media.length > 0 || botMsg.buttons.length > 0 || botMsg.cards.length > 0 || !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
+          if (beforeHookKeys.length !== afterHookKeys.length || !!(botMsg.messageText && botMsg.messageText.length > 0) || botMsg.media.length > 0 || botMsg.buttons.length > 0 || botMsg.cards.length > 0 || botMsg.nlp || !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
             result.push(botMsg)
           }
         }
