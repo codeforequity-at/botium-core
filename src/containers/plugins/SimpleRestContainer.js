@@ -514,7 +514,7 @@ module.exports = class SimpleRestContainer {
             if (typeof intent.confidence === 'string') {
               intent.confidence = Number(intent.confidence)
             }
-            if (_.isNil(this.caps[Capabilities.SIMPLEREST_NLP_CONFIDENCE_DIVIDEBY100]) ? intent.confidence > 1 : _.isNil(this.caps[Capabilities.SIMPLEREST_NLP_CONFIDENCE_DIVIDEBY100])) {
+            if (_.isNil(this.caps[Capabilities.SIMPLEREST_NLP_CONFIDENCE_DIVIDEBY100]) ? intent.confidence > 1 : this.caps[Capabilities.SIMPLEREST_NLP_CONFIDENCE_DIVIDEBY100]) {
               intent.confidence /= 100
             }
           }
