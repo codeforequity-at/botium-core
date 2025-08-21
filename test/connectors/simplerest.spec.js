@@ -1190,6 +1190,68 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
+    it('should extract intent and confidence', async function () {
+      const myCaps = Object.assign({}, myCapsGet, {
+        [Capabilities.SIMPLEREST_NLP_INTENT_JSONPATH]: '$.intent.intentname',
+        [Capabilities.SIMPLEREST_NLP_CONFIDENCE_JSONPATH]: '$.intent.intentconfidence'
+      })
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+      assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+      await container.Start()
+      const msgs = await container.pluginInstance._processBodyAsyncImpl({
+        intent: {
+          intentname: 'iname',
+          intentconfidence: '50'
+        }
+      }, {}, true)
+
+      assert.equal(msgs?.length, 1)
+      assert.exists(msgs[0].nlp)
+      assert.exists(msgs[0].nlp.intent)
+      assert.equal(msgs[0].nlp.intent.name, 'iname')
+      assert.equal(msgs[0].nlp.intent.confidence, 0.5)
+
+      await container.Clean()
+    })
+
+    it('should extract intent list', async function () {
+      const myCaps = Object.assign({}, myCapsGet, {
+        [Capabilities.SIMPLEREST_NLP_LIST_JSONPATH]: '$.intents',
+        [Capabilities.SIMPLEREST_NLP_LIST_INTENT_JSONPATH]: '$.intentname',
+        [Capabilities.SIMPLEREST_NLP_LIST_CONFIDENCE_JSONPATH]: '$.intentconfidence'
+      })
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+      assert.equal(container.pluginInstance.constructor.name, 'SimpleRestContainer')
+
+      await container.Start()
+      const msgs = await container.pluginInstance._processBodyAsyncImpl({
+        intents: [
+          {
+            intentname: 'iname1',
+            intentconfidence: '50'
+          },
+          {
+            intentname: 'iname2',
+            intentconfidence: 25
+          }
+        ]
+      }, {}, true)
+
+      assert.equal(msgs?.length, 1)
+      assert.exists(msgs[0].nlp)
+      assert.exists(msgs[0].nlp.intent)
+      assert.equal(msgs[0].nlp.intent.name, 'iname1')
+      assert.equal(msgs[0].nlp.intent.confidence, 0.5)
+      assert.equal(msgs[0].nlp.intent.intents.length, 1)
+      assert.equal(msgs[0].nlp.intent.intents[0].name, 'iname2')
+      assert.equal(msgs[0].nlp.intent.intents[0].confidence, 0.25)
+
+      await container.Clean()
+    })
   })
 
   describe('parseCapabilities', function () {
