@@ -75,6 +75,15 @@ describe('driver.capabilities', function () {
       assert.isString(driver.caps.CAP_STRING_1)
       assert.isString(driver.caps.CAP_STRING_2)
     })
+    it('should merge string caps when there are numbers', function () {
+      const myCaps = {
+        CAP_STRING_1: 'Test',
+        CAP_STRING_2: '1234567892343434344'
+      }
+      const driver = new BotDriver(myCaps)
+      assert.strictEqual(driver.caps.CAP_STRING_1, myCaps.CAP_STRING_1)
+      assert.strictEqual(driver.caps.CAP_STRING_2, myCaps.CAP_STRING_2)
+    })
     it('should merge boolean envs', function () {
       process.env.BOTIUM_SIMPLEREST_PING_PROCESS_RESPONSE = 'NO'
       const driver = new BotDriver()

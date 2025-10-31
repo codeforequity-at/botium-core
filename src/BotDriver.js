@@ -241,8 +241,8 @@ module.exports = class BotDriver {
         if (_.isString(newCaps[capKey])) {
           try {
             caps[capKey] = JSON.parse(newCaps[capKey])
-            if (_.isFinite(caps[capKey])) {
-              caps[capKey] = caps[capKey].toString()
+            if (_.isFinite(Number(newCaps[capKey]))) {
+              caps[capKey] = newCaps[capKey].toString()
             }
           } catch (err) {
             caps[capKey] = newCaps[capKey]
