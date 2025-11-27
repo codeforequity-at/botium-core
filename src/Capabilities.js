@@ -111,6 +111,15 @@ module.exports = {
   SIMPLEREST_NLP_LIST_JSONPATH: 'SIMPLEREST_NLP_LIST_JSONPATH',
   SIMPLEREST_NLP_LIST_INTENT_JSONPATH: 'SIMPLEREST_NLP_LIST_INTENT_JSONPATH',
   SIMPLEREST_NLP_LIST_CONFIDENCE_JSONPATH: 'SIMPLEREST_NLP_LIST_CONFIDENCE_JSONPATH',
+  /**
+   * Single response can contain a list of messages. This capability defines how to merge the list into a single message.
+   * It can be 'OFF' (default), 'MERGE_TEXT'
+   * @type {string}
+   * @default 'OFF'
+   * @description Merge message list into single message
+   */
+  SIMPLEREST_MESSAGE_LIST_MERGE: 'SIMPLEREST_MESSAGE_LIST_MERGE', 
+  
   // Script Compiler
   SCRIPTING_TXT_EOL: 'SCRIPTING_TXT_EOL',
   // ROW_PER_MESSAGE or QUESTION_ANSWER
