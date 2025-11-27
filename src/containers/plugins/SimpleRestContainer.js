@@ -369,7 +369,7 @@ module.exports = class SimpleRestContainer {
       return
     }
 
-    const result = []
+    let result = []
     if (isFromUser) {
       const _extractFrom = (root, jsonPaths, acceptFn = null) => {
         const result = []
@@ -400,6 +400,11 @@ module.exports = class SimpleRestContainer {
         }))
       } else {
         jsonPathRoots.push(body)
+      }
+
+      if (jsonPathRoots.length === 0 && !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
+        debug(`found empty body, and processed because of SIMPLEREST_IGNORE_EMPTY capability: ${util.inspect(body)}`)
+        result.push({ messageText: '', sourceData: body })
       }
 
       for (const jsonPathRoot of jsonPathRoots) {
@@ -584,14 +589,19 @@ module.exports = class SimpleRestContainer {
             result.push(botMsg)
           }
         }
-
+  
         if (!hasMessageText) {
           const botMsg = { messageText: '', sourceData: body, media, buttons, cards, nlp }
           const beforeHookKeys = Object.keys(botMsg)
           await executeHook(this.caps, this.responseHook, Object.assign({ botMsg, botMsgRoot: jsonPathRoot }, this.view))
           const afterHookKeys = Object.keys(botMsg)
-          if (beforeHookKeys.length !== afterHookKeys.length || !!(botMsg.messageText && botMsg.messageText.length > 0) || botMsg.media.length > 0 || botMsg.buttons.length > 0 || botMsg.cards.length > 0 || botMsg.nlp || !this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
+          if (beforeHookKeys.length !== afterHookKeys.length || !!(botMsg.messageText && botMsg.messageText.length > 0) || botMsg.media.length > 0 || botMsg.buttons.length > 0 || botMsg.cards.length > 0 || botMsg.nlp) {
             result.push(botMsg)
+          } else if (!this.caps[Capabilities.SIMPLEREST_IGNORE_EMPTY]) {
+            debug(`found empty message, and processed because of SIMPLEREST_IGNORE_EMPTY capability: ${util.inspect(botMsg)}`)
+            result.push(botMsg)
+          } else {
+            debug(`found empty message, and ignored because of SIMPLEREST_IGNORE_EMPTY capability: ${util.inspect(botMsg)}`)
           }
         }
       }
@@ -603,6 +613,23 @@ module.exports = class SimpleRestContainer {
       else debug(`continue with next response for context: ${continueMatch.jsonPath}`)
 
       setTimeout(() => this._doRequest({ messageText: '' }, true, true), 0)
+    }
+  
+    if (this.caps[Capabilities.SIMPLEREST_MESSAGE_LIST_MERGE] === 'MERGE_TEXT') {
+      const isTextMsg = (msg) => msg.messageText && (!msg.media || msg.media.length === 0) && (!msg.buttons || msg.buttons.length === 0) && (!msg.cards || msg.cards.length === 0)
+
+      result = result.reduce((acc, currentMsg) => {
+        if (acc.length > 0) {
+          const last = acc[acc.length - 1]
+          if (isTextMsg(last)) {
+            currentMsg.messageText = [last.messageText, currentMsg.messageText].filter(t => t).join('\n')
+            acc[acc.length - 1] = currentMsg
+            return acc
+          }
+        }
+        acc.push(currentMsg)
+        return acc
+      }, [])
     }
     return result
   }

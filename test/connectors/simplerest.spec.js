@@ -903,6 +903,81 @@ describe('connectors.simplerest', function () {
       await container.Clean()
     })
 
+    it('should merge text responses', async function () {
+      const myCaps = Object.assign({}, myCapsGet, {
+        [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+        [Capabilities.SIMPLEREST_BUTTONS_JSONPATH]: '$.buttons[*]',
+        [Capabilities.SIMPLEREST_BUTTONS_TEXT_SUBJSONPATH]: '$.text',
+        [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media[*]',
+        [Capabilities.SIMPLEREST_MESSAGE_LIST_MERGE]: 'MERGE_TEXT'
+      })
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+      await container.Start()
+      const msgs = await container.pluginInstance._processBodyAsyncImpl({
+        responses: [
+          { text: 'text 1' },
+          { text: 'text 2' },
+          { text: 'text 3', buttons: [{ text: 'button' }] },
+          { text: 'text 4' },
+          { media: ['some.jpg'] },
+          { text: 'text 5' },
+          { text: 'text 6' }
+        ]
+      }, {}, true)
+
+      assert.exists(msgs)
+      assert.equal(msgs.length, 3)
+      assert.equal(msgs[0].messageText, 'text 1\ntext 2\ntext 3')
+      assert.exists(msgs[0].buttons)
+      assert.equal(msgs[0].buttons.length, 1)
+      assert.equal(msgs[0].media.length, 0)
+      assert.equal(msgs[1].messageText, 'text 4')
+      assert.equal(msgs[1].buttons.length, 0)
+      assert.equal(msgs[1].media.length, 1)
+      assert.equal(msgs[2].messageText, 'text 5\ntext 6')
+      assert.equal(msgs[2].buttons.length, 0)
+      assert.equal(msgs[2].media.length, 0)
+      await container.Clean()
+    })
+
+    it('should not merge text responses', async function () {
+      const myCaps = Object.assign({}, myCapsGet, {
+        [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',
+        [Capabilities.SIMPLEREST_RESPONSE_JSONPATH]: '$.text',
+        [Capabilities.SIMPLEREST_BUTTONS_JSONPATH]: '$.buttons[*]',
+        [Capabilities.SIMPLEREST_BUTTONS_TEXT_SUBJSONPATH]: '$.text',
+        [Capabilities.SIMPLEREST_MEDIA_JSONPATH]: '$.media[*]'
+      })
+      const driver = new BotDriver(myCaps)
+      const container = await driver.Build()
+      await container.Start()
+      const msgs = await container.pluginInstance._processBodyAsyncImpl({
+        responses: [
+          { text: 'text 1' },
+          { text: 'text 2' },
+          { text: 'text 3', buttons: [{ text: 'button' }] },
+          { text: 'text 4' },
+          { media: ['some.jpg'] },
+          { text: 'text 5' },
+          { text: 'text 6' }
+        ]
+      }, {}, true)
+
+      assert.exists(msgs)
+      assert.equal(msgs.length, 7)
+      assert.equal(msgs[0].messageText, 'text 1')
+      assert.equal(msgs[1].messageText, 'text 2')
+      assert.equal(msgs[2].messageText, 'text 3')
+      assert.equal(msgs[3].messageText, 'text 4')
+      assert.equal(msgs[4].messageText, '')
+      assert.equal(msgs[5].messageText, 'text 5')
+      assert.equal(msgs[6].messageText, 'text 6')
+
+      await container.Clean()
+    })
+
     it('should ignore empty response', async function () {
       const myCaps = Object.assign({}, myCapsGet, {
         [Capabilities.SIMPLEREST_BODY_JSONPATH]: '$.responses[*]',
