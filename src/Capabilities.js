@@ -118,8 +118,8 @@ module.exports = {
    * @default 'OFF'
    * @description Merge message list into single message
    */
-  SIMPLEREST_MESSAGE_LIST_MERGE: 'SIMPLEREST_MESSAGE_LIST_MERGE', 
-  
+  SIMPLEREST_MESSAGE_LIST_MERGE: 'SIMPLEREST_MESSAGE_LIST_MERGE',
+
   // Script Compiler
   SCRIPTING_TXT_EOL: 'SCRIPTING_TXT_EOL',
   // ROW_PER_MESSAGE or QUESTION_ANSWER

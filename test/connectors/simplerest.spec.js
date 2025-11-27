@@ -810,6 +810,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should parse jsonmessage from sourcedata if it enabled', async function () {
       const msgJSON = {
         sourceData: {
@@ -837,6 +838,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should fall back to text message if using jsonmessage from sourcedata is enabled, but sourcedata is not set', async function () {
       const myCaps = Object.assign({}, myCapsPost)
       myCaps[Capabilities.SIMPLEREST_BODY_FROM_JSON] = true
@@ -855,6 +857,7 @@ describe('connectors.simplerest', function () {
 
       await container.Clean()
     })
+
     it('should handle somehow if jsonmessage from sourcedata is enabled, and booth json, and text are set in the user message (impossible state)', async function () {
       // this is not a valid state. In case there is a json as message in a convo.txt, text parser parses it into the sourceData field, and keeps messageText empty
       const msgTextAndJSONIllegal = {

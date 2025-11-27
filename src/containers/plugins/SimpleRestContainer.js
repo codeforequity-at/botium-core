@@ -589,7 +589,7 @@ module.exports = class SimpleRestContainer {
             result.push(botMsg)
           }
         }
-  
+
         if (!hasMessageText) {
           const botMsg = { messageText: '', sourceData: body, media, buttons, cards, nlp }
           const beforeHookKeys = Object.keys(botMsg)
@@ -614,7 +614,7 @@ module.exports = class SimpleRestContainer {
 
       setTimeout(() => this._doRequest({ messageText: '' }, true, true), 0)
     }
-  
+
     if (this.caps[Capabilities.SIMPLEREST_MESSAGE_LIST_MERGE] === 'MERGE_TEXT') {
       const isTextMsg = (msg) => msg.messageText && (!msg.media || msg.media.length === 0) && (!msg.buttons || msg.buttons.length === 0) && (!msg.cards || msg.cards.length === 0)
 
