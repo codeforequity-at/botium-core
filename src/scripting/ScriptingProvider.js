@@ -385,7 +385,7 @@ module.exports = class ScriptingProvider {
       if (b.name === 'SET_SCRIPTING_MEMORY') return 1
       return 0
     })
- 
+
     const convoStepPromises = localHooks
       .map(l => p(this.retryHelperLogicHook, () => this.logicHooks[l.name][hookType]({
         convo,
