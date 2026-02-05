@@ -383,9 +383,9 @@ module.exports = class ScriptingProvider {
     // Order is important (SET_SCRIPTING_MEMORY in begin can be because the user added it,
     // or because the scripting memory file added it. User one has to be the last one.
     localHooks = [
-      ...localHooks.filter(l => l.name === 'SET_SCRIPTING_MEMORY'), 
+      ...localHooks.filter(l => l.name === 'SET_SCRIPTING_MEMORY'),
       ...localHooks.filter(l => l.name !== 'SET_SCRIPTING_MEMORY')
-    ]    
+    ]
 
     const convoStepPromises = localHooks
       .map(l => p(this.retryHelperLogicHook, () => this.logicHooks[l.name][hookType]({
