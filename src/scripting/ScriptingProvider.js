@@ -377,7 +377,15 @@ module.exports = class ScriptingProvider {
       throw Error(`Unknown hookType ${hookType}`)
     }
 
-    const localHooks = (logicHooks || []).filter(l => this.logicHooks[l.name][hookType])
+    let localHooks = (logicHooks || []).filter(l => this.logicHooks[l.name][hookType])
+    // Scripting memory file are injected via SET_SCRIPTING_MEMORY in the BEGIN step
+    // But there might be other logic hooks that need the scripting memory variables
+    // Order is important (SET_SCRIPTING_MEMORY in begin can be because the user added it,
+    // or because the scripting memory file added it. User one has to be the last one.
+    localHooks = [
+      ...localHooks.filter(l => l.name === 'SET_SCRIPTING_MEMORY'),
+      ...localHooks.filter(l => l.name !== 'SET_SCRIPTING_MEMORY')
+    ]
 
     const convoStepPromises = localHooks
       .map(l => p(this.retryHelperLogicHook, () => this.logicHooks[l.name][hookType]({
@@ -385,6 +393,7 @@ module.exports = class ScriptingProvider {
         convoStep,
         scriptingMemory,
         container,
+        // Do this more sensitve for SET_SCRIPTING_MEMORY? It can have scripting variables in the args
         args: ScriptingMemory.applyToArgs(l.args, scriptingMemory, container.caps, rest.botMsg),
         isGlobal: false,
         ...rest
