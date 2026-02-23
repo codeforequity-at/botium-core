@@ -115,6 +115,25 @@ module.exports = class ScriptingProvider {
       onBotEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createLogicHookPromises({ hookType: 'onBotEnd', logicHooks: (convoStep?.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
+      executeBotStep: ({ convo, convoStep, container, scriptingMemory, ...rest }) => {
+        const logicHooks = (convoStep?.logicHooks || [])
+        const executeBotStepHooks = logicHooks.filter(l => this.logicHooks[l.name] && typeof this.logicHooks[l.name].executeBotStep === 'function')
+        if (executeBotStepHooks.length > 1) {
+          throw new Error(`${convo?.header?.name}/${convoStep?.stepTag}: Multiple logic hooks implement executeBotStep: ${executeBotStepHooks.map(l => l.name).join(', ')}. Only one is allowed per step.`)
+        }
+        if (executeBotStepHooks.length === 1) {
+          const lh = executeBotStepHooks[0]
+          return this.logicHooks[lh.name].executeBotStep({
+            convo,
+            convoStep,
+            scriptingMemory,
+            container,
+            args: ScriptingMemory.applyToArgs(lh.args, scriptingMemory, container.caps),
+            ...rest
+          })
+        }
+        return null
+      },
       assertConvoBegin: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterPromises({ asserterType: 'assertConvoBegin', asserters: (convo?.beginAsserter || []), convo, convoStep, scriptingMemory, ...rest })
       },
@@ -480,6 +499,7 @@ module.exports = class ScriptingProvider {
         onBotStart: this.scriptingEvents.onBotStart.bind(this),
         onBotPrepare: this.scriptingEvents.onBotPrepare.bind(this),
         onBotEnd: this.scriptingEvents.onBotEnd.bind(this),
+        executeBotStep: this.scriptingEvents.executeBotStep.bind(this),
         setUserInput: this.scriptingEvents.setUserInput.bind(this),
         fail: this.scriptingEvents.fail && this.scriptingEvents.fail.bind(this)
       }
