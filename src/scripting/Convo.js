@@ -270,6 +270,7 @@ class Convo {
 
   async runConversation (container, scriptingMemory, transcript) {
     const transcriptSteps = []
+    transcript.steps = transcriptSteps
     try {
       let lastMeConvoStep = null
       let botMsg = null
@@ -416,6 +417,14 @@ class Convo {
               throw failErr
             }
           } else if (convoStep.sender === 'bot') {
+            if (this.scriptingEvents.executeBotStep) {
+              const executeBotStepResult = await this.scriptingEvents.executeBotStep({ convo: this, convoStep, container, scriptingMemory, transcript, transcriptStep, transcriptSteps })
+              if (executeBotStepResult) {
+                skipTranscriptStep = true
+                continue
+              }
+            }
+
             if (waitForBotSays) {
               botMsg = null
             } else {
