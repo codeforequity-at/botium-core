@@ -8,6 +8,7 @@ const _ = require('lodash')
 const { BotiumMockMedia } = require('../../../../src/mocks/BotiumMockRichMessageTypes')
 const { BotiumError } = require('../../../../src/scripting/BotiumError')
 const Capabilities = require('../../../../src/Capabilities')
+const TranscriptUtils = require('../../../helpers/TranscriptUtils')
 
 const DEFAULT_BASE_SELECTOR = 'sourceTag.testSetId'
 
@@ -151,7 +152,7 @@ module.exports = class MediaInput {
     return mime.lookup(arg)
   }
 
-  expandConvo ({ convo, convoStep, args }) {
+  expandConvo ({ convo, convoStep, args, options }) {
     const hasWildcard = args.findIndex(a => this._isWildcard(a)) >= 0
 
     if (args && (args.length > 1 || hasWildcard)) {
@@ -161,10 +162,17 @@ module.exports = class MediaInput {
           // we need to escape brackets to find files
           const mediaFiles = globSync(arg.replace(/[()[\]{}]/g, '\\$&'), { cwd: baseDir })
           mediaFiles.forEach(mf => {
+            let messageText = null
+            if (options.mediaInput.messageTextMode === 'MESSAGE_TEXT_FROM_FILENAME') {
+              messageText = TranscriptUtils.transcriptionFromFilename(mf)
+            } else if (options.mediaInput.messageTextMode === 'MESSAGE_TEXT_FROM_TRANSCRIPTION') {
+              messageText = TranscriptUtils.findTranscription(baseDir, mf)
+            }
             e.push({
               name: 'MEDIA',
               args: [mf],
-              convoPostfix: _.last(mf.split('/'))
+              convoPostfix: _.last(mf.split('/')),
+              ...messageText ? { messageText } : {}
             })
           })
         } else {

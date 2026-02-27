@@ -115,6 +115,25 @@ module.exports = class ScriptingProvider {
       onBotEnd: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createLogicHookPromises({ hookType: 'onBotEnd', logicHooks: (convoStep?.logicHooks || []), convo, convoStep, scriptingMemory, ...rest })
       },
+      executeBotStep: ({ convo, convoStep, container, scriptingMemory, ...rest }) => {
+        const logicHooks = (convoStep?.logicHooks || [])
+        const executeBotStepHooks = logicHooks.filter(l => this.logicHooks[l.name] && typeof this.logicHooks[l.name].executeBotStep === 'function')
+        if (executeBotStepHooks.length > 1) {
+          throw new Error(`${convo?.header?.name}/${convoStep?.stepTag}: Multiple logic hooks implement executeBotStep: ${executeBotStepHooks.map(l => l.name).join(', ')}. Only one is allowed per step.`)
+        }
+        if (executeBotStepHooks.length === 1) {
+          const lh = executeBotStepHooks[0]
+          return this.logicHooks[lh.name].executeBotStep({
+            convo,
+            convoStep,
+            scriptingMemory,
+            container,
+            args: ScriptingMemory.applyToArgs(lh.args, scriptingMemory, container.caps),
+            ...rest
+          })
+        }
+        return null
+      },
       assertConvoBegin: ({ convo, convoStep, scriptingMemory, ...rest }) => {
         return this._createAsserterPromises({ asserterType: 'assertConvoBegin', asserters: (convo?.beginAsserter || []), convo, convoStep, scriptingMemory, ...rest })
       },
@@ -480,6 +499,7 @@ module.exports = class ScriptingProvider {
         onBotStart: this.scriptingEvents.onBotStart.bind(this),
         onBotPrepare: this.scriptingEvents.onBotPrepare.bind(this),
         onBotEnd: this.scriptingEvents.onBotEnd.bind(this),
+        executeBotStep: this.scriptingEvents.executeBotStep.bind(this),
         setUserInput: this.scriptingEvents.setUserInput.bind(this),
         fail: this.scriptingEvents.fail && this.scriptingEvents.fail.bind(this)
       }
@@ -1004,7 +1024,11 @@ module.exports = class ScriptingProvider {
       // use skip and keep, or justHeader
       justHeader: false,
       // drop unwanted convos
-      convoFilter: null
+      convoFilter: null,
+      mediaInput: {
+        // MESSAGE_TEXT_FROM_FILENAME or MESSAGE_TEXT_FROM_TRANSCRIPTION or falsy
+        messageTextMode: null
+      }
     }, options)
     const expandedConvos = []
     // The globalContext is going to keep the data even if the Object.assign which happening to create the myContext in _expandConvo function
@@ -1043,7 +1067,11 @@ module.exports = class ScriptingProvider {
   ExpandConvosIterable (options = {}) {
     options = Object.assign({
       // drop unwanted convos
-      convoFilter: null
+      convoFilter: null,
+      mediaInput: {
+        // MESSAGE_TEXT_FROM_FILENAME or MESSAGE_TEXT_FROM_TRANSCRIPTION or falsy
+        messageTextMode: null
+      }
     }, options)
     // The globalContext is going to keep the data even if the Object.assign which happening to create the myContext in _expandConvo function
     const context = {
@@ -1176,7 +1204,7 @@ module.exports = class ScriptingProvider {
             const ui = currentStep.userInputs[uiIndex]
             const userInput = this.userInputs[ui.name]
             if (userInput && userInput.expandConvo) {
-              const expandedUserInputs = userInput.expandConvo({ convo: currentConvo, convoStep: currentStep, args: ui.args })
+              const expandedUserInputs = userInput.expandConvo({ convo: currentConvo, convoStep: currentStep, args: ui.args, options })
               if (expandedUserInputs && expandedUserInputs.length > 0) {
                 // let sampleinputs = expandedUserInputs
                 const processSampleInputs = function * (sampleinputs, myContext, uiIndex) {
@@ -1185,10 +1213,13 @@ module.exports = class ScriptingProvider {
                   }
                 }
                 const processSampleInput = function * (sampleinput, length, index, myContext, uiIndex) {
+                  const { messageText, ...userInput } = sampleinput
                   const currentStepsStack = convoStepsStack.slice()
                   const currentStepMod = _.cloneDeep(currentStep)
-                  currentStepMod.userInputs[uiIndex] = sampleinput
-
+                  currentStepMod.userInputs[uiIndex] = userInput
+                  if (messageText) {
+                    currentStepMod.messageText = messageText
+                  }
                   currentStepsStack.push(currentStepMod)
                   const currentConvoLabeled = _.cloneDeep(currentConvo)
                   if (length > 1) {
