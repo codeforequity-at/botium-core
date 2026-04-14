@@ -1,10 +1,13 @@
-const path = require('path')
-const chai = require('chai')
+import path from 'path'
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
+import { BotDriver, Capabilities } from '../../index.js'
+import { fileURLToPath } from 'url'
 const assert = chai.assert
-const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const scriptedConnector = (script) => ({ queueBotSays }) => {
   return {
@@ -318,7 +321,7 @@ describe('convo.partialconvo', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
   })
 
@@ -352,7 +355,7 @@ describe('convo.partialconvo', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
   })
 

@@ -1,11 +1,12 @@
-const MarkdownIt = require('markdown-it')
-const debug = require('debug')('botium-core-PrecompilerMarkdownRasa')
-const util = require('util')
-const _ = require('lodash')
+import MarkdownIt from 'markdown-it'
+import util from 'util'
+import _ from 'lodash'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-PrecompilerMarkdownRasa')
 
 const htmlCommentRegexp = /(<!--.*?-->)/g
 
-module.exports.precompile = (caps, scriptBuffer, options, filename) => {
+export function precompile (caps, scriptBuffer, options, filename) {
   if (!filename.endsWith('.md')) {
     return
   }

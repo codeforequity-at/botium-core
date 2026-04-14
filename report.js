@@ -1,9 +1,13 @@
-const path = require('path')
-const os = require('os')
+import path from 'path'
+import os from 'os'
+import { readFileSync } from 'fs'
+import { pathToFileURL } from 'url'
+import https from 'https'
+import http from 'http'
 
 const botiumAnalyticsHost = process.env.BOTIUM_ANALYTICS_HOST || 'v1.license.botium.cyaraportal.us'
 const botiumAnalyticsPort = process.env.BOTIUM_ANALYTICS_PORT || 443
-const https = botiumAnalyticsPort === 443 ? require('https') : require('http')
+const httpsOrHttp = botiumAnalyticsPort === 443 ? https : http
 
 const execTimeout = 10000
 
@@ -16,7 +20,7 @@ function logIfVerbose (toLog, stream) {
 async function reportPostInstall () {
   if (process.env.BOTIUM_ANALYTICS === 'false') return
 
-  const packageJson = require(path.join(__dirname, 'package.json'))
+  const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)))
 
   const infoPayload = {
     rawPlatform: os.platform(),
@@ -40,7 +44,7 @@ async function reportPostInstall () {
     timeout: execTimeout
   }
   await new Promise((resolve, reject) => {
-    const req = https.request(reqOptions, (res) => {
+    const req = httpsOrHttp.request(reqOptions, (res) => {
       logIfVerbose(`Response status: ${res.statusCode}`)
       resolve()
     })
@@ -60,7 +64,9 @@ async function reportPostInstall () {
   })
 }
 
-if (require.main === module) {
+const isMain = process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url
+
+if (isMain) {
   try {
     reportPostInstall().catch(e => {
       logIfVerbose(`\n\n${e}`, console.error)

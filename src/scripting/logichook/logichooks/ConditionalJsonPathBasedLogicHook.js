@@ -1,8 +1,8 @@
-const util = require('util')
-const jp = require('jsonpath')
-const debug = require('debug')('botium-core-ConditionalJsonPathBasedLogicHook')
-
-module.exports = class ConditionalJsonPathBasedLogicHook {
+import util from 'util'
+import jp from 'jsonpath'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-ConditionalJsonPathBasedLogicHook')
+export default class ConditionalJsonPathBasedLogicHook {
   constructor (context, caps, globalArgs) {
     this.context = context
     this.caps = caps
@@ -28,4 +28,4 @@ module.exports = class ConditionalJsonPathBasedLogicHook {
     convoStep.conditional.skip = skip
     debug(`ConditionalJsonPathBasedLogicHook onBotPrepare ${convo.header.name}/${convoStep.stepTag}, args: ${util.inspect(args)}, convoStep.conditional: ${util.inspect(convoStep.conditional)}`)
   }
-}
+};

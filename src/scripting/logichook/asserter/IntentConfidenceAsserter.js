@@ -1,12 +1,11 @@
-const _ = require('lodash')
-
-const { BotiumError } = require('../../BotiumError')
+import _ from 'lodash'
+import { BotiumError } from '../../BotiumError.js'
 
 /**
  * Can be used as local, and as global asserter
  * @type {module.IntentConfidenceAsserter}
  */
-module.exports = class IntentConfidenceAsserter {
+export default class IntentConfidenceAsserter {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
@@ -121,4 +120,4 @@ module.exports = class IntentConfidenceAsserter {
 
     return Promise.resolve()
   }
-}
+};

@@ -1,4 +1,4 @@
-const _ = require('lodash')
+import _ from 'lodash'
 
 const BotiumError = class BotiumError extends Error {
   /**
@@ -164,7 +164,13 @@ const botiumErrorFromList = (errors, { type = 'list', source = 'BotiumError', fl
   return result
 }
 
-module.exports = {
+export {
+  BotiumError,
+  botiumErrorFromErr,
+  botiumErrorFromList
+}
+
+export default {
   BotiumError,
   botiumErrorFromErr,
   botiumErrorFromList

@@ -1,6 +1,6 @@
-const { BotiumMockButton } = require('../../../mocks/BotiumMockRichMessageTypes')
+import { BotiumMockButton } from '../../../mocks/BotiumMockRichMessageTypes.js'
 
-module.exports = class ButtonInput {
+export default class ButtonInput {
   setUserInput ({ convoStep, args, meMsg }) {
     if (!args || args.length === 0 || args.length > 2) {
       return Promise.reject(new Error(`${convoStep.stepTag}: ButtonInput requires 1 or 2 arguments`))
@@ -9,4 +9,4 @@ module.exports = class ButtonInput {
     meMsg.messageText = args[0]
     return Promise.resolve()
   }
-}
+};

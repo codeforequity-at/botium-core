@@ -1,7 +1,7 @@
-const _ = require('lodash')
-const { executeHookSync, getHook } = require('../../helpers/HookUtils')
+import _ from 'lodash'
+import { executeHookSync, getHook } from '../../helpers/HookUtils.js'
 
-module.exports.precompile = (caps, scriptBuffer, options, filename) => {
+export function precompile (caps, scriptBuffer, options, filename) {
   if (!(options.script || options.SCRIPT)) {
     throw new Error('Script is not defined')
   }

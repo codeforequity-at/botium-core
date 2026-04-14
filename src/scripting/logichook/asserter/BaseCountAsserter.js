@@ -1,6 +1,6 @@
-const { BotiumError } = require('../../BotiumError')
+import { BotiumError } from '../../BotiumError.js'
 
-module.exports = class BaseCountAsserter {
+export default class BaseCountAsserter {
   constructor (context, caps = {}, elementName, argPos = 0) {
     this.context = context
     this.caps = caps
@@ -63,7 +63,7 @@ module.exports = class BaseCountAsserter {
     this._evalArgs(argv)
 
     const { args } = argv
-    const count = await this._getCount(argv) || 0
+    const count = (await this._getCount(argv)) || 0
     const check = (args && args.length > this.argPos && args[this.argPos]) || '>0'
     const evalResult = this._evalCount(count, check)
 
@@ -79,7 +79,7 @@ module.exports = class BaseCountAsserter {
     this._evalArgs(argv)
 
     const { args } = argv
-    const count = await this._getCount(argv) || 0
+    const count = (await this._getCount(argv)) || 0
     const check = (args && args.length > this.argPos && args[this.argPos]) || '>0'
     const evalResult = this._evalCount(count, check)
 
@@ -90,4 +90,4 @@ module.exports = class BaseCountAsserter {
       )
     }
   }
-}
+};

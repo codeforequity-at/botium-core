@@ -1,10 +1,10 @@
-const jsonPath = require('jsonpath')
-const debug = require('debug')('botium-core-AssignScriptingMemoryLogicHook')
+import jsonPath from 'jsonpath'
+import { RESERVED_WORDS } from '../../ScriptingMemory.js'
+import { extractParams } from '../helpers.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-AssignScriptingMemoryLogicHook')
 
-const { RESERVED_WORDS } = require('../../ScriptingMemory')
-const { extractParams } = require('../helpers')
-
-module.exports = class AssignScriptingMemoryLogicHook {
+export default class AssignScriptingMemoryLogicHook {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
@@ -38,4 +38,4 @@ module.exports = class AssignScriptingMemoryLogicHook {
       return Promise.reject(new Error(`${convoStep.stepTag}: AssignScriptingMemoryLogicHook no result from JSON-Path query "${params.path}"`))
     }
   }
-}
+};

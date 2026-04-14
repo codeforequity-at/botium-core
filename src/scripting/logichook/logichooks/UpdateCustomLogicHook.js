@@ -1,8 +1,8 @@
-const util = require('util')
-const _ = require('lodash')
-const { ConvoStepLogicHook } = require('../../Convo')
+import util from 'util'
+import _ from 'lodash'
+import { ConvoStepLogicHook } from '../../Convo.js'
 
-module.exports = class UpdateCustomLogicHook {
+export default class UpdateCustomLogicHook {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
@@ -97,4 +97,4 @@ module.exports = class UpdateCustomLogicHook {
       meMsg[args.name][args.arg] = this._getValue(args.value)
     }
   }
-}
+};

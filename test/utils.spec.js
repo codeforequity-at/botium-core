@@ -1,5 +1,5 @@
-const assert = require('chai').assert
-const { escapeJSONString, formatTimeout } = require('../src/helpers/Utils')
+import { assert } from 'chai'
+import { escapeJSONString, formatTimeout } from '../src/helpers/Utils.js'
 
 describe('utils', function () {
   describe('escapeJSON', function () {

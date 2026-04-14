@@ -1,5 +1,5 @@
-const SimpleRestContainer = require('botium-core/src/containers/plugins/SimpleRestContainer.js')
-const CoreCapabilities = require('botium-core/src/Capabilities')
+const { Capabilities: CoreCapabilities, Lib } = require('botium-core')
+const SimpleRestContainer = Lib.SimpleRestContainer
 
 const Capabilities = {
   MYAPI_URL: 'MYAPI_URL',

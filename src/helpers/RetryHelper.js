@@ -1,8 +1,8 @@
-const util = require('util')
-const _ = require('lodash')
-const debug = require('debug')('botium-core-RetryHelper')
-
-module.exports = class RetryHelper {
+import util from 'util'
+import _ from 'lodash'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-RetryHelper')
+export default class RetryHelper {
   constructor (caps, section, options = {}) {
     this.retryErrorPatterns = []
     const onErrorRegexp = caps[`RETRY_${section.toUpperCase()}_ONERROR_REGEXP`] || []
@@ -41,4 +41,4 @@ module.exports = class RetryHelper {
     }
     return false
   }
-}
+};

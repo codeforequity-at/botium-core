@@ -1,7 +1,6 @@
-const nock = require('nock')
-const assert = require('chai').assert
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
+import nock from 'nock'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../index.js'
 
 const echoConnector = ({ queueBotSays }) => {
   return {

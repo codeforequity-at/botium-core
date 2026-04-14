@@ -1,8 +1,8 @@
-const util = require('util')
-const moment = require('moment-timezone')
-const debug = require('debug')('botium-core-ConditionalTimeBasedLogicHook')
-
-module.exports = class ConditionalTimeBasedLogicHook {
+import util from 'util'
+import moment from 'moment-timezone'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-ConditionalTimeBasedLogicHook')
+export default class ConditionalTimeBasedLogicHook {
   constructor (context, caps, globalArgs) {
     this.context = context
     this.caps = caps
@@ -43,4 +43,4 @@ module.exports = class ConditionalTimeBasedLogicHook {
     convoStep.conditional.skip = !this._isBetween(params)
     debug(`ConditionalTimeBasedLogicHook onBotPrepare ${convo.header.name}/${convoStep.stepTag}, args: ${util.inspect(args)}, convoStep.conditional: ${util.inspect(convoStep.conditional)}`)
   }
-}
+};

@@ -1,5 +1,5 @@
-const util = require('util')
-const _ = require('lodash')
+import util from 'util'
+import _ from 'lodash'
 
 const extractParams = ({ argNames, isGlobal, globalArgs, args }) => {
   if (!isGlobal) {
@@ -92,7 +92,14 @@ const cardsFromMsg = (msg, recursive) => {
   return allCards
 }
 
-module.exports = {
+export {
+  extractParams,
+  mediaFromMsg,
+  buttonsFromMsg,
+  cardsFromMsg
+}
+
+export default {
   extractParams,
   mediaFromMsg,
   buttonsFromMsg,

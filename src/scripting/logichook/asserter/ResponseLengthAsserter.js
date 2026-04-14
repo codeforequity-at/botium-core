@@ -1,7 +1,7 @@
-const _ = require('lodash')
-const { BotiumError } = require('../../BotiumError')
+import _ from 'lodash'
+import { BotiumError } from '../../BotiumError.js'
 
-module.exports = class ResponseLengthAsserter {
+export default class ResponseLengthAsserter {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
@@ -78,4 +78,4 @@ module.exports = class ResponseLengthAsserter {
     }
     return Promise.resolve()
   }
-}
+};

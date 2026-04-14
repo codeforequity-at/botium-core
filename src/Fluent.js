@@ -1,7 +1,7 @@
-const async = require('async')
-const _ = require('lodash')
+import async from 'async'
+import _ from 'lodash'
 
-module.exports = class Fluent {
+export default class Fluent {
   constructor (driver) {
     this.driver = driver
     this.compiler = null
@@ -245,4 +245,4 @@ module.exports = class Fluent {
     })
     return this
   }
-}
+};

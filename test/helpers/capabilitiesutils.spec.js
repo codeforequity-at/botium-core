@@ -1,6 +1,5 @@
-const assert = require('chai').assert
-
-const { flatCababilities } = require('../../src/helpers/CapabilitiesUtils')
+import { assert } from 'chai'
+import { flatCababilities } from '../../src/helpers/CapabilitiesUtils.js'
 
 const ACTUAL = [
   {

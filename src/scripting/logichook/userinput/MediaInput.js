@@ -1,18 +1,20 @@
-const fs = require('fs')
-const path = require('path')
-const globSync = require('tinyglobby').globSync
-const mime = require('mime-types')
-const url = require('url')
-const _ = require('lodash')
+import fs from 'fs'
+import path from 'path'
+import { globSync } from 'tinyglobby'
+import mime from 'mime-types'
+import * as url from 'url'
+import { fileURLToPath } from 'url'
+import _ from 'lodash'
+import { BotiumMockMedia } from '../../../../src/mocks/BotiumMockRichMessageTypes.js'
+import { BotiumError } from '../../../../src/scripting/BotiumError.js'
+import Capabilities from '../../../../src/Capabilities.js'
+import TranscriptUtils from '../../../helpers/TranscriptUtils.js'
 
-const { BotiumMockMedia } = require('../../../../src/mocks/BotiumMockRichMessageTypes')
-const { BotiumError } = require('../../../../src/scripting/BotiumError')
-const Capabilities = require('../../../../src/Capabilities')
-const TranscriptUtils = require('../../../helpers/TranscriptUtils')
+const __filename = fileURLToPath(import.meta.url)
 
 const DEFAULT_BASE_SELECTOR = 'sourceTag.testSetId'
 
-module.exports = class MediaInput {
+export default class MediaInput {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
@@ -172,7 +174,7 @@ module.exports = class MediaInput {
               name: 'MEDIA',
               args: [mf],
               convoPostfix: _.last(mf.split('/')),
-              ...messageText ? { messageText } : {}
+              ...(messageText ? { messageText } : {})
             })
           })
         } else {
@@ -218,4 +220,4 @@ module.exports = class MediaInput {
       }))
     }
   }
-}
+};

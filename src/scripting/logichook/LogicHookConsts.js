@@ -1,5 +1,6 @@
 const LOGIC_HOOK_INCLUDE = 'INCLUDE'
-module.exports = {
+
+const logicHookConsts = {
   LOGIC_HOOK_INCLUDE,
   DEFAULT_ASSERTERS: [
     { name: 'BUTTONS', className: 'ButtonsAsserter' },
@@ -61,8 +62,8 @@ module.exports = {
     { name: 'CONDITIONAL_STEP_TIME_BASED', className: 'ConditionalTimeBasedLogicHook' },
     { name: 'CONDITIONAL_STEP_BUSINESS_HOURS', className: 'ConditionalBusinessHoursLogicHook' },
     { name: 'CONDITIONAL_STEP_CAPABILITY_VALUE_BASED', className: 'ConditionalCapabilityValueBasedLogicHook' },
-    { name: 'CONDITIONAL_STEP_JSON_PATH_BASED', className: 'ConditionalJsonPathBasedLogicHook.js' },
-    { name: 'CONVO_STEP_PARAMETERS', className: 'ConvoStepParametersLogicHook.js' },
+    { name: 'CONDITIONAL_STEP_JSON_PATH_BASED', className: 'ConditionalJsonPathBasedLogicHook' },
+    { name: 'CONVO_STEP_PARAMETERS', className: 'ConvoStepParametersLogicHook' },
     { name: 'ORDERED_LIST_TO_BUTTON', className: 'OrderedListToButtonLogicHook' }
   ],
   DEFAULT_USER_INPUTS: [
@@ -72,3 +73,10 @@ module.exports = {
   ],
   LOGIC_HOOK_EVENTS: ['onConvoBegin', 'onMeStart', 'onMePrepare', 'onMeEnd', 'onBotStart', 'onBotEnd', 'onBotPrepare', 'onConvoEnd']
 }
+
+export { LOGIC_HOOK_INCLUDE }
+export const LOGIC_HOOK_EVENTS = logicHookConsts.LOGIC_HOOK_EVENTS
+export const DEFAULT_ASSERTERS = logicHookConsts.DEFAULT_ASSERTERS
+export const DEFAULT_LOGIC_HOOKS = logicHookConsts.DEFAULT_LOGIC_HOOKS
+export const DEFAULT_USER_INPUTS = logicHookConsts.DEFAULT_USER_INPUTS
+export default logicHookConsts

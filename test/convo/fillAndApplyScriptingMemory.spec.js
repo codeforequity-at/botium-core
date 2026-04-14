@@ -1,13 +1,17 @@
-const path = require('path')
-const moment = require('moment')
-const assert = require('chai').assert
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
-const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
-const { Convo } = require('../../src/scripting/Convo')
-const { normalizeText } = require('../../src/scripting/helper')
-const DefaultCapabilities = require('../../src/Defaults').Capabilities
-const ScriptingMemory = require('../../src/scripting/ScriptingMemory')
+import path from 'path'
+import moment from 'moment'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../index.js'
+import ScriptingProvider from '../../src/scripting/ScriptingProvider.js'
+import { Convo } from '../../src/scripting/Convo.js'
+import { normalizeText } from '../../src/scripting/helper.js'
+import Defaults from '../../src/Defaults.js'
+import ScriptingMemory from '../../src/scripting/ScriptingMemory.js'
+import { fileURLToPath } from 'url'
+
+const DefaultCapabilities = Defaults.Capabilities
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const CAPS_BASE = {
   [Capabilities.SECURITY_ALLOW_UNSAFE]: true
@@ -55,7 +59,7 @@ describe('convo.fillAndApplyScriptingMemory', function () {
     assert.equal(compiler.convos.length, 1)
     await compiler.convos[0].Run(container)
 
-    container && await container.Clean()
+    container && (await container.Clean())
   })
 
   describe('convos', function () {
@@ -71,7 +75,7 @@ describe('convo.fillAndApplyScriptingMemory', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should fill scripting memory from convo file', async function () {

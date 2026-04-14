@@ -1,15 +1,15 @@
-const { mediaFromMsg } = require('../helpers')
-const BaseCountAsserter = require('./BaseCountAsserter')
+import { mediaFromMsg } from '../helpers.js'
+import BaseCountAsserter from './BaseCountAsserter.js'
 
 const _mediaCount = ({ botMsg }) => {
   return mediaFromMsg(botMsg, false).length
 }
 
-module.exports = class MediaCountAsserter extends BaseCountAsserter {
+export default class MediaCountAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
     super(context, caps, 'Media')
     this.name = 'Media Attachment Count Asserter'
   }
 
   async _getCount (argv) { return _mediaCount(argv) }
-}
+};

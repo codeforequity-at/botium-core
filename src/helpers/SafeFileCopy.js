@@ -1,6 +1,6 @@
-const fs = require('fs')
+import fs from 'fs'
 
-module.exports = (src, dest) => {
+export default (src, dest) => {
   return new Promise((resolve, reject) => {
     fs.readFile(src, (err, data) => {
       if (err) return reject(new Error(`read file ${src} failed: ${err}`))

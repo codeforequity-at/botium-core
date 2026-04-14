@@ -1,7 +1,10 @@
-const path = require('path')
-const assert = require('chai').assert
-const BotDriver = require('../../../').BotDriver
-const Capabilities = require('../../../').Capabilities
+import path from 'path'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../../index.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const echoConnector = ({ queueBotSays }) => {
   return {
@@ -34,7 +37,7 @@ describe('scripting.scriptingmemory.fillingScriptingMemoryFromFile', function ()
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('Set Scripting memory by convo vs by scripting memory file', async function () {
@@ -318,7 +321,7 @@ describe('scripting.scriptingmemory.fillingScriptingMemoryFromFile', function ()
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('Original convo kept', async function () {
@@ -344,7 +347,7 @@ describe('scripting.scriptingmemory.fillingScriptingMemoryFromFile', function ()
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('scripting disabled, variable not replaced', async function () {
@@ -374,7 +377,7 @@ describe('scripting.scriptingmemory.fillingScriptingMemoryFromFile', function ()
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should replace scripting memory in asserter arguments', async function () {

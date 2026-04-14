@@ -1,6 +1,6 @@
-const BaseCountAsserter = require('./BaseCountAsserter')
+import BaseCountAsserter from './BaseCountAsserter.js'
 
-module.exports = class BotRepliesConsumedAsserter extends BaseCountAsserter {
+export default class BotRepliesConsumedAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
     super(context, caps, 'BotReplies')
     this.name = 'Bot Replies Consumed Asserter'
@@ -19,4 +19,4 @@ module.exports = class BotRepliesConsumedAsserter extends BaseCountAsserter {
       return count === 1 ? `${convoStep.stepTag}: There is an unread bot reply in queue` : `${convoStep.stepTag}: There are still ${count} unread bot replies in queue`
     }
   }
-}
+};

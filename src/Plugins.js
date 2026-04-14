@@ -1,6 +1,10 @@
-const path = require('path')
-const fs = require('fs')
-const debug = require('debug')('botium-core-Plugins')
+import path from 'path'
+import fs from 'fs'
+import { createRequire } from 'module'
+import createDebug from 'debug'
+
+const require = createRequire(import.meta.url)
+const debug = createDebug('botium-core-Plugins')
 
 const PLUGIN_TYPE_CONNECTOR = 'PLUGIN_TYPE_CONNECTOR'
 const PLUGIN_TYPE_ASSERTER = 'PLUGIN_TYPE_ASSERTER'
@@ -149,7 +153,7 @@ const getPlugins = async (type, resourcesDir) => {
   return result
 }
 
-module.exports = {
+export default {
   getPlugins,
   PLUGIN_TYPE_CONNECTOR,
   PLUGIN_TYPE_ASSERTER,

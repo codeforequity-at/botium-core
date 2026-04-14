@@ -1,7 +1,10 @@
-const path = require('path')
-const assert = require('chai').assert
-const BotDriver = require('../..').BotDriver
-const Capabilities = require('../..').Capabilities
+import path from 'path'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../index.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const failingConnector = ({ queueBotSays }) => {
   return {

@@ -1,9 +1,9 @@
-const debug = require('debug')('botium-core-SetScriptingMemoryLogicHook')
+import { RESERVED_WORDS } from '../../ScriptingMemory.js'
+import { extractParams } from '../helpers.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-SetScriptingMemoryLogicHook')
 
-const { RESERVED_WORDS } = require('../../ScriptingMemory')
-const { extractParams } = require('../helpers')
-
-module.exports = class SetScriptingMemoryLogicHook {
+export default class SetScriptingMemoryLogicHook {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
@@ -49,4 +49,4 @@ module.exports = class SetScriptingMemoryLogicHook {
 
     return Promise.resolve()
   }
-}
+};

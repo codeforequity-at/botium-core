@@ -1,8 +1,8 @@
-const _ = require('lodash')
-const util = require('util')
-const { BotiumError } = require('../../BotiumError')
+import _ from 'lodash'
+import util from 'util'
+import { BotiumError } from '../../BotiumError.js'
 
-module.exports = class EntitiesAsserter {
+export default class EntitiesAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -60,7 +60,7 @@ module.exports = class EntitiesAsserter {
       }
     ))
   }
-}
+};
 
 const _extractCount = (toCount) => {
   const result = {}

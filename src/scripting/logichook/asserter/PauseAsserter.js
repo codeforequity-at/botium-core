@@ -1,6 +1,6 @@
-const pause = require('../PauseLogic').pause
+import { pause } from '../PauseLogic.js'
 
-module.exports = class PauseAsserter {
+export default class PauseAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -14,4 +14,4 @@ module.exports = class PauseAsserter {
   assertConvoEnd ({ convo, args }) {
     return pause('PauseAsserter', convo.sourceTag, args)
   }
-}
+};

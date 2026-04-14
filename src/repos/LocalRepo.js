@@ -1,9 +1,9 @@
-const fs = require('fs')
-const path = require('path')
-const Source = require('../Source')
-const BaseRepo = require('./BaseRepo')
+import fs from 'fs'
+import path from 'path'
+import Source from '../Source.js'
+import BaseRepo from './BaseRepo.js'
 
-module.exports = class LocalRepo extends BaseRepo {
+export default class LocalRepo extends BaseRepo {
   Validate () {
     return super.Validate().then(() => {
       this._AssertSourceExists(Source.LOCALPATH)
@@ -31,4 +31,4 @@ module.exports = class LocalRepo extends BaseRepo {
     this.workingDirectory = path.resolve(this.sources[Source.LOCALPATH])
     return Promise.resolve()
   }
-}
+};

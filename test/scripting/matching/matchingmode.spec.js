@@ -1,7 +1,10 @@
-const path = require('path')
-const assert = require('chai').assert
-const BotDriver = require('../../../').BotDriver
-const Capabilities = require('../../../').Capabilities
+import path from 'path'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../../index.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const echoConnector = ({ queueBotSays }) => {
   return {
@@ -30,7 +33,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match int response with string', async function () {
@@ -59,7 +62,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should check matching with regex', async function () {
@@ -89,7 +92,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should check matching with regex', async function () {
@@ -123,7 +126,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match case sensitive response', async function () {
@@ -152,7 +155,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match response with substring', async function () {
@@ -202,7 +205,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match response with substring', async function () {
@@ -250,7 +253,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should not match response with substring', async function () {
@@ -300,7 +303,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match case sensitive response', async function () {
@@ -329,7 +332,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match case sensitive response', async function () {
@@ -359,7 +362,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should not match because of low threshold', async function () {
@@ -381,7 +384,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should not match because of low threshold', async function () {
@@ -403,7 +406,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match because of high threshold', async function () {
@@ -425,7 +428,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match because of high threshold', async function () {
@@ -447,7 +450,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should not match because of low threshold', async function () {
@@ -469,7 +472,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should not match because of low threshold', async function () {
@@ -491,7 +494,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match because of high threshold', async function () {
@@ -513,7 +516,7 @@ describe('scripting.matching.matchingmode', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should match because of high threshold', async function () {

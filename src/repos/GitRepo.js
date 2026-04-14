@@ -1,13 +1,13 @@
-const path = require('path')
-const async = require('async')
-const mkdirp = require('mkdirp')
-const debug = require('debug')('botium-core-GitRepo')
+import path from 'path'
+import async from 'async'
+import { mkdirp } from 'mkdirp'
+import Source from '../Source.js'
+import BaseRepo from './BaseRepo.js'
+import ProcessUtils from '../helpers/ProcessUtils.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-GitRepo')
 
-const Source = require('../Source')
-const BaseRepo = require('./BaseRepo')
-const ProcessUtils = require('../helpers/ProcessUtils')
-
-module.exports = class GitRepo extends BaseRepo {
+export default class GitRepo extends BaseRepo {
   Validate () {
     return super.Validate().then(() => {
       this._AssertSourceExists(Source.GITPATH)
@@ -72,4 +72,4 @@ module.exports = class GitRepo extends BaseRepo {
       })
     })
   }
-}
+};

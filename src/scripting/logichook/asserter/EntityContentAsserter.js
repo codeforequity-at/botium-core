@@ -1,8 +1,8 @@
-const _ = require('lodash')
-const util = require('util')
-const { BotiumError } = require('../../BotiumError')
+import _ from 'lodash'
+import util from 'util'
+import { BotiumError } from '../../BotiumError.js'
 
-module.exports = class EntityContentAsserter {
+export default class EntityContentAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -79,4 +79,4 @@ module.exports = class EntityContentAsserter {
       }
     ))
   }
-}
+};

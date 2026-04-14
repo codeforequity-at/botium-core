@@ -1,15 +1,18 @@
-const util = require('util')
-const debug = require('debug')('botium-core-ScriptingMemory')
-const randomize = require('randomatic')
-const { v1: uuidv1 } = require('uuid')
-const moment = require('moment')
-const _ = require('lodash')
-const path = require('path')
-const jp = require('jsonpath')
+import util from 'util'
+import randomize from 'randomatic'
+import { v1 as uuidv1 } from 'uuid'
+import moment from 'moment'
+import _ from 'lodash'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import jp from 'jsonpath'
+import Capabilities from '../Capabilities.js'
+import { quoteRegexpString, toString } from './helper.js'
+import { BotiumError } from './BotiumError.js'
+import createDebug from 'debug'
 
-const Capabilities = require('../Capabilities')
-const { quoteRegexpString, toString } = require('./helper')
-const { BotiumError } = require('./BotiumError')
+const __filename = fileURLToPath(import.meta.url)
+const debug = createDebug('botium-core-ScriptingMemory')
 
 // If they got parameter, then it will be a string always.
 // the receiver can decide what to do with it,
@@ -329,7 +332,16 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
   }
 }
 
-module.exports = {
+export {
+  apply,
+  applyToArgs,
+  fill,
+  extractVarNames,
+  RESERVED_WORDS,
+  SCRIPTING_FUNCTIONS
+}
+
+export default {
   apply,
   applyToArgs,
   fill,

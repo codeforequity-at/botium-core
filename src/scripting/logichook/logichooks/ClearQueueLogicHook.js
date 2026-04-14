@@ -1,4 +1,4 @@
-module.exports = class ClearQueueLogicHook {
+export default class ClearQueueLogicHook {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -19,4 +19,4 @@ module.exports = class ClearQueueLogicHook {
   onConvoEnd ({ container }) {
     container._EmptyQueue()
   }
-}
+};

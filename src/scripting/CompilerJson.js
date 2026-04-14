@@ -1,7 +1,7 @@
-const CompilerObjectBase = require('./CompilerObjectBase')
-const { convoStepToObject } = require('./helper')
+import CompilerObjectBase from './CompilerObjectBase.js'
+import { convoStepToObject } from './helper.js'
 
-module.exports = class CompilerJson extends CompilerObjectBase {
+export default class CompilerJson extends CompilerObjectBase {
   constructor (context, caps = {}) {
     super(context, caps)
   }
@@ -20,4 +20,4 @@ module.exports = class CompilerJson extends CompilerObjectBase {
     }))
     return JSON.stringify({ convos: result }, null, 2)
   }
-}
+};

@@ -1,6 +1,6 @@
-const jsonPath = require('jsonpath')
-const { BotiumError } = require('../../BotiumError')
-const BaseCountAsserter = require('./BaseCountAsserter')
+import jsonPath from 'jsonpath'
+import { BotiumError } from '../../BotiumError.js'
+import BaseCountAsserter from './BaseCountAsserter.js'
 
 const _jsonPathCount = ({ botMsg, args }) => {
   const jsonPathValues = jsonPath.query(botMsg.sourceData, args[0])
@@ -8,7 +8,7 @@ const _jsonPathCount = ({ botMsg, args }) => {
   else return jsonPathValues[0].length
 }
 
-module.exports = class JsonPathCountAsserter extends BaseCountAsserter {
+export default class JsonPathCountAsserter extends BaseCountAsserter {
   constructor (context, caps = {}) {
     super(context, caps, 'JsonPath', 1)
     this.name = 'JsonPath Count Asserter'
@@ -32,4 +32,4 @@ module.exports = class JsonPathCountAsserter extends BaseCountAsserter {
       )
     }
   }
-}
+};

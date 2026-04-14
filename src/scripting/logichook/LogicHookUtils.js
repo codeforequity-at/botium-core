@@ -1,27 +1,32 @@
-const util = require('util')
-const path = require('path')
-const fs = require('fs')
-const isClass = require('is-class')
-const debug = require('debug')('botium-core-asserterUtils')
+import util from 'util'
+import path from 'path'
+import fs from 'fs'
+import isClass from 'is-class'
+import { createRequire } from 'module'
+import createDebug from 'debug'
+import { DEFAULT_ASSERTERS, DEFAULT_LOGIC_HOOKS, DEFAULT_USER_INPUTS } from './LogicHookConsts.js'
+import Capabilities from '../../Capabilities.js'
+import _ from 'lodash'
+import * as asserterClasses from './asserter/index.js'
+import * as logicHookClasses from './logichooks/index.js'
+import * as userInputClasses from './userinput/index.js'
 
-const { DEFAULT_ASSERTERS, DEFAULT_LOGIC_HOOKS, DEFAULT_USER_INPUTS } = require('./LogicHookConsts')
+const require = createRequire(import.meta.url)
+const debug = createDebug('botium-core-asserterUtils')
 
 DEFAULT_ASSERTERS.forEach((asserter) => {
-  asserter.Class = require(`./asserter/${asserter.className}`)
+  asserter.Class = asserterClasses[asserter.className]
 })
 
 DEFAULT_LOGIC_HOOKS.forEach((logicHook) => {
-  logicHook.Class = require(`./logichooks/${logicHook.className}`)
+  logicHook.Class = logicHookClasses[logicHook.className]
 })
 
 DEFAULT_USER_INPUTS.forEach((userInput) => {
-  userInput.Class = require(`./userinput/${userInput.className}`)
+  userInput.Class = userInputClasses[userInput.className]
 })
 
-const Capabilities = require('../../Capabilities')
-const _ = require('lodash')
-
-module.exports = class LogicHookUtils {
+export default class LogicHookUtils {
   constructor ({ buildScriptContext, caps }) {
     this.asserters = {}
     this.globalAsserterNames = []
@@ -248,4 +253,4 @@ module.exports = class LogicHookUtils {
     }
     throw new Error(`${typeAsText} specification ${ref} ${hookType} from "${util.inspect(src)}" invalid : no loader available`)
   }
-}
+};

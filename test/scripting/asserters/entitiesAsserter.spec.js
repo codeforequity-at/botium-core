@@ -1,9 +1,8 @@
-const chai = require('chai')
-const assert = require('chai').assert
-chai.use(require('chai-as-promised'))
-const util = require('util')
-
-const EntitiesAsserter = require('../../../src/scripting/logichook/asserter/EntitiesAsserter')
+import chai, { assert } from 'chai'
+import chaiAsPromised from 'chai-as-promised'
+import util from 'util'
+import EntitiesAsserter from '../../../src/scripting/logichook/asserter/EntitiesAsserter.js'
+chai.use(chaiAsPromised)
 const asserter = new EntitiesAsserter(null, {})
 
 describe('scripting.asserters.entitiesAsserter', function () {

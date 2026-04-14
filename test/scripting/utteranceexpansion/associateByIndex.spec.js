@@ -1,9 +1,14 @@
-const path = require('path')
-const assert = require('chai').assert
-const { Convo } = require('../../../src/scripting/Convo')
-const ScriptingProvider = require('../../../src/scripting/ScriptingProvider')
-const DefaultCapabilities = require('../../../src/Defaults').Capabilities
-const Capabilities = require('../../../src/Capabilities')
+import path from 'path'
+import { assert } from 'chai'
+import { Convo } from '../../../src/scripting/Convo.js'
+import ScriptingProvider from '../../../src/scripting/ScriptingProvider.js'
+import Defaults from '../../../src/Defaults.js'
+import Capabilities from '../../../src/Capabilities.js'
+import { fileURLToPath } from 'url'
+
+const DefaultCapabilities = Defaults.Capabilities
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const CAPS = Object.assign({}, DefaultCapabilities, {
   [Capabilities.SCRIPTING_UTTEXPANSION_MODE]: 'index',

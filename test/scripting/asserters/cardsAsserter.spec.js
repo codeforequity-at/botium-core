@@ -1,7 +1,7 @@
-const assert = require('chai').assert
-const CardsAsserter = require('../../../src/scripting/logichook/asserter/CardsAsserter')
-const CardsCountAsserter = require('../../../src/scripting/logichook/asserter/CardsCountAsserter')
-const CardsCountRecAsserter = require('../../../src/scripting/logichook/asserter/CardsCountRecAsserter')
+import { assert } from 'chai'
+import CardsAsserter from '../../../src/scripting/logichook/asserter/CardsAsserter.js'
+import CardsCountAsserter from '../../../src/scripting/logichook/asserter/CardsCountAsserter.js'
+import CardsCountRecAsserter from '../../../src/scripting/logichook/asserter/CardsCountRecAsserter.js'
 
 describe('scripting.asserters.cardsAsserter', function () {
   describe('cardsAsserter', function () {

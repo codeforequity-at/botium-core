@@ -1,16 +1,16 @@
-const util = require('util')
-const async = require('async')
-const _ = require('lodash')
-const io = require('socket.io-client')
-const debug = require('debug')('botium-connector-GridContainer')
+import util from 'util'
+import async from 'async'
+import _ from 'lodash'
+import io from 'socket.io-client'
+import Commands from '../Commands.js'
+import Events from '../Events.js'
+import Capabilities from '../Capabilities.js'
+import BaseContainer from './BaseContainer.js'
+import BotiumMockMessage from '../mocks/BotiumMockMessage.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-connector-GridContainer')
 
-const Commands = require('../Commands')
-const Events = require('../Events')
-const Capabilities = require('../Capabilities')
-const BaseContainer = require('./BaseContainer')
-const BotiumMockMessage = require('../mocks/BotiumMockMessage')
-
-module.exports = class GridContainer extends BaseContainer {
+export default class GridContainer extends BaseContainer {
   Validate () {
     return super.Validate().then(() => {
       this._AssertCapabilityExists(Capabilities.BOTIUMGRIDURL)
@@ -215,4 +215,4 @@ module.exports = class GridContainer extends BaseContainer {
     })
     return deferred
   }
-}
+};

@@ -1,4 +1,4 @@
-module.exports = class ConditionalLogicHook {
+export default class ConditionalLogicHook {
   constructor (context, caps, globalArgs) {
     this.context = context
     this.caps = caps
@@ -18,4 +18,4 @@ module.exports = class ConditionalLogicHook {
     }
     convoStep.conditional.skip = params.skip
   }
-}
+};

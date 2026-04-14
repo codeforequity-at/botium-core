@@ -1,4 +1,4 @@
-module.exports = class BaseRepo {
+export default class BaseRepo {
   constructor (tempDirectory, sources) {
     this.tempDirectory = tempDirectory
     this.sources = Object.assign({}, sources)
@@ -18,4 +18,4 @@ module.exports = class BaseRepo {
       throw new Error(`Source property ${source} not set`)
     }
   }
-}
+};

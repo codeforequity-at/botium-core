@@ -1,4 +1,4 @@
-const _ = require('lodash')
+import _ from 'lodash'
 
 class BotiumMockMedia {
   constructor (fromJson = {}) {
@@ -99,7 +99,14 @@ class BotiumMockChoice {
   }
 }
 
-module.exports = {
+export {
+  BotiumMockMedia,
+  BotiumMockButton,
+  BotiumMockCard,
+  BotiumMockForm
+}
+
+export default {
   BotiumMockMedia,
   BotiumMockButton,
   BotiumMockCard,

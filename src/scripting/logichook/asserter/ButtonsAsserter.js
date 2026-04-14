@@ -1,9 +1,9 @@
-const _ = require('lodash')
-const { BotiumError } = require('../../BotiumError')
-const { buttonsFromMsg } = require('../helpers')
-const { normalizeText } = require('../../helper')
+import _ from 'lodash'
+import { BotiumError } from '../../BotiumError.js'
+import { buttonsFromMsg } from '../helpers.js'
+import { normalizeText } from '../../helper.js'
 
-module.exports = class ButtonsAsserter {
+export default class ButtonsAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -105,4 +105,4 @@ module.exports = class ButtonsAsserter {
     }
     return Promise.resolve()
   }
-}
+};

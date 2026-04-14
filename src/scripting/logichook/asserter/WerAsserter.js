@@ -1,8 +1,9 @@
 // const _ = require('lodash')
-const { BotiumError } = require('../../BotiumError')
-const { calculateWer, toPercent } = require('../../helper')
+import { BotiumError } from '../../BotiumError.js'
 
-module.exports = class WerAsserter {
+import { calculateWer, toPercent } from '../../helper.js'
+
+export default class WerAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -106,4 +107,4 @@ module.exports = class WerAsserter {
 
     return Promise.resolve()
   }
-}
+};

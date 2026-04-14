@@ -1,7 +1,7 @@
-const assert = require('chai').assert
-const ButtonsAsserter = require('../../../src/scripting/logichook/asserter/ButtonsAsserter')
-const ButtonsCountAsserter = require('../../../src/scripting/logichook/asserter/ButtonsCountAsserter')
-const ButtonsCountRecAsserter = require('../../../src/scripting/logichook/asserter/ButtonsCountRecAsserter')
+import { assert } from 'chai'
+import ButtonsAsserter from '../../../src/scripting/logichook/asserter/ButtonsAsserter.js'
+import ButtonsCountAsserter from '../../../src/scripting/logichook/asserter/ButtonsCountAsserter.js'
+import ButtonsCountRecAsserter from '../../../src/scripting/logichook/asserter/ButtonsCountRecAsserter.js'
 
 describe('scripting.asserters.buttonsAsserter', function () {
   describe('buttonsAsserter', function () {

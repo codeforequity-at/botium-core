@@ -1,9 +1,12 @@
-const path = require('path')
-const fs = require('fs')
-const assert = require('chai').assert
-const nock = require('nock')
-const BotDriver = require('../../../').BotDriver
-const Capabilities = require('../../../').Capabilities
+import path from 'path'
+import fs from 'fs'
+import { assert } from 'chai'
+import nock from 'nock'
+import { BotDriver, Capabilities } from '../../../index.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const echoConnector = ({ queueBotSays }) => {
   return {
@@ -32,7 +35,7 @@ describe('scripting.userinputs.mediaInputConvos', function () {
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should fail on media with no arg', async function () {
@@ -153,7 +156,7 @@ MEDIA ${mediaUri}
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should add media in user message', async function () {
@@ -211,7 +214,7 @@ MEDIA ${mediaUri}
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should add media from test set baseUri in user message', async function () {
@@ -266,7 +269,7 @@ MEDIA ${mediaUri}
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should add media from custom test set baseUri in user message', async function () {
@@ -306,7 +309,7 @@ MEDIA ${mediaUri}
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should expand media wc from baseDir in user message', async function () {
@@ -403,7 +406,7 @@ MEDIA ${mediaUri}
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should add media buffer in user message', async function () {
@@ -441,7 +444,7 @@ MEDIA ${mediaUri}
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should add media in user message', async function () {

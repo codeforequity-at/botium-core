@@ -1,7 +1,10 @@
-const path = require('path')
-const assert = require('chai').assert
-const BotDriver = require('../../../').BotDriver
-const Capabilities = require('../../../').Capabilities
+import path from 'path'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../../index.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const echoAssertConnector = ({ queueBotSays }) => {
   return {
@@ -63,7 +66,7 @@ describe('scripting.scriptingmemory.useScriptingMemoryForAssertion', function ()
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should use scripting memory for assertion', async function () {
@@ -93,7 +96,7 @@ describe('scripting.scriptingmemory.useScriptingMemoryForAssertion', function ()
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should use scripting memory for assertion', async function () {
@@ -127,7 +130,7 @@ describe('scripting.scriptingmemory.useScriptingMemoryForAssertion', function ()
     })
 
     afterEach(async function () {
-      this.container && await this.container.Clean()
+      this.container && (await this.container.Clean())
     })
 
     it('should use scripting memory for assertion several variables entries', async function () {

@@ -1,27 +1,33 @@
-const util = require('util')
-const fs = require('fs')
-const path = require('path')
-const async = require('async')
-const { rimraf } = require('rimraf')
-const mkdirp = require('mkdirp')
-const sanitize = require('sanitize-filename')
-const moment = require('moment')
-const randomize = require('randomatic')
-const _ = require('lodash')
-const { boolean } = require('./utils/boolean')
-const EventEmitter = require('events')
-const debug = require('debug')('botium-core-BotDriver')
+import util from 'util'
+import fs from 'fs'
+import path from 'path'
+import async from 'async'
+import { rimraf } from 'rimraf'
+import { mkdirp } from 'mkdirp'
+import sanitize from 'sanitize-filename'
+import moment from 'moment'
+import randomize from 'randomatic'
+import _ from 'lodash'
+import { boolean } from 'boolean'
+import EventEmitter from 'events'
+import createDebug from 'debug'
+import Defaults from './Defaults.js'
+import Capabilities from './Capabilities.js'
+import Source from './Source.js'
+import Fluent from './Fluent.js'
+import Events from './Events.js'
+import ScriptingProvider from './scripting/ScriptingProvider.js'
+import NoRepo from './repos/NoRepo.js'
+import GitRepo from './repos/GitRepo.js'
+import LocalRepo from './repos/LocalRepo.js'
+import GridContainer from './containers/GridContainer.js'
+import InProcessContainer from './containers/InProcessContainer.js'
+import PluginConnectorContainer from './containers/PluginConnectorContainer.js'
 
-const { version } = require('../package.json')
+const debug = createDebug('botium-core-BotDriver')
+const { version } = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url)))
 
-const Defaults = require('./Defaults')
-const Capabilities = require('./Capabilities')
-const Source = require('./Source')
-const Fluent = require('./Fluent')
-const Events = require('./Events')
-const ScriptingProvider = require('./scripting/ScriptingProvider')
-
-module.exports = class BotDriver {
+export default class BotDriver {
   constructor (caps = {}, sources = {}, envs = {}) {
     this.eventEmitter = new EventEmitter()
 
@@ -329,15 +335,12 @@ module.exports = class BotDriver {
 
   _getRepo (tempDirectory) {
     if (this.caps[Capabilities.BOTIUMGRIDURL]) {
-      const NoRepo = require('./repos/NoRepo')
       return new NoRepo(tempDirectory, this.sources)
     }
     if (this.sources[Source.GITURL]) {
-      const GitRepo = require('./repos/GitRepo')
       return new GitRepo(tempDirectory, this.sources)
     }
     if (this.sources[Source.LOCALPATH]) {
-      const LocalRepo = require('./repos/LocalRepo')
       return new LocalRepo(tempDirectory, this.sources)
     }
     throw new Error(`No Repo provider found for Sources ${util.inspect(this.sources)}`)
@@ -345,17 +348,14 @@ module.exports = class BotDriver {
 
   _getContainer (tempDirectory, repo) {
     if (this.caps[Capabilities.BOTIUMGRIDURL]) {
-      const GridContainer = require('./containers/GridContainer')
       return new GridContainer(this.eventEmitter, tempDirectory, repo, this.caps, this.envs)
     }
     if (!this.caps[Capabilities.CONTAINERMODE]) {
       throw new Error(`Capability '${Capabilities.CONTAINERMODE}' missing`)
     }
     if (this.caps[Capabilities.CONTAINERMODE] === 'inprocess') {
-      const InProcessContainer = require('./containers/InProcessContainer')
       return new InProcessContainer(this.eventEmitter, tempDirectory, repo, this.caps, this.envs)
     }
-    const PluginConnectorContainer = require('./containers/PluginConnectorContainer')
     return new PluginConnectorContainer(this.eventEmitter, tempDirectory, repo, this.caps, this.envs)
   }
-}
+};

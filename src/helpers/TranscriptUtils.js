@@ -1,7 +1,7 @@
-const path = require('path')
-const fs = require('fs')
-const _ = require('lodash')
-const { parse: csvParseSync } = require('csv-parse/sync')
+import path from 'path'
+import fs from 'fs'
+import _ from 'lodash'
+import { parse as csvParseSync } from 'csv-parse/sync'
 
 /**
  * Find transcription for an audio file: .txt same base name, or transcript.csv in parent dirs.
@@ -10,7 +10,7 @@ const { parse: csvParseSync } = require('csv-parse/sync')
  * @param {object} [options] - Optional: { csvCache: {}, onError: (msg) => {} }
  * @returns {string|null} Transcription text or null
  */
-module.exports.findTranscription = (baseDir, audioFile, options = {}) => {
+export function findTranscription (baseDir, audioFile, options = {}) {
   const { csvCache = {}, onError } = options
   const transcriptionFilename = `${audioFile.substring(0, audioFile.lastIndexOf('.'))}.txt`
   const transcriptionFilenameAbs = path.resolve(baseDir, transcriptionFilename)
@@ -61,12 +61,12 @@ module.exports.findTranscription = (baseDir, audioFile, options = {}) => {
  * @param {string} audioFile - Path or filename of audio file
  * @returns {string}
  */
-module.exports.transcriptionFromFilename = (audioFile) => {
+export function transcriptionFromFilename (audioFile) {
   const filename = path.basename(audioFile, path.extname(audioFile))
   return filename.split(/[_-]+/).join(' ')
 }
 
-module.exports.hasWaitForBotTimeout = (transciptError) => {
+export function hasWaitForBotTimeout (transciptError) {
   if (!transciptError) {
     return false
   }
@@ -75,4 +75,10 @@ module.exports.hasWaitForBotTimeout = (transciptError) => {
     return false
   }
   return str.indexOf(': error waiting for bot - Bot did not respond within') > 0
+}
+
+export default {
+  findTranscription,
+  transcriptionFromFilename,
+  hasWaitForBotTimeout
 }

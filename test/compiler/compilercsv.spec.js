@@ -1,9 +1,14 @@
-const fs = require('fs')
-const path = require('path')
-const assert = require('chai').assert
-const Compiler = require('../../src/scripting/CompilerCsv')
-const Capabilities = require('../../src/Capabilities')
-const DefaultCapabilities = require('../../src/Defaults').Capabilities
+import fs from 'fs'
+import path from 'path'
+import { assert } from 'chai'
+import Compiler from '../../src/scripting/CompilerCsv.js'
+import Capabilities from '../../src/Capabilities.js'
+import Defaults from '../../src/Defaults.js'
+import { fileURLToPath } from 'url'
+
+const DefaultCapabilities = Defaults.Capabilities
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const CONVOS_DIR = 'convos/csv'
 

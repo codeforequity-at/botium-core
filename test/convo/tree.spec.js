@@ -1,7 +1,12 @@
-const path = require('path')
-const assert = require('chai').assert
-const DefaultCapabilities = require('../../src/Defaults').Capabilities
-const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
+import path from 'path'
+import { assert } from 'chai'
+import Defaults from '../../src/Defaults.js'
+import ScriptingProvider from '../../src/scripting/ScriptingProvider.js'
+import { fileURLToPath } from 'url'
+
+const DefaultCapabilities = Defaults.Capabilities
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 describe('tree.buildconversationtreeview', function () {
   it('should build shared convo node on messageText', async function () {

@@ -1,6 +1,6 @@
-const { BotiumError } = require('../../BotiumError')
+import { BotiumError } from '../../BotiumError.js'
 
-module.exports = class FormsAsserter {
+export default class FormsAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -103,4 +103,4 @@ module.exports = class FormsAsserter {
     }
     return Promise.resolve()
   }
-}
+};

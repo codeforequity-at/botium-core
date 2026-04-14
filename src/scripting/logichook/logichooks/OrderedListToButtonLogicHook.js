@@ -1,8 +1,8 @@
-const _ = require('lodash')
+import _ from 'lodash'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-OrderedListToButtonLogicHook')
 const PATTERN = '^\\s*(\\d+)\\.'
-const debug = require('debug')('botium-core-OrderedListToButtonLogicHook')
-
-module.exports = class OrderedListToButtonLogicHook {
+export default class OrderedListToButtonLogicHook {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
@@ -34,4 +34,4 @@ module.exports = class OrderedListToButtonLogicHook {
       botMsg.buttons = [...(botMsg.buttons || []), ...buttons]
     }
   }
-}
+};

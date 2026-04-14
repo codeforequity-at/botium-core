@@ -1,7 +1,7 @@
-const _ = require('lodash')
-const { BotiumError } = require('../../BotiumError')
+import _ from 'lodash'
+import { BotiumError } from '../../BotiumError.js'
 
-module.exports = class IntentAsserter {
+export default class IntentAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -70,4 +70,4 @@ module.exports = class IntentAsserter {
 
     return Promise.resolve()
   }
-}
+};

@@ -1,11 +1,11 @@
-const { BotiumError } = require('../../BotiumError')
-const { getMatchFunction } = require('../../MatchFunctions')
-const { toString } = require('../../helper')
-const _ = require('lodash')
-const jsonPath = require('jsonpath')
-const Mustache = require('mustache')
+import { BotiumError } from '../../BotiumError.js'
+import { getMatchFunction } from '../../MatchFunctions.js'
+import { toString } from '../../helper.js'
+import _ from 'lodash'
+import jsonPath from 'jsonpath'
+import Mustache from 'mustache'
 
-module.exports = class JsonPathAsserter {
+export default class JsonPathAsserter {
   constructor (context, caps = {}, globalArgs = {}) {
     this.context = context
     this.caps = caps
@@ -188,4 +188,4 @@ module.exports = class JsonPathAsserter {
 
     return Promise.resolve()
   }
-}
+};

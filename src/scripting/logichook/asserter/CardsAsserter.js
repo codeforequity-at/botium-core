@@ -1,9 +1,9 @@
-const { SCRIPTING_NORMALIZE_TEXT } = require('../../../Capabilities')
-const { BotiumError } = require('../../BotiumError')
-const { cardsFromMsg } = require('../helpers')
-const { normalizeText } = require('../../helper')
+import Capabilities from '../../../Capabilities.js'
+import { BotiumError } from '../../BotiumError.js'
+import { cardsFromMsg } from '../helpers.js'
+import { normalizeText } from '../../helper.js'
 
-module.exports = class CardsAsserter {
+export default class CardsAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -11,14 +11,14 @@ module.exports = class CardsAsserter {
   }
 
   _evalCards (args, botMsg) {
-    const allCards = cardsFromMsg(botMsg, true).reduce((acc, mc) => acc.concat([mc.text, mc.subtext, mc.content].filter(t => t).map(t => normalizeText(t, !!this.caps[SCRIPTING_NORMALIZE_TEXT]))), [])
+    const allCards = cardsFromMsg(botMsg, true).reduce((acc, mc) => acc.concat([mc.text, mc.subtext, mc.content].filter(t => t).map(t => normalizeText(t, !!this.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]))), [])
     if (!args || args.length === 0) {
       return { allCards, cardsNotFound: [], cardsFound: allCards }
     }
     const cardsNotFound = []
     const cardsFound = []
     for (let i = 0; i < (args || []).length; i++) {
-      if (allCards.findIndex(c => this.context.Match(c, normalizeText(args[i], !!this.caps[SCRIPTING_NORMALIZE_TEXT]))) < 0) {
+      if (allCards.findIndex(c => this.context.Match(c, normalizeText(args[i], !!this.caps[Capabilities.SCRIPTING_NORMALIZE_TEXT]))) < 0) {
         cardsNotFound.push(args[i])
       } else {
         cardsFound.push(args[i])
@@ -91,4 +91,4 @@ module.exports = class CardsAsserter {
     }
     return Promise.resolve()
   }
-}
+};

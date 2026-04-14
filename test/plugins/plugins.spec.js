@@ -1,6 +1,10 @@
-const path = require('path')
-const assert = require('chai').assert
-const { BotDriver, Capabilities, Plugins } = require('../../')
+import path from 'path'
+import { assert } from 'chai'
+import { BotDriver, Capabilities, Plugins } from '../../index.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 describe('plugins.plugins', function () {
   describe('find', function () {

@@ -1,7 +1,7 @@
-const Capabilities = require('./Capabilities')
-const Source = require('./Source')
+import Capabilities from './Capabilities.js'
+import Source from './Source.js'
 
-module.exports = {
+export default {
   Capabilities: {
     [Capabilities.PROJECTNAME]: 'Botium Project',
     [Capabilities.TESTSESSIONNAME]: 'Botium Test Session',

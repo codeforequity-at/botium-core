@@ -1,5 +1,5 @@
-const assert = require('chai').assert
-const ResponseLengthAsserter = require('../../../src/scripting/logichook/asserter/ResponseLengthAsserter')
+import { assert } from 'chai'
+import ResponseLengthAsserter from '../../../src/scripting/logichook/asserter/ResponseLengthAsserter.js'
 
 describe('scripting.asserters.responseLengthAsserter', function () {
   beforeEach(async function () {

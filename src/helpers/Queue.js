@@ -1,9 +1,8 @@
-const async = require('async')
-const util = require('util')
+import async from 'async'
+import util from 'util'
+import QueueTimeoutError from './QueueTimeoutError.js'
 
-const QueueTimeoutError = require('./QueueTimeoutError')
-
-module.exports = class Queue {
+export default class Queue {
   constructor () {
     this.queue = []
     this.listeners = []
@@ -65,4 +64,4 @@ module.exports = class Queue {
   registerPushListener (callback) {
     this.pushListener = callback
   }
-}
+};

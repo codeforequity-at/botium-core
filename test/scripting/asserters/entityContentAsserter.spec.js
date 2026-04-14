@@ -1,8 +1,8 @@
-const chai = require('chai')
-const assert = require('chai').assert
-chai.use(require('chai-as-promised'))
+import chai, { assert } from 'chai'
+import chaiAsPromised from 'chai-as-promised'
 
-const EntityContentAsserter = require('../../../src/scripting/logichook/asserter/EntityContentAsserter')
+import EntityContentAsserter from '../../../src/scripting/logichook/asserter/EntityContentAsserter.js'
+chai.use(chaiAsPromised)
 
 describe('scripting.asserters.entityContentAsserter', function () {
   beforeEach(async function () {

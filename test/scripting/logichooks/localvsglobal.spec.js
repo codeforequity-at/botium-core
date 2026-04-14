@@ -1,7 +1,6 @@
-const Constants = require('../../../src/scripting/Constants')
-const assert = require('chai').assert
-const BotDriver = require('../../..').BotDriver
-const Capabilities = require('../../..').Capabilities
+import Constants from '../../../src/scripting/Constants.js'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../../index.js'
 
 const echoConnector = () => ({ queueBotSays }) => {
   return {

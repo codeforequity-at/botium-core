@@ -1,12 +1,12 @@
-const { parse } = require('csv-parse/sync')
-const _ = require('lodash')
-const debug = require('debug')('botium-core-CompilerCsv')
-
-const Capabilities = require('../Capabilities')
-const CompilerBase = require('./CompilerBase')
-const Constants = require('./Constants')
-const { Convo } = require('./Convo')
-const { linesToConvoStep } = require('./helper')
+import { parse } from 'csv-parse/sync'
+import _ from 'lodash'
+import Capabilities from '../Capabilities.js'
+import CompilerBase from './CompilerBase.js'
+import Constants from './Constants.js'
+import { Convo } from './Convo.js'
+import { linesToConvoStep } from './helper.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-CompilerCsv')
 
 const DELIMITERS_CHECK = [',', ';', '|', '\t']
 const DEFAULT_DELIMITER = ','
@@ -30,7 +30,7 @@ const _findColIndex = (header, colName) => {
   throw new Error(`Column ${colName} not found.`)
 }
 
-module.exports = class CompilerCsv extends CompilerBase {
+export default class CompilerCsv extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
   }
@@ -246,4 +246,4 @@ module.exports = class CompilerCsv extends CompilerBase {
       return []
     }
   }
-}
+};

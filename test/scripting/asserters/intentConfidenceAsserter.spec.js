@@ -1,9 +1,8 @@
-const chai = require('chai')
-const assert = require('chai').assert
-chai.use(require('chai-as-promised'))
-const util = require('util')
-
-const IntentConfidenceAsserter = require('../../../src/scripting/logichook/asserter/IntentConfidenceAsserter')
+import chai, { assert } from 'chai'
+import chaiAsPromised from 'chai-as-promised'
+import util from 'util'
+import IntentConfidenceAsserter from '../../../src/scripting/logichook/asserter/IntentConfidenceAsserter.js'
+chai.use(chaiAsPromised)
 const asserterWithGlobal = new IntentConfidenceAsserter(null, null, { expectedMinimum: 70 })
 const asserterWithoutGlobal = new IntentConfidenceAsserter(null)
 

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   // Botium Events
   CONTAINER_BUILDING: 'CONTAINER_BUILDING',
   CONTAINER_BUILT: 'CONTAINER_BUILT',

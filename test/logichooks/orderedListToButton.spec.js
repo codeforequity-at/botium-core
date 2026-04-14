@@ -1,6 +1,5 @@
-const assert = require('chai').assert
-
-const OrderedListToButtonLogicHook = require('../../src/scripting/logichook/logichooks/OrderedListToButtonLogicHook')
+import { assert } from 'chai'
+import OrderedListToButtonLogicHook from '../../src/scripting/logichook/logichooks/OrderedListToButtonLogicHook.js'
 
 describe('logichooks.orderedListToButton', function () {
   it('should convert ordered list to buttons', async function () {

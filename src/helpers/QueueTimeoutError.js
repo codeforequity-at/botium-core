@@ -1,8 +1,8 @@
-const { formatTimeout } = require('./Utils')
+import { formatTimeout } from './Utils.js'
 
-module.exports = class QueueTimeoutError extends Error {
+export default class QueueTimeoutError extends Error {
   constructor (timeoutMillis) {
     super(`Bot did not respond within ${formatTimeout(timeoutMillis)}`)
     this.timeoutMillis = timeoutMillis
   }
-}
+};

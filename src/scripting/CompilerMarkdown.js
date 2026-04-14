@@ -1,15 +1,16 @@
-const debug = require('debug')('botium-core-CompilerMarkdown')
-const MarkdownIt = require('markdown-it')
-const util = require('util')
+import MarkdownIt from 'markdown-it'
+import util from 'util'
+
+import CompilerBase from './CompilerBase.js'
+import Constants from './Constants.js'
+import { Convo } from './Convo.js'
+import Utterance from './Utterance.js'
+import { linesToConvoStep, validSenders, validateSender } from './helper.js'
+import createDebug from 'debug'
 const md = new MarkdownIt()
+const debug = createDebug('botium-core-CompilerMarkdown')
 
-const CompilerBase = require('./CompilerBase')
-const Constants = require('./Constants')
-const { Convo } = require('./Convo')
-const Utterance = require('./Utterance')
-const { linesToConvoStep, validSenders, validateSender } = require('./helper')
-
-module.exports = class CompilerMarkdown extends CompilerBase {
+export default class CompilerMarkdown extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
   }
@@ -113,4 +114,4 @@ module.exports = class CompilerMarkdown extends CompilerBase {
       }
     }
   }
-}
+};

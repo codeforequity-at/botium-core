@@ -1,7 +1,7 @@
-const _ = require('lodash')
-const debug = require('debug')('botium-core-MatchFunctions')
-
-const { toString, quoteRegexpString, calculateWer } = require('./helper')
+import _ from 'lodash'
+import { toString, quoteRegexpString, calculateWer } from './helper.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-MatchFunctions')
 
 const _normalize = (botresponse, args, convoStepParameters) => {
   if (!convoStepParameters) {
@@ -127,7 +127,17 @@ const getMatchFunction = (matchingMode) => {
   }
 }
 
-module.exports = {
+export {
+  regexp,
+  wildcard,
+  wildcardExact,
+  include,
+  equals,
+  wer,
+  getMatchFunction
+}
+
+export default {
   regexp,
   wildcard,
   wildcardExact,

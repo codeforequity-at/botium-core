@@ -1,8 +1,8 @@
-const BotiumMockAttachment = require('./BotiumMockAttachment')
-const { BotiumMockMedia, BotiumMockButton, BotiumMockCard, BotiumMockForm } = require('./BotiumMockRichMessageTypes')
-const { BotiumMockAsserter, BotiumMockUserInput, BotiumMockLogicHook } = require('./BotiumMockScripting')
+import BotiumMockAttachment from './BotiumMockAttachment.js'
+import { BotiumMockMedia, BotiumMockButton, BotiumMockCard, BotiumMockForm } from './BotiumMockRichMessageTypes.js'
+import { BotiumMockAsserter, BotiumMockUserInput, BotiumMockLogicHook } from './BotiumMockScripting.js'
 
-module.exports = class BotiumMockMessage {
+export default class BotiumMockMessage {
   constructor (fromJson = {}) {
     this.sender = fromJson.sender
     this.channel = fromJson.channel
@@ -38,4 +38,4 @@ module.exports = class BotiumMockMessage {
       ...lines.slice(1)
     ].join('\n')
   }
-}
+};

@@ -1,7 +1,10 @@
-const path = require('path')
-const assert = require('chai').assert
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
+import path from 'path'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../index.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const echoConnector = ({ queueBotSays }) => {
   return {
@@ -109,7 +112,7 @@ describe('logichooks.hookfromsrc', function () {
       const { compiler, container } = await buildDriverFromFile({
         [Capabilities.ASSERTERS]: [{
           ref: 'CUSTOMASSERTER',
-          src: path.join(__dirname, 'botium-connector-fromfile.js/MyCustomAsserter')
+          src: path.join(__dirname, 'botium-connector-fromfile', 'MyCustomAsserter')
         }]
       })
       compiler.ReadScript(path.resolve(__dirname, 'convos'), 'HOOKFROMSRC.convo.txt')
@@ -120,7 +123,7 @@ describe('logichooks.hookfromsrc', function () {
       const { compiler, container } = await buildDriverFromFile({
         [Capabilities.ASSERTERS]: [{
           ref: 'CUSTOMASSERTER',
-          src: path.join(__dirname, 'botium-asserter-fromfile.js')
+          src: path.join(__dirname, 'botium-asserter-fromfile.cjs')
         }]
       })
       compiler.ReadScript(path.resolve(__dirname, 'convos'), 'HOOKFROMSRC.convo.txt')

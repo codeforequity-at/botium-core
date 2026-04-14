@@ -1,5 +1,5 @@
-const _ = require('lodash')
-const jp = require('jsonpath')
+import _ from 'lodash'
+import jp from 'jsonpath'
 
 const _ensureList = (queryResult) => {
   if (_.isArray(queryResult)) {
@@ -8,7 +8,7 @@ const _ensureList = (queryResult) => {
   return [queryResult]
 }
 
-module.exports.precompile = (caps, scriptBuffer, options, filename) => {
+export function precompile (caps, scriptBuffer, options, filename) {
   if (!filename.endsWith('.json')) {
     return
   }

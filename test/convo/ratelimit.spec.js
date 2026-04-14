@@ -1,7 +1,6 @@
-const assert = require('chai').assert
-const moment = require('moment')
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
+import { assert } from 'chai'
+import moment from 'moment'
+import { BotDriver, Capabilities } from '../../index.js'
 
 const echoConnector = ({ queueBotSays }) => {
   return {

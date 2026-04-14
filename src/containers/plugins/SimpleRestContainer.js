@@ -1,30 +1,29 @@
-const util = require('util')
-const async = require('async')
-const Mustache = require('mustache')
-const jp = require('jsonpath')
-const mime = require('mime-types')
-const { v4: uuidv4 } = require('uuid')
-const Redis = require('ioredis')
-const _ = require('lodash')
-const debug = require('debug')('botium-connector-simplerest')
-const { ProxyAgent, Agent } = require('undici')
-
-const { startProxy } = require('../../grid/inbound/proxy')
-const botiumUtils = require('../../helpers/Utils')
-const { getAllCapValues } = require('../../helpers/CapabilitiesUtils')
-const Capabilities = require('../../Capabilities')
-const Defaults = require('../../Defaults').Capabilities
-const { SCRIPTING_FUNCTIONS } = require('../../scripting/ScriptingMemory')
-const { getHook, executeHook } = require('../../helpers/HookUtils')
-const { escapeJSONString } = require('../../helpers/Utils')
-const { BotiumError } = require('../../scripting/BotiumError')
+import util from 'util'
+import async from 'async'
+import Mustache from 'mustache'
+import jp from 'jsonpath'
+import mime from 'mime-types'
+import { v4 as uuidv4 } from 'uuid'
+import Redis from 'ioredis'
+import _ from 'lodash'
+import { ProxyAgent, Agent } from 'undici'
+import { startProxy } from '../../grid/inbound/proxy.js'
+import botiumUtils, { escapeJSONString } from '../../helpers/Utils.js'
+import { getAllCapValues } from '../../helpers/CapabilitiesUtils.js'
+import Capabilities from '../../Capabilities.js'
+import DefaultsRoot from '../../Defaults.js'
+import { SCRIPTING_FUNCTIONS } from '../../scripting/ScriptingMemory.js'
+import { getHook, executeHook } from '../../helpers/HookUtils.js'
+import { BotiumError } from '../../scripting/BotiumError.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-connector-simplerest')
 
 Mustache.escape = s => s
 
-module.exports = class SimpleRestContainer {
+export default class SimpleRestContainer {
   constructor ({ queueBotSays, caps, bottleneck }) {
     this.queueBotSays = queueBotSays
-    this.caps = Object.assign({}, Defaults, caps)
+    this.caps = Object.assign({}, DefaultsRoot.Capabilities, caps)
     this.bottleneck = bottleneck || ((fn) => fn())
     this.processInbound = false
     this.redisTopic = this.caps[Capabilities.SIMPLEREST_REDIS_TOPIC] || 'SIMPLEREST_INBOUND_SUBSCRIPTION'
@@ -1165,4 +1164,4 @@ module.exports = class SimpleRestContainer {
       this.cookies[host] = responseCookies
     }
   }
-}
+};

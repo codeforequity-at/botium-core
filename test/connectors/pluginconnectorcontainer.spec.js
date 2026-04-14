@@ -1,6 +1,5 @@
-const assert = require('chai').assert
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../index.js'
 
 const echoConnectorWithMetadata = ({ queueBotSays }) => {
   return {
@@ -44,7 +43,7 @@ describe('compiler.precompiler.json', function () {
   })
 
   afterEach(async function () {
-    this.container && await this.container.Clean()
+    this.container && (await this.container.Clean())
   })
 
   it('should get metadata if its available', async function () {

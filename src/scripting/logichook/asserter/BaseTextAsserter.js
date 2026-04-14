@@ -1,8 +1,8 @@
-const { BotiumError } = require('../../BotiumError')
-const { normalizeText, toString } = require('../../helper')
-const _ = require('lodash')
+import { BotiumError } from '../../BotiumError.js'
+import { normalizeText, toString } from '../../helper.js'
+import _ from 'lodash'
 
-module.exports = class BaseTextAsserter {
+export default class BaseTextAsserter {
   constructor (context, caps = {}, matchFn = null, mode = null, noArgIsJoker = false) {
     this.context = context
     this.caps = caps
@@ -124,4 +124,4 @@ module.exports = class BaseTextAsserter {
     }
     return Promise.resolve()
   }
-}
+};

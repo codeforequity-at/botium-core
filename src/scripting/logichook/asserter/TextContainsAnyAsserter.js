@@ -1,9 +1,9 @@
-const BaseTextAsserter = require('./BaseTextAsserter')
-const MatchFunctions = require('../../MatchFunctions')
+import BaseTextAsserter from './BaseTextAsserter.js'
+import MatchFunctions from '../../MatchFunctions.js'
 
-module.exports = class TextContainsAnyAsserter extends BaseTextAsserter {
+export default class TextContainsAnyAsserter extends BaseTextAsserter {
   constructor (context, caps = {}) {
     super(context, caps, MatchFunctions.include(false), 'any')
     this.name = 'Text Contains Any Asserter'
   }
-}
+};

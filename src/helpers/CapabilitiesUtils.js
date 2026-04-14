@@ -1,8 +1,9 @@
-const _ = require('lodash')
-const debug = require('debug')('botium-core-CapabilitiesUtils')
-const { toJsonWeak } = require('./Utils')
+import _ from 'lodash'
+import { toJsonWeak } from './Utils.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-CapabilitiesUtils')
 
-module.exports.getAllCapValues = (capNamePrefix, caps) => {
+export function getAllCapValues (capNamePrefix, caps) {
   const allCapValues = []
   const jsonPathCaps = _.pickBy(caps, (v, k) => k.startsWith(capNamePrefix))
   _(jsonPathCaps).keys().sort().each((key) => {
@@ -28,7 +29,7 @@ module.exports.getAllCapValues = (capNamePrefix, caps) => {
  * @param prefix
  * @returns {Array}
  */
-module.exports.flatCababilities = (caps, prefix) => {
+export function flatCababilities (caps, prefix) {
   const result = []
   let capNames = []
   for (const name of Object.keys(caps)) {

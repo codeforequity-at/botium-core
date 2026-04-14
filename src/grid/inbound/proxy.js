@@ -1,8 +1,8 @@
-const express = require('express')
-const Redis = require('ioredis')
-const bodyParser = require('body-parser')
-const debug = require('debug')('botium-core-inbound-proxy')
-
+import express from 'express'
+import Redis from 'ioredis'
+import bodyParser from 'body-parser'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-inbound-proxy')
 const buildRedisHandler = (redisurl, topic) => {
   const redis = new Redis(redisurl)
   redis.on('connect', () => {
@@ -67,7 +67,13 @@ const startProxy = async ({ port, endpoint, processEvent }) => {
   })
 }
 
-module.exports = {
+export {
+  buildRedisHandler,
+  setupEndpoints,
+  startProxy
+}
+
+export default {
   buildRedisHandler,
   setupEndpoints,
   startProxy

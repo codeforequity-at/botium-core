@@ -1,9 +1,8 @@
-const chai = require('chai')
-const assert = require('chai').assert
-chai.use(require('chai-as-promised'))
-const util = require('util')
-
-const IntentAsserter = require('../../../src/scripting/logichook/asserter/IntentAsserter')
+import chai, { assert } from 'chai'
+import chaiAsPromised from 'chai-as-promised'
+import util from 'util'
+import IntentAsserter from '../../../src/scripting/logichook/asserter/IntentAsserter.js'
+chai.use(chaiAsPromised)
 const asserter = new IntentAsserter(null, {})
 
 describe('scripting.asserters.intentAsserter', function () {

@@ -1,5 +1,6 @@
-const pause = require('../PauseLogic').pause
-module.exports = class PauseLogicHook {
+import { pause } from '../PauseLogic.js'
+
+export default class PauseLogicHook {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -20,4 +21,4 @@ module.exports = class PauseLogicHook {
   onConvoEnd ({ args }) {
     return pause('PauseLogicHook', 'onConvoEnd', args)
   }
-}
+};

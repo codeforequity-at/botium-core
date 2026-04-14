@@ -1,6 +1,6 @@
-const { BotiumMockForm } = require('../../../mocks/BotiumMockRichMessageTypes')
+import { BotiumMockForm } from '../../../mocks/BotiumMockRichMessageTypes.js'
 
-module.exports = class FormInput {
+export default class FormInput {
   setUserInput ({ convoStep, args, meMsg }) {
     if (!args || args.length === 0) {
       return Promise.reject(new Error(`${convoStep.stepTag}: FormInput requires at least 1 argument`))
@@ -13,4 +13,4 @@ module.exports = class FormInput {
     }))
     return Promise.resolve()
   }
-}
+};

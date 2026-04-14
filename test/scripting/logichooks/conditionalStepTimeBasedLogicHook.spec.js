@@ -1,9 +1,12 @@
-const path = require('path')
-const moment = require('moment/moment')
-const assert = require('chai').assert
-const BotDriver = require('../../../index').BotDriver
-const Capabilities = require('../../../index').Capabilities
-const ConditionalTimeBasedLogicHook = require('../../../src/scripting/logichook/logichooks/ConditionalTimeBasedLogicHook')
+import path from 'path'
+import moment from 'moment'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../../index.js'
+import ConditionalTimeBasedLogicHook from '../../../src/scripting/logichook/logichooks/ConditionalTimeBasedLogicHook.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const echoConnector = ({ queueBotSays }) => {
   return {
@@ -38,7 +41,7 @@ describe('convo with time based conditional logichook', function () {
   })
 
   afterEach(async function () {
-    this.container && await this.container.Clean()
+    this.container && (await this.container.Clean())
   })
 
   it('should success', async function () {

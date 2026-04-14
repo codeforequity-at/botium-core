@@ -2,12 +2,44 @@
   "name": "botium-core",
   "version": "1.15.12",
   "description": "The Selenium for Chatbots",
-  "main": "index.js",
-  "module": "dist/botium-es.js",
+  "type": "module",
+  "main": "./dist/botium-cjs.cjs",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "require": "./dist/botium-cjs.cjs"
+    },
+    "./src/Capabilities": {
+      "import": "./src/Capabilities.js",
+      "require": "./compat/Capabilities.cjs"
+    },
+    "./src/Capabilities.js": {
+      "import": "./src/Capabilities.js",
+      "require": "./compat/Capabilities.cjs"
+    },
+    "./src/helpers/HookUtils": {
+      "import": "./src/helpers/HookUtils.js",
+      "require": "./compat/HookUtils.cjs"
+    },
+    "./src/helpers/HookUtils.js": {
+      "import": "./src/helpers/HookUtils.js",
+      "require": "./compat/HookUtils.cjs"
+    },
+    "./src/containers/plugins/SimpleRestContainer": {
+      "import": "./src/containers/plugins/SimpleRestContainer.js",
+      "require": "./compat/SimpleRestContainer.cjs"
+    },
+    "./src/containers/plugins/SimpleRestContainer.js": {
+      "import": "./src/containers/plugins/SimpleRestContainer.js",
+      "require": "./compat/SimpleRestContainer.cjs"
+    }
+  },
   "engines": {
     "node": ">=18.17"
   },
   "scripts": {
+    "prepare": "rollup -c",
+    "prepack": "rollup -c",
     "postinstall": "node ./report.js",
     "build": "npm run eslint && nyc npm test && nyc check-coverage --lines 50 --functions 50 --branches 35 && rollup -c",
     "eslint": "eslint \"./src/**/*.js\" \"./test/**/*.js\"",
@@ -58,7 +90,7 @@
     "socket.io-client": "^4.8.3",
     "socketio-auth": "^0.1.1",
     "tinyglobby": "^0.2.15",
-    "undici": "^7.22.0",
+    "undici": "^6.21.0",
     "uuid": "^9.0.1",
     "word-error-rate": "0.0.7",
     "write-yaml": "^1.0.0",

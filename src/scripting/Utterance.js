@@ -1,7 +1,7 @@
-const util = require('util')
-const _ = require('lodash')
+import util from 'util'
+import _ from 'lodash'
 
-module.exports = class Utterance {
+export default class Utterance {
   constructor (fromJson = {}) {
     this.name = fromJson.name
     this.sourceTag = fromJson.sourceTag
@@ -14,4 +14,4 @@ module.exports = class Utterance {
   }
 
   toString () { return this.name + (this.sourceTag ? ` (${util.inspect(this.sourceTag)})` : '') + ': ' + this.utterances.join('|') }
-}
+};

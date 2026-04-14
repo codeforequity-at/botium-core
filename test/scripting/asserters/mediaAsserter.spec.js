@@ -1,7 +1,7 @@
-const assert = require('chai').assert
-const MediaAsserter = require('../../../src/scripting/logichook/asserter/MediaAsserter')
-const MediaCountAsserter = require('../../../src/scripting/logichook/asserter/MediaCountAsserter')
-const MediaCountRecAsserter = require('../../../src/scripting/logichook/asserter/MediaCountRecAsserter')
+import { assert } from 'chai'
+import MediaAsserter from '../../../src/scripting/logichook/asserter/MediaAsserter.js'
+import MediaCountAsserter from '../../../src/scripting/logichook/asserter/MediaCountAsserter.js'
+import MediaCountRecAsserter from '../../../src/scripting/logichook/asserter/MediaCountRecAsserter.js'
 
 describe('scripting.asserters.mediaAsserter', function () {
   describe('mediaAsserter', function () {

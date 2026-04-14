@@ -1,29 +1,74 @@
-module.exports = {
-  BotDriver: require('./src/BotDriver'),
-  Capabilities: require('./src/Capabilities'),
-  Defaults: require('./src/Defaults'),
-  Enums: require('./src/Enums'),
-  Events: require('./src/Events'),
-  Plugins: require('./src/Plugins'),
-  Source: require('./src/Source'),
+import BotDriver from './src/BotDriver.js'
+import Capabilities from './src/Capabilities.js'
+import Defaults from './src/Defaults.js'
+import Enums from './src/Enums.js'
+import Events from './src/Events.js'
+import Plugins from './src/Plugins.js'
+import Source from './src/Source.js'
 
-  InboundProxy: require('./src/grid/inbound/proxy'),
+import InboundProxy from './src/grid/inbound/proxy.js'
 
-  HookUtils: require('./src/helpers/HookUtils'),
-  TranscriptUtils: require('./src/helpers/TranscriptUtils'),
+import HookUtils from './src/helpers/HookUtils.js'
+import TranscriptUtils from './src/helpers/TranscriptUtils.js'
 
-  RetryHelper: require('./src/helpers/RetryHelper'),
+import RetryHelper from './src/helpers/RetryHelper.js'
 
-  BotiumMockRichMessageTypes: require('./src/mocks/BotiumMockRichMessageTypes'),
+import BotiumMockRichMessageTypes from './src/mocks/BotiumMockRichMessageTypes.js'
 
-  BotiumError: require('./src/scripting/BotiumError').BotiumError,
-  ScriptingConstants: require('./src/scripting/Constants'),
-  ScriptingMemory: require('./src/scripting/ScriptingMemory'),
-  ScriptingProvider: require('./src/scripting/ScriptingProvider'),
-  LogicHookConstants: require('./src/scripting/logichook/LogicHookConsts'),
+import BotiumErrorPkg from './src/scripting/BotiumError.js'
+import ScriptingConstants from './src/scripting/Constants.js'
+import ScriptingMemory from './src/scripting/ScriptingMemory.js'
+import ScriptingProvider from './src/scripting/ScriptingProvider.js'
+import LogicHookConstants from './src/scripting/logichook/LogicHookConsts.js'
 
-  Lib: {
-    SimpleRestContainer: require('./src/containers/plugins/SimpleRestContainer'),
-    tryLoadPlugin: require('./src/containers/plugins/index').tryLoadPlugin
-  }
+import SimpleRestContainer from './src/containers/plugins/SimpleRestContainer.js'
+import pluginLoader from './src/containers/plugins/index.js'
+
+export {
+  BotDriver,
+  Capabilities,
+  Defaults,
+  Enums,
+  Events,
+  Plugins,
+  Source,
+  InboundProxy,
+  HookUtils,
+  TranscriptUtils,
+  RetryHelper,
+  BotiumMockRichMessageTypes,
+  ScriptingConstants,
+  ScriptingMemory,
+  ScriptingProvider,
+  LogicHookConstants
 }
+
+export const BotiumError = BotiumErrorPkg.BotiumError
+
+export const Lib = {
+  SimpleRestContainer,
+  tryLoadPlugin: pluginLoader.tryLoadPlugin
+}
+
+const botiumCore = {
+  BotDriver,
+  Capabilities,
+  Defaults,
+  Enums,
+  Events,
+  Plugins,
+  Source,
+  InboundProxy,
+  HookUtils,
+  TranscriptUtils,
+  RetryHelper,
+  BotiumMockRichMessageTypes,
+  BotiumError: BotiumErrorPkg.BotiumError,
+  ScriptingConstants,
+  ScriptingMemory,
+  ScriptingProvider,
+  LogicHookConstants,
+  Lib
+}
+
+export default botiumCore

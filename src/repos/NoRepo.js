@@ -1,6 +1,6 @@
-const BaseRepo = require('./BaseRepo')
+import BaseRepo from './BaseRepo.js'
 
-module.exports = class NoRepo extends BaseRepo {
+export default class NoRepo extends BaseRepo {
   Validate () {
     return super.Validate()
   }
@@ -8,4 +8,4 @@ module.exports = class NoRepo extends BaseRepo {
   Prepare () {
     return super.Prepare()
   }
-}
+};

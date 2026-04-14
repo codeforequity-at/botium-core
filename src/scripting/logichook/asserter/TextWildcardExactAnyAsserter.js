@@ -1,9 +1,9 @@
-const BaseTextAsserter = require('./BaseTextAsserter')
-const MatchFunctions = require('../../MatchFunctions')
+import BaseTextAsserter from './BaseTextAsserter.js'
+import MatchFunctions from '../../MatchFunctions.js'
 
-module.exports = class TextWildcardExactAnyAsserter extends BaseTextAsserter {
+export default class TextWildcardExactAnyAsserter extends BaseTextAsserter {
   constructor (context, caps = {}) {
     super(context, caps, MatchFunctions.wildcardExact(false), 'any')
     this.name = 'Text Wildcard Exact Any Asserter'
   }
-}
+};

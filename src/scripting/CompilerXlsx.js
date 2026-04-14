@@ -1,17 +1,17 @@
-const util = require('util')
-const XLSX = require('xlsx')
-const _ = require('lodash')
-const debug = require('debug')('botium-core-CompilerXlsx')
+import util from 'util'
+import XLSX from 'xlsx'
+import _ from 'lodash'
+import Capabilities from '../Capabilities.js'
+import { E_SCRIPTING_MEMORY_COLUMN_MODE } from '../Enums.js'
+import CompilerBase from './CompilerBase.js'
+import Constants from './Constants.js'
+import Utterance from './Utterance.js'
+import { Convo } from './Convo.js'
+import { linesToConvoStep, convoStepToLines, validateConvo } from './helper.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-CompilerXlsx')
 
-const Capabilities = require('../Capabilities')
-const { E_SCRIPTING_MEMORY_COLUMN_MODE } = require('../Enums')
-const CompilerBase = require('./CompilerBase')
-const Constants = require('./Constants')
-const Utterance = require('./Utterance')
-const { Convo } = require('./Convo')
-const { linesToConvoStep, convoStepToLines, validateConvo } = require('./helper')
-
-module.exports = class CompilerXlsx extends CompilerBase {
+export default class CompilerXlsx extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
 
@@ -509,4 +509,4 @@ module.exports = class CompilerXlsx extends CompilerBase {
     }
     return { rowindex, colindex, hasNameCol }
   }
-}
+};

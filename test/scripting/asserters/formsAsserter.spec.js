@@ -1,5 +1,5 @@
-const assert = require('chai').assert
-const FormsAsserter = require('../../../src/scripting/logichook/asserter/FormsAsserter')
+import { assert } from 'chai'
+import FormsAsserter from '../../../src/scripting/logichook/asserter/FormsAsserter.js'
 
 describe('scripting.asserters.formsAsserter', function () {
   beforeEach(async function () {

@@ -1,10 +1,13 @@
-const path = require('path')
-const fs = require('fs')
-const _ = require('lodash')
-const debug = require('debug')('botium-connector-PluginConnectorContainer-helper')
+import path from 'path'
+import fs from 'fs'
+import _ from 'lodash'
+import { createRequire } from 'module'
+import createDebug from 'debug'
+import SimpleRestContainer from './SimpleRestContainer.js'
+import Capabilities from '../../Capabilities.js'
 
-const SimpleRestContainer = require('./SimpleRestContainer')
-const Capabilities = require('../../Capabilities')
+const require = createRequire(import.meta.url)
+const debug = createDebug('botium-connector-PluginConnectorContainer-helper')
 
 const pluginResolver = (containermode) => {
   if (containermode === 'simplerest') {
@@ -134,7 +137,13 @@ const tryLoadPlugin = (containermode, modulepath, args) => {
   throw new Error(`Loading Botium Plugin failed.\r\n${loadErr.join('\r\n')}`)
 }
 
-module.exports = {
+export {
+  pluginResolver,
+  getModuleVersionSafe,
+  tryLoadPlugin
+}
+
+export default {
   pluginResolver,
   getModuleVersionSafe,
   tryLoadPlugin

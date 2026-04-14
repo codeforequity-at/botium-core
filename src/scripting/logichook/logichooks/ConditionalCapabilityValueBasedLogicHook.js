@@ -1,9 +1,9 @@
-const util = require('util')
-const jp = require('jsonpath')
-const _ = require('lodash')
-const debug = require('debug')('botium-core-ConditionalCapabilityValueBasedLogicHook')
-
-module.exports = class ConditionalCapabilityValueBasedLogicHook {
+import util from 'util'
+import jp from 'jsonpath'
+import _ from 'lodash'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-ConditionalCapabilityValueBasedLogicHook')
+export default class ConditionalCapabilityValueBasedLogicHook {
   constructor (context, caps, globalArgs) {
     this.context = context
     this.caps = caps
@@ -34,4 +34,4 @@ module.exports = class ConditionalCapabilityValueBasedLogicHook {
     convoStep.conditional.skip = !this._isCapabilityValueEqual(params)
     debug(`ConditionalCapabilityValueBasedLogicHook onBotPrepare ${convo.header.name}/${convoStep.stepTag}, args: ${util.inspect(args)}, convoStep.conditional: ${util.inspect(convoStep.conditional)}`)
   }
-}
+};

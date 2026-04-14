@@ -1,11 +1,14 @@
-const path = require('path')
-const chai = require('chai')
-const chaiAsPromised = require('chai-as-promised')
+import path from 'path'
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
+import { BotDriver, Capabilities } from '../../index.js'
+import HookUtils from '../../src/helpers/HookUtils.js'
+import { fileURLToPath } from 'url'
 chai.use(chaiAsPromised)
 const assert = chai.assert
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
-const HookUtils = require('../../src/helpers/HookUtils')
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const myCapsSimpleRest = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -213,7 +216,7 @@ describe('security.allowUnsafe', function () {
       } catch (err) {
         assert.isTrue(err.message.indexOf('Security Error. Using base dir global argument in MediaInput is required') >= 0)
       }
-      await container && container.Clean()
+      (await container) && container.Clean()
     })
 
     it('should fail for downloadMedia global arg as file', async function () {
@@ -241,7 +244,7 @@ describe('security.allowUnsafe', function () {
       } catch (err) {
         assert.isTrue(err.message.indexOf('Security Error. Using base dir global argument in MediaInput is required') >= 0)
       }
-      await container && container.Clean()
+      (await container) && container.Clean()
     })
 
     it('should fail for wildcard arg', async function () {
@@ -257,7 +260,7 @@ describe('security.allowUnsafe', function () {
       } catch (err) {
         assert.isTrue(err.message.indexOf('Security Error. Using base dir global argument in MediaInput is required') >= 0)
       }
-      await container && container.Clean()
+      (await container) && container.Clean()
     })
   })
 })

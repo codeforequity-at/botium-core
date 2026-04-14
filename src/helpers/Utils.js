@@ -1,4 +1,4 @@
-const _ = require('lodash')
+import _ from 'lodash'
 
 const isStringJson = (string) => {
   try {
@@ -94,4 +94,15 @@ const formatTimeout = (ms) => {
   }
 }
 
-module.exports = { optionalJson, isJson, isJsonObject, isStringJson, shortenJsonString, escapeJSONString, toJsonWeak, formatTimeout }
+export {
+  optionalJson,
+  isJson,
+  isJsonObject,
+  isStringJson,
+  shortenJsonString,
+  escapeJSONString,
+  toJsonWeak,
+  formatTimeout
+}
+
+export default { optionalJson, isJson, isJsonObject, isStringJson, shortenJsonString, escapeJSONString, toJsonWeak, formatTimeout }

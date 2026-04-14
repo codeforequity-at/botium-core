@@ -1,10 +1,10 @@
-const _ = require('lodash')
-const isJSON = require('is-json')
-const speechScorer = require('word-error-rate')
-const debug = require('debug')('botium-core-scripting-helper')
-
-const { E_SCRIPTING_MEMORY_COLUMN_MODE } = require('../Enums')
-const Capabilities = require('../Capabilities')
+import _ from 'lodash'
+import isJSON from 'is-json'
+import speechScorer from 'word-error-rate'
+import { E_SCRIPTING_MEMORY_COLUMN_MODE } from '../Enums.js'
+import Capabilities from '../Capabilities.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-scripting-helper')
 const WHITE_SPACES_EXCEPT_SPACE_CHAR_AT_THE_END = /[\n\t\r]+$/
 
 const normalizeText = (str, doCleanupOrCaps) => {
@@ -631,7 +631,26 @@ const calculateWer = (str, pattern) => {
 
 const toPercent = (s) => `${(s * 100).toFixed(0)}%`
 
-module.exports = {
+export {
+  normalizeText,
+  splitStringInNonEmptyLines,
+  quoteRegexpString,
+  toString,
+  flatString,
+  removeBuffers,
+  linesToConvoStep,
+  convoStepToLines,
+  convoStepToObject,
+  validSenders,
+  validateSender,
+  validateConvo,
+  linesToScriptingMemories,
+  calculateWer,
+  toPercent,
+  trimExceptSpaceEnd
+}
+
+export default {
   normalizeText,
   splitStringInNonEmptyLines,
   quoteRegexpString,

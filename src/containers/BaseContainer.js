@@ -1,17 +1,17 @@
-const util = require('util')
-const async = require('async')
-const rimraf = require('rimraf')
-const Bottleneck = require('bottleneck')
-const _ = require('lodash')
-const debug = require('debug')('botium-connector-BaseContainer')
+import util from 'util'
+import async from 'async'
+import { rimraf } from 'rimraf'
+import Bottleneck from 'bottleneck'
+import _ from 'lodash'
+import Events from '../Events.js'
+import Capabilities from '../Capabilities.js'
+import Queue from '../helpers/Queue.js'
+import { executeHook, getHook } from '../helpers/HookUtils.js'
+import BotiumMockMessage from '../mocks/BotiumMockMessage.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-connector-BaseContainer')
 
-const Events = require('../Events')
-const Capabilities = require('../Capabilities')
-const Queue = require('../helpers/Queue')
-const { executeHook, getHook } = require('../helpers/HookUtils')
-const BotiumMockMessage = require('../mocks/BotiumMockMessage')
-
-module.exports = class BaseContainer {
+export default class BaseContainer {
   constructor (eventEmitter, tempDirectory, repo, caps, envs) {
     this.eventEmitter = eventEmitter
     this.repo = repo
@@ -243,4 +243,4 @@ module.exports = class BaseContainer {
       debug(`_RunCustomHook ${name} finished with error: ${err.message || util.inspect(err)}`)
     }
   }
-}
+};

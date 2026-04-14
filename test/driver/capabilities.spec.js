@@ -1,7 +1,7 @@
-const assert = require('chai').assert
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
-const DefaultCapabilities = require('../../src/Defaults').Capabilities
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../index.js'
+import Defaults from '../../src/Defaults.js'
+const DefaultCapabilities = Defaults.Capabilities
 
 describe('driver.capabilities', function () {
   describe('fetchConfigFromFiles', function () {

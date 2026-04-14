@@ -1,6 +1,6 @@
-const assert = require('chai').assert
-const moment = require('moment')
-const PauseLogic = require('../../../src/scripting/logichook/PauseLogic')
+import { assert } from 'chai'
+import moment from 'moment'
+import PauseLogic from '../../../src/scripting/logichook/PauseLogic.js'
 
 describe('PauseLogic.pause', function () {
   it('positive case for pause logic', async function () {

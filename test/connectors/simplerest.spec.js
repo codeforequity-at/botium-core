@@ -1,12 +1,15 @@
-const path = require('path')
-const chai = require('chai')
-const chaiAsPromised = require('chai-as-promised')
+import path from 'path'
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
+import { getAllCapValues } from '../../src/helpers/CapabilitiesUtils.js'
+import { BotDriver, Capabilities } from '../../index.js'
+import nock from 'nock'
+import { fileURLToPath } from 'url'
 chai.use(chaiAsPromised)
 const assert = chai.assert
-const { getAllCapValues } = require('../../src/helpers/CapabilitiesUtils')
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
-const nock = require('nock')
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const myCapsGet = {
   [Capabilities.CONTAINERMODE]: 'simplerest',
@@ -108,7 +111,7 @@ const myCapsRequestHookFromFunction = Object.assign({
 }, myCapsHookBase)
 const myCapsRequestHookFromModule = Object.assign({
   [Capabilities.SAFEDIR]: './test/connectors/',
-  [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'logicHook.js'
+  [Capabilities.SIMPLEREST_REQUEST_HOOK]: 'logicHook.cjs'
 }, myCapsHookBase)
 const myCapsResponseHook = Object.assign({
   [Capabilities.SIMPLEREST_RESPONSE_HOOK]: ({ botMsg }) => {

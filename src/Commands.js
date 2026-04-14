@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   BUILD_CONTAINER: 'BUILD_CONTAINER',
   START_CONTAINER: 'START_CONTAINER',
   SENDTOBOT: 'SENDTOBOT',

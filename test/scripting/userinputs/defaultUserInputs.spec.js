@@ -1,7 +1,7 @@
-const assert = require('chai').assert
-const ButtonInput = require('../../../src/scripting/logichook/userinput/ButtonInput')
-const MediaInput = require('../../../src/scripting/logichook/userinput/MediaInput')
-const FormInput = require('../../../src/scripting/logichook/userinput/FormInput')
+import { assert } from 'chai'
+import ButtonInput from '../../../src/scripting/logichook/userinput/ButtonInput.js'
+import MediaInput from '../../../src/scripting/logichook/userinput/MediaInput.js'
+import FormInput from '../../../src/scripting/logichook/userinput/FormInput.js'
 
 const convoStep = {
   stepTag: 'MYSTEPTAG'

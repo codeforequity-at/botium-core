@@ -1,10 +1,13 @@
-const path = require('path')
-const assert = require('chai').assert
-const BotDriver = require('../../').BotDriver
-const Capabilities = require('../../').Capabilities
-const TranscriptUtils = require('../../').TranscriptUtils
-const debug = require('debug')('botium-test-transcriptutils')
-const util = require('util')
+import path from 'path'
+import { assert } from 'chai'
+import { BotDriver, Capabilities, TranscriptUtils } from '../../index.js'
+import util from 'util'
+import createDebug from 'debug'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const debug = createDebug('botium-test-transcriptutils')
 
 const createEchoConnector = () => ({ queueBotSays, caps }) => {
   return {

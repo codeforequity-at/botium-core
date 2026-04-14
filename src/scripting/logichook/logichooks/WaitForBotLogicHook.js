@@ -1,8 +1,9 @@
-const async = require('async')
-const debug = require('debug')('botium-core-WaitForBotLogicHook')
-const { formatTimeout } = require('../../../helpers/Utils')
+import async from 'async'
+import { formatTimeout } from '../../../helpers/Utils.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-WaitForBotLogicHook')
 
-module.exports = class WaitForBotLogicHook {
+export default class WaitForBotLogicHook {
   onConvoBegin (params) {
     return this._waitForBot(params)
   }
@@ -57,4 +58,4 @@ module.exports = class WaitForBotLogicHook {
       })
     }
   }
-}
+};

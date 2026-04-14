@@ -1,10 +1,13 @@
-const util = require('util')
-const path = require('path')
-const fs = require('fs')
-const _ = require('lodash')
-const debug = require('debug')('botium-core-HookUtils')
+import util from 'util'
+import path from 'path'
+import fs from 'fs'
+import _ from 'lodash'
+import { createRequire } from 'module'
+import createDebug from 'debug'
+import Capabilities from '../Capabilities.js'
 
-const Capabilities = require('../Capabilities')
+const require = createRequire(import.meta.url)
+const debug = createDebug('botium-core-HookUtils')
 
 const executeHook = async (caps, hook, ...args) => {
   return executeHookSync(caps, hook, ...args)
@@ -74,7 +77,13 @@ const getHook = (caps, data) => {
   throw new Error(`Hook specification "${util.inspect(data)}" invalid: no loader available`)
 }
 
-module.exports = {
+export {
+  getHook,
+  executeHook,
+  executeHookSync
+}
+
+export default {
   getHook,
   executeHook,
   executeHookSync

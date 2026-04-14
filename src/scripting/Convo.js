@@ -1,15 +1,14 @@
-const util = require('util')
-const _ = require('lodash')
-const debug = require('debug')('botium-core-Convo')
-
-const BotiumMockMessage = require('../mocks/BotiumMockMessage')
-const Capabilities = require('../Capabilities')
-const Events = require('../Events')
-const ScriptingMemory = require('./ScriptingMemory')
-const { BotiumError, botiumErrorFromErr, botiumErrorFromList } = require('./BotiumError')
-const { normalizeText, toString, removeBuffers, splitStringInNonEmptyLines } = require('./helper')
-
-const { LOGIC_HOOK_INCLUDE } = require('./logichook/LogicHookConsts')
+import util from 'util'
+import _ from 'lodash'
+import BotiumMockMessage from '../mocks/BotiumMockMessage.js'
+import Capabilities from '../Capabilities.js'
+import Events from '../Events.js'
+import ScriptingMemory from './ScriptingMemory.js'
+import { BotiumError, botiumErrorFromErr, botiumErrorFromList } from './BotiumError.js'
+import { normalizeText, toString, removeBuffers, splitStringInNonEmptyLines } from './helper.js'
+import { LOGIC_HOOK_INCLUDE } from './logichook/LogicHookConsts.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-Convo')
 
 class ConvoHeader {
   constructor (fromJson = {}) {
@@ -903,7 +902,20 @@ class Convo {
   }
 }
 
-module.exports = {
+export {
+  Convo,
+  ConvoHeader,
+  ConvoStep,
+  ConvoStepAssert,
+  ConvoStepLogicHook,
+  ConvoStepUserInput,
+  Transcript,
+  TranscriptAttachment,
+  TranscriptStep,
+  TranscriptError
+}
+
+export default {
   Convo,
   ConvoHeader,
   ConvoStep,

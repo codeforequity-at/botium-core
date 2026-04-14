@@ -1,7 +1,7 @@
-const assert = require('chai').assert
-const JsonPathAsserter = require('../../../src/scripting/logichook/asserter/JsonPathAsserter')
-const JsonPathCountAsserter = require('../../../src/scripting/logichook/asserter/JsonPathCountAsserter')
-const { getMatchFunction } = require('../../../src/scripting/MatchFunctions')
+import { assert } from 'chai'
+import JsonPathAsserter from '../../../src/scripting/logichook/asserter/JsonPathAsserter.js'
+import JsonPathCountAsserter from '../../../src/scripting/logichook/asserter/JsonPathCountAsserter.js'
+import { getMatchFunction } from '../../../src/scripting/MatchFunctions.js'
 
 describe('scripting.asserters.jsonPathAsserter', function () {
   describe('jsonPathAsserter', function () {

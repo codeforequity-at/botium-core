@@ -1,6 +1,6 @@
-const Capabilities = require('../../index').Capabilities
-const { normalizeText } = require('../../src/scripting/helper')
-const assert = require('chai').assert
+import { Capabilities } from '../../index.js'
+import { normalizeText } from '../../src/scripting/helper.js'
+import { assert } from 'chai'
 
 describe('scripting.helper', function () {
   describe('NormalizeText', function () {

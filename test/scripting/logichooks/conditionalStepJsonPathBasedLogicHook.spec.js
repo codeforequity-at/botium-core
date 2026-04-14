@@ -1,6 +1,9 @@
-const path = require('path')
-const BotDriver = require('../../../index').BotDriver
-const Capabilities = require('../../../index').Capabilities
+import path from 'path'
+import { BotDriver, Capabilities } from '../../../index.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const echoConnector = ({ queueBotSays }) => {
   return {
@@ -25,7 +28,7 @@ describe('convo with capablility value based conditional logichook', function ()
   })
 
   afterEach(async function () {
-    this.container && await this.container.Clean()
+    this.container && (await this.container.Clean())
   })
 
   it('should success', async function () {

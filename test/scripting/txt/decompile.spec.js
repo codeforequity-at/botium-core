@@ -1,6 +1,7 @@
-const assert = require('chai').assert
-const ScriptingProvider = require('../../../src/scripting/ScriptingProvider')
-const DefaultCapabilities = require('../../../src/Defaults').Capabilities
+import { assert } from 'chai'
+import ScriptingProvider from '../../../src/scripting/ScriptingProvider.js'
+import Defaults from '../../../src/Defaults.js'
+const DefaultCapabilities = Defaults.Capabilities
 
 describe('scriptingProvider.txt.decompile', function () {
   it('should decompile 2-step convo', async function () {

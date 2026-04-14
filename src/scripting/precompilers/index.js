@@ -1,17 +1,21 @@
-const util = require('util')
-const debug = require('debug')('botium-core-Precompilers')
+import util from 'util'
+import createDebug from 'debug'
+import * as JsonToJson from './JsonToJson.js'
+import * as Script from './Script.js'
+import * as MarkdownRasa from './MarkdownRasa.js'
+import { isJsonObject } from '../../helpers/Utils.js'
+import { flatCababilities } from '../../helpers/CapabilitiesUtils.js'
 
-const { isJsonObject } = require('../../helpers/Utils')
+const debug = createDebug('botium-core-Precompilers')
 
 const PROVIDERS = {
-  JSON_TO_JSON_JSONPATH: require('./JsonToJson'),
-  SCRIPT: require('./Script'),
-  MARKDOWN_RASA: require('./MarkdownRasa')
+  JSON_TO_JSON_JSONPATH: JsonToJson,
+  SCRIPT: Script,
+  MARKDOWN_RASA: MarkdownRasa
 }
 const CAPABILITY_PREFIX = 'PRECOMPILERS'
-const { flatCababilities } = require('../../helpers/CapabilitiesUtils')
 
-module.exports.execute = (scriptBuffer, options) => {
+export function execute (scriptBuffer, options) {
   const { caps, filename } = options
   const ownCaps = flatCababilities(caps, CAPABILITY_PREFIX)
   if (Buffer.isBuffer(scriptBuffer)) {

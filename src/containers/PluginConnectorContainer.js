@@ -1,14 +1,14 @@
-const util = require('util')
-const promiseRetry = require('promise-retry')
-const debug = require('debug')('botium-connector-PluginConnectorContainer')
+import util from 'util'
+import promiseRetry from 'promise-retry'
+import Events from '../Events.js'
+import Capabilities from '../Capabilities.js'
+import BaseContainer from './BaseContainer.js'
+import { tryLoadPlugin } from './plugins/index.js'
+import RetryHelper from '../helpers/RetryHelper.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-connector-PluginConnectorContainer')
 
-const Events = require('../Events')
-const Capabilities = require('../Capabilities')
-const BaseContainer = require('./BaseContainer')
-const { tryLoadPlugin } = require('./plugins/index')
-const RetryHelper = require('../helpers/RetryHelper')
-
-module.exports = class PluginConnectorContainer extends BaseContainer {
+export default class PluginConnectorContainer extends BaseContainer {
   async Validate () {
     await super.Validate()
     this.pluginInstance = tryLoadPlugin(
@@ -170,4 +170,4 @@ module.exports = class PluginConnectorContainer extends BaseContainer {
       return Promise.reject(new Error(`GetMetaData - Botium plugin failed: ${util.inspect(err)}`))
     }
   }
-}
+};

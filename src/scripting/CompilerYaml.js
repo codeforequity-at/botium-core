@@ -1,7 +1,7 @@
-const YAML = require('yaml')
+import YAML from 'yaml'
+import CompilerObjectBase from './CompilerObjectBase.js'
 
-const CompilerObjectBase = require('./CompilerObjectBase')
-module.exports = class CompilerYaml extends CompilerObjectBase {
+export default class CompilerYaml extends CompilerObjectBase {
   constructor (context, caps = {}) {
     super(context, caps)
   }
@@ -9,4 +9,4 @@ module.exports = class CompilerYaml extends CompilerObjectBase {
   Deserialize (scriptData) {
     return YAML.parse(scriptData)
   }
-}
+};

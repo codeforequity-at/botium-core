@@ -11,7 +11,7 @@ export default {
       sourcemap: true
     },
     {
-      file: 'dist/botium-cjs.js',
+      file: 'dist/botium-cjs.cjs',
       format: 'cjs',
       sourcemap: true
     }

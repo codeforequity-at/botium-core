@@ -1,8 +1,8 @@
-const chai = require('chai')
-const assert = require('chai').assert
-chai.use(require('chai-as-promised'))
+import chai, { assert } from 'chai'
+import chaiAsPromised from 'chai-as-promised'
 
-const IntentUniqueAsserter = require('../../../src/scripting/logichook/asserter/IntentUniqueAsserter')
+import IntentUniqueAsserter from '../../../src/scripting/logichook/asserter/IntentUniqueAsserter.js'
+chai.use(chaiAsPromised)
 const asserter = new IntentUniqueAsserter(null, {})
 
 describe('scripting.asserters.intentUniqueAsserter', function () {

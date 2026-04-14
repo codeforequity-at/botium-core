@@ -1,9 +1,13 @@
-const path = require('path')
-const assert = require('chai').assert
-const BotDriver = require('../../../index').BotDriver
-const Capabilities = require('../../../index').Capabilities
-const debug = require('debug')('botium-test-logichooks-waitforbot')
-const util = require('util')
+import path from 'path'
+import { assert } from 'chai'
+import { BotDriver, Capabilities } from '../../../index.js'
+import util from 'util'
+import createDebug from 'debug'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const debug = createDebug('botium-test-logichooks-waitforbot')
 
 const createEchoConnector = () => ({ queueBotSays, caps }) => {
   return {

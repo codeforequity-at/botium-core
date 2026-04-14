@@ -1,7 +1,7 @@
-const { BotiumError } = require('../../BotiumError')
-const { mediaFromMsg } = require('../helpers')
+import { BotiumError } from '../../BotiumError.js'
+import { mediaFromMsg } from '../helpers.js'
 
-module.exports = class MediaAsserter {
+export default class MediaAsserter {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -102,4 +102,4 @@ module.exports = class MediaAsserter {
     }
     return Promise.resolve()
   }
-}
+};

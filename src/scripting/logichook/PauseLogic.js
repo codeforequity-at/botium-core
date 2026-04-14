@@ -1,6 +1,6 @@
-const { BotiumError } = require('../BotiumError')
+import { BotiumError } from '../BotiumError.js'
 
-module.exports.pause = (source, ref, args) => {
+export function pause (source, ref, args) {
   if (!args || args.length < 1) {
     return Promise.reject(new BotiumError(`${ref}: ${source} Missing argument"`,
       {
@@ -36,3 +36,5 @@ module.exports.pause = (source, ref, args) => {
 
   return new Promise(resolve => setTimeout(resolve, parsed))
 }
+
+export default { pause }

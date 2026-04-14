@@ -1,25 +1,33 @@
-const LogicHookUtils = require('./logichook/LogicHookUtils')
-const util = require('util')
-const crypto = require('crypto')
-const fs = require('fs')
-const path = require('path')
-const globby = require('globby')
-const _ = require('lodash')
-const randomize = require('randomatic')
-const promiseRetry = require('promise-retry')
-require('promise.allsettled').shim()
-const debug = require('debug')('botium-core-ScriptingProvider')
+import LogicHookUtils from './logichook/LogicHookUtils.js'
+import util from 'util'
+import crypto from 'crypto'
+import fs from 'fs'
+import path from 'path'
+import globby from 'globby'
+import _ from 'lodash'
+import randomize from 'randomatic'
+import promiseRetry from 'promise-retry'
+import promiseAllSettled from 'promise.allsettled'
+import createDebug from 'debug'
+import Constants from './Constants.js'
+import Capabilities from '../Capabilities.js'
+import Defaults from '../Defaults.js'
+import { Convo, ConvoStep } from './Convo.js'
+import ScriptingMemory from './ScriptingMemory.js'
+import { BotiumError, botiumErrorFromList, botiumErrorFromErr } from './BotiumError.js'
+import RetryHelper from '../helpers/RetryHelper.js'
+import { getMatchFunction } from './MatchFunctions.js'
+import * as precompilers from './precompilers/index.js'
+import { calculateWer, toPercent } from './helper.js'
+import CompilerXlsx from './CompilerXlsx.js'
+import CompilerTxt from './CompilerTxt.js'
+import CompilerCsv from './CompilerCsv.js'
+import CompilerYaml from './CompilerYaml.js'
+import CompilerJson from './CompilerJson.js'
+import CompilerMarkdown from './CompilerMarkdown.js'
 
-const Constants = require('./Constants')
-const Capabilities = require('../Capabilities')
-const Defaults = require('../Defaults')
-const { Convo, ConvoStep } = require('./Convo')
-const ScriptingMemory = require('./ScriptingMemory')
-const { BotiumError, botiumErrorFromList, botiumErrorFromErr } = require('./BotiumError')
-const RetryHelper = require('../helpers/RetryHelper')
-const { getMatchFunction } = require('./MatchFunctions')
-const precompilers = require('./precompilers')
-const { calculateWer, toPercent } = require('./helper')
+promiseAllSettled.shim()
+const debug = createDebug('botium-core-ScriptingProvider')
 
 const globPattern = '**/+(*.convo.txt|*.utterances.txt|*.pconvo.txt|*.scriptingmemory.txt|*.xlsx|*.xlsm|*.convo.csv|*.pconvo.csv|*.utterances.csv|*.yaml|*.yml|*.json|*.md|*.markdown)'
 const skipPattern = /^skip[.\-_]/i
@@ -75,7 +83,7 @@ const pnot = (retryHelper, fn, errTemplate) => {
   }
 }
 
-module.exports = class ScriptingProvider {
+export default class ScriptingProvider {
   constructor (caps) {
     this.caps = caps || _.cloneDeep(Defaults.Capabilities)
     this.compilers = {}
@@ -512,22 +520,16 @@ module.exports = class ScriptingProvider {
   }
 
   Build () {
-    const CompilerXlsx = require('./CompilerXlsx')
     this.compilers[Constants.SCRIPTING_FORMAT_XSLX] = new CompilerXlsx(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_XSLX].Validate()
-    const CompilerTxt = require('./CompilerTxt')
     this.compilers[Constants.SCRIPTING_FORMAT_TXT] = new CompilerTxt(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_TXT].Validate()
-    const CompilerCsv = require('./CompilerCsv')
     this.compilers[Constants.SCRIPTING_FORMAT_CSV] = new CompilerCsv(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_CSV].Validate()
-    const CompilerYaml = require('./CompilerYaml')
     this.compilers[Constants.SCRIPTING_FORMAT_YAML] = new CompilerYaml(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_YAML].Validate()
-    const CompilerJson = require('./CompilerJson')
     this.compilers[Constants.SCRIPTING_FORMAT_JSON] = new CompilerJson(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_JSON].Validate()
-    const CompilerMarkdown = require('./CompilerMarkdown')
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN] = new CompilerMarkdown(this._buildScriptContext(), this.caps)
     this.compilers[Constants.SCRIPTING_FORMAT_MARKDOWN].Validate()
 
@@ -1605,4 +1607,4 @@ module.exports = class ScriptingProvider {
     }
     return counter === 0 ? 1 : counter
   }
-}
+};

@@ -1,11 +1,15 @@
-const path = require('path')
-const assert = require('chai').assert
-const expect = require('chai').expect
-const { Convo } = require('../../src/scripting/Convo')
-const ScriptingProvider = require('../../src/scripting/ScriptingProvider')
-const DefaultCapabilities = require('../../src/Defaults').Capabilities
-const Capabilities = require('../../src/Capabilities')
-const { LOGIC_HOOK_EVENTS } = require('../../src/scripting/logichook/LogicHookConsts')
+import path from 'path'
+import { assert, expect } from 'chai'
+import { Convo } from '../../src/scripting/Convo.js'
+import ScriptingProvider from '../../src/scripting/ScriptingProvider.js'
+import Defaults from '../../src/Defaults.js'
+import Capabilities from '../../src/Capabilities.js'
+import { LOGIC_HOOK_EVENTS } from '../../src/scripting/logichook/LogicHookConsts.js'
+import { fileURLToPath } from 'url'
+
+const DefaultCapabilities = Defaults.Capabilities
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 describe('scripting.scriptingProvider', function () {
   describe('ReadScriptsFromDirectory', function () {

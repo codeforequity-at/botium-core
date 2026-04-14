@@ -1,13 +1,20 @@
-const _ = require('lodash')
+import _ from 'lodash'
+import Capabilities from '../Capabilities.js'
+import Constants from './Constants.js'
+import CompilerBase from './CompilerBase.js'
+import Utterance from './Utterance.js'
+import { ConvoHeader, Convo } from './Convo.js'
 
-const Capabilities = require('../Capabilities')
-const Constants = require('./Constants')
-const CompilerBase = require('./CompilerBase')
-const Utterance = require('./Utterance')
-const { ConvoHeader, Convo } = require('./Convo')
-const { linesToConvoStep, convoStepToLines, validateConvo, validSenders, linesToScriptingMemories, trimExceptSpaceEnd } = require('./helper')
+import {
+  linesToConvoStep,
+  convoStepToLines,
+  validateConvo,
+  validSenders,
+  linesToScriptingMemories,
+  trimExceptSpaceEnd
+} from './helper.js'
 
-module.exports = class CompilerTxt extends CompilerBase {
+export default class CompilerTxt extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
 
@@ -173,4 +180,4 @@ module.exports = class CompilerTxt extends CompilerBase {
     })
     return script
   }
-}
+};

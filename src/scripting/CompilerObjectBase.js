@@ -1,14 +1,14 @@
-const _ = require('lodash')
-const debug = require('debug')('botium-core-CompilerObject')
+import _ from 'lodash'
+import Capabilities from '../Capabilities.js'
+import CompilerBase from './CompilerBase.js'
+import Constants from './Constants.js'
+import Utterance from './Utterance.js'
+import { Convo } from './Convo.js'
+import { linesToConvoStep, validSenders, linesToScriptingMemories } from './helper.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-CompilerObject')
 
-const Capabilities = require('../Capabilities')
-const CompilerBase = require('./CompilerBase')
-const Constants = require('./Constants')
-const Utterance = require('./Utterance')
-const { Convo } = require('./Convo')
-const { linesToConvoStep, validSenders, linesToScriptingMemories } = require('./helper')
-
-module.exports = class CompilerObjectBase extends CompilerBase {
+export default class CompilerObjectBase extends CompilerBase {
   constructor (context, caps = {}) {
     super(context, caps)
   }
@@ -123,4 +123,4 @@ module.exports = class CompilerObjectBase extends CompilerBase {
   Decompile (convos) {
     throw new Error('not implemented')
   }
-}
+};

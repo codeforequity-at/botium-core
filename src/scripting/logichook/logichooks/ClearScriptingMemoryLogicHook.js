@@ -1,8 +1,8 @@
-const debug = require('debug')('botium-core-ClearScriptingMemoryLogicHook')
+import { RESERVED_WORDS } from '../../ScriptingMemory.js'
+import createDebug from 'debug'
+const debug = createDebug('botium-core-ClearScriptingMemoryLogicHook')
 
-const { RESERVED_WORDS } = require('../../ScriptingMemory')
-
-module.exports = class ClearScriptingMemoryLogicHook {
+export default class ClearScriptingMemoryLogicHook {
   constructor (context, caps = {}) {
     this.context = context
     this.caps = caps
@@ -44,4 +44,4 @@ module.exports = class ClearScriptingMemoryLogicHook {
 
     return Promise.resolve()
   }
-}
+};
