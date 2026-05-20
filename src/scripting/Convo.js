@@ -703,6 +703,16 @@ class Convo {
         } finally {
           if (convoStep.sender !== 'begin' && convoStep.sender !== 'end' && !skipTranscriptStep) {
             transcriptStep.scriptingMemory = Object.assign({}, scriptingMemory)
+            if (container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY] && transcriptStep.expected) {
+              const _resolveItemArgs = (items) => {
+                (items || []).forEach(item => {
+                  item.resolvedArgs = ScriptingMemory.applyToArgs(item.args, scriptingMemory, container.caps)
+                })
+              }
+              _resolveItemArgs(transcriptStep.expected.asserters)
+              _resolveItemArgs(transcriptStep.expected.logicHooks)
+              _resolveItemArgs(transcriptStep.expected.userInputs)
+            }
             transcriptStep.stepEnd = new Date()
             transcriptSteps.push(transcriptStep)
           }

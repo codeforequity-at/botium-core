@@ -160,6 +160,20 @@ describe('scripting.logichooks.global.setClearScriptingMemory', function () {
         assert.isTrue(err.message.indexOf('no result from JSON-Path query') >= 0)
       }
     })
+
+    it('should populate resolvedArgs on transcript asserters', async function () {
+      this.compiler.ReadScript(path.resolve(__dirname, 'convos'), 'scripting_memory_resolved_args.convo.txt')
+      assert.equal(this.compiler.convos.length, 1)
+
+      const transcript = await this.compiler.convos[0].Run(this.container)
+      assert.equal(transcript.steps.length, 2)
+
+      const botStep = transcript.steps[1]
+      assert.isArray(botStep.expected.asserters)
+      assert.equal(botStep.expected.asserters.length, 1)
+      assert.deepEqual(botStep.expected.asserters[0].args, ['$myword'])
+      assert.deepEqual(botStep.expected.asserters[0].resolvedArgs, ['hello'])
+    })
   })
 
   describe('global', function () {

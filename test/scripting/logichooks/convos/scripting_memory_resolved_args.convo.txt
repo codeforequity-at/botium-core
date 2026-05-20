@@ -1,0 +1,11 @@
+scripting_memory_resolved_args
+
+#begin
+SET_SCRIPTING_MEMORY myword|hello
+
+#me
+say hello world
+
+#bot
+say hello world
+TEXT_CONTAINS_ANY $myword
