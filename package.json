@@ -58,7 +58,7 @@
     "socket.io-client": "^4.8.3",
     "socketio-auth": "^0.1.1",
     "tinyglobby": "^0.2.15",
-    "undici": "^7.22.0",
+    "undici": "^6.28.0",
     "uuid": "^9.0.1",
     "word-error-rate": "0.0.7",
     "write-yaml": "^1.0.0",
