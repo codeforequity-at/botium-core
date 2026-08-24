@@ -59,7 +59,7 @@
     "socketio-auth": "^0.1.1",
     "tinyglobby": "^0.2.17",
     "undici": "^7.29.0",
-    "uuid": "^9.0.1",
+    "uuid": "^14.0.2",
     "word-error-rate": "0.0.7",
     "write-yaml": "^1.0.0",
     "xlsx": "^0.18.5",
