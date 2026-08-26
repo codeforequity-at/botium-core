@@ -1,7 +1,7 @@
 const util = require('util')
 const debug = require('debug')('botium-core-ScriptingMemory')
 const randomize = require('randomatic')
-const { v1: uuidv1 } = require('uuid')
+const { uuidv1 } = require('../helpers/Uuid')
 const moment = require('moment')
 const _ = require('lodash')
 const path = require('path')
