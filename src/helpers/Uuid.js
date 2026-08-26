@@ -37,7 +37,7 @@ const uuidv1 = () => {
   const timeLow = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000
   const timeMidHigh = ((msecs / 0x100000000) * 10000) & 0xfffffff
 
-  const bytes = Buffer.allocUnsafe(16)
+  const bytes = Buffer.alloc(16)
   bytes[0] = (timeLow >>> 24) & 0xff
   bytes[1] = (timeLow >>> 16) & 0xff
   bytes[2] = (timeLow >>> 8) & 0xff
@@ -53,6 +53,11 @@ const uuidv1 = () => {
   return formatUuid(bytes)
 }
 
-const uuidv4 = () => crypto.randomUUID()
+const uuidv4 = () => {
+  const bytes = crypto.randomBytes(16)
+  bytes[6] = (bytes[6] & 0x0f) | 0x40
+  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  return formatUuid(bytes)
+}
 
 module.exports = { uuidv1, uuidv4 }
