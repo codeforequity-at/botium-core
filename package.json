@@ -1,6 +1,6 @@
 {
   "name": "botium-core",
-  "version": "1.15.14",
+  "version": "1.15.15",
   "description": "The Selenium for Chatbots",
   "main": "index.js",
   "module": "dist/botium-es.js",
@@ -61,9 +61,12 @@
     "undici": "^7.29.0",
     "word-error-rate": "0.0.7",
     "write-yaml": "^1.0.0",
-    "xlsx": "^0.18.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "xregexp": "^5.1.2",
     "yaml": "^2.9.0"
+  },
+  "overrides": {
+    "underscore": "^1.13.8"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
