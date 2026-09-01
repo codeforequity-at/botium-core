@@ -876,7 +876,8 @@ module.exports = class ScriptingProvider {
       const multipliers = []
       for (const [key, scriptingMemories] of variablesToScriptingMemory.entries()) {
         const variableNames = JSON.parse(key)
-        if (_.intersection(variableNames, convoVariables).length) {
+        const variableNamesForMatch = ScriptingMemory.convoMemoryAliases(convo.header.name, variableNames)
+        if (_.intersection(variableNamesForMatch, convoVariables).length) {
           const convosExpandedVariable = []
           multipliers.push(scriptingMemories.length)
           scriptingMemories.forEach((scriptingMemory) => {
@@ -884,13 +885,22 @@ module.exports = class ScriptingProvider {
             for (const convoToExpand of convosToExpand) {
               const convoExpanded = _.cloneDeep(convoToExpand)
               convoExpanded.header.name = convoToExpand.header.name + '.' + scriptingMemory.header.name
-              variableNames.forEach((name) => {
-                const value = scriptingMemory.values[name]
+              const appendMemoryHook = (name, value) => {
                 if (value) {
-                  convoExpanded.beginLogicHook.push({ name: 'SET_SCRIPTING_MEMORY', args: [name.substring(1), scriptingMemory.values[name]] })
+                  convoExpanded.beginLogicHook.push({ name: 'SET_SCRIPTING_MEMORY', args: [name.substring(1), value] })
                 } else {
                   convoExpanded.beginLogicHook.push({ name: 'CLEAR_SCRIPTING_MEMORY', args: [name.substring(1)] })
                 }
+              }
+              variableNames.forEach((name) => {
+                appendMemoryHook(name, scriptingMemory.values[name])
+              })
+              // scoped $Convo__<thisConvo>__* aliases after originals so they win over a global of the same short name
+              variableNames.forEach((name) => {
+                const shortNames = ScriptingMemory.convoMemoryAliases(convo.header.name, [name]).filter(n => n !== name)
+                shortNames.forEach((shortName) => {
+                  appendMemoryHook(shortName, scriptingMemory.values[name])
+                })
               })
               convosExpandedVariable.push(convoExpanded)
             }
