@@ -1,0 +1,7 @@
+Login
+
+#me
+login $username $pw
+
+#bot
+login $username $pw
