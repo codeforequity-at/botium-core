@@ -214,6 +214,56 @@ const SCRIPTING_FUNCTIONS = _.mapValues(SCRIPTING_FUNCTIONS_RAW, (funcOrStruct, 
 })
 const RESERVED_WORDS = Object.keys(SCRIPTING_FUNCTIONS)
 
+// #region helper functions
+const _convoMemoryPrefix = (convoName) => `$Convo__${convoName}__`
+
+const _shortNameFromConvoMemory = (convoName, varName) => {
+  if (!convoName || !_.isString(varName)) {
+    return null
+  }
+  const prefix = _convoMemoryPrefix(convoName)
+  if (!varName.startsWith(prefix)) {
+    return null
+  }
+  const short = varName.slice(prefix.length)
+  if (!short) {
+    return null
+  }
+  return `$${short}`
+}
+
+const convoMemoryAliases = (convoName, varNames) => {
+  const names = varNames || []
+  if (!convoName) {
+    return [...names]
+  }
+  const aliased = []
+  for (const name of names) {
+    aliased.push(name)
+    const short = _shortNameFromConvoMemory(convoName, name)
+    if (short) {
+      aliased.push(short)
+    }
+  }
+  return _.uniq(aliased)
+}
+
+const aliasConvoMemory = (convoName, values) => {
+  const result = Object.assign({}, values || {})
+  if (!convoName || !values) {
+    return result
+  }
+  for (const [key, value] of Object.entries(values)) {
+    const short = _shortNameFromConvoMemory(convoName, key)
+    if (short) {
+      result[short] = value
+    }
+  }
+  return result
+}
+// #endregion
+
+// #region main functions
 const apply = (container, scriptingMemory, str, mockMsg) => {
   if (container.caps[Capabilities.SCRIPTING_ENABLE_MEMORY]) {
     str = _apply(scriptingMemory, str, container.caps, mockMsg)
@@ -328,12 +378,15 @@ const fill = (container, scriptingMemory, result, utterance, scriptingEvents) =>
     debug(`fill end: ${util.inspect(scriptingMemory)}`)
   }
 }
+// #endregion
 
 module.exports = {
   apply,
   applyToArgs,
   fill,
   extractVarNames,
+  convoMemoryAliases,
+  aliasConvoMemory,
   RESERVED_WORDS,
   SCRIPTING_FUNCTIONS
 }
