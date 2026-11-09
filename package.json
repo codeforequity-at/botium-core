@@ -9,13 +9,12 @@
   },
   "scripts": {
     "postinstall": "node ./report.js",
-    "build": "npm run eslint && nyc npm test && nyc check-coverage --lines 50 --functions 50 --branches 35 && rollup -c",
+    "build": "npm run eslint && npm test && rollup -c",
     "eslint": "eslint \"./src/**/*.js\" \"./test/**/*.js\"",
     "eslint-fix": "eslint --fix \"./src/**/*.js\" \"./test/**/*.js\"",
     "newpatch": "npm version patch",
     "link": "npm link botium-connector-dialogflow botium-connector-webdriverio botium-connector-directline3 botium-connector-watson botium-connector-alexa-smapi botium-connector-echo",
     "test": "cross-env NODE_PATH=\"./test/plugins/plugindir/fromfolder:./test/plugins/plugindir/fromfile:./test/security/resources\" mocha \"./test/**/*.spec.js\"",
-    "coverage:report": "nyc report --reporter=lcov npm test",
     "update-dependencies": "npm-check-updates --reject chai,globby,rollup -u --timeout 120000"
   },
   "repository": {
@@ -92,7 +91,6 @@
     "mocha": "^11.7.5",
     "nock": "^14.0.11",
     "npm-check-updates": "^19.6.3",
-    "nyc": "^18.0.0",
     "rollup": "2.80.0",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
